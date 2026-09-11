@@ -8,11 +8,17 @@ import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 
 export default function TrackTicket() {
+  // Controlled input state for student tracking code query (e.g., 'TICK-8F2D')
   const [code, setCode] = useState('');
+  
+  // State storing the fetched ticket record (or null if no search conducted yet)
   const [ticket, setTicket] = useState(null);
 
+  // Search trigger: in M2 development, replace this with axios call to GET /api/v1/tickets/${code}
   const handleSearch = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevents page reload
+    
+    // Simulate finding a matching ticket record
     setTicket({
       tracking_code: code.toUpperCase(),
       title: 'Water pipe leaking in corridor',

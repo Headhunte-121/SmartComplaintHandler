@@ -8,18 +8,28 @@ import LiveTriageCard from '../components/LiveTriageCard';
 import SubmissionSuccessModal from '../components/SubmissionSuccessModal';
 
 export default function SubmitComplaint() {
+  // Controlled form state storing input values for title, description, and location
   const [formData, setFormData] = useState({ title: '', description: '', location: '' });
+  
+  // State storing the generated tracking code when submission succeeds (controls modal visibility)
   const [successCode, setSuccessCode] = useState(null);
 
+  // Form submission handler: in M2 development, replace this with axios call to POST /api/v1/tickets
   const handleSubmit = (e) => {
-    e.preventDefault();
-    setSuccessCode('TICK-' + Math.random().toString(36).substring(2, 6).toUpperCase());
+    e.preventDefault(); // Prevents full-page browser refresh
+    
+    // Simulate collision-resistant code generation (TICK-XXXX)
+    const mockCode = 'TICK-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+    setSuccessCode(mockCode); // Triggers success modal popup
   };
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+      {/* Page Header and Subtitle */}
       <h2 className="text-2xl font-bold text-slate-900 mb-2">Submit Campus Grievance</h2>
       <p className="text-sm text-slate-600 mb-6">Our automated system classifies urgency and dispatches the nearest maintenance squad.</p>
+      
+      {/* Intake Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-bold uppercase text-slate-600 mb-1">Complaint Title</label>

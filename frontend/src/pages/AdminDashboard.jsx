@@ -11,7 +11,10 @@ import SLACountdownTimer from '../components/SLACountdownTimer';
 import ResolutionNotesModal from '../components/ResolutionNotesModal';
 
 export default function AdminDashboard() {
+  // Modal visibility state for resolution notes entry dialog
   const [resolveModalOpen, setResolveModalOpen] = useState(false);
+  
+  // Sample maintenance squad workload data (in M4 development, fetched from GET /api/v1/teams/workloads)
   const workloads = [
     { team_id: 1, team_name: 'Plumbing Squad 1', department_name: 'Plumbing', active_ticket_count: 4 },
     { team_id: 2, team_name: 'Plumbing Squad 2', department_name: 'Plumbing', active_ticket_count: 1 },
@@ -21,6 +24,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Dashboard Top Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">Facility Operations Workstation</h1>
       </div>
