@@ -47,6 +47,7 @@ npm run dev
 All engineering blueprints, team workflows, and architecture specifications are tracked directly inside this repository under the [`docs/`](docs/README.md) directory:
 
 * [**`docs/README.md`**](docs/README.md) — Master documentation index.
+* [**`docs/developer_guide/README.md`**](docs/developer_guide/README.md) — Complete Developer Engineering Handbook (Language mechanics, architecture rationales, and implementation walkthroughs across all modules).
 * [**`docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md) — Team roles, simultaneous file matrix, zero-blocking mocks, and beginner Git command guide.
 * [**`docs/V1/V1_CENTRAL_BLUEPRINT.md`**](docs/V1/V1_CENTRAL_BLUEPRINT.md) — Authoritative full-stack architecture specification across Modules M1–M5.
 * [**`docs/V1/V1_BLUEPRINT.md`**](docs/V1/V1_BLUEPRINT.md) — Closed-loop operational workflow and trace.

@@ -1,12 +1,27 @@
 # Smart Complaint Handler - Master Documentation Index
 
-This directory contains the complete technical specifications, architectural blueprints, foundational engineering manuals, and team workflow guides for the **Automated Smart Complaint Routing & Workflow Automation Platform**.
+This directory contains the complete technical specifications, architectural blueprints, foundational engineering manuals, and developer implementation guides for the **Automated Smart Complaint Routing & Workflow Automation Platform**.
 
 All documentation is tracked directly within this Git repository so every team member has access to the specifications alongside the codebase.
 
 ---
 
-## 1. Team Collaboration & Git Workflows
+## 1. Developer Engineering & Architecture Guides (`developer_guide/`)
+
+The core engineering manual for writing, understanding, and debugging the platform from scratch across the full stack:
+
+* [**`developer_guide/README.md`**](developer_guide/README.md) — Master Developer Handbook & Language Runtime Overview.
+* [**`developer_guide/00_FULL_STACK_ARCHITECTURE_AND_LANGUAGES.md`**](developer_guide/00_FULL_STACK_ARCHITECTURE_AND_LANGUAGES.md) — HTTP wire protocol, REST semantics, ASGI vs. WSGI, Python `asyncio` event loop, JavaScript Promises, V8 engine event loop, and Client-Server DTO contracts.
+* [**`developer_guide/01_DATABASE_ENGINE_AND_SHELL.md`**](developer_guide/01_DATABASE_ENGINE_AND_SHELL.md) — SQLite WAL (Write-Ahead Log) mode, SQLAlchemy 2.0 ORM, Python generators (`yield get_db`), FastAPI lifespan context managers, Vite reverse proxy, and React Router v6 SPA routing.
+* [**`developer_guide/02_INGESTION_AND_KEYWORD_ROUTING.md`**](developer_guide/02_INGESTION_AND_KEYWORD_ROUTING.md) — Pydantic v2 Rust core validation, collision-resistant tracking code generation, regex word-boundary keyword taxonomy routing, transactional units of work, and React controlled forms.
+* [**`developer_guide/03_DETERMINISTIC_TRIAGE_AND_PRIORITY.md`**](developer_guide/03_DETERMINISTIC_TRIAGE_AND_PRIORITY.md) — ITIL 2D Severity-Impact Cartesian matrix, emergency keyword regex amplifiers, real-time debounced API calls in React, and semantic design tokens.
+* [**`developer_guide/04_WORKLOAD_DISPATCH_AND_BALANCING.md`**](developer_guide/04_WORKLOAD_DISPATCH_AND_BALANCING.md) — Multi-server queue balancing theory ($M/M/c$), greedy lowest-load dispatch heuristic, race conditions, atomic database counter updates, and admin capacity grids.
+* [**`developer_guide/05_SLA_AND_LIFECYCLE_AUTOMATA.md`**](developer_guide/05_SLA_AND_LIFECYCLE_AUTOMATA.md) — Finite State Machine (FSM) theory, state transition graphs, transition guards, Python `timedelta` deadline math, and memory-leak-free React countdown timer cleanup hooks.
+* [**`developer_guide/06_TESTING_AND_GIT_DELIVERY.md`**](developer_guide/06_TESTING_AND_GIT_DELIVERY.md) — Pytest `TestClient` integration suites, closed-loop E2E smoke tests, Git branching strategies, and interactive 3-way merge conflict resolution in VS Code.
+
+---
+
+## 2. Team Collaboration & Git Workflows
 
 * [**`V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md)  
   *Authoritative team manual.* Includes:
@@ -17,7 +32,7 @@ All documentation is tracked directly within this Git repository so every team m
 
 ---
 
-## 2. Version 1.0 Engineering Blueprints (`V1/`)
+## 3. Version 1.0 Engineering Blueprints (`V1/`)
 
 The platform is designed around 5 core operational modules. Every module contains its own overview, architectural DAG, and file-by-file blueprints for backend and frontend:
 
@@ -32,7 +47,7 @@ The platform is designed around 5 core operational modules. Every module contain
 
 ---
 
-## 3. Foundational Architecture & Design Decisions
+## 4. Foundational Architecture & Design Decisions
 
 * [**`FILE_ARCHITECTURE_GUIDE.md`**](FILE_ARCHITECTURE_GUIDE.md)  
   Complete file inventory and mapping showing how all 72 source files in `backend/` and `frontend/` map directly to their governing blueprints.
