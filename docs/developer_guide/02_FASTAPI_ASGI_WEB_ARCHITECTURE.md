@@ -66,15 +66,15 @@ Connection: keep-alive\r\n
 import socket  # Import low-level Berkeley sockets interface for network communication
 
 # Create a TCP/IP streaming socket using IPv4 addressing
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Assign and initialize variable
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Initialize sock configuration
 # Allow immediate reuse of the local port to prevent TIME_WAIT bind errors on restarts
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Execute statement
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Enable SO_REUSEADDR socket option to reuse port immediately on restart
 # Bind the socket to the localhost loopback address and standard API port 8000
-sock.bind(("127.0.0.1", 8000))  # Execute statement
+sock.bind(("127.0.0.1", 8000))  # Bind TCP socket to localhost loopback IP on port 8000
 # Begin listening for incoming client connections with an OS queue backlog of 5
-sock.listen(5)  # Execute statement
+sock.listen(5)  # Put socket into listening state with connection backlog queue size of 5
 
-print("[Network Engine] Raw TCP listener active on http://127.0.0.1:8000...")  # Log informational diagnostics message
+print("[Network Engine] Raw TCP listener active on http://127.0.0.1:8000...")  # Print operational status log to standard output
 # In production, ASGI servers like Uvicorn replace this raw blocking loop with an async C-accelerated parser
 ```
 
@@ -95,37 +95,37 @@ HTTP defines a standardized set of request methods (verbs) that indicate the des
 from fastapi import APIRouter, status  # Import APIRouter class and HTTP status code constants
 
 # Instantiate an isolated router for ticket lifecycle management
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
 # GET is SAFE and IDEMPOTENT: Fetches ticket state without mutation
-@router.get("/{ticket_id}", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def get_ticket(ticket_id: int):  # Function definition accepting request parameters
+@router.get("/{ticket_id}", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/{ticket_id}' path
+def get_ticket(ticket_id: int):  # Synchronous route handler 'get_ticket' executed in thread pool
     # Returns existing resource; multiple calls produce identical results with zero state modification
-    return {"id": ticket_id, "title": "Hydraulic Leak", "status": "OPEN"}  # Return response payload
+    return {"id": ticket_id, "title": "Hydraulic Leak", "status": "OPEN"}  # Return JSON response payload dictionary to client
 
 # POST is NEITHER safe NOR idempotent: Creates a brand new resource on every invocation
-@router.post("", status_code=status.HTTP_201_CREATED)  # Route decorator mapping HTTP method and path
-def create_ticket(payload: dict):  # Function definition accepting request parameters
+@router.post("", status_code=status.HTTP_201_CREATED)  # Map HTTP POST creation endpoint on '/'
+def create_ticket(payload: dict):  # Synchronous route handler 'create_ticket' executed in thread pool
     # Inserts a new row into the database; repeating this call creates duplicate database entities
-    return {"id": 102, "created": True, "payload": payload}  # Return response payload
+    return {"id": 102, "created": True, "payload": payload}  # Return JSON response payload dictionary to client
 
 # PUT is IDEMPOTENT but NOT safe: Completely replaces an existing resource
-@router.put("/{ticket_id}", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def replace_ticket(ticket_id: int, payload: dict):  # Function definition accepting request parameters
+@router.put("/{ticket_id}", status_code=status.HTTP_200_OK)  # Map idempotent HTTP PUT replacement on '/{ticket_id}'
+def replace_ticket(ticket_id: int, payload: dict):  # Synchronous route handler 'replace_ticket' executed in thread pool
     # Completely overwrites the ticket record; executing 5 times leaves the record in the identical state
-    return {"id": ticket_id, "replaced": True, "new_state": payload}  # Return response payload
+    return {"id": ticket_id, "replaced": True, "new_state": payload}  # Return JSON response payload dictionary to client
 
 # PATCH is PARTIALLY IDEMPOTENT: Modifies discrete attributes of an existing resource
-@router.patch("/{ticket_id}/status", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def update_status(ticket_id: int, status_update: str):  # Function definition accepting request parameters
+@router.patch("/{ticket_id}/status", status_code=status.HTTP_200_OK)  # Map partial HTTP PATCH modification on '/{ticket_id}/status'
+def update_status(ticket_id: int, status_update: str):  # Synchronous route handler 'update_status' executed in thread pool
     # Sets the status field; invoking repeatedly with "RESOLVED" leaves the state as "RESOLVED"
-    return {"id": ticket_id, "status": status_update}  # Return response payload
+    return {"id": ticket_id, "status": status_update}  # Return JSON response payload dictionary to client
 
 # DELETE is IDEMPOTENT but NOT safe: Removes a resource from the system
-@router.delete("/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)  # Route decorator mapping HTTP method and path
-def delete_ticket(ticket_id: int):  # Function definition accepting request parameters
+@router.delete("/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)  # Map idempotent HTTP DELETE removal on '/{ticket_id}'
+def delete_ticket(ticket_id: int):  # Synchronous route handler 'delete_ticket' executed in thread pool
     # Deletes the row; repeating the call ensures the entity remains deleted from the database
-    return None  # Return response payload
+    return None  # Return None result to caller
 ```
 
 ---
@@ -227,18 +227,18 @@ Under WSGI:
 
 ```python
 # Canonical PEP 3333 WSGI Application implementation
-def wsgi_application(environ, start_response):  # Function definition accepting request parameters
+def wsgi_application(environ, start_response):  # Synchronous route handler 'wsgi_application' executed in thread pool
     # Extract the requested HTTP path from the WSGI environment dictionary
-    request_path = environ.get("PATH_INFO", "/")  # Assign and initialize variable
+    request_path = environ.get("PATH_INFO", "/")  # Initialize request_path configuration
     # Define response headers as a list of (Header-Name, Value) tuples
-    response_headers = [  # Assign and initialize variable
+    response_headers = [  # Initialize response_headers configuration
         ("Content-Type", "text/plain; charset=utf-8"),  # Specify plain text MIME type
-        ("Content-Length", "18"),                      # Specify explicit byte length of payload
-    ]  # Closing delimiter
+        ("Content-Length", "18"),  # Specify explicit byte length of payload
+    ]  # Finalize list collection array
     # Invoke the WSGI start_response callback to transmit status and headers to web server
-    start_response("200 OK", response_headers)  # Execute statement
+    start_response("200 OK", response_headers)  # Execute start_response("200 OK", response_header
     # Return an iterable yielding raw bytes representing the HTTP response body
-    return [b"Hello from WSGI!\n"]  # Return response payload
+    return [b"Hello from WSGI!\n"]  # Return [b"Hello from WSGI!\n"] result to caller
 ```
 
 While WSGI was a massive leap forward, it possesses a severe fundamental limitation: **it is strictly synchronous and blocking**. In WSGI, each worker thread or process handles exactly one request at a time. If a request queries a slow database for 2 seconds, that worker thread is completely blocked waiting for I/O; it cannot accept any other requests. 
@@ -280,9 +280,9 @@ ASGI natively supports:
 At its architectural core, an ASGI 3.0 application is simply an asynchronous Python callable that adheres to a strict three-argument signature:
 
 ```python
-async def application(scope: dict, receive: callable, send: callable) -> None:  # Function definition accepting request parameters
+async def application(scope: dict, receive: callable, send: callable) -> None:  # Asynchronous endpoint handler 'application' processing event loop request
     # Every ASGI application (including FastAPI) implements this exact callable signature
-    pass  # No-op placeholder
+    pass  # Execute pass
 ```
 
 Whenever a client connects to the web server (e.g., Uvicorn), the server instantiates an instance of this callable and passes three foundational constructs:
@@ -292,29 +292,29 @@ Whenever a client connects to the web server (e.g., Uvicorn), the server instant
 
 ```python
 # A bare-metal ASGI 3.0 implementation of an HTTP endpoint without any framework
-async def raw_asgi_app(scope, receive, send):  # Function definition accepting request parameters
+async def raw_asgi_app(scope, receive, send):  # Asynchronous endpoint handler 'raw_asgi_app' processing event loop request
     # Verify that the incoming protocol is HTTP (ASGI also handles 'websocket' and 'lifespan')
     if scope["type"] == "http":  # Evaluate conditional expression
         # Await the receive channel to consume the incoming request body event from the client
-        request_event = await receive()  # Assign and initialize variable
+        request_event = await receive()  # Initialize request_event configuration
         # Extract the raw payload bytes received in the request event dictionary
-        body_bytes = request_event.get("body", b"")  # Assign and initialize variable
+        body_bytes = request_event.get("body", b"")  # Initialize body_bytes configuration
         
         # Transmit the HTTP response start event containing status code and header tuples
-        await send({  # Execute statement
-            "type": "http.response.start",      # Mandatory ASGI protocol event identifier
-            "status": 200,                       # Standard HTTP 200 OK success status
-            "headers": [  # Execute statement
-                [b"content-type", b"text/plain"], # Response MIME type header formatted as byte pair
-            ],  # Closing delimiter
-        })  # Execute statement
+        await send({  # Execute await send({
+            "type": "http.response.start",  # Mandatory ASGI protocol event identifier
+            "status": 200,  # Standard HTTP 200 OK success status
+            "headers": [  # Execute "headers": [
+                [b"content-type", b"text/plain"],  # Response MIME type header formatted as byte pair
+            ],  # Finalize list collection array
+        })  # Execute })
         
         # Transmit the HTTP response body event containing the payload bytes
-        await send({  # Execute statement
-            "type": "http.response.body",       # Mandatory ASGI response body event identifier
-            "body": b"Raw ASGI Response OK",    # Raw bytes to be written out across the TCP socket
-            "more_body": False,                 # Boolean flag indicating this is the final chunk
-        })  # Execute statement
+        await send({  # Execute await send({
+            "type": "http.response.body",  # Mandatory ASGI response body event identifier
+            "body": b"Raw ASGI Response OK",  # Raw bytes to be written out across the TCP socket
+            "more_body": False,  # Boolean flag indicating this is the final chunk
+        })  # Execute })
 ```
 
 ---
@@ -368,20 +368,20 @@ The root of any FastAPI architecture is the `FastAPI` application instance. This
 from fastapi import FastAPI  # Import the primary FastAPI application class
 
 # Instantiate the application with comprehensive architectural metadata
-app = FastAPI(  # Assign and initialize variable
+app = FastAPI(  # Instantiate root FastAPI application with metadata and lifespan
     title="Smart Complaint Routing & Workflow Automation Platform",  # System title displayed in Swagger UI
     description="Automated ITIL ticket triage, priority scoring, and workload dispatch API.",  # High-level system overview
-    version="1.0.0",                                                 # Semantic versioning tag for API contracts
-    docs_url="/docs",                                                # Custom URI path to expose interactive Swagger UI
-    redoc_url="/redoc",                                              # Custom URI path to expose technical ReDoc interface
-    openapi_url="/api/v1/openapi.json",                             # Custom URI path where the raw OpenAPI schema is served
-)  # Closing delimiter
+    version="1.0.0",  # Semantic versioning tag for API contracts
+    docs_url="/docs",  # Custom URI path to expose interactive Swagger UI
+    redoc_url="/redoc",  # Custom URI path to expose technical ReDoc interface
+    openapi_url="/api/v1/openapi.json",  # Custom URI path where the raw OpenAPI schema is served
+)  # Complete argument parameter list and block header
 
 # Define a root health check endpoint to verify ASGI server responsiveness
-@app.get("/health", tags=["System Monitoring"])  # Route decorator mapping HTTP method and path
-def health_check():  # Function definition accepting request parameters
+@app.get("/health", tags=["System Monitoring"])  # Map HTTP GET requests on '/health' path
+def health_check():  # Synchronous route handler 'health_check' executed in thread pool
     # Returns an operational status heartbeat for container orchestrators and load balancers
-    return {"status": "HEALTHY", "subsystem": "FastAPI ASGI Engine"}  # Return response payload
+    return {"status": "HEALTHY", "subsystem": "FastAPI ASGI Engine"}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -409,34 +409,34 @@ In enterprise architectures, the OpenAPI specification serves as the formal cont
 from fastapi import FastAPI  # Import core FastAPI application class
 
 # Define tag metadata with descriptions to organize Swagger UI into logical categories
-tags_metadata = [  # Assign and initialize variable
-    {  # Execute statement
+tags_metadata = [  # Initialize tags_metadata configuration
+    {  # Execute {
         "name": "Tickets",  # Unique tag identifier matching router tag declarations
-        "description": "Operations for submitting, querying, and updating complaint tickets.",  # Execute statement
-    },  # Closing delimiter
-    {  # Execute statement
-        "name": "Triage & Priority",  # Execute statement
-        "description": "Algorithmic severity-impact scoring and automated priority matrix calculation.",  # Execute statement
-    },  # Closing delimiter
-    {  # Execute statement
-        "name": "Workload Dispatch",  # Execute statement
-        "description": "Greedy queue balancing and maintenance squad assignment engines.",  # Execute statement
-    },  # Closing delimiter
-]  # Closing delimiter
+        "description": "Operations for submitting, querying, and updating complaint tickets.",  # Execute "description": "Operations for submittin
+    },  # Finalize dictionary mapping block
+    {  # Execute {
+        "name": "Triage & Priority",  # Execute "name": "Triage & Priority",
+        "description": "Algorithmic severity-impact scoring and automated priority matrix calculation.",  # Execute "description": "Algorithmic severity-imp
+    },  # Finalize dictionary mapping block
+    {  # Execute {
+        "name": "Workload Dispatch",  # Execute "name": "Workload Dispatch",
+        "description": "Greedy queue balancing and maintenance squad assignment engines.",  # Execute "description": "Greedy queue balancing a
+    },  # Finalize dictionary mapping block
+]  # Finalize list collection array
 
 # Instantiate FastAPI with enriched enterprise metadata and documentation tags
-app = FastAPI(  # Assign and initialize variable
+app = FastAPI(  # Instantiate root FastAPI application with metadata and lifespan
     title="SmartComplaintHandler Core API",  # Formal platform name
-    version="1.0.0",                         # Current active API release version
-    openapi_tags=tags_metadata,              # Apply categorized tag descriptions to documentation
-    contact={                                # Technical owner contact information
-        "name": "Platform Engineering Squad",  # Execute statement
-        "email": "engineering@smartcomplaint.local",  # Execute statement
-    },  # Closing delimiter
-    license_info={                           # Intellectual property and licensing terms
-        "name": "Proprietary / Internal Academic Use",  # Execute statement
-    },  # Closing delimiter
-)  # Closing delimiter
+    version="1.0.0",  # Current active API release version
+    openapi_tags=tags_metadata,  # Apply categorized tag descriptions to documentation
+    contact={  # Technical owner contact information
+        "name": "Platform Engineering Squad",  # Execute "name": "Platform Engineering Squad",
+        "email": "engineering@smartcomplaint.local",  # Execute "email": "engineering@smartcomplaint.loc
+    },  # Finalize dictionary mapping block
+    license_info={  # Intellectual property and licensing terms
+        "name": "Proprietary / Internal Academic Use",  # Execute "name": "Proprietary / Internal Academic
+    },  # Finalize dictionary mapping block
+)  # Complete argument parameter list and block header
 ```
 
 ---
@@ -463,22 +463,22 @@ FastAPI resolves this architectural challenge through **`APIRouter`**. An `APIRo
 from fastapi import APIRouter, status  # Import APIRouter class and HTTP status code enum
 
 # Instantiate a dedicated router for ticket operations with a unified URL prefix and Swagger tag
-router = APIRouter(  # Assign and initialize variable
-    prefix="/tickets",    # Automatically prepends '/tickets' to all path operations in this module
-    tags=["Tickets"],     # Groups all endpoints in this file under the 'Tickets' section in Swagger UI
-)  # Closing delimiter
+router = APIRouter(  # Allocate modular APIRouter instance grouping ticket routes
+    prefix="/tickets",  # Automatically prepends '/tickets' to all path operations in this module
+    tags=["Tickets"],  # Groups all endpoints in this file under the 'Tickets' section in Swagger UI
+)  # Complete argument parameter list and block header
 
 # Endpoint will be mapped to: GET /tickets/
-@router.get("", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def list_tickets():  # Function definition accepting request parameters
+@router.get("", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '' path
+def list_tickets():  # Synchronous route handler 'list_tickets' executed in thread pool
     # Fetch and return a list of active complaint tickets from the data store
-    return [{"id": 1, "title": "HVAC Failure", "status": "OPEN"}]  # Return response payload
+    return [{"id": 1, "title": "HVAC Failure", "status": "OPEN"}]  # Return [{"id": 1, "title": "HVAC Failure", "sta result to caller
 
 # Endpoint will be mapped to: POST /tickets/
-@router.post("", status_code=status.HTTP_201_CREATED)  # Route decorator mapping HTTP method and path
-def create_ticket(title: str):  # Function definition accepting request parameters
+@router.post("", status_code=status.HTTP_201_CREATED)  # Map HTTP POST creation endpoint on '/'
+def create_ticket(title: str):  # Synchronous route handler 'create_ticket' executed in thread pool
     # Process incoming ticket creation and return newly created record
-    return {"id": 2, "title": title, "status": "OPEN"}  # Return response payload
+    return {"id": 2, "title": title, "status": "OPEN"}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -499,7 +499,7 @@ from app.api.v1.endpoints import tickets  # Import ticket endpoint submodule rou
 api_v1_router = APIRouter(prefix="/api/v1")  # Prepend '/api/v1' across all sub-routers
 
 # Mount the modular tickets router into the v1 hierarchy
-api_v1_router.include_router(tickets.router)  # Execute statement
+api_v1_router.include_router(tickets.router)  # Execute api_v1_router.include_router(tickets.rou
 # Additional modules are mounted identically:
 # api_v1_router.include_router(triage.router)
 # api_v1_router.include_router(dispatch.router)
@@ -513,10 +513,10 @@ from fastapi import FastAPI  # Import primary application class
 from app.api.v1.api_router import api_v1_router  # Import assembled v1 routing tree
 
 # Instantiate root application
-app = FastAPI(title="Smart Complaint Handler")  # Assign and initialize variable
+app = FastAPI(title="Smart Complaint Handler")  # Instantiate root FastAPI application with metadata and lifespan
 
 # Mount the assembled v1 router onto the root application instance
-app.include_router(api_v1_router)  # Execute statement
+app.include_router(api_v1_router)  # Mount modular sub-router onto application routing tree
 # All ticket routes are now automatically exposed under:
 # GET  /api/v1/tickets
 # POST /api/v1/tickets
@@ -546,15 +546,15 @@ FastAPI leverages **Python type hints** to perform automatic, declarative type c
 # Automatic type coercion and validation via type annotations
 from fastapi import APIRouter, status  # Import router and status codes
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/{ticket_id}", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def get_ticket_by_id(ticket_id: int):  # Function definition accepting request parameters
+@router.get("/{ticket_id}", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/{ticket_id}' path
+def get_ticket_by_id(ticket_id: int):  # Synchronous route handler 'get_ticket_by_id' executed in thread pool
     # FastAPI automatically parses the raw string URL segment into a Python integer
     # If the user requests '/tickets/abc', FastAPI halts execution immediately
     # and returns an automated HTTP 422 Unprocessable Entity with a clear error payload:
     # {"detail": [{"loc": ["path", "ticket_id"], "msg": "Input should be a valid integer"}]}
-    return {"ticket_id": ticket_id, "type": str(type(ticket_id))}  # Return response payload
+    return {"ticket_id": ticket_id, "type": str(type(ticket_id))}  # Return JSON response payload dictionary to client
 ```
 
 If a client sends `GET /tickets/1042`, FastAPI converts `"1042"` into the integer `1042`. If a client sends `GET /tickets/invalid_string`, FastAPI automatically rejects the request with an HTTP 422 response before the route handler function is ever invoked, protecting business logic from type corruption.
@@ -569,20 +569,20 @@ In addition to basic type coercion, production systems require strict validation
 # Declarative path constraints using fastapi.Path
 from fastapi import APIRouter, Path, status  # Import Path function for parameter metadata
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/{ticket_id}", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def get_ticket_with_constraints(  # Function definition accepting request parameters
-    ticket_id: int = Path(  # Assign and initialize variable
-        ...,                                  # Ellipsis (...) indicates this parameter is strictly required
-        title="Ticket Primary Key",           # Documentation title rendered in Swagger UI
+@router.get("/{ticket_id}", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/{ticket_id}' path
+def get_ticket_with_constraints(  # Synchronous route handler 'get_ticket_with_constraints' executed in thread pool
+    ticket_id: int = Path(  # Initialize ticket_id: int configuration
+        ...,  # Ellipsis (...) indicates this parameter is strictly required
+        title="Ticket Primary Key",  # Documentation title rendered in Swagger UI
         description="The unique integer ID",  # Detailed description for API consumers
-        ge=1,                                 # Greater than or equal to 1 (prevents 0 or negative IDs)
-        le=1_000_000,                         # Less than or equal to 1,000,000 (enforces upper ceiling)
-    )  # Closing delimiter
-):  # Closing delimiter
+        ge=1,  # Greater than or equal to 1 (prevents 0 or negative IDs)
+        le=1_000_000,  # Less than or equal to 1,000,000 (enforces upper ceiling)
+    )  # Complete argument parameter list and block header
+):  # Complete argument parameter list and block header
     # Execution reaches this line ONLY if ticket_id is an integer between 1 and 1,000,000
-    return {"ticket_id": ticket_id, "verified": True}  # Return response payload
+    return {"ticket_id": ticket_id, "verified": True}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -610,21 +610,21 @@ FastAPI inspects these default values to govern request validation:
 # Declarative optional query parameters with default fallbacks
 from fastapi import APIRouter, status  # Import APIRouter and HTTP status codes
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def list_tickets(  # Function definition accepting request parameters
+@router.get("", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '' path
+def list_tickets(  # Synchronous route handler 'list_tickets' executed in thread pool
     status_filter: str | None = None,  # Optional query parameter; defaults to None if omitted
     department_id: int | None = None,  # Optional foreign key filter; defaults to None
-    skip: int = 0,                     # Pagination offset; defaults to beginning of result set
-    limit: int = 20,                   # Pagination window size; defaults to 20 records per page
-):  # Closing delimiter
+    skip: int = 0,  # Pagination offset; defaults to beginning of result set
+    limit: int = 20,  # Pagination window size; defaults to 20 records per page
+):  # Complete argument parameter list and block header
     # Construct a response payload confirming the parsed query parameters
-    return {  # Return response payload
-        "status_filter": status_filter,      # Extracted string or None
-        "department_id": department_id,      # Extracted integer or None
+    return {  # Return { result to caller
+        "status_filter": status_filter,  # Extracted string or None
+        "department_id": department_id,  # Extracted integer or None
         "pagination": {"skip": skip, "limit": limit},  # Concrete integer boundaries
-    }  # Closing delimiter
+    }  # Finalize dictionary mapping block
 ```
 
 ---
@@ -639,14 +639,14 @@ FastAPI natively supports multi-value query strings when the parameter is annota
 # Ingesting repeated query keys as a Python list
 from fastapi import APIRouter, Query, status  # Import Query function for array declarations
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/multi-filter", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def filter_by_multiple_statuses(  # Function definition accepting request parameters
+@router.get("/multi-filter", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/multi-filter' path
+def filter_by_multiple_statuses(  # Synchronous route handler 'filter_by_multiple_statuses' executed in thread pool
     statuses: list[str] = Query(default=["OPEN"]),  # Ingests '?statuses=OPEN&statuses=ASSIGNED' as a list
-):  # Closing delimiter
+):  # Complete argument parameter list and block header
     # FastAPI automatically parses all repeated 'statuses' occurrences into a Python list
-    return {"active_filters": statuses, "count": len(statuses)}  # Return response payload
+    return {"active_filters": statuses, "count": len(statuses)}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -659,26 +659,26 @@ Just as `Path` provides boundary enforcement for path parameters, `fastapi.Query
 # Enterprise query validation using fastapi.Query
 from fastapi import APIRouter, Query, status  # Import Query validation helper
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/search", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def search_tickets(  # Function definition accepting request parameters
-    q: str = Query(  # Assign and initialize variable
-        ...,                         # Ellipsis signifies that the search query is strictly required
-        min_length=3,                # Rejects search strings with fewer than 3 characters (prevents full-table scans)
-        max_length=50,               # Enforces upper string ceiling to protect database search indexes
-        pattern=r"^[a-zA-Z0-9 _-]+$", # Regular expression restricting search terms to safe alphanumeric characters
-        title="Search Keyword",      # Swagger UI parameter title
-        description="Fuzzy search keyword executed against ticket title and description.",  # Assign and initialize variable
-    ),  # Execute statement
-    limit: int = Query(  # Assign and initialize variable
-        default=25,                  # Default pagination page size if omitted by client
-        ge=1,                        # Minimum page size is 1 record
-        le=100,                      # Maximum allowed page size is 100 records (prevents memory exhaustion)
-    ),  # Execute statement
-):  # Closing delimiter
+@router.get("/search", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/search' path
+def search_tickets(  # Synchronous route handler 'search_tickets' executed in thread pool
+    q: str = Query(  # Initialize q: str configuration
+        ...,  # Ellipsis signifies that the search query is strictly required
+        min_length=3,  # Rejects search strings with fewer than 3 characters (prevents full-table scans)
+        max_length=50,  # Enforces upper string ceiling to protect database search indexes
+        pattern=r"^[a-zA-Z0-9 _-]+$",  # Regular expression restricting search terms to safe alphanumeric characters
+        title="Search Keyword",  # Swagger UI parameter title
+        description="Fuzzy search keyword executed against ticket title and description.",  # Initialize description configuration
+    ),  # Execute ),
+    limit: int = Query(  # Initialize limit: int configuration
+        default=25,  # Default pagination page size if omitted by client
+        ge=1,  # Minimum page size is 1 record
+        le=100,  # Maximum allowed page size is 100 records (prevents memory exhaustion)
+    ),  # Execute ),
+):  # Complete argument parameter list and block header
     # Returns sanitized search results
-    return {"query": q, "limit": limit}  # Return response payload
+    return {"query": q, "limit": limit}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -704,44 +704,44 @@ In clean architecture, incoming HTTP payloads must never be passed directly to t
 ```python
 # Declarative request body ingestion via Pydantic models
 from fastapi import APIRouter, status  # Import routing components
-from pydantic import BaseModel, Field   # Import Pydantic base model and field validator
+from pydantic import BaseModel, Field  # Import Pydantic base model and field validator
 
 # Define the strict schema contract for incoming ticket creation requests
-class TicketCreateRequest(BaseModel):  # Class definition
-    title: str = Field(  # Assign and initialize variable
-        ...,                                  # Strictly required field
-        min_length=5,                         # Rejects brief or ambiguous titles
-        max_length=100,                       # Limits title length for database storage
-        description="Summary of the issue",   # OpenAPI documentation string
-    )  # Closing delimiter
-    description: str = Field(  # Assign and initialize variable
-        ...,                                  # Strictly required detailed description
-        min_length=10,                        # Requires at least 10 characters for proper triage
-        max_length=2000,                      # Restricts payload size to prevent database bloating
-    )  # Closing delimiter
-    department_id: int = Field(  # Assign and initialize variable
-        ...,                                  # Foreign key identifying responsible department
-        ge=1,                                 # Must be a positive integer ID
-    )  # Closing delimiter
-    impact_level: str = Field(  # Assign and initialize variable
-        default="INDIVIDUAL",                 # Default ITIL impact level if omitted
+class TicketCreateRequest(BaseModel):  # Pydantic schema model 'TicketCreateRequest' defining request/response contract
+    title: str = Field(  # Initialize title: str configuration
+        ...,  # Strictly required field
+        min_length=5,  # Rejects brief or ambiguous titles
+        max_length=100,  # Limits title length for database storage
+        description="Summary of the issue",  # OpenAPI documentation string
+    )  # Complete argument parameter list and block header
+    description: str = Field(  # Initialize description: str configuration
+        ...,  # Strictly required detailed description
+        min_length=10,  # Requires at least 10 characters for proper triage
+        max_length=2000,  # Restricts payload size to prevent database bloating
+    )  # Complete argument parameter list and block header
+    department_id: int = Field(  # Initialize department_id: int configuration
+        ...,  # Foreign key identifying responsible department
+        ge=1,  # Must be a positive integer ID
+    )  # Complete argument parameter list and block header
+    impact_level: str = Field(  # Initialize impact_level: str configuration
+        default="INDIVIDUAL",  # Default ITIL impact level if omitted
         pattern="^(INDIVIDUAL|WING|FLOOR|CAMPUS)$",  # Enforces strict enum literal values via regex
-    )  # Closing delimiter
+    )  # Complete argument parameter list and block header
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.post("", status_code=status.HTTP_201_CREATED)  # Route decorator mapping HTTP method and path
-def submit_ticket(payload: TicketCreateRequest):  # Function definition accepting request parameters
+@router.post("", status_code=status.HTTP_201_CREATED)  # Map HTTP POST creation endpoint on '/'
+def submit_ticket(payload: TicketCreateRequest):  # Synchronous route handler 'submit_ticket' executed in thread pool
     # FastAPI automatically validates incoming JSON against TicketCreateRequest
     # 'payload' is an instantiated Pydantic model with verified, type-safe attributes
-    print(f"[Ingestion Engine] Received valid ticket: {payload.title}")  # Log informational diagnostics message
+    print(f"[Ingestion Engine] Received valid ticket: {payload.title}")  # Print operational status log to standard output
     # Access strongly-typed attributes with complete IDE autocomplete and zero casting
-    return {  # Return response payload
-        "status": "ACCEPTED",  # Execute statement
-        "title": payload.title,  # Execute statement
-        "department_id": payload.department_id,  # Execute statement
-        "impact": payload.impact_level,  # Execute statement
-    }  # Closing delimiter
+    return {  # Return { result to caller
+        "status": "ACCEPTED",  # Execute "status": "ACCEPTED",
+        "title": payload.title,  # Execute "title": payload.title,
+        "department_id": payload.department_id,  # Execute "department_id": payload.department_id,
+        "impact": payload.impact_level,  # Execute "impact": payload.impact_level,
+    }  # Finalize dictionary mapping block
 ```
 
 If the client provides malformed JSON or violates any field constraints (e.g., `title` has only 2 characters), FastAPI immediately halts execution and returns a structured **HTTP 422 Unprocessable Entity** response without touching application business logic.
@@ -757,31 +757,31 @@ When multiple bodies or singular values are defined, FastAPI expects the outer J
 ```python
 # Embedding multiple models and singular values using fastapi.Body
 from fastapi import APIRouter, Body, status  # Import Body parameter helper
-from pydantic import BaseModel               # Import Pydantic base class
+from pydantic import BaseModel  # Import Pydantic base class
 
-class TicketUpdate(BaseModel):  # Class definition
-    title: str                               # Updated title string
+class TicketUpdate(BaseModel):  # Define class 'TicketUpdate' encapsulating domain logic
+    title: str  # Updated title string
 
-class AuditMetadata(BaseModel):  # Class definition
-    author_id: int                           # User ID of administrator performing update
-    reason: str                              # Business justification for change
+class AuditMetadata(BaseModel):  # Define class 'AuditMetadata' encapsulating domain logic
+    author_id: int  # User ID of administrator performing update
+    reason: str  # Business justification for change
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.put("/{ticket_id}", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def update_ticket_with_audit(  # Function definition accepting request parameters
-    ticket_id: int,                          # Extracted from URL path
-    ticket: TicketUpdate,                    # Expects JSON key: "ticket": {"title": ...}
-    audit: AuditMetadata,                    # Expects JSON key: "audit": {"author_id": ..., "reason": ...}
-    notify_client: bool = Body(default=True) # Expects JSON key: "notify_client": true
-):  # Closing delimiter
+@router.put("/{ticket_id}", status_code=status.HTTP_200_OK)  # Map idempotent HTTP PUT replacement on '/{ticket_id}'
+def update_ticket_with_audit(  # Synchronous route handler 'update_ticket_with_audit' executed in thread pool
+    ticket_id: int,  # Extracted from URL path
+    ticket: TicketUpdate,  # Expects JSON key: "ticket": {"title": ...}
+    audit: AuditMetadata,  # Expects JSON key: "audit": {"author_id": ..., "reason": ...}
+    notify_client: bool = Body(default=True)  # Expects JSON key: "notify_client": true
+):  # Complete argument parameter list and block header
     # FastAPI automatically extracts and validates nested JSON keys
-    return {  # Return response payload
-        "ticket_id": ticket_id,  # Execute statement
-        "new_title": ticket.title,  # Execute statement
-        "audit_by": audit.author_id,  # Execute statement
-        "notification_queued": notify_client,  # Execute statement
-    }  # Closing delimiter
+    return {  # Return { result to caller
+        "ticket_id": ticket_id,  # Execute "ticket_id": ticket_id,
+        "new_title": ticket.title,  # Execute "new_title": ticket.title,
+        "audit_by": audit.author_id,  # Execute "audit_by": audit.author_id,
+        "notification_queued": notify_client,  # Execute "notification_queued": notify_client,
+    }  # Finalize dictionary mapping block
 ```
 
 The expected incoming HTTP body for the endpoint above is:
@@ -803,19 +803,19 @@ While strongly typed Pydantic models are the preferred standard, certain edge ca
 # Ingesting raw JSON and raw request bytes directly
 from fastapi import APIRouter, Request, status  # Import low-level Request object
 
-router = APIRouter(prefix="/webhooks", tags=["Webhooks"])  # Assign and initialize variable
+router = APIRouter(prefix="/webhooks", tags=["Webhooks"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.post("/raw-json", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-async def handle_dynamic_webhook(request: Request):  # Function definition accepting request parameters
+@router.post("/raw-json", status_code=status.HTTP_200_OK)  # Map HTTP POST creation endpoint on '/raw-json'
+async def handle_dynamic_webhook(request: Request):  # Asynchronous endpoint handler 'handle_dynamic_webhook' processing event loop request
     # Ingest arbitrary dynamic JSON without Pydantic schema validation
-    dynamic_payload: dict = await request.json()  # Assign and initialize variable
+    dynamic_payload: dict = await request.json()  # Initialize dynamic_payload: dict configuration
     # Read raw body bytes directly from the ASGI receive channel
-    raw_body_bytes: bytes = await request.body()  # Assign and initialize variable
+    raw_body_bytes: bytes = await request.body()  # Initialize raw_body_bytes: bytes configuration
     
-    return {  # Return response payload
-        "keys_received": list(dynamic_payload.keys()),  # Execute statement
-        "byte_length": len(raw_body_bytes),  # Execute statement
-    }  # Closing delimiter
+    return {  # Return { result to caller
+        "keys_received": list(dynamic_payload.keys()),  # Execute "keys_received": list(dynamic_payload.ke
+        "byte_length": len(raw_body_bytes),  # Execute "byte_length": len(raw_body_bytes),
+    }  # Finalize dictionary mapping block
 ```
 
 ---
@@ -828,14 +828,14 @@ One of the most critical and frequently misunderstood architectural mechanisms i
 
 ```python
 # Definition A: Asynchronous route handler
-@app.get("/async-endpoint")  # Route decorator mapping HTTP method and path
-async def async_handler():  # Function definition accepting request parameters
-    return {"mode": "asynchronous"}  # Return response payload
+@app.get("/async-endpoint")  # Map HTTP GET requests on '/async-endpoint' path
+async def async_handler():  # Catch and translate async_handler into standardized error response
+    return {"mode": "asynchronous"}  # Return JSON response payload dictionary to client
 
 # Definition B: Synchronous route handler
-@app.get("/sync-endpoint")  # Route decorator mapping HTTP method and path
-def sync_handler():  # Function definition accepting request parameters
-    return {"mode": "synchronous"}  # Return response payload
+@app.get("/sync-endpoint")  # Map HTTP GET requests on '/sync-endpoint' path
+def sync_handler():  # Catch and translate sync_handler into standardized error response
+    return {"mode": "synchronous"}  # Return JSON response payload dictionary to client
 ```
 
 How does FastAPI execute these two functions?
@@ -862,18 +862,18 @@ If you violate this contract by invoking a synchronous blocking call (such as `t
 
 ```python
 # CATASTROPHIC ANTI-PATTERN: Freezes the entire web server for all users!
-import time  # Import dependency module
-from fastapi import APIRouter  # Import dependency module
+import time  # Import time module dependencies
+from fastapi import APIRouter  # Import fastapi module dependencies
 
-router = APIRouter()  # Assign and initialize variable
+router = APIRouter()  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/catastrophe")  # Route decorator mapping HTTP method and path
-async def blocking_disaster():  # Function definition accepting request parameters
+@router.get("/catastrophe")  # Map HTTP GET requests on '/catastrophe' path
+async def blocking_disaster():  # Asynchronous endpoint handler 'blocking_disaster' processing event loop request
     # Calling time.sleep() inside async def STALLS the single event loop thread!
     # During these 5 seconds, Uvicorn CANNOT accept any new incoming TCP connections,
     # CANNOT process active WebSockets, and CANNOT respond to health checks!
     time.sleep(5)  # BUG: Never do this in async def!
-    return {"status": "Woke up"}  # Return response payload
+    return {"status": "Woke up"}  # Return JSON response payload dictionary to client
 ```
 
 If 10 concurrent users hit `/catastrophe`, request 1 blocks the entire server for 5 seconds. Request 2 waits 5 seconds for request 1, then blocks for 5 seconds. The 10th user experiences a 50-second timeout!
@@ -882,17 +882,17 @@ In contrast, if you declared that identical function with standard **`def`**:
 
 ```python
 # SAFE SYNCHRONOUS EXECUTION: Offloaded to worker thread pool
-import time  # Import dependency module
-from fastapi import APIRouter  # Import dependency module
+import time  # Import time module dependencies
+from fastapi import APIRouter  # Import fastapi module dependencies
 
-router = APIRouter()  # Assign and initialize variable
+router = APIRouter()  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/safe-sync")  # Route decorator mapping HTTP method and path
-def safe_sync_handler():  # Function definition accepting request parameters
+@router.get("/safe-sync")  # Map HTTP GET requests on '/safe-sync' path
+def safe_sync_handler():  # Catch and translate safe_sync_handler into standardized error response
     # FastAPI automatically runs this in anyio's worker thread pool (up to 40+ threads)
     # The main asyncio event loop continues accepting traffic without interruption!
     time.sleep(5)  # Safe: Only blocks the isolated background worker thread
-    return {"status": "Woke up safely"}  # Return response payload
+    return {"status": "Woke up safely"}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -959,50 +959,50 @@ Dependencies can depend on other dependencies, enabling modular, layered archite
 # Hierarchical dependency injection in FastAPI
 from fastapi import APIRouter, Depends, HTTPException, Header, status  # Import DI primitives
 
-router = APIRouter(prefix="/admin", tags=["Administration"])  # Assign and initialize variable
+router = APIRouter(prefix="/admin", tags=["Administration"])  # Allocate modular APIRouter instance grouping ticket routes
 
 # Level 1 Dependency: Extracts and verifies authorization token from headers
-def get_auth_token(authorization: str = Header(..., description="Bearer JWT token")) -> str:  # Function definition accepting request parameters
+def get_auth_token(authorization: str = Header(..., description="Bearer JWT token")) -> str:  # Synchronous route handler 'get_auth_token' executed in thread pool
     # Verify header format follows 'Bearer <token>' pattern
     if not authorization.startswith("Bearer "):  # Evaluate conditional expression
-        raise HTTPException(  # Raise exception to interrupt flow
-            status_code=status.HTTP_401_UNAUTHORIZED,  # Assign and initialize variable
-            detail="Invalid authorization header scheme. Must be 'Bearer <token>'",  # Assign and initialize variable
-        )  # Closing delimiter
+        raise HTTPException(  # Halt execution immediately by raising HTTPException
+            status_code=status.HTTP_401_UNAUTHORIZED,  # Initialize status_code configuration
+            detail="Invalid authorization header scheme. Must be 'Bearer <token>'",  # Initialize detail configuration
+        )  # Complete argument parameter list and block header
     # Extract and return the raw token substring
-    return authorization.split(" ")[1]  # Return response payload
+    return authorization.split(" ")[1]  # Return authorization.split(" ")[1] result to caller
 
 # Level 2 Sub-Dependency: Depends on Level 1 (get_auth_token) to decode and authenticate user
-def get_current_user(token: str = Depends(get_auth_token)) -> dict:  # Function definition accepting request parameters
+def get_current_user(token: str = Depends(get_auth_token)) -> dict:  # Authentication dependency extracting and verifying user credentials
     # In production, this decodes the JWT and validates user existence
     if token != "secret-admin-token-123":  # Evaluate conditional expression
-        raise HTTPException(  # Raise exception to interrupt flow
-            status_code=status.HTTP_403_FORBIDDEN,  # Assign and initialize variable
-            detail="Token signature invalid or expired",  # Assign and initialize variable
-        )  # Closing delimiter
+        raise HTTPException(  # Halt execution immediately by raising HTTPException
+            status_code=status.HTTP_403_FORBIDDEN,  # Initialize status_code configuration
+            detail="Token signature invalid or expired",  # Initialize detail configuration
+        )  # Complete argument parameter list and block header
     # Return authenticated user dictionary
-    return {"user_id": 42, "role": "ADMIN", "username": "lead_engineer"}  # Return response payload
+    return {"user_id": 42, "role": "ADMIN", "username": "lead_engineer"}  # Return JSON response payload dictionary to client
 
 # Level 3 Sub-Dependency: Enforces role-based access control (RBAC) on the authenticated user
-def require_admin_role(current_user: dict = Depends(get_current_user)) -> dict:  # Function definition accepting request parameters
+def require_admin_role(current_user: dict = Depends(get_current_user)) -> dict:  # Synchronous route handler 'require_admin_role' executed in thread pool
     # Verify that the authenticated user possesses administrative clearance
     if current_user.get("role") != "ADMIN":  # Evaluate conditional expression
-        raise HTTPException(  # Raise exception to interrupt flow
-            status_code=status.HTTP_403_FORBIDDEN,  # Assign and initialize variable
-            detail="Administrative privileges required to access this subsystem",  # Assign and initialize variable
-        )  # Closing delimiter
+        raise HTTPException(  # Halt execution immediately by raising HTTPException
+            status_code=status.HTTP_403_FORBIDDEN,  # Initialize status_code configuration
+            detail="Administrative privileges required to access this subsystem",  # Initialize detail configuration
+        )  # Complete argument parameter list and block header
     # Return verified administrative user context
-    return current_user  # Return response payload
+    return current_user  # Return authenticated user domain entity
 
 # Route Handler: Automatically protected by the complete 3-tier dependency chain
-@router.get("/metrics", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def get_system_metrics(admin_user: dict = Depends(require_admin_role)):  # Function definition accepting request parameters
+@router.get("/metrics", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/metrics' path
+def get_system_metrics(admin_user: dict = Depends(require_admin_role)):  # Synchronous route handler 'get_system_metrics' executed in thread pool
     # Reaches this point ONLY if Level 1, Level 2, and Level 3 dependencies succeeded
-    return {  # Return response payload
-        "status": "OPERATIONAL",  # Execute statement
-        "accessed_by": admin_user["username"],  # Execute statement
-        "active_connections": 14,  # Execute statement
-    }  # Closing delimiter
+    return {  # Return { result to caller
+        "status": "OPERATIONAL",  # Execute "status": "OPERATIONAL",
+        "accessed_by": admin_user["username"],  # Execute "accessed_by": admin_user["username"],
+        "active_connections": 14,  # Execute "active_connections": 14,
+    }  # Finalize dictionary mapping block
 ```
 
 ---
@@ -1040,17 +1040,17 @@ Here is the exact production implementation of the `yield get_db` generator patt
 
 ```python
 # backend/app/api/deps.py
-from typing import Generator            # Import Generator type hint for clean typing
-from sqlalchemy.orm import Session      # Import SQLAlchemy Session class
-from app.db.session import SessionLocal # Import pre-configured sessionmaker factory
+from typing import Generator  # Import Generator type hint for clean typing
+from sqlalchemy.orm import Session  # Import SQLAlchemy Session class
+from app.db.session import SessionLocal  # Import pre-configured sessionmaker factory
 
-def get_db() -> Generator[Session, None, None]:  # Function definition accepting request parameters
+def get_db() -> Generator[Session, None, None]:  # Generator function providing transactional database session lifecycle
     # 1. SETUP PHASE: Instantiate a brand new, isolated database session from the connection pool
-    db: Session = SessionLocal()  # Assign and initialize variable
+    db: Session = SessionLocal()  # Initialize db: Session configuration
     try:  # Begin protected execution block
         # 2. YIELD PHASE: Yield the active session to the route handler via Depends(get_db)
         # Execution of this generator function PAUSES here while the route handler executes!
-        yield db  # Yield resource to downstream consumer
+        yield db  # Yield active database session to route handler context
     finally:  # Begin guaranteed cleanup block
         # 3. TEARDOWN PHASE: Guaranteed cleanup!
         # The finally block executes AFTER the route handler completes and sends the HTTP response,
@@ -1078,26 +1078,26 @@ This enables building **automatic transactional rollbacks**:
 
 ```python
 # Advanced transactional generator dependency with automated rollback on failure
-from typing import Generator            # Import Generator typing construct
-from sqlalchemy.orm import Session      # Import SQLAlchemy Session
-from app.db.session import SessionLocal # Import sessionmaker factory
+from typing import Generator  # Import Generator typing construct
+from sqlalchemy.orm import Session  # Import SQLAlchemy Session
+from app.db.session import SessionLocal  # Import sessionmaker factory
 
-def get_transactional_db() -> Generator[Session, None, None]:  # Function definition accepting request parameters
+def get_transactional_db() -> Generator[Session, None, None]:  # Synchronous route handler 'get_transactional_db' executed in thread pool
     # Open isolated database session
-    db: Session = SessionLocal()  # Assign and initialize variable
+    db: Session = SessionLocal()  # Initialize db: Session configuration
     try:  # Begin protected execution block
         # Yield session to endpoint handler
-        yield db  # Yield resource to downstream consumer
+        yield db  # Yield active database session to route handler context
         # If the route handler completed WITHOUT raising an error, commit the transaction
-        db.commit()  # Execute statement
+        db.commit()  # Commit transactional changes to persistent database storage
     except Exception as exc:  # Catch and handle exception
         # If ANY unhandled exception was raised in the route handler, roll back all database mutations!
-        db.rollback()  # Execute statement
+        db.rollback()  # Roll back active database transaction on error
         # Re-raise the exception so FastAPI's global exception handlers can respond with HTTP 500
-        raise exc  # Raise exception to interrupt flow
+        raise exc  # Halt execution immediately by raising exc
     finally:  # Begin guaranteed cleanup block
         # Guaranteed cleanup regardless of success or failure
-        db.close()  # Execute statement
+        db.close()  # Close database session and return connection to pool
 ```
 
 ---
@@ -1113,38 +1113,38 @@ FastAPI prevents this vulnerability through the **`response_model`** parameter i
 ```python
 # Declarative data filtering and contract enforcement via response_model
 from fastapi import APIRouter, status  # Import router and status code enum
-from pydantic import BaseModel, Field   # Import Pydantic base classes
+from pydantic import BaseModel, Field  # Import Pydantic base classes
 
 # Public DTO schema defining strictly what the client is permitted to view
-class TicketPublicResponse(BaseModel):  # Class definition
-    id: int = Field(..., description="Unique database identifier")  # Assign and initialize variable
-    title: str = Field(..., description="Ticket title")  # Assign and initialize variable
-    status: str = Field(..., description="Current lifecycle state")  # Assign and initialize variable
-    department_id: int = Field(..., description="Assigned department identifier")  # Assign and initialize variable
+class TicketPublicResponse(BaseModel):  # Pydantic schema model 'TicketPublicResponse' defining request/response contract
+    id: int = Field(..., description="Unique database identifier")  # Initialize id: int configuration
+    title: str = Field(..., description="Ticket title")  # Initialize title: str configuration
+    status: str = Field(..., description="Current lifecycle state")  # Initialize status: str configuration
+    department_id: int = Field(..., description="Assigned department identifier")  # Initialize department_id: int configuration
     
-    class Config:  # Class definition
+    class Config:  # Define class 'Config' encapsulating domain logic
         from_attributes = True  # Allows Pydantic to read attributes directly from SQLAlchemy ORM objects
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get(  # Route decorator mapping HTTP method and path
-    "/{ticket_id}",  # Execute statement
+@router.get(  # Map HTTP GET requests on '' path
+    "/{ticket_id}",  # Execute "/{ticket_id}",
     response_model=TicketPublicResponse,  # Enforces that output MUST conform to TicketPublicResponse
-    status_code=status.HTTP_200_OK,  # Assign and initialize variable
-)  # Closing delimiter
-def get_ticket_secure(ticket_id: int):  # Function definition accepting request parameters
+    status_code=status.HTTP_200_OK,  # Initialize status_code configuration
+)  # Complete argument parameter list and block header
+def get_ticket_secure(ticket_id: int):  # Synchronous route handler 'get_ticket_secure' executed in thread pool
     # Simulated database record containing sensitive internal administrative data
-    internal_record = {  # Assign and initialize variable
-        "id": ticket_id,  # Execute statement
-        "title": "Corridor Light Flickering",  # Execute statement
-        "status": "OPEN",  # Execute statement
-        "department_id": 3,  # Execute statement
+    internal_record = {  # Initialize internal_record configuration
+        "id": ticket_id,  # Execute "id": ticket_id,
+        "title": "Corridor Light Flickering",  # Execute "title": "Corridor Light Flickering",
+        "status": "OPEN",  # Execute "status": "OPEN",
+        "department_id": 3,  # Execute "department_id": 3,
         "internal_notes": "Contractor flagged for past billing dispute",  # SENSITIVE: MUST NOT LEAK!
-        "admin_score": 98.4,                                             # SENSITIVE: MUST NOT LEAK!
-    }  # Closing delimiter
+        "admin_score": 98.4,  # SENSITIVE: MUST NOT LEAK!
+    }  # Finalize dictionary mapping block
     # FastAPI automatically filters the dictionary against TicketPublicResponse!
     # 'internal_notes' and 'admin_score' are automatically stripped out before JSON serialization!
-    return internal_record  # Return response payload
+    return internal_record  # Return internal_record result to caller
 ```
 
 Under the hood:
@@ -1166,26 +1166,26 @@ Large JSON payloads consume unnecessary network bandwidth and increase client pa
 ```python
 # Reducing payload size with response_model exclusion flags
 from fastapi import APIRouter, status  # Import router primitives
-from pydantic import BaseModel          # Import Pydantic model base
+from pydantic import BaseModel  # Import Pydantic model base
 
-class TicketFilterSummary(BaseModel):  # Class definition
-    total_count: int  # Execute statement
-    open_count: int  # Execute statement
-    resolved_count: int = 0  # Assign and initialize variable
+class TicketFilterSummary(BaseModel):  # Define class 'TicketFilterSummary' encapsulating domain logic
+    total_count: int  # Execute total_count: int
+    open_count: int  # Execute open_count: int
+    resolved_count: int = 0  # Initialize resolved_count: int configuration
     secondary_notes: str | None = None  # Often None in production
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get(  # Route decorator mapping HTTP method and path
-    "/summary",  # Execute statement
-    response_model=TicketFilterSummary,  # Assign and initialize variable
-    response_model_exclude_none=True,      # Strips out 'secondary_notes' when its value is None
+@router.get(  # Map HTTP GET requests on '' path
+    "/summary",  # Execute "/summary",
+    response_model=TicketFilterSummary,  # Initialize response_model configuration
+    response_model_exclude_none=True,  # Strips out 'secondary_notes' when its value is None
     response_model_exclude_defaults=True,  # Strips out 'resolved_count' if it equals its default (0)
-    status_code=status.HTTP_200_OK,  # Assign and initialize variable
-)  # Closing delimiter
-def get_summary():  # Function definition accepting request parameters
+    status_code=status.HTTP_200_OK,  # Initialize status_code configuration
+)  # Complete argument parameter list and block header
+def get_summary():  # Synchronous route handler 'get_summary' executed in thread pool
     # Returns dictionary where secondary_notes is None
-    return {"total_count": 45, "open_count": 12, "secondary_notes": None, "resolved_count": 0}  # Return response payload
+    return {"total_count": 45, "open_count": 12, "secondary_notes": None, "resolved_count": 0}  # Return JSON response payload dictionary to client
     # The rendered JSON over the network is simply: {"total_count": 45, "open_count": 12}
 ```
 
@@ -1197,51 +1197,51 @@ While returning Pydantic models is the standard pattern, certain architectural s
 
 ```python
 # Implementing specialized response classes in FastAPI
-import io                                           # Import standard in-memory byte stream library
-from fastapi import APIRouter, status               # Import router and status constants
-from fastapi.responses import (                     # Import specialized Starlette response types
-    JSONResponse,  # Execute statement
-    PlainTextResponse,  # Execute statement
-    HTMLResponse,  # Execute statement
-    StreamingResponse,  # Execute statement
-    FileResponse,  # Execute statement
-)  # Closing delimiter
+import io  # Import standard in-memory byte stream library
+from fastapi import APIRouter, status  # Import router and status constants
+from fastapi.responses import (  # Import specialized Starlette response types
+    JSONResponse,  # Execute JSONResponse,
+    PlainTextResponse,  # Execute PlainTextResponse,
+    HTMLResponse,  # Execute HTMLResponse,
+    StreamingResponse,  # Execute StreamingResponse,
+    FileResponse,  # Execute FileResponse,
+)  # Complete argument parameter list and block header
 
-router = APIRouter(prefix="/responses", tags=["Responses"])  # Assign and initialize variable
+router = APIRouter(prefix="/responses", tags=["Responses"])  # Allocate modular APIRouter instance grouping ticket routes
 
 # 1. Custom JSONResponse with custom headers and status
-@router.get("/custom-json")  # Route decorator mapping HTTP method and path
-def custom_json():  # Function definition accepting request parameters
+@router.get("/custom-json")  # Map HTTP GET requests on '/custom-json' path
+def custom_json():  # Synchronous route handler 'custom_json' executed in thread pool
     # Construct an explicit JSONResponse with custom cache-control headers
-    return JSONResponse(  # Return response payload
-        status_code=status.HTTP_202_ACCEPTED,  # Assign and initialize variable
-        content={"message": "Job queued for asynchronous batch processing"},  # Assign and initialize variable
-        headers={"X-Custom-Processing-Engine": "SmartComplaint-V1"},  # Assign and initialize variable
-    )  # Closing delimiter
+    return JSONResponse(  # Return explicit response object with status and headers
+        status_code=status.HTTP_202_ACCEPTED,  # Initialize status_code configuration
+        content={"message": "Job queued for asynchronous batch processing"},  # Initialize content configuration
+        headers={"X-Custom-Processing-Engine": "SmartComplaint-V1"},  # Initialize headers configuration
+    )  # Complete argument parameter list and block header
 
 # 2. PlainTextResponse for raw text/diagnostics
-@router.get("/robots.txt", response_class=PlainTextResponse)  # Route decorator mapping HTTP method and path
-def robots_txt():  # Function definition accepting request parameters
+@router.get("/robots.txt", response_class=PlainTextResponse)  # Map HTTP GET requests on '/robots.txt' path
+def robots_txt():  # Synchronous route handler 'robots_txt' executed in thread pool
     # Return raw text file format for search engine crawlers
-    return "User-agent: *\nDisallow: /api/\n"  # Return response payload
+    return "User-agent: *\nDisallow: /api/\n"  # Return "User-agent: *\nDisallow: /api/\n" result to caller
 
 # 3. StreamingResponse for memory-efficient large data transfer
-@router.get("/export/csv")  # Route decorator mapping HTTP method and path
-def stream_large_csv():  # Function definition accepting request parameters
+@router.get("/export/csv")  # Map HTTP GET requests on '/export/csv' path
+def stream_large_csv():  # Synchronous route handler 'stream_large_csv' executed in thread pool
     # Generator producing chunks of CSV rows dynamically without buffering the whole file in RAM
-    def csv_generator():  # Function definition accepting request parameters
+    def csv_generator():  # Synchronous route handler 'csv_generator' executed in thread pool
         # Yield the CSV header row
-        yield "ticket_id,title,status\n"  # Yield resource to downstream consumer
+        yield "ticket_id,title,status\n"  # Yield control and active resource to downstream consumer
         # Yield simulated records iteratively
-        for i in range(1, 1001):  # Code block header
-            yield f"{i},Sample Complaint {i},OPEN\n"  # Yield resource to downstream consumer
+        for i in range(1, 1001):  # Execute for i in range(1, 1001):
+            yield f"{i},Sample Complaint {i},OPEN\n"  # Yield control and active resource to downstream consumer
             
     # Stream the generator directly across the network socket
-    return StreamingResponse(  # Return response payload
-        csv_generator(),  # Execute statement
-        media_type="text/csv",  # Assign and initialize variable
-        headers={"Content-Disposition": "attachment; filename=tickets_export.csv"},  # Assign and initialize variable
-    )  # Closing delimiter
+    return StreamingResponse(  # Return explicit response object with status and headers
+        csv_generator(),  # Execute csv_generator(),
+        media_type="text/csv",  # Initialize media_type configuration
+        headers={"Content-Disposition": "attachment; filename=tickets_export.csv"},  # Initialize headers configuration
+    )  # Complete argument parameter list and block header
 ```
 
 ---
@@ -1276,10 +1276,10 @@ FastAPI provides the `fastapi.HTTPException` class for this purpose:
 # Halting execution cleanly with HTTPException
 from fastapi import APIRouter, HTTPException, status  # Import exception and status codes
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/{ticket_id}", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def get_ticket(ticket_id: int):  # Function definition accepting request parameters
+@router.get("/{ticket_id}", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/{ticket_id}' path
+def get_ticket(ticket_id: int):  # Synchronous route handler 'get_ticket' executed in thread pool
     # Simulated database lookup
     ticket = None  # Pretend ticket is not found in database
     
@@ -1287,13 +1287,13 @@ def get_ticket(ticket_id: int):  # Function definition accepting request paramet
         # Raising HTTPException immediately interrupts the route handler execution!
         # FastAPI catches this exception and serializes it into a standardized JSON response:
         # {"detail": "Ticket with ID 999 does not exist in the platform"}
-        raise HTTPException(  # Raise exception to interrupt flow
-            status_code=status.HTTP_404_NOT_FOUND,  # Assign and initialize variable
-            detail=f"Ticket with ID {ticket_id} does not exist in the platform",  # Assign and initialize variable
+        raise HTTPException(  # Halt execution immediately by raising HTTPException
+            status_code=status.HTTP_404_NOT_FOUND,  # Initialize status_code configuration
+            detail=f"Ticket with ID {ticket_id} does not exist in the platform",  # Initialize detail configuration
             headers={"X-Error-Reason": "ENTITY_NOT_FOUND"},  # Optional diagnostic headers
-        )  # Closing delimiter
+        )  # Complete argument parameter list and block header
         
-    return {"id": ticket_id, "found": True}  # Return response payload
+    return {"id": ticket_id, "found": True}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -1310,24 +1310,24 @@ The clean architectural pattern is to define **transport-agnostic Domain Excepti
 # backend/app/core/exceptions.py
 # Pure domain exception hierarchy independent of HTTP frameworks
 
-class DomainException(Exception):  # Class definition
-    """Base exception for all domain-level business errors."""
-    def __init__(self, message: str):  # Function definition accepting request parameters
-        self.message = message  # Assign and initialize variable
-        super().__init__(message)  # Execute statement
+class DomainException(Exception):  # Custom domain exception class 'DomainException'
+    """Base exception for all domain-level business errors."""  # Root class docstring specification
+    def __init__(self, message: str):  # Synchronous route handler '__init__' executed in thread pool
+        self.message = message  # Initialize self.message configuration
+        super().__init__(message)  # Execute super().__init__(message)
 
-class TicketNotFoundException(DomainException):  # Class definition
-    """Raised when a requested ticket cannot be located."""
-    def __init__(self, ticket_id: int):  # Function definition accepting request parameters
-        self.ticket_id = ticket_id  # Assign and initialize variable
-        super().__init__(f"Ticket #{ticket_id} was not found in the persistence store.")
+class TicketNotFoundException(DomainException):  # Custom domain exception class 'TicketNotFoundException'
+    """Raised when a requested ticket cannot be located."""  # Entity not found exception docstring
+    def __init__(self, ticket_id: int):  # Synchronous route handler '__init__' executed in thread pool
+        self.ticket_id = ticket_id  # Initialize self.ticket_id configuration
+        super().__init__(f"Ticket  #{ticket_id} was not found in the persistence store.")
 
-class InvalidStateTransitionException(DomainException):  # Class definition
-    """Raised when an illegal FSM lifecycle transition is attempted."""
-    def __init__(self, current_state: str, attempted_state: str):  # Function definition accepting request parameters
-        self.current_state = current_state  # Assign and initialize variable
-        self.attempted_state = attempted_state  # Assign and initialize variable
-        super().__init__(f"Cannot transition ticket from '{current_state}' to '{attempted_state}'.")  # Execute statement
+class InvalidStateTransitionException(DomainException):  # Custom domain exception class 'InvalidStateTransitionException'
+    """Raised when an illegal FSM lifecycle transition is attempted."""  # Invalid transition exception docstring
+    def __init__(self, current_state: str, attempted_state: str):  # Synchronous route handler '__init__' executed in thread pool
+        self.current_state = current_state  # Initialize self.current_state configuration
+        self.attempted_state = attempted_state  # Initialize self.attempted_state configuration
+        super().__init__(f"Cannot transition ticket from '{current_state}' to '{attempted_state}'.")  # Execute super().__init__(f"Cannot transition tic
 ```
 
 ---
@@ -1338,42 +1338,42 @@ To translate domain exceptions into HTTP responses without cluttering route hand
 
 ```python
 # backend/app/main.py
-from fastapi import FastAPI, Request, status       # Import application and request primitives
-from fastapi.responses import JSONResponse         # Import standard JSONResponse
-from app.core.exceptions import (                  # Import domain exceptions
-    TicketNotFoundException,  # Execute statement
-    InvalidStateTransitionException,  # Execute statement
-)  # Closing delimiter
+from fastapi import FastAPI, Request, status  # Import application and request primitives
+from fastapi.responses import JSONResponse  # Import standard JSONResponse
+from app.core.exceptions import (  # Import domain exceptions
+    TicketNotFoundException,  # Execute TicketNotFoundException,
+    InvalidStateTransitionException,  # Execute InvalidStateTransitionException,
+)  # Complete argument parameter list and block header
 
-app = FastAPI(title="Smart Complaint Handler")  # Assign and initialize variable
+app = FastAPI(title="Smart Complaint Handler")  # Instantiate root FastAPI application with metadata and lifespan
 
 # Register global handler for TicketNotFoundException
-@app.exception_handler(TicketNotFoundException)  # Route decorator mapping HTTP method and path
-async def ticket_not_found_handler(request: Request, exc: TicketNotFoundException):  # Function definition accepting request parameters
+@app.exception_handler(TicketNotFoundException)  # Register global exception handler hook for TicketNotFoundException
+async def ticket_not_found_handler(request: Request, exc: TicketNotFoundException):  # Catch and translate ticket_not_found_handler into standardized error response
     # Intercepts any TicketNotFoundException raised anywhere in the route tree or service layer
-    return JSONResponse(  # Return response payload
-        status_code=status.HTTP_404_NOT_FOUND,  # Assign and initialize variable
-        content={  # Assign and initialize variable
-            "error_code": "TICKET_NOT_FOUND",  # Execute statement
-            "message": exc.message,  # Execute statement
-            "target_id": exc.ticket_id,  # Execute statement
-            "path": str(request.url.path),  # Execute statement
-        },  # Closing delimiter
-    )  # Closing delimiter
+    return JSONResponse(  # Return explicit response object with status and headers
+        status_code=status.HTTP_404_NOT_FOUND,  # Initialize status_code configuration
+        content={  # Initialize content configuration
+            "error_code": "TICKET_NOT_FOUND",  # Execute "error_code": "TICKET_NOT_FOUND",
+            "message": exc.message,  # Execute "message": exc.message,
+            "target_id": exc.ticket_id,  # Execute "target_id": exc.ticket_id,
+            "path": str(request.url.path),  # Execute "path": str(request.url.path),
+        },  # Finalize dictionary mapping block
+    )  # Complete argument parameter list and block header
 
 # Register global handler for InvalidStateTransitionException
-@app.exception_handler(InvalidStateTransitionException)  # Route decorator mapping HTTP method and path
-async def invalid_transition_handler(request: Request, exc: InvalidStateTransitionException):  # Function definition accepting request parameters
+@app.exception_handler(InvalidStateTransitionException)  # Register global exception handler hook for InvalidStateTransitionException
+async def invalid_transition_handler(request: Request, exc: InvalidStateTransitionException):  # Catch and translate invalid_transition_handler into standardized error response
     # Intercepts invalid lifecycle transitions and maps them to HTTP 409 Conflict
-    return JSONResponse(  # Return response payload
-        status_code=status.HTTP_409_CONFLICT,  # Assign and initialize variable
-        content={  # Assign and initialize variable
-            "error_code": "ILLEGAL_LIFECYCLE_TRANSITION",  # Execute statement
-            "current_state": exc.current_state,  # Execute statement
-            "attempted_state": exc.attempted_state,  # Execute statement
-            "message": exc.message,  # Execute statement
-        },  # Closing delimiter
-    )  # Closing delimiter
+    return JSONResponse(  # Return explicit response object with status and headers
+        status_code=status.HTTP_409_CONFLICT,  # Initialize status_code configuration
+        content={  # Initialize content configuration
+            "error_code": "ILLEGAL_LIFECYCLE_TRANSITION",  # Execute "error_code": "ILLEGAL_LIFECYCLE_TRANSIT
+            "current_state": exc.current_state,  # Execute "current_state": exc.current_state,
+            "attempted_state": exc.attempted_state,  # Execute "attempted_state": exc.attempted_state,
+            "message": exc.message,  # Execute "message": exc.message,
+        },  # Finalize dictionary mapping block
+    )  # Complete argument parameter list and block header
 ```
 
 Now, service functions can freely raise `raise TicketNotFoundException(ticket_id)` without knowing or caring about HTTP status codes, and FastAPI automatically translates them into uniform, standardized JSON error envelopes.
@@ -1388,33 +1388,33 @@ In production systems, you can override this default handler to format errors ac
 
 ```python
 # Customizing RequestValidationError to enterprise RFC 7807 format
-from fastapi import FastAPI, Request, status                                    # Core primitives
-from fastapi.exceptions import RequestValidationError                           # Validation error
-from fastapi.responses import JSONResponse                                      # Response class
+from fastapi import FastAPI, Request, status  # Core primitives
+from fastapi.exceptions import RequestValidationError  # Validation error
+from fastapi.responses import JSONResponse  # Response class
 
-app = FastAPI()  # Assign and initialize variable
+app = FastAPI()  # Instantiate root FastAPI application with metadata and lifespan
 
-@app.exception_handler(RequestValidationError)  # Route decorator mapping HTTP method and path
-async def custom_validation_error_handler(request: Request, exc: RequestValidationError):  # Function definition accepting request parameters
+@app.exception_handler(RequestValidationError)  # Register global exception handler hook for RequestValidationError
+async def custom_validation_error_handler(request: Request, exc: RequestValidationError):  # Catch and translate custom_validation_error_handler into standardized error response
     # Format individual field errors into a clean, human-readable list
-    formatted_errors = []  # Assign and initialize variable
-    for error in exc.errors():  # Code block header
-        formatted_errors.append({  # Execute statement
-            "field": ".".join([str(loc) for loc in error["loc"] if loc != "body"]),  # Assign and initialize variable
-            "issue": error["msg"],  # Execute statement
-            "type": error["type"],  # Execute statement
-        })  # Execute statement
+    formatted_errors = []  # Initialize formatted_errors configuration
+    for error in exc.errors():  # Execute for error in exc.errors():
+        formatted_errors.append({  # Execute formatted_errors.append({
+            "field": ".".join([str(loc) for loc in error["loc"] if loc != "body"]),  # Initialize "field": ".".join([str(loc) for loc in error["loc"] if loc ! configuration
+            "issue": error["msg"],  # Execute "issue": error["msg"],
+            "type": error["type"],  # Execute "type": error["type"],
+        })  # Execute })
         
-    return JSONResponse(  # Return response payload
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,  # Assign and initialize variable
-        content={  # Assign and initialize variable
-            "type": "https://errors.smartcomplaint.local/validation-failure",  # Execute statement
-            "title": "Unprocessable Request Entity",  # Execute statement
-            "status": 422,  # Execute statement
-            "detail": "One or more payload attributes failed strict validation constraints.",  # Execute statement
-            "invalid_parameters": formatted_errors,  # Execute statement
-        },  # Closing delimiter
-    )  # Closing delimiter
+    return JSONResponse(  # Return explicit response object with status and headers
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,  # Initialize status_code configuration
+        content={  # Initialize content configuration
+            "type": "https://errors.smartcomplaint.local/validation-failure",  # Execute "type": "https://errors.smartcomplaint.l
+            "title": "Unprocessable Request Entity",  # Execute "title": "Unprocessable Request Entity",
+            "status": 422,  # Execute "status": 422,
+            "detail": "One or more payload attributes failed strict validation constraints.",  # Execute "detail": "One or more payload attribute
+            "invalid_parameters": formatted_errors,  # Execute "invalid_parameters": formatted_errors,
+        },  # Finalize dictionary mapping block
+    )  # Complete argument parameter list and block header
 ```
 
 ---
@@ -1483,33 +1483,33 @@ In production systems, measuring the latency of every HTTP transaction is essent
 
 ```python
 # Production request timing middleware using BaseHTTPMiddleware
-import time                                      # Import monotonic timer module
-from fastapi import FastAPI, Request            # Import FastAPI and Request classes
-from starlette.middleware.base import BaseHTTPMiddleware # Import base middleware class
+import time  # Import monotonic timer module
+from fastapi import FastAPI, Request  # Import FastAPI and Request classes
+from starlette.middleware.base import BaseHTTPMiddleware  # Import base middleware class
 
-class RequestLatencyLoggingMiddleware(BaseHTTPMiddleware):  # Class definition
-    async def dispatch(self, request: Request, call_next):  # Function definition accepting request parameters
+class RequestLatencyLoggingMiddleware(BaseHTTPMiddleware):  # Custom HTTP middleware class 'RequestLatencyLoggingMiddleware' subclassing BaseHTTPMiddleware
+    async def dispatch(self, request: Request, call_next):  # Intercept request/response flow to measure execution latency
         # PRE-PROCESSING: Record high-resolution start timestamp before processing begins
-        start_time = time.perf_counter()  # Assign and initialize variable
+        start_time = time.perf_counter()  # Initialize start_time configuration
         
         # DELEGATION: Pass the request down the middleware chain to the route handler
-        response = await call_next(request)  # Assign and initialize variable
+        response = await call_next(request)  # Initialize response configuration
         
         # POST-PROCESSING: Calculate elapsed execution time in milliseconds
-        process_time_ms = (time.perf_counter() - start_time) * 1000.0  # Assign and initialize variable
+        process_time_ms = (time.perf_counter() - start_time) * 1000.0  # Initialize process_time_ms configuration
         
         # Append custom performance metric header to the HTTP response
-        response.headers["X-Process-Time-Ms"] = f"{process_time_ms:.2f}"  # Assign and initialize variable
+        response.headers["X-Process-Time-Ms"] = f"{process_time_ms:.2f}"  # Initialize response.headers["X-Process-Time-Ms"] configuration
         
         # Print structured latency log for observability
-        print(f"[HTTP Access] {request.method} {request.url.path} completed in {process_time_ms:.2f}ms (Status: {response.status_code})")  # Log informational diagnostics message
+        print(f"[HTTP Access] {request.method} {request.url.path} completed in {process_time_ms:.2f}ms (Status: {response.status_code})")  # Print operational status log to standard output
         
         # Return the augmented response back to the client
-        return response  # Return response payload
+        return response  # Return response result to caller
 
-app = FastAPI()  # Assign and initialize variable
+app = FastAPI()  # Instantiate root FastAPI application with metadata and lifespan
 # Add custom middleware to the application pipeline
-app.add_middleware(RequestLatencyLoggingMiddleware)  # Execute statement
+app.add_middleware(RequestLatencyLoggingMiddleware)  # Register middleware into ASGI processing pipeline
 ```
 
 ---
@@ -1529,27 +1529,27 @@ FastAPI handles this automatically using `CORSMiddleware`:
 
 ```python
 # Configuring production CORS middleware in FastAPI
-from fastapi import FastAPI                               # Import application class
-from fastapi.middleware.cors import CORSMiddleware        # Import official Starlette CORS middleware
+from fastapi import FastAPI  # Import application class
+from fastapi.middleware.cors import CORSMiddleware  # Import official Starlette CORS middleware
 
-app = FastAPI(title="Smart Complaint Handler")  # Assign and initialize variable
+app = FastAPI(title="Smart Complaint Handler")  # Instantiate root FastAPI application with metadata and lifespan
 
 # Define the exact trusted frontend origins permitted to access this API
-allowed_origins = [  # Assign and initialize variable
+allowed_origins = [  # Initialize allowed_origins configuration
     "http://localhost:5173",  # Local Vite React development server
     "http://127.0.0.1:5173",  # Alternate loopback address for Vite
     "https://complaints.university.edu",  # Production frontend domain
-]  # Closing delimiter
+]  # Finalize list collection array
 
 # Mount CORSMiddleware onto the application stack
-app.add_middleware(  # Execute statement
-    CORSMiddleware,  # Execute statement
-    allow_origins=allowed_origins,     # Whitelist of trusted origins (NEVER use ["*"] in production with auth!)
-    allow_credentials=True,            # Authorizes cookies and HTTP authorization headers in cross-origin requests
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], # Allowed HTTP verbs
-    allow_headers=["*"],               # Allow all standard request headers (Content-Type, Authorization, etc.)
-    max_age=600,                       # Instructs browser to cache preflight OPTIONS response for 10 minutes
-)  # Closing delimiter
+app.add_middleware(  # Register middleware into ASGI processing pipeline
+    CORSMiddleware,  # Execute CORSMiddleware,
+    allow_origins=allowed_origins,  # Whitelist of trusted origins (NEVER use ["*"] in production with auth!)
+    allow_credentials=True,  # Authorizes cookies and HTTP authorization headers in cross-origin requests
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],  # Allowed HTTP verbs
+    allow_headers=["*"],  # Allow all standard request headers (Content-Type, Authorization, etc.)
+    max_age=600,  # Instructs browser to cache preflight OPTIONS response for 10 minutes
+)  # Complete argument parameter list and block header
 ```
 
 ---
@@ -1566,37 +1566,37 @@ FastAPI provides the **`BackgroundTasks`** class. A background task is a Python 
 # Deferring non-critical operations using BackgroundTasks
 from fastapi import APIRouter, BackgroundTasks, status  # Import BackgroundTasks helper
 
-router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Assign and initialize variable
+router = APIRouter(prefix="/tickets", tags=["Tickets"])  # Allocate modular APIRouter instance grouping ticket routes
 
 # Standalone worker function to simulate sending an email notification
-def send_ticket_notification_email(recipient_email: str, ticket_code: str):  # Function definition accepting request parameters
+def send_ticket_notification_email(recipient_email: str, ticket_code: str):  # Synchronous route handler 'send_ticket_notification_email' executed in thread pool
     # This function executes in the background AFTER the HTTP response is already sent!
-    print(f"[Email Service] Connecting to SMTP server for {recipient_email}...")  # Log informational diagnostics message
+    print(f"[Email Service] Connecting to SMTP server for {recipient_email}...")  # Print operational status log to standard output
     # Simulate slow SMTP network transmission without delaying the user
-    print(f"[Email Service] Notification sent successfully for ticket: {ticket_code}")  # Log informational diagnostics message
+    print(f"[Email Service] Notification sent successfully for ticket: {ticket_code}")  # Print operational status log to standard output
 
-@router.post("", status_code=status.HTTP_201_CREATED)  # Route decorator mapping HTTP method and path
-def submit_complaint(  # Function definition accepting request parameters
-    title: str,  # Execute statement
-    email: str,  # Execute statement
+@router.post("", status_code=status.HTTP_201_CREATED)  # Map HTTP POST creation endpoint on '/'
+def submit_complaint(  # Synchronous route handler 'submit_complaint' executed in thread pool
+    title: str,  # Execute title: str,
+    email: str,  # Execute email: str,
     background_tasks: BackgroundTasks,  # Inject BackgroundTasks dependency from FastAPI
-):  # Closing delimiter
+):  # Complete argument parameter list and block header
     # Generate unique ticket tracking code
-    generated_code = "TKT-20260911-8492"  # Assign and initialize variable
+    generated_code = "TKT-20260911-8492"  # Initialize generated_code configuration
     
     # Schedule email delivery to run asynchronously post-response
-    background_tasks.add_task(  # Execute statement
+    background_tasks.add_task(  # Schedule asynchronous background task to run after response returns
         send_ticket_notification_email,  # Target callable function
-        recipient_email=email,           # Positional / keyword argument 1
-        ticket_code=generated_code,      # Positional / keyword argument 2
-    )  # Closing delimiter
+        recipient_email=email,  # Positional / keyword argument 1
+        ticket_code=generated_code,  # Positional / keyword argument 2
+    )  # Complete argument parameter list and block header
     
     # The client receives this response immediately; they do NOT wait for SMTP delivery!
-    return {  # Return response payload
-        "status": "CREATED",  # Execute statement
-        "tracking_code": generated_code,  # Execute statement
-        "message": "Ticket recorded; notification queued.",  # Execute statement
-    }  # Closing delimiter
+    return {  # Return { result to caller
+        "status": "CREATED",  # Execute "status": "CREATED",
+        "tracking_code": generated_code,  # Execute "tracking_code": generated_code,
+        "message": "Ticket recorded; notification queued.",  # Execute "message": "Ticket recorded; notificatio
+    }  # Finalize dictionary mapping block
 ```
 
 ---
@@ -1630,13 +1630,13 @@ In the `SmartComplaintHandler` platform, we use `BackgroundTasks` for instantane
 In older versions of FastAPI (<0.93.0), application startup and shutdown routines were declared using event handler decorators:
 ```python
 # DEPRECATED LEGACY PATTERN: Do not use in modern production systems
-@app.on_event("startup")  # Route decorator mapping HTTP method and path
-def startup_event():  # Function definition accepting request parameters
-    pass  # No-op placeholder
+@app.on_event("startup")  # Register application lifecycle event hook
+def startup_event():  # Synchronous route handler 'startup_event' executed in thread pool
+    pass  # Execute pass
 
-@app.on_event("shutdown")  # Route decorator mapping HTTP method and path
-def shutdown_event():  # Function definition accepting request parameters
-    pass  # No-op placeholder
+@app.on_event("shutdown")  # Register application lifecycle event hook
+def shutdown_event():  # Synchronous route handler 'shutdown_event' executed in thread pool
+    pass  # Execute pass
 ```
 
 These legacy decorators were officially deprecated because they lacked a clean mechanism for sharing state between startup and shutdown (such as passing an active database connection pool), and they did not conform to the standardized ASGI Lifespan protocol.
@@ -1651,27 +1651,27 @@ The code *before* the `yield` statement executes **during application startup** 
 
 ```python
 # Modern production lifespan architecture in FastAPI
-from contextlib import asynccontextmanager           # Import contextlib async manager
-from fastapi import FastAPI                         # Import FastAPI application class
-from app.db.database import engine, Base            # Import SQLAlchemy engine and declarative base
-from app.db.init_db import seed_initial_departments # Import database seeding routine
+from contextlib import asynccontextmanager  # Import contextlib async manager
+from fastapi import FastAPI  # Import FastAPI application class
+from app.db.database import engine, Base  # Import SQLAlchemy engine and declarative base
+from app.db.init_db import seed_initial_departments  # Import database seeding routine
 
-@asynccontextmanager  # Route decorator mapping HTTP method and path
-async def lifespan(app: FastAPI):  # Function definition accepting request parameters
+@asynccontextmanager  # Decorate generator function as asynchronous lifespan context manager
+async def lifespan(app: FastAPI):  # Lifespan context manager controlling application startup and shutdown
     # -------------------------------------------------------------
     # 1. STARTUP SEQUENCE: Executes before server accepts any traffic
     # -------------------------------------------------------------
-    print("[Lifecycle Engine] Booting FastAPI application...")  # Log informational diagnostics message
+    print("[Lifecycle Engine] Booting FastAPI application...")  # Print operational status log to standard output
     
     # Automatically generate SQLite database tables if they do not exist
-    print("[Lifecycle Engine] Verifying database relational tables...")  # Log informational diagnostics message
-    Base.metadata.create_all(bind=engine)  # Assign and initialize variable
+    print("[Lifecycle Engine] Verifying database relational tables...")  # Print operational status log to standard output
+    Base.metadata.create_all(bind=engine)  # Initialize Base.metadata.create_all(bind configuration
     
     # Seed mandatory system records (e.g., IT, Maintenance, Electrical departments)
-    print("[Lifecycle Engine] Seeding initial department taxonomy...")  # Log informational diagnostics message
-    seed_initial_departments()  # Execute statement
+    print("[Lifecycle Engine] Seeding initial department taxonomy...")  # Print operational status log to standard output
+    seed_initial_departments()  # Execute seed_initial_departments()
     
-    print("[Lifecycle Engine] System initialization complete. Ready for traffic.")  # Log informational diagnostics message
+    print("[Lifecycle Engine] System initialization complete. Ready for traffic.")  # Print operational status log to standard output
     
     # -------------------------------------------------------------
     # 2. RUNTIME YIELD: The application runs and handles HTTP requests
@@ -1681,16 +1681,16 @@ async def lifespan(app: FastAPI):  # Function definition accepting request param
     # -------------------------------------------------------------
     # 3. SHUTDOWN SEQUENCE: Executes during graceful process termination
     # -------------------------------------------------------------
-    print("[Lifecycle Engine] Shutdown signal received. Commencing graceful teardown...")  # Log informational diagnostics message
+    print("[Lifecycle Engine] Shutdown signal received. Commencing graceful teardown...")  # Print operational status log to standard output
     
     # Dispose of the SQLAlchemy connection pool, closing all open database handles
-    print("[Lifecycle Engine] Disposing relational connection pool...")  # Log informational diagnostics message
-    engine.dispose()  # Execute statement
+    print("[Lifecycle Engine] Disposing relational connection pool...")  # Print operational status log to standard output
+    engine.dispose()  # Execute engine.dispose()
     
-    print("[Lifecycle Engine] Teardown complete. Process terminating safely.")  # Log informational diagnostics message
+    print("[Lifecycle Engine] Teardown complete. Process terminating safely.")  # Print operational status log to standard output
 
 # Pass the lifespan context manager into the root application instance
-app = FastAPI(title="Smart Complaint Handler", lifespan=lifespan)  # Assign and initialize variable
+app = FastAPI(title="Smart Complaint Handler", lifespan=lifespan)  # Instantiate root FastAPI application with metadata and lifespan
 ```
 
 This guarantees that database migrations, seed data, and scheduler threads are initialized cleanly before the first user request arrives, and all database locks and network connections are safely released when the server shuts down.
@@ -1711,20 +1711,20 @@ FastAPI provides declarative header parsing through **`fastapi.Header`**. By def
 # Declarative header extraction and kebab-case transformation
 from fastapi import APIRouter, Header, status  # Import router and Header extraction helper
 
-router = APIRouter(prefix="/telemetry", tags=["Telemetry"])  # Assign and initialize variable
+router = APIRouter(prefix="/telemetry", tags=["Telemetry"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/client-info", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def extract_client_metadata(  # Function definition accepting request parameters
-    user_agent: str | None = Header(default=None),          # Automatically maps to 'User-Agent' header
-    x_correlation_id: str = Header(..., description="UUID"), # Strictly required 'X-Correlation-Id' tracing header
-    accept_language: str = Header(default="en-US"),         # Maps to 'Accept-Language' with fallback default
-):  # Closing delimiter
+@router.get("/client-info", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/client-info' path
+def extract_client_metadata(  # Synchronous route handler 'extract_client_metadata' executed in thread pool
+    user_agent: str | None = Header(default=None),  # Automatically maps to 'User-Agent' header
+    x_correlation_id: str = Header(..., description="UUID"),  # Strictly required 'X-Correlation-Id' tracing header
+    accept_language: str = Header(default="en-US"),  # Maps to 'Accept-Language' with fallback default
+):  # Complete argument parameter list and block header
     # Process and return extracted header metadata
-    return {  # Return response payload
-        "browser_user_agent": user_agent,                   # Client browser / HTTP client string
-        "distributed_trace_id": x_correlation_id,           # Trace ID for distributed observability
-        "locale": accept_language,                          # Preferred language representation
-    }  # Closing delimiter
+    return {  # Return { result to caller
+        "browser_user_agent": user_agent,  # Client browser / HTTP client string
+        "distributed_trace_id": x_correlation_id,  # Trace ID for distributed observability
+        "locale": accept_language,  # Preferred language representation
+    }  # Finalize dictionary mapping block
 ```
 
 ---
@@ -1739,34 +1739,34 @@ FastAPI supports both reading cookies declaratively via `fastapi.Cookie` and set
 # Reading and setting secure HTTP cookies in FastAPI
 from fastapi import APIRouter, Cookie, Response, status  # Import Cookie helper and Response object
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])  # Assign and initialize variable
+router = APIRouter(prefix="/auth", tags=["Authentication"])  # Allocate modular APIRouter instance grouping ticket routes
 
 # Endpoint setting a hardened security cookie on the client browser
-@router.post("/session", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def create_authenticated_session(response: Response):  # Function definition accepting request parameters
+@router.post("/session", status_code=status.HTTP_200_OK)  # Map HTTP POST creation endpoint on '/session'
+def create_authenticated_session(response: Response):  # Synchronous route handler 'create_authenticated_session' executed in thread pool
     # Simulated secure session identifier
-    session_token = "sess_98a7df89a7df687sd6f7sd6f"  # Assign and initialize variable
+    session_token = "sess_98a7df89a7df687sd6f7sd6f"  # Initialize session_token configuration
     
     # Configure defense-in-depth cookie attributes
-    response.set_cookie(  # Execute statement
-        key="session_id",                 # Name of the cookie stored in browser
-        value=session_token,             # Value of the session credential
-        httponly=True,                   # CRITICAL: Prevents JavaScript (XSS attacks) from reading the cookie!
-        secure=True,                     # CRITICAL: Instructs browser to transmit ONLY over encrypted HTTPS
-        samesite="lax",                  # Protects against Cross-Site Request Forgery (CSRF) attacks
-        max_age=86400,                   # Cookie lifetime in seconds (86,400s = 24 hours)
-    )  # Closing delimiter
-    return {"message": "Session initialized successfully"}  # Return response payload
+    response.set_cookie(  # Append Set-Cookie header with HttpOnly, Secure, and SameSite flags
+        key="session_id",  # Name of the cookie stored in browser
+        value=session_token,  # Value of the session credential
+        httponly=True,  # CRITICAL: Prevents JavaScript (XSS attacks) from reading the cookie!
+        secure=True,  # CRITICAL: Instructs browser to transmit ONLY over encrypted HTTPS
+        samesite="lax",  # Protects against Cross-Site Request Forgery (CSRF) attacks
+        max_age=86400,  # Cookie lifetime in seconds (86,400s = 24 hours)
+    )  # Complete argument parameter list and block header
+    return {"message": "Session initialized successfully"}  # Return JSON response payload dictionary to client
 
 # Endpoint reading the session cookie declaratively
-@router.get("/profile", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def get_user_profile(  # Function definition accepting request parameters
+@router.get("/profile", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/profile' path
+def get_user_profile(  # Synchronous route handler 'get_user_profile' executed in thread pool
     session_id: str | None = Cookie(default=None),  # Declaratively extracts 'session_id' from Cookie header
-):  # Closing delimiter
+):  # Complete argument parameter list and block header
     if session_id is None:  # Evaluate conditional expression
-        return {"authenticated": False, "user": "Anonymous"}  # Return response payload
+        return {"authenticated": False, "user": "Anonymous"}  # Return JSON response payload dictionary to client
         
-    return {"authenticated": True, "session": session_id}  # Return response payload
+    return {"authenticated": True, "session": session_id}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -1783,25 +1783,25 @@ When a reverse proxy forwards traffic to Uvicorn:
 # Accurately extracting the real client IP address behind reverse proxies
 from fastapi import APIRouter, Header, Request, status  # Import Request and Header primitives
 
-router = APIRouter(prefix="/security", tags=["Security Audit"])  # Assign and initialize variable
+router = APIRouter(prefix="/security", tags=["Security Audit"])  # Allocate modular APIRouter instance grouping ticket routes
 
-@router.get("/client-ip", status_code=status.HTTP_200_OK)  # Route decorator mapping HTTP method and path
-def get_client_ip(  # Function definition accepting request parameters
-    request: Request,                                       # Access raw Starlette Request object
-    x_forwarded_for: str | None = Header(default=None),     # Extract X-Forwarded-For header if present
-):  # Closing delimiter
+@router.get("/client-ip", status_code=status.HTTP_200_OK)  # Map HTTP GET requests on '/client-ip' path
+def get_client_ip(  # Synchronous route handler 'get_client_ip' executed in thread pool
+    request: Request,  # Access raw Starlette Request object
+    x_forwarded_for: str | None = Header(default=None),  # Extract X-Forwarded-For header if present
+):  # Complete argument parameter list and block header
     # Determine the real origin IP address
     if x_forwarded_for:  # Evaluate conditional expression
         # The first IP in the comma-separated list is the original client origin IP
-        real_client_ip = x_forwarded_for.split(",")[0].strip()  # Assign and initialize variable
-    else:  # Fallback branch when condition evaluates false
+        real_client_ip = x_forwarded_for.split(",")[0].strip()  # Initialize real_client_ip configuration
+    else:  # Execute else:
         # Fall back to raw TCP socket address if not behind a reverse proxy
-        real_client_ip = request.client.host if request.client else "UNKNOWN"  # Assign and initialize variable
+        real_client_ip = request.client.host if request.client else "UNKNOWN"  # Initialize real_client_ip configuration
         
-    return {  # Return response payload
-        "resolved_client_ip": real_client_ip,  # Execute statement
-        "is_proxied": x_forwarded_for is not None,  # Execute statement
-    }  # Closing delimiter
+    return {  # Return { result to caller
+        "resolved_client_ip": real_client_ip,  # Execute "resolved_client_ip": real_client_ip,
+        "is_proxied": x_forwarded_for is not None,  # Execute "is_proxied": x_forwarded_for is not Non
+    }  # Finalize dictionary mapping block
 ```
 
 ---
@@ -1858,63 +1858,63 @@ To persist uploaded files to permanent storage without consuming RAM, stream the
 
 ```python
 # Production streaming file ingestion without memory bloat
-import shutil                                      # Standard file utility module
-from pathlib import Path                           # Object-oriented filesystem path operations
-from fastapi import APIRouter, File, UploadFile, status, HTTPException # Core primitives
+import shutil  # Standard file utility module
+from pathlib import Path  # Object-oriented filesystem path operations
+from fastapi import APIRouter, File, UploadFile, status, HTTPException  # Core primitives
 
-router = APIRouter(prefix="/attachments", tags=["Attachments"])  # Assign and initialize variable
+router = APIRouter(prefix="/attachments", tags=["Attachments"])  # Allocate modular APIRouter instance grouping ticket routes
 
 # Define destination directory for permanent storage
-UPLOAD_DIRECTORY = Path("c:/College/IT Workshop/SmartComplaintHandler/uploads")  # Assign and initialize variable
+UPLOAD_DIRECTORY = Path("c:/College/IT Workshop/SmartComplaintHandler/uploads")  # Initialize UPLOAD_DIRECTORY configuration
 # Ensure directory exists on server filesystem
-UPLOAD_DIRECTORY.mkdir(parents=True, exist_ok=True)  # Assign and initialize variable
+UPLOAD_DIRECTORY.mkdir(parents=True, exist_ok=True)  # Initialize UPLOAD_DIRECTORY.mkdir(parents configuration
 
 # Maximum permitted file size: 10 Megabytes
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10,485,760 bytes
 
-@router.post("/upload", status_code=status.HTTP_201_CREATED)  # Route decorator mapping HTTP method and path
-async def upload_attachment(file: UploadFile = File(...)):  # Function definition accepting request parameters
+@router.post("/upload", status_code=status.HTTP_201_CREATED)  # Map HTTP POST creation endpoint on '/upload'
+async def upload_attachment(file: UploadFile = File(...)):  # Asynchronous endpoint handler 'upload_attachment' processing event loop request
     # Verify MIME type matches acceptable image formats
     if file.content_type not in ["image/jpeg", "image/png", "application/pdf"]:  # Evaluate conditional expression
-        raise HTTPException(  # Raise exception to interrupt flow
-            status_code=status.HTTP_400_BAD_REQUEST,  # Assign and initialize variable
-            detail=f"Unsupported file type '{file.content_type}'. Only JPEG, PNG, and PDF are permitted.",  # Assign and initialize variable
-        )  # Closing delimiter
+        raise HTTPException(  # Halt execution immediately by raising HTTPException
+            status_code=status.HTTP_400_BAD_REQUEST,  # Initialize status_code configuration
+            detail=f"Unsupported file type '{file.content_type}'. Only JPEG, PNG, and PDF are permitted.",  # Initialize detail configuration
+        )  # Complete argument parameter list and block header
         
     # Construct destination path safely using the uploaded filename
     safe_filename = Path(file.filename).name  # Strips any directory traversal prefixes (e.g., ../../)
-    destination_file_path = UPLOAD_DIRECTORY / safe_filename  # Assign and initialize variable
+    destination_file_path = UPLOAD_DIRECTORY / safe_filename  # Initialize destination_file_path configuration
     
-    total_bytes_written = 0  # Assign and initialize variable
+    total_bytes_written = 0  # Initialize total_bytes_written configuration
     chunk_size = 1024 * 1024  # 1MB chunk size
     
     # Open local destination file in binary write mode
-    with open(destination_file_path, "wb") as buffer:  # Context manager managing resource lifecycle
+    with open(destination_file_path, "wb") as buffer:  # Execute with open(destination_file_path, "wb") a
         # Stream incoming data in 1MB chunks to keep memory usage minimal
-        while chunk := await file.read(chunk_size):  # Loop until stream or condition terminates
-            total_bytes_written += len(chunk)  # Assign and initialize variable
+        while chunk := await file.read(chunk_size):  # Initialize while chunk : configuration
+            total_bytes_written += len(chunk)  # Initialize total_bytes_written + configuration
             
             # Enforce strict file size quota
             if total_bytes_written > MAX_FILE_SIZE_BYTES:  # Evaluate conditional expression
-                buffer.close()  # Execute statement
+                buffer.close()  # Execute buffer.close()
                 destination_file_path.unlink(missing_ok=True)  # Delete partial file from disk
-                raise HTTPException(  # Raise exception to interrupt flow
-                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,  # Assign and initialize variable
-                    detail="Uploaded file exceeds maximum allowed threshold of 10MB.",  # Assign and initialize variable
-                )  # Closing delimiter
+                raise HTTPException(  # Halt execution immediately by raising HTTPException
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,  # Initialize status_code configuration
+                    detail="Uploaded file exceeds maximum allowed threshold of 10MB.",  # Initialize detail configuration
+                )  # Complete argument parameter list and block header
                 
             # Write chunk to server disk
-            buffer.write(chunk)  # Execute statement
+            buffer.write(chunk)  # Execute buffer.write(chunk)
             
     # Always close the temporary spooled upload file handle
-    await file.close()  # Execute statement
+    await file.close()  # Execute await file.close()
     
-    return {  # Return response payload
-        "filename": safe_filename,  # Execute statement
-        "bytes_stored": total_bytes_written,  # Execute statement
-        "content_type": file.content_type,  # Execute statement
-        "storage_path": str(destination_file_path),  # Execute statement
-    }  # Closing delimiter
+    return {  # Return { result to caller
+        "filename": safe_filename,  # Execute "filename": safe_filename,
+        "bytes_stored": total_bytes_written,  # Execute "bytes_stored": total_bytes_written,
+        "content_type": file.content_type,  # Execute "content_type": file.content_type,
+        "storage_path": str(destination_file_path),  # Execute "storage_path": str(destination_file_pat
+    }  # Finalize dictionary mapping block
 ```
 
 ---
@@ -1947,34 +1947,34 @@ For the majority of integration tests, `TestClient` provides a clean, synchronou
 
 ```python
 # Synchronous integration testing using Starlette TestClient
-import pytest                                      # Import Pytest testing framework
-from starlette.testclient import TestClient         # Import synchronous ASGI TestClient
-from app.main import app                            # Import root FastAPI application
+import pytest  # Import Pytest testing framework
+from starlette.testclient import TestClient  # Import synchronous ASGI TestClient
+from app.main import app  # Import root FastAPI application
 
 # Instantiate TestClient wrapping the FastAPI application
-client = TestClient(app)  # Assign and initialize variable
+client = TestClient(app)  # Initialize client configuration
 
-def test_health_check_returns_healthy():  # Function definition accepting request parameters
+def test_health_check_returns_healthy():  # Synchronous route handler 'test_health_check_returns_healthy' executed in thread pool
     # Execute an in-memory GET request against /health
-    response = client.get("/health")  # Assign and initialize variable
+    response = client.get("/health")  # Initialize response configuration
     
     # Assert standard HTTP 200 OK status code
-    assert response.status_code == 200  # Verify assertion condition holds true
+    assert response.status_code == 200  # Assert test expectation condition holds true
     # Assert JSON payload contains expected health metadata
-    assert response.json() == {"status": "HEALTHY", "subsystem": "FastAPI ASGI Engine"}  # Verify assertion condition holds true
+    assert response.json() == {"status": "HEALTHY", "subsystem": "FastAPI ASGI Engine"}  # Assert test expectation condition holds true
 
-def test_create_ticket_validation_rejection():  # Function definition accepting request parameters
+def test_create_ticket_validation_rejection():  # Synchronous route handler 'test_create_ticket_validation_rejection' executed in thread pool
     # Attempt to submit an invalid ticket with an empty title
-    invalid_payload = {"title": "", "description": "Too short", "department_id": -1}  # Assign and initialize variable
+    invalid_payload = {"title": "", "description": "Too short", "department_id": -1}  # Initialize invalid_payload configuration
     
     # Execute POST request
-    response = client.post("/api/v1/tickets", json=invalid_payload)  # Assign and initialize variable
+    response = client.post("/api/v1/tickets", json=invalid_payload)  # Initialize response configuration
     
     # Assert that Pydantic validation rejected the request with HTTP 422
-    assert response.status_code == 422  # Verify assertion condition holds true
+    assert response.status_code == 422  # Assert test expectation condition holds true
     # Verify that error details pinpoint the invalid parameters
-    error_details = response.json()["detail"]  # Assign and initialize variable
-    assert len(error_details) > 0  # Verify assertion condition holds true
+    error_details = response.json()["detail"]  # Initialize error_details configuration
+    assert len(error_details) > 0  # Assert test expectation condition holds true
 ```
 
 ---
@@ -1985,22 +1985,22 @@ When testing endpoints that perform asynchronous streaming, WebSockets, or async
 
 ```python
 # Asynchronous integration testing using httpx.AsyncClient
-import pytest                                      # Import Pytest
-import httpx                                       # Import HTTPX async client
-from app.main import app                            # Import FastAPI app
+import pytest  # Import Pytest
+import httpx  # Import HTTPX async client
+from app.main import app  # Import FastAPI app
 
-@pytest.mark.anyio                                 # Mark test as asynchronous coroutine
-async def test_async_ticket_creation():  # Function definition accepting request parameters
+@pytest.mark.anyio  # Mark test as asynchronous coroutine
+async def test_async_ticket_creation():  # Asynchronous endpoint handler 'test_async_ticket_creation' processing event loop request
     # Configure in-memory ASGI transport wrapping the application
-    transport = httpx.ASGITransport(app=app)  # Assign and initialize variable
+    transport = httpx.ASGITransport(app=app)  # Initialize transport configuration
     
     # Instantiate asynchronous client with base URL
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as async_client:  # Context manager managing resource lifecycle
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as async_client:  # Initialize async with httpx.AsyncClient(transport configuration
         # Await non-blocking asynchronous GET request
-        response = await async_client.get("/health")  # Assign and initialize variable
+        response = await async_client.get("/health")  # Initialize response configuration
         
         # Verify status code
-        assert response.status_code == 200  # Verify assertion condition holds true
+        assert response.status_code == 200  # Assert test expectation condition holds true
 ```
 
 ---
@@ -2011,42 +2011,42 @@ The definitive architectural advantage of FastAPI’s Dependency Injection syste
 
 ```python
 # Overriding database dependencies with an isolated in-memory test database
-import pytest                                      # Import Pytest
-from starlette.testclient import TestClient         # Import TestClient
-from app.main import app                            # Import production app
-from app.api.deps import get_db                     # Import production get_db dependency
-from sqlalchemy import create_engine                # Import SQLAlchemy engine factory
-from sqlalchemy.orm import sessionmaker, Session    # Import sessionmaker
-from app.db.database import Base                    # Import declarative base
+import pytest  # Import Pytest
+from starlette.testclient import TestClient  # Import TestClient
+from app.main import app  # Import production app
+from app.api.deps import get_db  # Import production get_db dependency
+from sqlalchemy import create_engine  # Import SQLAlchemy engine factory
+from sqlalchemy.orm import sessionmaker, Session  # Import sessionmaker
+from app.db.database import Base  # Import declarative base
 
 # Create an isolated in-memory SQLite database dedicated exclusively to tests
-TEST_DATABASE_URL = "sqlite:///:memory:"  # Assign and initialize variable
-test_engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})  # Assign and initialize variable
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)  # Assign and initialize variable
+TEST_DATABASE_URL = "sqlite:///:memory:"  # Initialize TEST_DATABASE_URL configuration
+test_engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})  # Initialize test_engine configuration
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)  # Initialize TestingSessionLocal configuration
 
 # Build tables in the in-memory test database
-Base.metadata.create_all(bind=test_engine)  # Assign and initialize variable
+Base.metadata.create_all(bind=test_engine)  # Initialize Base.metadata.create_all(bind configuration
 
 # Define the mock generator dependency
-def override_get_db():  # Function definition accepting request parameters
-    db = TestingSessionLocal()  # Assign and initialize variable
+def override_get_db():  # Generator function providing transactional database session lifecycle
+    db = TestingSessionLocal()  # Initialize db configuration
     try:  # Begin protected execution block
-        yield db  # Yield resource to downstream consumer
+        yield db  # Yield active database session to route handler context
     finally:  # Begin guaranteed cleanup block
-        db.close()  # Execute statement
+        db.close()  # Close database session and return connection to pool
 
 # Instruct FastAPI to replace get_db with override_get_db across all endpoints!
-app.dependency_overrides[get_db] = override_get_db  # Assign and initialize variable
+app.dependency_overrides[get_db] = override_get_db  # Initialize app.dependency_overrides[get_db] configuration
 
 # Tests now execute against isolated in-memory SQLite with zero impact on production data!
-client = TestClient(app)  # Assign and initialize variable
+client = TestClient(app)  # Initialize client configuration
 
-def test_isolated_database_injection():  # Function definition accepting request parameters
-    response = client.get("/api/v1/tickets")  # Assign and initialize variable
-    assert response.status_code == 200  # Verify assertion condition holds true
+def test_isolated_database_injection():  # Synchronous route handler 'test_isolated_database_injection' executed in thread pool
+    response = client.get("/api/v1/tickets")  # Initialize response configuration
+    assert response.status_code == 200  # Assert test expectation condition holds true
     
 # Clean up overrides after test execution
-app.dependency_overrides.clear()  # Execute statement
+app.dependency_overrides.clear()  # Execute app.dependency_overrides.clear()
 ```
 
 ---
@@ -2144,28 +2144,28 @@ Gunicorn and Uvicorn handle `SIGTERM` with **Graceful Shutdown**:
 * **The Mistake:** Yielding a database session without a `try...finally` block:
 
 ```python
-def get_db():  # Function definition accepting request parameters
+def get_db():  # Generator function providing transactional database session lifecycle
     # Setup phase: instantiate a database session
-    db = SessionLocal()  # Assign and initialize variable
+    db = SessionLocal()  # Initialize db configuration
     # Yield active session to route handler
-    yield db  # Yield resource to downstream consumer
+    yield db  # Yield active database session to route handler context
     # BUG: If the route handler raises an exception, this line is NEVER reached!
-    db.close()  # Execute statement
+    db.close()  # Close database session and return connection to pool
 ```
 
 * **The Failure:** If the route handler raises an `HTTPException` or encounters an unhandled runtime error, execution abruptly jumps out of the generator before reaching `db.close()`. Database connections remain orphaned in memory, eventually exhausting the database connection pool (`QueuePool limit of size 5 overflow 10 reached`).
 * **The Solution:** Always wrap generator dependencies in `try...finally`:
 
 ```python
-def get_db():  # Function definition accepting request parameters
+def get_db():  # Generator function providing transactional database session lifecycle
     # Setup phase: allocate database session from connection pool
-    db = SessionLocal()  # Assign and initialize variable
+    db = SessionLocal()  # Initialize db configuration
     try:  # Begin protected execution block
         # Yield session to endpoint handler execution
-        yield db  # Yield resource to downstream consumer
+        yield db  # Yield active database session to route handler context
     finally:  # Begin guaranteed cleanup block
         # Guaranteed cleanup: executes on both normal completion and exceptions
-        db.close()  # Execute statement
+        db.close()  # Close database session and return connection to pool
 ```
 
 ---
@@ -2176,16 +2176,16 @@ def get_db():  # Function definition accepting request parameters
 
 ```python
 # Route 1: Declared FIRST with a path variable wildcard
-@router.get("/tickets/{ticket_id}")  # Route decorator mapping HTTP method and path
-def get_ticket(ticket_id: str):  # Function definition accepting request parameters
+@router.get("/tickets/{ticket_id}")  # Map HTTP GET requests on '/tickets/{ticket_id}' path
+def get_ticket(ticket_id: str):  # Synchronous route handler 'get_ticket' executed in thread pool
     # This matches ANY string, including static paths like 'summary'
-    return {"id": ticket_id}  # Return response payload
+    return {"id": ticket_id}  # Return JSON response payload dictionary to client
 
 # Route 2: Declared SECOND with a static literal path
-@router.get("/tickets/summary")  # Route decorator mapping HTTP method and path
-def get_ticket_summary():  # Function definition accepting request parameters
+@router.get("/tickets/summary")  # Map HTTP GET requests on '/tickets/summary' path
+def get_ticket_summary():  # Synchronous route handler 'get_ticket_summary' executed in thread pool
     # BUG: Completely unreachable because Route 1 intercepts the path!
-    return {"summary": "All tickets"}  # Return response payload
+    return {"summary": "All tickets"}  # Return JSON response payload dictionary to client
 ```
 
 * **The Failure:** Starlette evaluates routes sequentially from top to bottom. When a client requests `GET /tickets/summary`, Starlette matches `"summary"` against `{ticket_id}`. The client receives `{"id": "summary"}` instead of the summary analytics, completely shadowing the intended endpoint!
@@ -2193,16 +2193,16 @@ def get_ticket_summary():  # Function definition accepting request parameters
 
 ```python
 # Route 1: Static path evaluated FIRST
-@router.get("/tickets/summary")  # Route decorator mapping HTTP method and path
-def get_ticket_summary():  # Function definition accepting request parameters
+@router.get("/tickets/summary")  # Map HTTP GET requests on '/tickets/summary' path
+def get_ticket_summary():  # Synchronous route handler 'get_ticket_summary' executed in thread pool
     # Correctly handles requests to /tickets/summary
-    return {"summary": "All tickets"}  # Return response payload
+    return {"summary": "All tickets"}  # Return JSON response payload dictionary to client
 
 # Route 2: Parameterized path evaluated SECOND
-@router.get("/tickets/{ticket_id}")  # Route decorator mapping HTTP method and path
-def get_ticket(ticket_id: int):  # Function definition accepting request parameters
+@router.get("/tickets/{ticket_id}")  # Map HTTP GET requests on '/tickets/{ticket_id}' path
+def get_ticket(ticket_id: int):  # Synchronous route handler 'get_ticket' executed in thread pool
     # Matches /tickets/1, /tickets/2, but leaves /tickets/summary to Route 1
-    return {"id": ticket_id}  # Return response payload
+    return {"id": ticket_id}  # Return JSON response payload dictionary to client
 ```
 
 ---
@@ -2213,12 +2213,12 @@ def get_ticket(ticket_id: int):  # Function definition accepting request paramet
 
 ```python
 # Route handler with a shared mutable default list
-@router.get("/items")  # Route decorator mapping HTTP method and path
-def get_items(filters: list = []):  # Function definition accepting request parameters
+@router.get("/items")  # Map HTTP GET requests on '/items' path
+def get_items(filters: list = []):  # Synchronous route handler 'get_items' executed in thread pool
     # Appending to a default list mutates the shared function object in memory!
-    filters.append("default")  # Execute statement
+    filters.append("default")  # Execute filters.append("default")
     # Returns mutated list containing previous requests' modifications
-    return filters  # Return response payload
+    return filters  # Return filters result to caller
 ```
 
 * **The Failure:** In Python, default arguments are evaluated *once* when the module is imported. The `filters` list is shared across all subsequent HTTP requests. Request 1 receives `["default"]`, Request 2 receives `["default", "default"]`, leaking state between users!
@@ -2226,12 +2226,12 @@ def get_items(filters: list = []):  # Function definition accepting request para
 
 ```python
 # Safe route handler using immutable default None
-@router.get("/items")  # Route decorator mapping HTTP method and path
-def get_items(filters: list[str] | None = None):  # Function definition accepting request parameters
+@router.get("/items")  # Map HTTP GET requests on '/items' path
+def get_items(filters: list[str] | None = None):  # Synchronous route handler 'get_items' executed in thread pool
     # Initialize a brand-new local list per request if omitted
-    active_filters = filters if filters is not None else []  # Assign and initialize variable
+    active_filters = filters if filters is not None else []  # Initialize active_filters configuration
     # Return isolated list instance
-    return active_filters  # Return response payload
+    return active_filters  # Return active_filters result to caller
 ```
 
 ---
@@ -2242,14 +2242,14 @@ def get_items(filters: list[str] | None = None):  # Function definition acceptin
 
 ```python
 # Flawed error handling returning 200 OK on failure
-@router.post("/tickets")  # Route decorator mapping HTTP method and path
-def create_ticket():  # Function definition accepting request parameters
+@router.post("/tickets")  # Map HTTP POST creation endpoint on '/tickets'
+def create_ticket():  # Synchronous route handler 'create_ticket' executed in thread pool
     try:  # Begin protected execution block
         # Simulate business failure
-        raise ValueError("Invalid ticket department ID")  # Raise exception to interrupt flow
+        raise ValueError("Invalid ticket department ID")  # Halt execution immediately by raising ValueError
     except Exception as e:  # Catch and handle exception
         # BUG: Returns HTTP 200 OK with error dictionary!
-        return {"success": False, "error": str(e)}  # Return response payload
+        return {"success": False, "error": str(e)}  # Return JSON response payload dictionary to client
 ```
 
 * **The Failure:** Frontend clients (Axios, React Query) rely on HTTP status codes (4xx/5xx) to trigger error boundaries and retry logic. Returning 200 with an error string tricks the client into thinking the operation succeeded, causing corrupted UI state.
@@ -2257,14 +2257,14 @@ def create_ticket():  # Function definition accepting request parameters
 
 ```python
 # Robust defensive error handling raising HTTPException
-@router.post("/tickets")  # Route decorator mapping HTTP method and path
-def create_ticket():  # Function definition accepting request parameters
+@router.post("/tickets")  # Map HTTP POST creation endpoint on '/tickets'
+def create_ticket():  # Synchronous route handler 'create_ticket' executed in thread pool
     try:  # Begin protected execution block
         # Simulate business failure
-        raise ValueError("Invalid ticket department ID")  # Raise exception to interrupt flow
+        raise ValueError("Invalid ticket department ID")  # Halt execution immediately by raising ValueError
     except ValueError as e:  # Catch and handle exception
         # Raise semantic HTTP 400 Bad Request to trigger client error handling
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))  # Raise exception to interrupt flow
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))  # Halt execution immediately by raising HTTPException
 ```
 
 ---
