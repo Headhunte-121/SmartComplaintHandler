@@ -47,6 +47,10 @@ Every chapter is structured with:
 
 ### 1.1 Anatomy of a Raw TCP Stream & HTTP Request Framing
 
+> [!NOTE]
+> How client network requests are framed and dispatched from browser JavaScript environments is explored in [Guide 06: Modern JavaScript (ES2022+) & V8 Mechanics](06_JAVASCRIPT_RUNTIME_AND_V8_MECHANICS.md) Chapter 21 and [Guide 09: Network Clients, Wire Protocols & Axios](09_AXIOS_FETCH_AND_REST_PROTOCOLS.md).
+
+
 Hypertext Transfer Protocol (HTTP) is an application-layer protocol running on top of a reliable Transmission Control Protocol (TCP) stream. Before an application framework like FastAPI can execute a single line of Python business logic, the underlying operating system kernel and web server must ingest, buffer, and parse a stream of raw ASCII and binary bytes arriving across a network socket.
 
 An HTTP/1.1 request is transmitted as plain text structured into four distinct components separated by Carriage Return Line Feed (`CRLF` or `\r\n`) byte sequences:
@@ -282,6 +286,10 @@ ASGI natively supports:
 ## Chapter 3: The ASGI Specification & The Starlette Foundation
 
 ### 3.1 The ASGI 3.0 Application Callable Contract
+
+> [!NOTE]
+> The ASGI specification relies upon the Python `asyncio` event loop and coroutine suspension protocols detailed in [Guide 01: Python 3.10+ Language & Runtime Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) Chapter 20.
+
 
 At its architectural core, an ASGI 3.0 application is simply an asynchronous Python callable that adheres to a strict three-argument signature:
 
@@ -830,6 +838,10 @@ async def handle_dynamic_webhook(request: Request):  # Asynchronous endpoint han
 
 ### 9.1 The Event Loop Thread vs AnyIO Worker Thread Pool (`anyio.to_thread.run_sync`)
 
+> [!NOTE]
+> Thread pool dispatch mechanics interact directly with CPython GIL release behavior ([Guide 01: Python Language Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) Chapter 20) and SQLite file lock arbitration ([Guide 04: SQLite 3 Engine Architecture, Storage Mechanics & WAL Mode](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md) Chapter 11).
+
+
 One of the most critical and frequently misunderstood architectural mechanisms in FastAPI is its **dual execution model**. When declaring a route handler, a developer can define the function as either `async def` or standard synchronous `def`:
 
 ```python
@@ -921,6 +933,10 @@ Follow this strict engineering rule across the `SmartComplaintHandler` codebase:
 ## Chapter 10: The Dependency Injection (DI) Engine (`Depends`)
 
 ### 10.1 Inversion of Control (IoC) & Why Global Singletons Break Systems
+
+> [!NOTE]
+> Dependency injection provides decoupled access to configuration singletons ([Guide 03: Pydantic v2 Data Contract Engineering](03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md) Chapter 19) and database session transactions ([Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture](05_SQLALCHEMY_ORM_AND_DATA_LAYER.md) Chapter 21).
+
 
 In software architecture, **Dependency Injection (DI)** is a design pattern that implements **Inversion of Control (IoC)**. Instead of a component creating its own dependencies (such as instantiating a database connection or reading an authentication token directly from global memory), dependencies are "injected" into the component from the outside by an orchestration framework.
 
@@ -1306,6 +1322,10 @@ def get_ticket(ticket_id: int):  # Synchronous route handler 'get_ticket' execut
 
 ### 13.2 Defining Custom Domain Exception Hierarchies
 
+> [!NOTE]
+> Subclassing custom exceptions in route handlers builds directly upon the exception hierarchy fundamentals established in [Guide 01: Python 3.10+ Language & Runtime Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) Chapter 12.
+
+
 In enterprise software engineering, raising `HTTPException` directly inside business logic or database service functions is an **anti-pattern**. 
 
 Why? Because raising an `HTTPException` couples your core domain logic to the HTTP transport layer! If you later invoke that same business logic from an asynchronous CLI command, a background cron job (APScheduler), or a message queue consumer, your background worker will fail with an HTTP error.
@@ -1428,6 +1448,10 @@ async def custom_validation_error_handler(request: Request, exc: RequestValidati
 ## Chapter 14: The HTTP Middleware Pipeline Architecture
 
 ### 14.1 The Onion Model of Middleware
+
+> [!NOTE]
+> For comprehensive implementations of CORS preflight negotiation, security headers, and token bucket rate limiters, see [Guide 19: Defensive HTTP, Middlewares & Security](19_API_MIDDLEWARE_AND_SECURITY_HEADERS.md).
+
 
 A **Middleware** is a software component that sits between the incoming network socket and the route handler. Middlewares operate on the **Onion Model**:
 

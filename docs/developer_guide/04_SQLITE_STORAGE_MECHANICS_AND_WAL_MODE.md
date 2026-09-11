@@ -46,6 +46,10 @@ Every chapter in this manual provides:
 
 ### 1.1 Client-Server vs In-Process Database Engines
 
+> [!NOTE]
+> In-process C library execution eliminates network socket overhead, contrasting directly with networked database drivers and browser-server HTTP protocols detailed in [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md).
+
+
 In enterprise software engineering, relational databases predominantly fall into two distinct structural paradigms:
 1. **Client-Server Engines (e.g., PostgreSQL, MySQL, Oracle):**
    * The database engine runs as an independent daemon process on a separate host or virtual machine.
@@ -146,6 +150,10 @@ connection.close()  # Close RAM database connection and immediately release memo
 ## Chapter 2: Physical Database File Format & B-Tree Storage Hierarchy
 
 ### 2.1 The 100-Byte Database File Header
+
+> [!NOTE]
+> Clustered B-Tree primary keys (`INTEGER PRIMARY KEY`) in SQLite provide $O(1)$ point-lookup access for SQLAlchemy models, detailed in [Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture](05_SQLALCHEMY_ORM_AND_DATA_LAYER.md) Chapter 5.
+
 
 Every valid SQLite database file begins with a strictly formatted **100-byte header** located at offset 0. The header defines foundational parameters required to read the file:
 
@@ -515,6 +523,10 @@ conn.close()  # Release database connection
 
 ### 7.1 The WAL Paradigm Shift
 
+> [!NOTE]
+> Write-Ahead Logging allows background asynchronous jobs and FastAPI worker threads to query the database concurrently without blocking writers, as explored in [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md) Chapter 9.
+
+
 In SQLite 3.7.0, the engine introduced **Write-Ahead Logging (WAL)**, fundamentally solving the reader-writer concurrency bottleneck.
 
 In WAL mode, original pages in `complaints.db` are **never overwritten during an active transaction**. Instead:
@@ -849,6 +861,10 @@ verify_conn.close()  # Close verification connection
 ## Chapter 12: Python's `sqlite3` Standard Library: Internals & Gotchas
 
 ### 12.1 The Historical Autocommit Pitfall in CPython
+
+> [!NOTE]
+> Low-level DBAPI connection management is abstracted in production by SQLAlchemy's `Engine` and connection pooling layer, detailed in [Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture](05_SQLALCHEMY_ORM_AND_DATA_LAYER.md) Chapters 2 and 3.
+
 
 One of the most dangerous, subtle sources of bugs in Python database programming is Python's historical implicit transaction management inside `sqlite3`.
 
