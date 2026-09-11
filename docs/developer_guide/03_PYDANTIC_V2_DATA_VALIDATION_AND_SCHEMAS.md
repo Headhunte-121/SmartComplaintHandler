@@ -47,28 +47,28 @@ When an application relies on raw dictionaries to process incoming requests, eng
 
 ```python
 # The legacy anti-pattern: Fragile defensive manual dictionary validation
-def process_complaint_raw(payload: dict) -> dict:  # Function or method definition
+def process_complaint_raw(payload: dict) -> dict:  # Function validating raw untyped payload dictionary
     # 1. Manually verify mandatory key existence
-    if "title" not in payload:  # Conditional branch evaluation
-        raise KeyError("Missing mandatory field: 'title'")  # Defensive key assertion
-    if "severity" not in payload:  # Conditional branch evaluation
-        raise KeyError("Missing mandatory field: 'severity'")  # Defensive key assertion
+    if "title" not in payload:  # Assert existence of title key in raw dictionary
+        raise KeyError("Missing mandatory field: 'title'")  # Fail fast on missing title key
+    if "severity" not in payload:  # Assert existence of severity key in raw dictionary
+        raise KeyError("Missing mandatory field: 'severity'")  # Fail fast on missing severity key
 
     # 2. Manually verify and coerce variable types
-    title = payload["title"]  # Extract value
-    if not isinstance(title, str):  # Conditional branch evaluation
-        raise TypeError("Field 'title' must be a string")  # Manual type guard
+    title = payload["title"]  # Extract raw title object from dictionary
+    if not isinstance(title, str):  # Verify that title value is strictly a string instance
+        raise TypeError("Field 'title' must be a string")  # Reject non-string title type
 
-    try:  # Begin protected execution block
-        severity = int(payload["severity"])  # Manual type coercion
-    except (ValueError, TypeError):  # Catch and handle exception
-        raise TypeError("Field 'severity' must be convertible to an integer")  # Conversion trap
+    try:  # Attempt type conversion on severity input
+        severity = int(payload["severity"])  # Explicitly cast severity value to integer
+    except (ValueError, TypeError):  # Trap conversion failures for incompatible strings or nulls
+        raise TypeError("Field 'severity' must be convertible to an integer")  # Raise readable type error
 
     # 3. Manually assert domain constraints
-    if not (1 <= severity <= 5):  # Conditional branch evaluation
-        raise ValueError("Field 'severity' must be between 1 and 5")  # Manual range guard
+    if not (1 <= severity <= 5):  # Validate severity integer falls within allowed 1 to 5 range
+        raise ValueError("Field 'severity' must be between 1 and 5")  # Reject out-of-range integer
 
-    return {"title": title.strip(), "severity": severity}  # Return cleaned dictionary
+    return {"title": title.strip(), "severity": severity}  # Return cleaned and sanitized dictionary payload
 ```
 
 This manual approach exhibits severe engineering failure modes:
@@ -109,11 +109,11 @@ Under this architecture:
 
 ```python
 # Verifying the active Pydantic core engine and version
-import pydantic       # High-level Python schema API
-import pydantic_core  # Low-level Rust validation engine
+import pydantic       # High-level Python schema API module
+import pydantic_core  # Low-level compiled Rust validation engine module
 
-print(f"Pydantic Version:      {pydantic.__version__}")       # Should be >= 2.0.0
-print(f"Pydantic Core Version: {pydantic_core.__version__}")  # Underlying compiled Rust core
+print(f"Pydantic Version:      {pydantic.__version__}")       # Display high-level Python API version (>= 2.0)
+print(f"Pydantic Core Version: {pydantic_core.__version__}")  # Display low-level compiled Rust engine version
 ```
 
 ---
@@ -136,26 +136,26 @@ Pydantic guarantees that the output conforms strictly to the declared target typ
 
 ```python
 # Demonstrating Pydantic's intelligent data parsing and coercion
-from pydantic import BaseModel  # Core base schema class
+from pydantic import BaseModel  # Core base schema class providing metaclass parsing
 
-class TriageScore(BaseModel):  # Class declaration inheriting schema attributes
-    priority_level: int    # Target type: strict integer
-    is_urgent: bool        # Target type: strict boolean
-    ratio: float           # Target type: strict floating-point
+class TriageScore(BaseModel):  # Schema definition for ticket triage metrics
+    priority_level: int    # Target type: strict integer parsed from string digits
+    is_urgent: bool        # Target type: strict boolean parsed from truthy string
+    ratio: float           # Target type: strict floating-point parsed from decimal string
 
 # Input dictionary with string-encoded values from an HTTP query string
-raw_wire_data = {  # Assign and initialize variable or attribute
+raw_wire_data = {  # Simulated incoming HTTP query parameter dictionary
     "priority_level": "3",       # String representation of integer
     "is_urgent": "yes",          # String representation of truthy boolean
     "ratio": "0.85"              # String representation of float
-}  # Closing delimiter
+}  # Terminate raw wire dictionary
 
-parsed_model = TriageScore(**raw_wire_data)  # Triggers pydantic-core parsing pipeline
+parsed_model = TriageScore(**raw_wire_data)  # Pass wire dictionary into compiled Rust validation graph
 
 # Inspecting coerced types on the resulting instance
-print(f"Priority (int):   {parsed_model.priority_level} (type: {type(parsed_model.priority_level).__name__})")  # Output informational or diagnostic message
-print(f"Urgent (bool):     {parsed_model.is_urgent} (type: {type(parsed_model.is_urgent).__name__})")  # Output informational or diagnostic message
-print(f"Ratio (float):     {parsed_model.ratio} (type: {type(parsed_model.ratio).__name__})")  # Output informational or diagnostic message
+print(f"Priority (int):   {parsed_model.priority_level} (type: {type(parsed_model.priority_level).__name__})")  # Output verified integer 3
+print(f"Urgent (bool):     {parsed_model.is_urgent} (type: {type(parsed_model.is_urgent).__name__})")  # Output coerced boolean True
+print(f"Ratio (float):     {parsed_model.ratio} (type: {type(parsed_model.ratio).__name__})")  # Output coerced float 0.85
 ```
 
 ---
@@ -172,30 +172,30 @@ Strict mode can be configured globally on a model or selectively on individual f
 
 ```python
 # Enforcing strict mode to reject implicit type coercions
-from pydantic import BaseModel, Field, ValidationError  # Validation primitives
+from pydantic import BaseModel, Field, ValidationError  # Validation and error primitives
 
 # 1. Model-level strict enforcement
-class StrictComplaintAudit(BaseModel):  # Class declaration inheriting schema attributes
+class StrictComplaintAudit(BaseModel):  # Audit schema requiring exact type matches
     audit_id: int          # In strict mode, MUST be an int (not "101")
     confidence_score: float  # MUST be a float (e.g. 0.95, not "0.95")
 
-    model_config = {"strict": True}  # Enables strict mode across all fields
+    model_config = {"strict": True}  # Enables strict mode across all fields in model
 
-try:  # Begin protected execution block
+try:  # Protected try block executing strict parsing
     # Attempting to pass string representations
-    invalid_audit = StrictComplaintAudit(audit_id="101", confidence_score=0.95)  # Assign and initialize variable or attribute
-except ValidationError as exc:  # Catch and handle exception
-    print("[Strict Validation Rejected]")  # Output informational or diagnostic message
+    invalid_audit = StrictComplaintAudit(audit_id="101", confidence_score=0.95)  # Fails strict type check
+except ValidationError as exc:  # Catch Rust validation failure
+    print("[Strict Validation Rejected]")  # Banner logging rejection
     print(exc)  # Fails with Input should be a valid integer
 
 # 2. Field-level granular strict enforcement
-class GranularComplaint(BaseModel):  # Class declaration inheriting schema attributes
+class GranularComplaint(BaseModel):  # Schema combining lax and strict fields
     title: str                                     # Lax mode: allows coercion if applicable
-    department_id: int = Field(..., strict=True)   # Strict mode: rejects "4"
-    severity: int                                  # Lax mode: accepts "2" and coerces to 2
+    department_id: int = Field(..., strict=True)   # Strict mode: rejects string "4"
+    severity: int                                  # Lax mode: accepts string "2" and coerces to int 2
 
-valid_granular = GranularComplaint(title="Broken AC", department_id=4, severity="2")  # Assign and initialize variable or attribute
-print(f"Granular Model Parsed: department_id={valid_granular.department_id}, severity={valid_granular.severity}")  # Output informational or diagnostic message
+valid_granular = GranularComplaint(title="Broken AC", department_id=4, severity="2")  # Valid instantiation
+print(f"Granular Model Parsed: department_id={valid_granular.department_id}, severity={valid_granular.severity}")  # Log parsed fields
 ```
 
 ---
@@ -208,26 +208,26 @@ The fundamental building block of all Pydantic schemas is `pydantic.BaseModel`. 
 
 ```python
 # Declaring an enterprise complaint model inheriting from BaseModel
-from datetime import datetime       # Standard library datetime type
-from pydantic import BaseModel      # Base schema class
+from datetime import datetime       # Standard library datetime type for timestamps
+from pydantic import BaseModel      # Base schema class providing validation metaclass
 
-class ComplaintDraft(BaseModel):  # Class declaration inheriting schema attributes
-    title: str                      # Mandatory string field
-    description: str                # Mandatory string field
-    category_id: int                # Mandatory integer foreign key
-    is_anonymous: bool = False      # Optional boolean with default value
+class ComplaintDraft(BaseModel):  # Initial draft schema for ticket creation
+    title: str                      # Mandatory string field describing defect
+    description: str                # Mandatory string field detailing complaint context
+    category_id: int                # Mandatory integer foreign key referencing department
+    is_anonymous: bool = False      # Optional boolean with default value False
     created_at: datetime | None = None  # Optional datetime defaulting to None
 
 # Instantiate model using keyword arguments
-draft = ComplaintDraft(  # Assign and initialize variable or attribute
-    title="Lab 3 Projector Defect",  # Assign and initialize variable or attribute
-    description="The HDMI port on the ceiling projector is damaged.",  # Assign and initialize variable or attribute
-    category_id=12  # Assign and initialize variable or attribute
-)  # Closing delimiter
+draft = ComplaintDraft(  # Instantiate validated draft model instance
+    title="Lab 3 Projector Defect",  # Provide title string
+    description="The HDMI port on the ceiling projector is damaged.",  # Provide detailed description
+    category_id=12  # Reference category foreign key
+)  # Instantiation compiles and validates attributes
 
-print(f"Draft Title:       {draft.title}")         # Direct attribute access
+print(f"Draft Title:       {draft.title}")         # Direct attribute access to validated title
 print(f"Is Anonymous:      {draft.is_anonymous}")  # Verified default value False
-print(f"Creation Time:     {draft.created_at}")    # Default None
+print(f"Creation Time:     {draft.created_at}")    # Default None output
 ```
 
 Under the hood, `BaseModel` uses a custom metaclass called `ModelMetaclass`. When Python executes the `class ComplaintDraft(BaseModel):` block:
@@ -245,7 +245,7 @@ By default, attributes on a `BaseModel` instance are mutable:
 
 ```python
 # Mutable model behavior
-draft.title = "Updated Projector Defect Title"  # Mutates instance attribute in-place
+draft.title = "Updated Projector Defect Title"  # Mutates instance attribute in-place without error
 ```
 
 However, in multi-threaded environments, state machines, or domain-driven design (DDD) architectures, mutable data transfer objects introduce severe race conditions. An unexpected side-effect in one service can alter a complaint object being processed concurrently by another task.
@@ -259,25 +259,25 @@ To enforce absolute immutability, configure the model with `frozen=True`. A froz
 # Defining an immutable Value Object using frozen=True
 from pydantic import BaseModel, ValidationError  # Validation primitives
 
-class ImmutableSlaPolicy(BaseModel):  # Class declaration inheriting schema attributes
-    tier_name: str         # SLA tier designation
-    max_hours: int         # Maximum resolution window
-    auto_escalate: bool    # Auto-escalation trigger flag
+class ImmutableSlaPolicy(BaseModel):  # Thread-safe immutable SLA policy value object
+    tier_name: str         # SLA tier designation string (e.g. CRITICAL)
+    max_hours: int         # Maximum resolution window integer
+    auto_escalate: bool    # Auto-escalation trigger boolean flag
 
     model_config = {"frozen": True}  # Enforces absolute immutability and enables hashing
 
-sla = ImmutableSlaPolicy(tier_name="CRITICAL", max_hours=4, auto_escalate=True)  # Assign and initialize variable or attribute
+sla = ImmutableSlaPolicy(tier_name="CRITICAL", max_hours=4, auto_escalate=True)  # Instantiate frozen instance
 
 # 1. Attribute modification is strictly prevented
-try:  # Begin protected execution block
-    sla.max_hours = 8  # Attempted mutation
-except ValidationError as exc:  # Catch and handle exception
-    print("[Mutation Rejected]")  # Output informational or diagnostic message
+try:  # Protected try block testing immutability
+    sla.max_hours = 8  # Attempted mutation on frozen instance
+except ValidationError as exc:  # Catch immutability error
+    print("[Mutation Rejected]")  # Log rejection banner
     print(exc)  # Fails with Instance is frozen
 
 # 2. Frozen models are hashable and can be stored in sets
-sla_set = {sla, ImmutableSlaPolicy(tier_name="LOW", max_hours=72, auto_escalate=False)}  # Assign and initialize variable or attribute
-print(f"SLA Set Count: {len(sla_set)} (Hash: {hash(sla)})")  # Output informational or diagnostic message
+sla_set = {sla, ImmutableSlaPolicy(tier_name="LOW", max_hours=72, auto_escalate=False)}  # Add to set
+print(f"SLA Set Count: {len(sla_set)} (Hash: {hash(sla)})")  # Verify hashing support on frozen model
 ```
 
 ---
@@ -294,46 +294,46 @@ The **`pydantic.Field`** function allows engineers to attach rich metadata, math
 # Applying comprehensive validation constraints using Field
 from pydantic import BaseModel, Field  # Schema building blocks
 
-class ConstrainedComplaint(BaseModel):  # Class declaration inheriting schema attributes
+class ConstrainedComplaint(BaseModel):  # Schema enforcing boundary invariants on fields
     # String constraints: min/max length and regex pattern
-    tracking_code: str = Field(  # Assign and initialize variable or attribute
+    tracking_code: str = Field(  # Standardized ticket tracking format
         ...,                                  # Ellipsis indicates mandatory field
         pattern=r"^TKT-\d{8}-[A-Z0-9]{4}$",   # Regex enforcing ticket code format
-        description="Standardized tracking identifier (e.g., TKT-20260911-A8F2)"  # Assign and initialize variable or attribute
-    )  # Closing delimiter
+        description="Standardized tracking identifier (e.g., TKT-20260911-A8F2)"  # Field documentation
+    )  # End tracking_code Field definition
 
     # String length boundaries
-    title: str = Field(  # Assign and initialize variable or attribute
-        ...,  # Execute statement
+    title: str = Field(  # Headline summary constraints
+        ...,  # Mandatory field
         min_length=5,                         # Prevents empty or meaningless single-word titles
         max_length=120,                       # Prevents database varchar buffer overflows
-        description="Concise description of the reported issue"  # Assign and initialize variable or attribute
-    )  # Closing delimiter
+        description="Concise description of the reported issue"  # Field documentation
+    )  # End title Field definition
 
     # Numeric boundary constraints (ge = greater than or equal, le = less than or equal)
-    severity: int = Field(  # Assign and initialize variable or attribute
+    severity: int = Field(  # Clamped priority level
         default=3,                            # Sensible default if omitted by submitter
         ge=1,                                 # Minimum allowable severity score
         le=5,                                 # Maximum allowable severity score
-        description="Impact severity rating from 1 (lowest) to 5 (critical)"  # Assign and initialize variable or attribute
-    )  # Closing delimiter
+        description="Impact severity rating from 1 (lowest) to 5 (critical)"  # Field documentation
+    )  # End severity Field definition
 
     # Floating point boundaries (gt = strictly greater than)
-    estimated_cost: float = Field(  # Assign and initialize variable or attribute
-        default=0.0,  # Assign and initialize variable or attribute
+    estimated_cost: float = Field(  # Estimated financial impact
+        default=0.0,  # Default to zero expenditure
         ge=0.0,                               # Financial costs cannot be negative
         lt=50000.0,                           # Expenditure threshold requiring executive sign-off
-        description="Estimated repair or mitigation expenditure in USD"  # Assign and initialize variable or attribute
-    )  # Closing delimiter
+        description="Estimated repair or mitigation expenditure in USD"  # Field documentation
+    )  # End estimated_cost Field definition
 
 # Valid instantiation
-ticket = ConstrainedComplaint(  # Assign and initialize variable or attribute
-    tracking_code="TKT-20260911-B9K2",  # Assign and initialize variable or attribute
-    title="Main Cafeteria Refrigerator Leak",  # Assign and initialize variable or attribute
-    severity=4,  # Assign and initialize variable or attribute
-    estimated_cost=450.00  # Assign and initialize variable or attribute
-)  # Closing delimiter
-print(f"Validated Ticket: {ticket.tracking_code} | Severity: {ticket.severity}")  # Output informational or diagnostic message
+ticket = ConstrainedComplaint(  # Instantiate model with valid field constraints
+    tracking_code="TKT-20260911-B9K2",  # Conforms to regex pattern
+    title="Main Cafeteria Refrigerator Leak",  # Between 5 and 120 chars
+    severity=4,  # Between 1 and 5
+    estimated_cost=450.00  # Between 0.0 and 50000.0
+)  # Successful validation
+print(f"Validated Ticket: {ticket.tracking_code} | Severity: {ticket.severity}")  # Confirm ticket properties
 ```
 
 ---
@@ -352,26 +352,26 @@ from datetime import datetime, timezone  # Timezone-aware date utilities
 import uuid                              # Universally unique identifiers
 from pydantic import BaseModel, Field   # Schema primitives
 
-class ComplaintSubmission(BaseModel):  # Class declaration inheriting schema attributes
+class ComplaintSubmission(BaseModel):  # Submission schema generating fresh instance defaults
     # Unique identifier generated fresh for EVERY instance
     ticket_id: uuid.UUID = Field(default_factory=uuid.uuid4)  # Invokes uuid4() per instance
 
     # Timestamp generated dynamically at the exact moment of instantiation
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Assign and initialize variable or attribute
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Dynamic UTC timestamp
 
     # Mutable collection initialized as a new empty list per instance
-    tags: list[str] = Field(default_factory=list)  # Generates isolated list
+    tags: list[str] = Field(default_factory=list)  # Generates isolated list for each instance
 
 # Instantiate two independent records
-submission_a = ComplaintSubmission()  # Assign and initialize variable or attribute
-submission_b = ComplaintSubmission()  # Assign and initialize variable or attribute
+submission_a = ComplaintSubmission()  # First independent submission instance
+submission_b = ComplaintSubmission()  # Second independent submission instance
 
 # Modify collection on instance A
-submission_a.tags.append("ELECTRICAL")  # Execute statement
+submission_a.tags.append("ELECTRICAL")  # Append tag exclusively to instance A
 
-print(f"Submission A UUID: {submission_a.ticket_id} | Tags: {submission_a.tags}")  # Output informational or diagnostic message
-print(f"Submission B UUID: {submission_b.ticket_id} | Tags: {submission_b.tags}")  # Output informational or diagnostic message
-print(f"Instances possess isolated tags list: {submission_a.tags is not submission_b.tags}")  # Output informational or diagnostic message
+print(f"Submission A UUID: {submission_a.ticket_id} | Tags: {submission_a.tags}")  # Displays ELECTRICAL tag
+print(f"Submission B UUID: {submission_b.ticket_id} | Tags: {submission_b.tags}")  # Displays empty tag list
+print(f"Instances possess isolated tags list: {submission_a.tags is not submission_b.tags}")  # True: Distinct heap pointers
 ```
 
 ---
@@ -387,22 +387,22 @@ In production systems, handling timestamps and durations safely across varying c
 from datetime import date, datetime, timedelta  # Standard temporal types
 from pydantic import BaseModel                  # Schema base class
 
-class SlaMilestone(BaseModel):  # Class declaration inheriting schema attributes
-    target_date: date            # YYYY-MM-DD
+class SlaMilestone(BaseModel):  # Temporal milestone tracking schema
+    target_date: date            # YYYY-MM-DD standard date
     scheduled_time: datetime     # ISO-8601 timestamp (e.g. 2026-09-11T14:30:00Z)
     grace_period: timedelta      # Duration string (e.g. "PT2H30M" or "2h30m" or seconds)
 
 # Input payload with string-encoded temporal values
-temporal_payload = {  # Assign and initialize variable or attribute
-    "target_date": "2026-09-15",  # Execute statement
-    "scheduled_time": "2026-09-15T14:30:00Z",  # Execute statement
+temporal_payload = {  # Dictionary containing ISO-8601 formatted temporal strings
+    "target_date": "2026-09-15",  # Target date string
+    "scheduled_time": "2026-09-15T14:30:00Z",  # UTC timestamp string with Z offset
     "grace_period": "PT1H30M"  # ISO duration: 1 hour and 30 minutes
-}  # Closing delimiter
+}  # End payload definition
 
-milestone = SlaMilestone(**temporal_payload)  # Assign and initialize variable or attribute
-print(f"Target Date:     {milestone.target_date} (type: {type(milestone.target_date).__name__})")  # Output informational or diagnostic message
-print(f"Scheduled Time:  {milestone.scheduled_time} (tz: {milestone.scheduled_time.tzinfo})")  # Output informational or diagnostic message
-print(f"Grace Duration:  {milestone.grace_period} (Total Seconds: {milestone.grace_period.total_seconds()})")  # Output informational or diagnostic message
+milestone = SlaMilestone(**temporal_payload)  # Coerces strings to standard library temporal instances
+print(f"Target Date:     {milestone.target_date} (type: {type(milestone.target_date).__name__})")  # Output date object
+print(f"Scheduled Time:  {milestone.scheduled_time} (tz: {milestone.scheduled_time.tzinfo})")  # Output datetime with tzinfo
+print(f"Grace Duration:  {milestone.grace_period} (Total Seconds: {milestone.grace_period.total_seconds()})")  # Output timedelta 5400s
 ```
 
 ---
@@ -420,21 +420,21 @@ import uuid                               # Standard UUID library
 from pydantic import BaseModel, HttpUrl   # Schema and network primitives
 from pydantic.networks import EmailStr    # RFC email validation type
 
-class DepartmentNotificationChannel(BaseModel):  # Class declaration inheriting schema attributes
+class DepartmentNotificationChannel(BaseModel):  # Department alert dispatch configuration
     channel_id: uuid.UUID                 # Validates 128-bit hex UUID
     admin_email: EmailStr                 # Enforces RFC email format
     webhook_url: HttpUrl                  # Enforces valid HTTP/HTTPS URL
     documentation_url: HttpUrl | None = None  # Optional URL
 
-valid_channel = DepartmentNotificationChannel(  # Assign and initialize variable or attribute
-    channel_id="c8f18536-1e9a-4c28-9844-33230b91e921",  # Assign and initialize variable or attribute
-    admin_email="facilities.helpdesk@university.edu",  # Assign and initialize variable or attribute
-    webhook_url="https://alerts.university.edu/api/v1/ingest"  # Assign and initialize variable or attribute
-)  # Closing delimiter
+valid_channel = DepartmentNotificationChannel(  # Instantiate with verified RFC network strings
+    channel_id="c8f18536-1e9a-4c28-9844-33230b91e921",  # Hex UUID string
+    admin_email="facilities.helpdesk@university.edu",  # Validated email address
+    webhook_url="https://alerts.university.edu/api/v1/ingest"  # Validated HTTPS webhook URL
+)  # Successful validation
 
-print(f"Channel UUID:   {valid_channel.channel_id}")  # Output informational or diagnostic message
-print(f"Admin Email:    {valid_channel.admin_email}")  # Output informational or diagnostic message
-print(f"Webhook Host:   {valid_channel.webhook_url.host}")  # Access structured URL components
+print(f"Channel UUID:   {valid_channel.channel_id}")  # Display uuid.UUID instance
+print(f"Admin Email:    {valid_channel.admin_email}")  # Display validated email string
+print(f"Webhook Host:   {valid_channel.webhook_url.host}")  # Access structured URL components directly
 ```
 
 ---
@@ -450,20 +450,20 @@ While Python `Enum` is powerful, Python's standard **`typing.Literal`** provides
 from typing import Literal          # Standard typing Literal primitive
 from pydantic import BaseModel      # Schema base class
 
-class ComplaintStatusUpdate(BaseModel):  # Class declaration inheriting schema attributes
+class ComplaintStatusUpdate(BaseModel):  # Finite state machine transition payload
     ticket_id: int                  # Integer ticket ID
     # State transition must strictly match one of these 4 string literals
-    new_status: Literal["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED"]  # Execute statement
+    new_status: Literal["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED"]  # Permitted statuses
     # Urgency flag must strictly match one of 3 tiers
-    urgency: Literal["LOW", "MEDIUM", "HIGH"]  # Execute statement
+    urgency: Literal["LOW", "MEDIUM", "HIGH"]  # Permitted urgencies
 
 # Successful assignment matching Literal choices
-status_payload = ComplaintStatusUpdate(  # Assign and initialize variable or attribute
-    ticket_id=402,  # Assign and initialize variable or attribute
-    new_status="IN_PROGRESS",  # Assign and initialize variable or attribute
-    urgency="HIGH"  # Assign and initialize variable or attribute
-)  # Closing delimiter
-print(f"Ticket {status_payload.ticket_id} updated to {status_payload.new_status} ({status_payload.urgency})")  # Output informational or diagnostic message
+status_payload = ComplaintStatusUpdate(  # Instantiate payload conforming to literal choices
+    ticket_id=402,  # Target ticket ID
+    new_status="IN_PROGRESS",  # Valid literal string
+    urgency="HIGH"  # Valid literal string
+)  # Passes literal membership check
+print(f"Ticket {status_payload.ticket_id} updated to {status_payload.new_status} ({status_payload.urgency})")  # Output status confirmation
 ```
 
 ---
@@ -482,7 +482,7 @@ Pydantic V2 integrates with PEP 585 generics. When validating collections, `pyda
 # Utilizing PEP 585 collections with recursive item validation
 from pydantic import BaseModel, Field  # Schema primitives
 
-class DepartmentAuditBatch(BaseModel):  # Class declaration inheriting schema attributes
+class DepartmentAuditBatch(BaseModel):  # Batch container validating nested collection items
     department_name: str                                  # Primary department label
     assigned_ticket_ids: list[int] = Field(default_factory=list)  # Validates each item as an integer
     category_weights: dict[str, float] = Field(default_factory=dict)  # String keys, float values
@@ -490,18 +490,18 @@ class DepartmentAuditBatch(BaseModel):  # Class declaration inheriting schema at
     geo_coordinate: tuple[float, float] | None = None     # Fixed-length 2-element tuple
 
 # Inbound raw payload with mixed string representations inside collections
-wire_batch_data = {  # Assign and initialize variable or attribute
-    "department_name": "Facilities & Maintenance",  # Execute statement
+wire_batch_data = {  # Raw uncoerced batch dictionary
+    "department_name": "Facilities & Maintenance",  # Department string
     "assigned_ticket_ids": ["101", 102, "103"],          # Strings coerced to integers
     "category_weights": {"HVAC": "0.45", "PLUMBING": 0.55}, # String coerced to float
     "unique_resolver_ids": [501, 502, 501, "503"],       # Coerces and deduplicates to {501, 502, 503}
     "geo_coordinate": ("12.9716", 77.5946)               # Strings coerced to float pair
-}  # Closing delimiter
+}  # End raw dictionary definition
 
-audit_batch = DepartmentAuditBatch(**wire_batch_data)  # Assign and initialize variable or attribute
-print(f"Validated Ticket IDs: {audit_batch.assigned_ticket_ids}")  # Output informational or diagnostic message
-print(f"Deduplicated Resolvers: {audit_batch.unique_resolver_ids} (Count: {len(audit_batch.unique_resolver_ids)})")  # Output informational or diagnostic message
-print(f"Geo Tuple: {audit_batch.geo_coordinate} (Lat: {audit_batch.geo_coordinate[0]})")  # Output informational or diagnostic message
+audit_batch = DepartmentAuditBatch(**wire_batch_data)  # Recursively parses every element across collections
+print(f"Validated Ticket IDs: {audit_batch.assigned_ticket_ids}")  # [101, 102, 103]
+print(f"Deduplicated Resolvers: {audit_batch.unique_resolver_ids} (Count: {len(audit_batch.unique_resolver_ids)})")  # {501, 502, 503}
+print(f"Geo Tuple: {audit_batch.geo_coordinate} (Lat: {audit_batch.geo_coordinate[0]})")  # (12.9716, 77.5946)
 ```
 
 ---
@@ -519,24 +519,24 @@ In Pydantic, declaring a field as `str | None` states that the field accepts eit
 # Distinguishing mandatory nullable fields from optional fields
 from pydantic import BaseModel, ValidationError  # Schema validation primitives
 
-class TicketResolutionPayload(BaseModel):  # Class declaration inheriting schema attributes
+class TicketResolutionPayload(BaseModel):  # Closure payload demonstrating nullability semantics
     resolver_notes: str                        # Mandatory non-null string
     external_vendor_ref: str | None            # Mandatory nullable string (Key must exist!)
     closure_code: str | None = None            # Optional nullable string (Key may be omitted)
 
 # 1. Missing mandatory nullable key triggers ValidationError
-try:  # Begin protected execution block
-    TicketResolutionPayload(resolver_notes="Replaced faulty air compressor capacitor.")  # Assign and initialize variable or attribute
-except ValidationError as exc:  # Catch and handle exception
-    print("[Omitted Mandatory Nullable Field Rejected]")  # Output informational or diagnostic message
+try:  # Test omitted mandatory nullable key
+    TicketResolutionPayload(resolver_notes="Replaced faulty air compressor capacitor.")  # external_vendor_ref missing
+except ValidationError as exc:  # Catch validation error
+    print("[Omitted Mandatory Nullable Field Rejected]")  # Banner
     print(exc)  # Fails with external_vendor_ref: Field required
 
 # 2. Valid submission providing explicit None for external_vendor_ref
-valid_resolution = TicketResolutionPayload(  # Assign and initialize variable or attribute
-    resolver_notes="Replaced faulty air compressor capacitor.",  # Assign and initialize variable or attribute
+valid_resolution = TicketResolutionPayload(  # Instantiate providing explicit None
+    resolver_notes="Replaced faulty air compressor capacitor.",  # Notes provided
     external_vendor_ref=None                   # Explicit null accepted
-)  # Closing delimiter
-print(f"Resolution Verified: notes='{valid_resolution.resolver_notes}', vendor={valid_resolution.external_vendor_ref}")  # Output informational or diagnostic message
+)  # Passes validation
+print(f"Resolution Verified: notes='{valid_resolution.resolver_notes}', vendor={valid_resolution.external_vendor_ref}")  # Log verified resolution
 ```
 
 ---
@@ -555,42 +555,42 @@ from datetime import datetime, timezone  # Datetime primitives
 import uuid                              # UUID generation
 from pydantic import BaseModel, Field, EmailStr  # Schema tools
 
-class UserContactInfo(BaseModel):  # Class declaration inheriting schema attributes
+class UserContactInfo(BaseModel):  # Submitter contact schema
     full_name: str = Field(..., min_length=2)  # Submitter identity
     email: EmailStr                            # Validated email address
     phone_number: str | None = None            # Optional contact phone
 
-class AuditLogEntry(BaseModel):  # Class declaration inheriting schema attributes
+class AuditLogEntry(BaseModel):  # Audit log entry schema
     log_id: uuid.UUID = Field(default_factory=uuid.uuid4)  # Unique log UUID
     action: str                                            # Audit action label
     performed_by: str                                      # Operator identity
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Assign and initialize variable or attribute
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Entry timestamp
 
-class ComprehensiveComplaint(BaseModel):  # Class declaration inheriting schema attributes
+class ComprehensiveComplaint(BaseModel):  # Root aggregate complaint model
     ticket_id: int                                         # Unique ticket sequence
     title: str = Field(..., min_length=5)                  # Issue title
     submitter: UserContactInfo                             # Embedded child model (One-to-One)
     audit_trail: list[AuditLogEntry] = Field(default_factory=list)  # Embedded collection (One-to-Many)
 
 # Constructing hierarchical model from nested dictionary
-raw_nested_data = {  # Assign and initialize variable or attribute
-    "ticket_id": 9901,  # Execute statement
-    "title": "Severe Water Leakage in Chemistry Laboratory",  # Execute statement
-    "submitter": {  # Execute statement
-        "full_name": "Dr. Sarah Chen",  # Execute statement
-        "email": "sarah.chen@university.edu",  # Execute statement
-        "phone_number": "+1-555-0199"  # Execute statement
-    },  # Closing delimiter
-    "audit_trail": [  # Execute statement
-        {"action": "TICKET_CREATED", "performed_by": "SYSTEM"},  # Execute statement
-        {"action": "AUTO_DISPATCHED", "performed_by": "ROUTER_SERVICE"}  # Execute statement
-    ]  # Closing delimiter
-}  # Closing delimiter
+raw_nested_data = {  # Deeply nested input payload
+    "ticket_id": 9901,  # Primary sequence ID
+    "title": "Severe Water Leakage in Chemistry Laboratory",  # Issue title
+    "submitter": {  # Nested submitter child dictionary
+        "full_name": "Dr. Sarah Chen",  # Full name
+        "email": "sarah.chen@university.edu",  # Valid email
+        "phone_number": "+1-555-0199"  # Contact phone
+    },  # End submitter dictionary
+    "audit_trail": [  # Nested list of audit dictionaries
+        {"action": "TICKET_CREATED", "performed_by": "SYSTEM"},  # First event
+        {"action": "AUTO_DISPATCHED", "performed_by": "ROUTER_SERVICE"}  # Second event
+    ]  # End audit trail array
+}  # End raw nested payload
 
-complaint = ComprehensiveComplaint(**raw_nested_data)  # Assign and initialize variable or attribute
-print(f"Complaint #{complaint.ticket_id} submitted by {complaint.submitter.full_name}")
-print(f"Total Audit Entries: {len(complaint.audit_trail)}")  # Output informational or diagnostic message
-print(f"Initial Action: {complaint.audit_trail[0].action} at {complaint.audit_trail[0].timestamp}")  # Output informational or diagnostic message
+complaint = ComprehensiveComplaint(**raw_nested_data)  # Validates entire hierarchical model tree
+print(f"Complaint #{complaint.ticket_id} submitted by {complaint.submitter.full_name}")  # Access nested field
+print(f"Total Audit Entries: {len(complaint.audit_trail)}")  # Count nested records
+print(f"Initial Action: {complaint.audit_trail[0].action} at {complaint.audit_trail[0].timestamp}")  # Access nested event
 ```
 
 ---
@@ -605,27 +605,27 @@ If an email in `submitter` is malformed, or the 5th item in `audit_trail` lacks 
 # Inspecting error paths in deeply nested structures
 from pydantic import ValidationError  # Exception import
 
-invalid_nested_data = {  # Assign and initialize variable or attribute
-    "ticket_id": 9902,  # Execute statement
+invalid_nested_data = {  # Nested payload intentionally containing multiple deep errors
+    "ticket_id": 9902,  # Valid ticket ID
     "title": "Lab",  # Too short (min_length=5)
-    "submitter": {  # Execute statement
+    "submitter": {  # Submitter child object
         "full_name": "A",  # Too short (min_length=2)
         "email": "invalid-email-string"  # Malformed RFC email
-    },  # Closing delimiter
-    "audit_trail": [  # Execute statement
-        {"action": "CREATED", "performed_by": "SYSTEM"},  # Execute statement
+    },  # End submitter child object
+    "audit_trail": [  # Array with invalid element
+        {"action": "CREATED", "performed_by": "SYSTEM"},  # Valid audit item
         {"performed_by": "ROUTER"}  # Missing mandatory 'action' key!
-    ]  # Closing delimiter
-}  # Closing delimiter
+    ]  # End audit trail array
+}  # End invalid payload
 
-try:  # Begin protected execution block
-    ComprehensiveComplaint(**invalid_nested_data)  # Execute statement
-except ValidationError as exc:  # Catch and handle exception
-    print("[Aggregated Nested Validation Failures]")  # Output informational or diagnostic message
-    for err in exc.errors():  # Iterate over collection elements
+try:  # Protected execution block testing nested errors
+    ComprehensiveComplaint(**invalid_nested_data)  # Trigger recursive validation failure
+except ValidationError as exc:  # Catch aggregated validation errors
+    print("[Aggregated Nested Validation Failures]")  # Banner
+    for err in exc.errors():  # Iterate through all reported error dictionaries
         # Displaying precise path to error: e.g. ('submitter', 'email')
-        location_path = " -> ".join(str(p) for p in err["loc"])  # Assign and initialize variable or attribute
-        print(f"  Field [{location_path}]: {err['msg']} (Input: {err.get('input')})")  # Output informational or diagnostic message
+        location_path = " -> ".join(str(p) for p in err["loc"])  # Join coordinate tuple into readable path
+        print(f"  Field [{location_path}]: {err['msg']} (Input: {err.get('input')})")  # Output exact location and message
 ```
 
 ---
@@ -646,40 +646,40 @@ In Pydantic V2, custom field-level logic is implemented with the **`@field_valid
 # Implementing mode='after' semantic validation on complaint fields
 from pydantic import BaseModel, Field, field_validator  # Validation primitives
 
-class SanitizedComplaintCreate(BaseModel):  # Class declaration inheriting schema attributes
+class SanitizedComplaintCreate(BaseModel):  # Schema with field-level sanitizers and validators
     title: str = Field(..., min_length=5, max_length=100)  # Standard bounds
     contact_phone: str                                     # Raw phone string
     priority_level: int                                    # Priority score
 
-    @field_validator("title", mode="after")  # Apply decorator hook or validation metadata
-    @classmethod  # Apply decorator hook or validation metadata
-    def validate_title_content(cls, value: str) -> str:  # Function or method definition
+    @field_validator("title", mode="after")  # Semantic validator executing after native type coercion
+    @classmethod  # Field validators must be declared as classmethods
+    def validate_title_content(cls, value: str) -> str:  # Validator method inspecting title content
         # Enforce that title contains actual letters and not just punctuation or digits
-        cleaned = value.strip()  # Assign and initialize variable or attribute
-        if not any(char.isalpha() for char in cleaned):  # Conditional branch evaluation
-            raise ValueError("Complaint title must contain alphabetic characters")  # Raise exception interrupting control flow
+        cleaned = value.strip()  # Remove leading/trailing whitespace
+        if not any(char.isalpha() for char in cleaned):  # Check for at least one alphabetic character
+            raise ValueError("Complaint title must contain alphabetic characters")  # Reject numeric-only titles
         # Automatically title-case for platform consistency
-        return cleaned  # Return computed result to caller
+        return cleaned  # Return sanitized title
 
-    @field_validator("contact_phone", mode="before")  # Apply decorator hook or validation metadata
-    @classmethod  # Apply decorator hook or validation metadata
-    def sanitize_phone_number(cls, raw_value: object) -> str:  # Function or method definition
+    @field_validator("contact_phone", mode="before")  # Pre-processing validator executing on raw input
+    @classmethod  # Classmethod declaration
+    def sanitize_phone_number(cls, raw_value: object) -> str:  # Sanitizer cleaning raw phone inputs
         # Pre-process raw string by stripping whitespace, hyphens, and parentheses
-        if not isinstance(raw_value, str):  # Conditional branch evaluation
-            raise ValueError("Phone number must be provided as a string")  # Raise exception interrupting control flow
-        digits_only = "".join(ch for ch in raw_value if ch.isdigit() or ch == "+")  # Assign and initialize variable or attribute
-        if len(digits_only) < 10:  # Conditional branch evaluation
-            raise ValueError("Phone number must contain at least 10 valid digits")  # Raise exception interrupting control flow
-        return digits_only  # Return computed result to caller
+        if not isinstance(raw_value, str):  # Assert input is a string
+            raise ValueError("Phone number must be provided as a string")  # Reject non-string inputs
+        digits_only = "".join(ch for ch in raw_value if ch.isdigit() or ch == "+")  # Retain only digits and plus prefix
+        if len(digits_only) < 10:  # Enforce minimum digit count
+            raise ValueError("Phone number must contain at least 10 valid digits")  # Reject short phone strings
+        return digits_only  # Return normalized phone string
 
 # Valid input utilizing both validators
-valid_complaint = SanitizedComplaintCreate(  # Assign and initialize variable or attribute
-    title="water pipe rupture in east wing basement",  # Assign and initialize variable or attribute
-    contact_phone="+1 (555) 234-5678",  # Assign and initialize variable or attribute
-    priority_level=4  # Assign and initialize variable or attribute
-)  # Closing delimiter
-print(f"Sanitized Title: {valid_complaint.title}")  # Output informational or diagnostic message
-print(f"Cleaned Phone:   {valid_complaint.contact_phone}")  # Output informational or diagnostic message
+valid_complaint = SanitizedComplaintCreate(  # Instantiate with unformatted phone and lowercase title
+    title="water pipe rupture in east wing basement",  # Lowercase title
+    contact_phone="+1 (555) 234-5678",  # Phone with formatting symbols
+    priority_level=4  # Severity score
+)  # Passes both before and after validators
+print(f"Sanitized Title: {valid_complaint.title}")  # Confirms sanitized title string
+print(f"Cleaned Phone:   {valid_complaint.contact_phone}")  # Confirms normalized phone string (+15552345678)
 ```
 
 ---
@@ -695,35 +695,35 @@ In Pydantic V2, sibling field values are accessed via the **`pydantic.Validation
 from pydantic import BaseModel, ValidationInfo, field_validator  # Context tools
 
 # Canonical university department taxonomy mapping
-VALID_SUBCATEGORIES: dict[str, set[str]] = {  # Assign and initialize variable or attribute
-    "ACADEMIC": {"GRADING", "CURRICULUM", "EXAM_SCHEDULING"},  # Execute statement
-    "FACILITIES": {"PLUMBING", "ELECTRICAL", "HVAC", "FURNITURE"},  # Execute statement
-    "IT_SERVICES": {"WIFI_ACCESS", "SOFTWARE_LICENSE", "HARDWARE_REPAIR"}  # Execute statement
-}  # Closing delimiter
+VALID_SUBCATEGORIES: dict[str, set[str]] = {  # Lookup table defining valid sub-categories per department
+    "ACADEMIC": {"GRADING", "CURRICULUM", "EXAM_SCHEDULING"},  # Academic options
+    "FACILITIES": {"PLUMBING", "ELECTRICAL", "HVAC", "FURNITURE"},  # Facilities options
+    "IT_SERVICES": {"WIFI_ACCESS", "SOFTWARE_LICENSE", "HARDWARE_REPAIR"}  # IT options
+}  # End taxonomy dictionary
 
-class DepartmentTicket(BaseModel):  # Class declaration inheriting schema attributes
+class DepartmentTicket(BaseModel):  # Schema validating interdependent category taxonomy
     category: str      # Main department category
     sub_category: str  # Must belong to valid taxonomy for that category
 
-    @field_validator("sub_category", mode="after")  # Apply decorator hook or validation metadata
-    @classmethod  # Apply decorator hook or validation metadata
-    def verify_taxonomy_hierarchy(cls, value: str, info: ValidationInfo) -> str:  # Function or method definition
+    @field_validator("sub_category", mode="after")  # Validator executing after category is parsed
+    @classmethod  # Classmethod decorator
+    def verify_taxonomy_hierarchy(cls, value: str, info: ValidationInfo) -> str:  # Validator accessing context
         # Extract the already-validated 'category' field from the validation context
-        category = info.data.get("category")  # Assign and initialize variable or attribute
-        if not category:  # Conditional branch evaluation
+        category = info.data.get("category")  # Retrieve sibling field from info.data dictionary
+        if not category:  # Guard against missing category
             return value  # If category validation failed upstream, skip sub-check
 
-        valid_subs = VALID_SUBCATEGORIES.get(category.upper(), set())  # Assign and initialize variable or attribute
-        if value.upper() not in valid_subs:  # Conditional branch evaluation
-            raise ValueError(  # Raise exception interrupting control flow
-                f"Sub-category '{value}' is invalid for category '{category}'. "  # Execute statement
-                f"Allowable options: {sorted(valid_subs)}"  # Execute statement
-            )  # Closing delimiter
-        return value.upper()  # Return computed result to caller
+        valid_subs = VALID_SUBCATEGORIES.get(category.upper(), set())  # Fetch allowed subcategories
+        if value.upper() not in valid_subs:  # Assert sub-category belongs to allowable set
+            raise ValueError(  # Raise informative taxonomy error
+                f"Sub-category '{value}' is invalid for category '{category}'. "  # Detail invalid choice
+                f"Allowable options: {sorted(valid_subs)}"  # List valid alternatives
+            )  # Terminate exception
+        return value.upper()  # Return uppercase normalized subcategory
 
 # Successful taxonomy validation
-valid_ticket = DepartmentTicket(category="FACILITIES", sub_category="hvac")  # Assign and initialize variable or attribute
-print(f"Taxonomy Verified: Category={valid_ticket.category} | Sub={valid_ticket.sub_category}")  # Output informational or diagnostic message
+valid_ticket = DepartmentTicket(category="FACILITIES", sub_category="hvac")  # Valid taxonomy pair
+print(f"Taxonomy Verified: Category={valid_ticket.category} | Sub={valid_ticket.sub_category}")  # Verify upper normalization
 ```
 
 ---
@@ -743,37 +743,37 @@ In Pydantic V2, cross-field validation is implemented using **`@model_validator(
 from datetime import datetime, timezone  # Datetime utilities
 from pydantic import BaseModel, Field, model_validator  # Validation primitives
 
-class SlaScheduleRule(BaseModel):  # Class declaration inheriting schema attributes
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Assign and initialize variable or attribute
+class SlaScheduleRule(BaseModel):  # Model validating multi-field invariants
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Creation timestamp
     resolution_deadline: datetime     # Must be in the future relative to creation
     requires_site_visit: bool = False  # If True, site_address must not be None
     site_address: str | None = None   # Conditional address
 
-    @model_validator(mode="after")  # Apply decorator hook or validation metadata
-    def verify_model_invariants(self) -> "SlaScheduleRule":  # Function or method definition
+    @model_validator(mode="after")  # Whole-model validator executing on typed self instance
+    def verify_model_invariants(self) -> "SlaScheduleRule":  # Invariant verification method
         # 1. Cross-field timestamp ordering invariant
-        if self.resolution_deadline <= self.created_at:  # Conditional branch evaluation
-            raise ValueError(  # Raise exception interrupting control flow
-                f"Resolution deadline ({self.resolution_deadline}) must occur strictly "  # Execute statement
-                f"after creation timestamp ({self.created_at})"  # Execute statement
-            )  # Closing delimiter
+        if self.resolution_deadline <= self.created_at:  # Compare two timestamp attributes
+            raise ValueError(  # Reject inverted chronological order
+                f"Resolution deadline ({self.resolution_deadline}) must occur strictly "  # Error message
+                f"after creation timestamp ({self.created_at})"  # Context details
+            )  # End exception
 
         # 2. Conditional dependency invariant
-        if self.requires_site_visit and not self.site_address:  # Conditional branch evaluation
-            raise ValueError("Field 'site_address' is mandatory when 'requires_site_visit' is True")  # Raise exception interrupting control flow
+        if self.requires_site_visit and not self.site_address:  # Check conditional requirement
+            raise ValueError("Field 'site_address' is mandatory when 'requires_site_visit' is True")  # Reject missing address
 
         return self  # mode='after' validators MUST return self
 
 # Successful cross-field validation
-from datetime import timedelta  # Import specific identifier from module
-now = datetime.now(timezone.utc)  # Assign and initialize variable or attribute
-rule = SlaScheduleRule(  # Assign and initialize variable or attribute
-    created_at=now,  # Assign and initialize variable or attribute
-    resolution_deadline=now + timedelta(hours=24),  # Assign and initialize variable or attribute
-    requires_site_visit=True,  # Assign and initialize variable or attribute
-    site_address="Engineering Hall, Room 402"  # Assign and initialize variable or attribute
-)  # Closing delimiter
-print(f"SLA Invariants Verified: Deadline={rule.resolution_deadline.isoformat()}")  # Output informational or diagnostic message
+from datetime import timedelta  # Duration delta for scheduling deadline
+now = datetime.now(timezone.utc)  # Reference timestamp
+rule = SlaScheduleRule(  # Instantiate valid model instance
+    created_at=now,  # Start time
+    resolution_deadline=now + timedelta(hours=24),  # Deadline set 24 hours in the future
+    requires_site_visit=True,  # Flag set to True
+    site_address="Engineering Hall, Room 402"  # Required address provided
+)  # Passes cross-field invariant validation
+print(f"SLA Invariants Verified: Deadline={rule.resolution_deadline.isoformat()}")  # Output verified deadline
 ```
 
 ---
@@ -791,34 +791,34 @@ This is indispensable for:
 from typing import Any                   # Standard typing
 from pydantic import BaseModel, model_validator  # Schema primitives
 
-class ModernizedComplaintIngest(BaseModel):  # Class declaration inheriting schema attributes
+class ModernizedComplaintIngest(BaseModel):  # Ingestion schema accepting legacy third-party payloads
     ticket_id: int                       # Unified ticket ID
     headline: str                        # Unified summary
     origin: str                          # Channel source
 
-    @model_validator(mode="before")  # Apply decorator hook or validation metadata
-    @classmethod  # Apply decorator hook or validation metadata
-    def adapt_legacy_payload(cls, data: Any) -> Any:  # Function or method definition
+    @model_validator(mode="before")  # Pre-parsing validator receiving raw input dictionary
+    @classmethod  # Classmethod declaration
+    def adapt_legacy_payload(cls, data: Any) -> Any:  # Restructuring adapter method
         # Check if input is a dictionary matching a legacy third-party system
-        if isinstance(data, dict):  # Conditional branch evaluation
+        if isinstance(data, dict):  # Guard dictionary instance
             # If payload contains legacy keys 'legacy_id' and 'problem_text', adapt them
-            if "legacy_id" in data and "ticket_id" not in data:  # Conditional branch evaluation
-                data["ticket_id"] = data["legacy_id"]  # Assign and initialize variable or attribute
-            if "problem_text" in data and "headline" not in data:  # Conditional branch evaluation
-                data["headline"] = data["problem_text"]  # Assign and initialize variable or attribute
-            if "source_system" in data and "origin" not in data:  # Conditional branch evaluation
-                data["origin"] = data["source_system"]  # Assign and initialize variable or attribute
+            if "legacy_id" in data and "ticket_id" not in data:  # Map legacy_id
+                data["ticket_id"] = data["legacy_id"]  # Set modern key
+            if "problem_text" in data and "headline" not in data:  # Map problem_text
+                data["headline"] = data["problem_text"]  # Set modern key
+            if "source_system" in data and "origin" not in data:  # Map source_system
+                data["origin"] = data["source_system"]  # Set modern key
         return data  # mode='before' returns the modified raw dictionary
 
 # Ingesting raw legacy webhook dictionary
-legacy_json = {  # Assign and initialize variable or attribute
-    "legacy_id": "8841",  # Execute statement
-    "problem_text": "Library database query timeout on index page",  # Execute statement
-    "source_system": "LEGACY_PORTAL_V1"  # Execute statement
-}  # Closing delimiter
+legacy_json = {  # Simulated external legacy webhook payload
+    "legacy_id": "8841",  # Legacy integer identifier
+    "problem_text": "Library database query timeout on index page",  # Legacy summary key
+    "source_system": "LEGACY_PORTAL_V1"  # Legacy source identifier
+}  # End legacy payload
 
-adapted_model = ModernizedComplaintIngest(**legacy_json)  # Assign and initialize variable or attribute
-print(f"Adapted Model: ID={adapted_model.ticket_id} | Headline='{adapted_model.headline}' | Origin={adapted_model.origin}")  # Output informational or diagnostic message
+adapted_model = ModernizedComplaintIngest(**legacy_json)  # Transparently adapted and validated
+print(f"Adapted Model: ID={adapted_model.ticket_id} | Headline='{adapted_model.headline}' | Origin={adapted_model.origin}")  # Verify mapped fields
 ```
 
 ---
@@ -835,28 +835,28 @@ Instead, Pydantic V2 introduces the type-safe **`pydantic.ConfigDict`** assigned
 # Configuring model behavior using ConfigDict in Pydantic V2
 from pydantic import BaseModel, ConfigDict, ValidationError  # Schema configuration primitives
 
-class HardenedTicketModel(BaseModel):  # Class declaration inheriting schema attributes
-    title: str  # Execute statement
-    department_id: int  # Execute statement
+class HardenedTicketModel(BaseModel):  # Secure production schema with strict configuration
+    title: str  # Ticket title string
+    department_id: int  # Department foreign key
 
     # Modern Pydantic V2 model configuration
-    model_config = ConfigDict(  # Assign and initialize variable or attribute
+    model_config = ConfigDict(  # Type-safe model configuration dictionary
         extra="forbid",                 # Rejects unexpected extra fields in the input
         str_strip_whitespace=True,      # Automatically strips leading/trailing whitespace from all strings
         validate_assignment=True,       # Enforces validation when attributes are mutated post-instantiation
         frozen=False,                   # Allows mutation while enforcing validation
         str_min_length=1                # Enforces minimum length of 1 on all string fields
-    )  # Closing delimiter
+    )  # End ConfigDict definition
 
 # 1. str_strip_whitespace automatically cleans inbound strings
-ticket = HardenedTicketModel(title="   Classroom 101 Heating Defect   ", department_id=2)  # Assign and initialize variable or attribute
+ticket = HardenedTicketModel(title="   Classroom 101 Heating Defect   ", department_id=2)  # Pass untrimmed string
 print(f"Cleaned Title: '{ticket.title}'")  # Outputs: 'Classroom 101 Heating Defect'
 
 # 2. extra='forbid' rejects unexpected rogue JSON attributes
-try:  # Begin protected execution block
-    HardenedTicketModel(title="Clean Title", department_id=2, rogue_field="HACK_ATTEMPT")  # Assign and initialize variable or attribute
-except ValidationError as exc:  # Catch and handle exception
-    print("[Rogue Field Rejected by extra='forbid']")  # Output informational or diagnostic message
+try:  # Test extra field injection rejection
+    HardenedTicketModel(title="Clean Title", department_id=2, rogue_field="HACK_ATTEMPT")  # Inject unexpected field
+except ValidationError as exc:  # Catch extra field validation error
+    print("[Rogue Field Rejected by extra='forbid']")  # Log rejection banner
     print(exc)  # Fails with Extra inputs are not permitted
 ```
 
@@ -878,19 +878,19 @@ Production microservices rely on five essential `ConfigDict` options:
 # Demonstrating validate_assignment preventing post-instantiation corruption
 from pydantic import BaseModel, ConfigDict, ValidationError  # Validation imports
 
-class StrictAssignmentTicket(BaseModel):  # Class declaration inheriting schema attributes
-    ticket_id: int  # Execute statement
-    severity: int  # Execute statement
+class StrictAssignmentTicket(BaseModel):  # Schema guarding against post-instantiation type tampering
+    ticket_id: int  # Integer ticket ID
+    severity: int  # Integer severity rating
 
-    model_config = ConfigDict(validate_assignment=True)  # Guard attribute assignments
+    model_config = ConfigDict(validate_assignment=True)  # Guard attribute assignments with runtime validation
 
-ticket = StrictAssignmentTicket(ticket_id=501, severity=3)  # Assign and initialize variable or attribute
+ticket = StrictAssignmentTicket(ticket_id=501, severity=3)  # Instantiate valid ticket
 
-try:  # Begin protected execution block
+try:  # Attempt invalid runtime attribute mutation
     # Attempting to assign an illegal type after instantiation
-    ticket.severity = "CRITICAL_LEVEL"  # String cannot be coerced or validated
-except ValidationError as exc:  # Catch and handle exception
-    print("[Post-Instantiation Mutation Guarded]")  # Output informational or diagnostic message
+    ticket.severity = "CRITICAL_LEVEL"  # String cannot be coerced or validated to integer
+except ValidationError as exc:  # Catch mutation validation error
+    print("[Post-Instantiation Mutation Guarded]")  # Log protection confirmation
     print(exc)  # Fails with Input should be a valid integer
 ```
 
@@ -914,31 +914,31 @@ Pydantic V2 resolves this impedance mismatch through **Field Aliasing**:
 # Utilizing explicit Field aliases for wire compatibility
 from pydantic import BaseModel, ConfigDict, Field  # Schema primitives
 
-class AliasedComplaint(BaseModel):  # Class declaration inheriting schema attributes
+class AliasedComplaint(BaseModel):  # Schema mapping camelCase wire names to snake_case Python attributes
     # Field alias maps inbound camelCase JSON key to Python snake_case attribute
-    tracking_code: str = Field(..., alias="trackingCode")  # Assign and initialize variable or attribute
-    assigned_resolver_id: int | None = Field(None, alias="assignedResolverId")  # Assign and initialize variable or attribute
-    is_urgent: bool = Field(False, alias="isUrgent")  # Assign and initialize variable or attribute
+    tracking_code: str = Field(..., alias="trackingCode")  # Wire alias trackingCode
+    assigned_resolver_id: int | None = Field(None, alias="assignedResolverId")  # Wire alias assignedResolverId
+    is_urgent: bool = Field(False, alias="isUrgent")  # Wire alias isUrgent
 
     # populate_by_name allows Python code to construct using snake_case as well!
-    model_config = ConfigDict(populate_by_name=True)  # Assign and initialize variable or attribute
+    model_config = ConfigDict(populate_by_name=True)  # Permit population via Python attribute name or wire alias
 
 # 1. Ingestion from inbound React JSON payload (using camelCase keys)
-inbound_react_json = {  # Assign and initialize variable or attribute
-    "trackingCode": "TKT-2026-9091",  # Execute statement
-    "assignedResolverId": 404,  # Execute statement
-    "isUrgent": True  # Execute statement
-}  # Closing delimiter
-ticket_from_json = AliasedComplaint(**inbound_react_json)  # Assign and initialize variable or attribute
-print(f"Python Attribute Access: {ticket_from_json.tracking_code} (Resolver: {ticket_from_json.assigned_resolver_id})")  # Output informational or diagnostic message
+inbound_react_json = {  # Simulated JSON wire payload from React frontend
+    "trackingCode": "TKT-2026-9091",  # camelCase key
+    "assignedResolverId": 404,  # camelCase key
+    "isUrgent": True  # camelCase key
+}  # End wire dictionary
+ticket_from_json = AliasedComplaint(**inbound_react_json)  # Parsed seamlessly via alias
+print(f"Python Attribute Access: {ticket_from_json.tracking_code} (Resolver: {ticket_from_json.assigned_resolver_id})")  # Access via snake_case
 
 # 2. Construction from internal Python service (using snake_case attributes)
-ticket_from_python = AliasedComplaint(  # Assign and initialize variable or attribute
-    tracking_code="TKT-2026-9092",  # Assign and initialize variable or attribute
-    assigned_resolver_id=505,  # Assign and initialize variable or attribute
-    is_urgent=False  # Assign and initialize variable or attribute
-)  # Closing delimiter
-print(f"Constructed via Python name: {ticket_from_python.tracking_code}")  # Output informational or diagnostic message
+ticket_from_python = AliasedComplaint(  # Direct construction using internal Python attribute names
+    tracking_code="TKT-2026-9092",  # Python snake_case keyword argument
+    assigned_resolver_id=505,  # Python snake_case keyword argument
+    is_urgent=False  # Python snake_case keyword argument
+)  # Allowed because populate_by_name is True
+print(f"Constructed via Python name: {ticket_from_python.tracking_code}")  # Confirm successful construction
 ```
 
 ---
@@ -954,28 +954,28 @@ Pydantic V2 provides **`pydantic.alias_generators`** (such as `to_camel` or `to_
 from pydantic import BaseModel, ConfigDict               # Schema tools
 from pydantic.alias_generators import to_camel          # Built-in camelCase converter
 
-class AutoCamelModel(BaseModel):  # Class declaration inheriting schema attributes
+class AutoCamelModel(BaseModel):  # Schema with automated camelCase conversion on all attributes
     # Automatically generates aliases: trackingCode, maximumResponseHours, requiresSupervisorApproval
-    tracking_code: str  # Execute statement
-    maximum_response_hours: int  # Execute statement
-    requires_supervisor_approval: bool = False  # Assign and initialize variable or attribute
+    tracking_code: str  # Automatically aliased to trackingCode
+    maximum_response_hours: int  # Automatically aliased to maximumResponseHours
+    requires_supervisor_approval: bool = False  # Automatically aliased to requiresSupervisorApproval
 
-    model_config = ConfigDict(  # Assign and initialize variable or attribute
-        alias_generator=to_camel,                       # Automated camelCase converter
-        populate_by_name=True                           # Accept both snake_case and camelCase
-    )  # Closing delimiter
+    model_config = ConfigDict(  # Model configuration
+        alias_generator=to_camel,                       # Automated camelCase converter function
+        populate_by_name=True                           # Accept both snake_case and camelCase during instantiation
+    )  # End ConfigDict
 
 # Instantiate with camelCase from frontend wire
-frontend_wire_data = {  # Assign and initialize variable or attribute
-    "trackingCode": "TKT-8841",  # Execute statement
-    "maximumResponseHours": 12,  # Execute statement
-    "requiresSupervisorApproval": True  # Execute statement
-}  # Closing delimiter
-auto_model = AutoCamelModel(**frontend_wire_data)  # Assign and initialize variable or attribute
+frontend_wire_data = {  # Inbound payload adhering to frontend camelCase convention
+    "trackingCode": "TKT-8841",  # Converted to tracking_code
+    "maximumResponseHours": 12,  # Converted to maximum_response_hours
+    "requiresSupervisorApproval": True  # Converted to requires_supervisor_approval
+}  # End wire payload
+auto_model = AutoCamelModel(**frontend_wire_data)  # Parse payload using automated alias mapping
 
 # Export back to frontend preserving standard camelCase formatting
-exported_json = auto_model.model_dump(by_alias=True)  # Assign and initialize variable or attribute
-print(f"Exported Frontend JSON Keys: {list(exported_json.keys())}")  # Output informational or diagnostic message
+exported_json = auto_model.model_dump(by_alias=True)  # Export dictionary using generated camelCase aliases
+print(f"Exported Frontend JSON Keys: {list(exported_json.keys())}")  # Verify camelCase keys returned
 ```
 
 ---
@@ -992,22 +992,22 @@ Pydantic V2 separates validation from serialization aliasing:
 # Utilizing asymmetric validation and serialization aliases
 from pydantic import AliasChoices, BaseModel, Field  # Advanced aliasing tools
 
-class AsymmetricTicket(BaseModel):  # Class declaration inheriting schema attributes
+class AsymmetricTicket(BaseModel):  # Schema accepting legacy input names but emitting modern names
     # Inbound: accepts either 'ticketNumber' or 'legacy_ref_num'
     # Outbound: serializes strictly as 'ticket_id'
-    ticket_id: int = Field(  # Assign and initialize variable or attribute
-        ...,  # Execute statement
-        validation_alias=AliasChoices("ticketNumber", "legacy_ref_num"),  # Assign and initialize variable or attribute
-        serialization_alias="ticket_id"  # Assign and initialize variable or attribute
-    )  # Closing delimiter
-    issue_summary: str = Field(..., validation_alias="summary", serialization_alias="headline")  # Assign and initialize variable or attribute
+    ticket_id: int = Field(  # Asymmetric field definition
+        ...,  # Mandatory field
+        validation_alias=AliasChoices("ticketNumber", "legacy_ref_num"),  # Multi-key inbound choices
+        serialization_alias="ticket_id"  # Canonical outbound key
+    )  # End ticket_id definition
+    issue_summary: str = Field(..., validation_alias="summary", serialization_alias="headline")  # Asymmetric summary
 
 # Parsing from a third-party webhook using legacy names
-webhook_input = {"legacy_ref_num": "4501", "summary": "Broken air handler in server closet"}  # Assign and initialize variable or attribute
-ticket = AsymmetricTicket.model_validate(webhook_input)  # Assign and initialize variable or attribute
+webhook_input = {"legacy_ref_num": "4501", "summary": "Broken air handler in server closet"}  # Inbound legacy dict
+ticket = AsymmetricTicket.model_validate(webhook_input)  # Validate against multi-key alias choices
 
-print(f"Parsed Internal Attribute: ticket_id={ticket.ticket_id}")  # Output informational or diagnostic message
-print(f"Serialized Output JSON:     {ticket.model_dump(by_alias=True)}")  # Output informational or diagnostic message
+print(f"Parsed Internal Attribute: ticket_id={ticket.ticket_id}")  # Attribute accessed via ticket_id
+print(f"Serialized Output JSON:     {ticket.model_dump(by_alias=True)}")  # Emits serialized keys ticket_id and headline
 ```
 
 ---
@@ -1067,37 +1067,37 @@ import uuid                              # UUID primitives
 from pydantic import BaseModel, ConfigDict, Field  # Schema building blocks
 
 # 1. Inbound Write DTO: What the client is permitted to send on creation
-class ComplaintCreate(BaseModel):  # Class declaration inheriting schema attributes
-    title: str = Field(..., min_length=5, max_length=120)  # Assign and initialize variable or attribute
-    description: str = Field(..., min_length=10, max_length=2000)  # Assign and initialize variable or attribute
-    category_id: int = Field(..., gt=0)  # Assign and initialize variable or attribute
-    is_anonymous: bool = False  # Assign and initialize variable or attribute
+class ComplaintCreate(BaseModel):  # Inbound request payload schema
+    title: str = Field(..., min_length=5, max_length=120)  # Mandatory title with length bounds
+    description: str = Field(..., min_length=10, max_length=2000)  # Mandatory description with length bounds
+    category_id: int = Field(..., gt=0)  # Mandatory positive category foreign key
+    is_anonymous: bool = False  # Optional anonymity flag
     # Notice: No ticket_id, no created_at, no status, no resolution_notes!
 
 # 2. Inbound Update DTO: For partial modifications (PATCH)
-class ComplaintUpdate(BaseModel):  # Class declaration inheriting schema attributes
-    title: str | None = Field(None, min_length=5, max_length=120)  # Assign and initialize variable or attribute
-    description: str | None = Field(None, min_length=10, max_length=2000)  # Assign and initialize variable or attribute
-    category_id: int | None = Field(None, gt=0)  # Assign and initialize variable or attribute
+class ComplaintUpdate(BaseModel):  # Partial patch request payload schema
+    title: str | None = Field(None, min_length=5, max_length=120)  # Optional title modification
+    description: str | None = Field(None, min_length=10, max_length=2000)  # Optional description modification
+    category_id: int | None = Field(None, gt=0)  # Optional category modification
     # Notice: Every field is optional, allowing partial updates
 
 # 3. Outbound Read DTO: The public projection returned to clients
-class ComplaintResponse(BaseModel):  # Class declaration inheriting schema attributes
-    id: int  # Execute statement
-    tracking_code: str  # Execute statement
-    title: str  # Execute statement
-    description: str  # Execute statement
-    category_id: int  # Execute statement
-    status: str  # Execute statement
-    is_anonymous: bool  # Execute statement
-    created_at: datetime  # Execute statement
-    sla_deadline: datetime  # Execute statement
+class ComplaintResponse(BaseModel):  # Public outbound projection schema
+    id: int  # Public primary key identifier
+    tracking_code: str  # Public tracking code string
+    title: str  # Issue summary
+    description: str  # Full description
+    category_id: int  # Department category ID
+    status: str  # Lifecycle status string
+    is_anonymous: bool  # Anonymity flag
+    created_at: datetime  # Creation timestamp
+    sla_deadline: datetime  # Resolution deadline
 
     # Enable ORM attribute mapping from SQLAlchemy
-    model_config = ConfigDict(from_attributes=True)  # Assign and initialize variable or attribute
+    model_config = ConfigDict(from_attributes=True)  # Read fields via getattr() from ORM objects
 
 # 4. Internal Persistence DTO: Full internal representation with audit flags
-class ComplaintInDB(ComplaintResponse):  # Class declaration inheriting schema attributes
+class ComplaintInDB(ComplaintResponse):  # Internal database model representation
     internal_fraud_score: float = 0.0          # Internal security metric (Never sent to client!)
     routing_metadata: dict = Field(default_factory=dict)  # ML classifier raw debug features
 ```
@@ -1118,22 +1118,22 @@ from datetime import datetime, timezone  # Datetime primitives
 import uuid                              # UUID primitives
 from pydantic import BaseModel, Field    # Schema primitives
 
-class TicketExportDemo(BaseModel):  # Class declaration inheriting schema attributes
-    ticket_id: uuid.UUID = Field(default_factory=uuid.uuid4)  # Assign and initialize variable or attribute
-    title: str  # Execute statement
-    tags: list[str] = Field(default_factory=list)  # Assign and initialize variable or attribute
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Assign and initialize variable or attribute
+class TicketExportDemo(BaseModel):  # Model for testing export pipelines
+    ticket_id: uuid.UUID = Field(default_factory=uuid.uuid4)  # UUID primary key
+    title: str  # Issue title
+    tags: list[str] = Field(default_factory=list)  # Tag collection
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # UTC timestamp
 
-ticket = TicketExportDemo(title="Elevator Service Required", tags=["ELEVATOR", "SAFETY"])  # Assign and initialize variable or attribute
+ticket = TicketExportDemo(title="Elevator Service Required", tags=["ELEVATOR", "SAFETY"])  # Instantiate sample model
 
 # 1. Exporting to standard Python dictionary
-python_dict = ticket.model_dump()  # Assign and initialize variable or attribute
-print(f"model_dump() Type: {type(python_dict).__name__} (ticket_id is {type(python_dict['ticket_id']).__name__})")  # Output informational or diagnostic message
+python_dict = ticket.model_dump()  # Export model hierarchy to standard Python dicts and lists
+print(f"model_dump() Type: {type(python_dict).__name__} (ticket_id is {type(python_dict['ticket_id']).__name__})")  # Output dict type
 
 # 2. Exporting directly to JSON string via Rust
-json_string = ticket.model_dump_json(indent=2)  # Assign and initialize variable or attribute
-print("model_dump_json() Output:")  # Output informational or diagnostic message
-print(json_string)  # Output informational or diagnostic message
+json_string = ticket.model_dump_json(indent=2)  # Serialize directly to UTF-8 JSON inside pydantic-core Rust engine
+print("model_dump_json() Output:")  # Print banner
+print(json_string)  # Display formatted JSON string
 ```
 
 ---
@@ -1146,26 +1146,26 @@ Real-world API serialization demands granular control over which fields are incl
 # Controlling field projection with exclusion flags
 from pydantic import BaseModel  # Schema base class
 
-class FlexibleComplaintView(BaseModel):  # Class declaration inheriting schema attributes
-    id: int  # Execute statement
-    title: str  # Execute statement
-    description: str | None = None  # Assign and initialize variable or attribute
-    secret_audit_hash: str = "SHA256_INTERNAL_BLOB"  # Assign and initialize variable or attribute
-    cached_score: float | None = None  # Assign and initialize variable or attribute
+class FlexibleComplaintView(BaseModel):  # Model demonstrating selective field serialization
+    id: int  # Public record identifier
+    title: str  # Issue summary
+    description: str | None = None  # Optional description
+    secret_audit_hash: str = "SHA256_INTERNAL_BLOB"  # Sensitive internal audit hash
+    cached_score: float | None = None  # Transient cached metric
 
-instance = FlexibleComplaintView(id=101, title="Air Conditioner Leak")  # Assign and initialize variable or attribute
+instance = FlexibleComplaintView(id=101, title="Air Conditioner Leak")  # Instantiate with omitted optional fields
 
 # 1. exclude_unset: Include ONLY fields explicitly passed during construction
-print("exclude_unset=True:")  # Output informational or diagnostic message
-print(instance.model_dump(exclude_unset=True))  # Drops description and cached_score!
+print("exclude_unset=True:")  # Banner
+print(instance.model_dump(exclude_unset=True))  # Drops description, secret_audit_hash, and cached_score!
 
 # 2. exclude_none: Drop any field whose value is None
-print("\nexclude_none=True:")  # Output informational or diagnostic message
-print(instance.model_dump(exclude_none=True))  # Output informational or diagnostic message
+print("\nexclude_none=True:")  # Banner
+print(instance.model_dump(exclude_none=True))  # Drops description and cached_score while retaining secret_audit_hash
 
 # 3. Explicit exclude set: Exclude internal security credentials
-print("\nExplicit exclude={'secret_audit_hash'}:")  # Output informational or diagnostic message
-print(instance.model_dump(exclude={"secret_audit_hash"}))  # Output informational or diagnostic message
+print("\nExplicit exclude={'secret_audit_hash'}:")  # Banner
+print(instance.model_dump(exclude={"secret_audit_hash"}))  # Explicitly strips sensitive hash field
 ```
 
 ---
@@ -1183,23 +1183,23 @@ In Pydantic V2, custom field export formatting is controlled using **`@field_ser
 from datetime import datetime, timezone  # Temporal primitives
 from pydantic import BaseModel, field_serializer  # Serialization decorators
 
-class EpochTimestampTicket(BaseModel):  # Class declaration inheriting schema attributes
-    ticket_id: int  # Execute statement
-    title: str  # Execute statement
-    created_at: datetime  # Execute statement
+class EpochTimestampTicket(BaseModel):  # Schema with custom serialization formatting
+    ticket_id: int  # Primary ticket ID
+    title: str  # Issue summary
+    created_at: datetime  # Python datetime instance
 
-    @field_serializer("created_at")  # Apply decorator hook or validation metadata
-    def serialize_datetime_to_epoch(self, dt: datetime, _info: object) -> int:  # Function or method definition
+    @field_serializer("created_at")  # Hook intercepting serialization of created_at
+    def serialize_datetime_to_epoch(self, dt: datetime, _info: object) -> int:  # Custom serializer method
         # Convert standard datetime instance into millisecond Unix epoch integer
-        return int(dt.timestamp() * 1000)  # Return computed result to caller
+        return int(dt.timestamp() * 1000)  # Return integer timestamp in milliseconds
 
-now = datetime.now(timezone.utc)  # Assign and initialize variable or attribute
-record = EpochTimestampTicket(ticket_id=8801, title="Power Outage", created_at=now)  # Assign and initialize variable or attribute
+now = datetime.now(timezone.utc)  # Reference UTC datetime
+record = EpochTimestampTicket(ticket_id=8801, title="Power Outage", created_at=now)  # Instantiate record
 
 # Export to dictionary and JSON
-print(f"Standard Python Object: {record.created_at.isoformat()}")  # Output informational or diagnostic message
-print(f"Serialized Output:       {record.model_dump()}")  # Output informational or diagnostic message
-print(f"JSON Wire Output:       {record.model_dump_json()}")  # Output informational or diagnostic message
+print(f"Standard Python Object: {record.created_at.isoformat()}")  # ISO format in Python memory
+print(f"Serialized Output:       {record.model_dump()}")  # Serializes created_at as integer epoch
+print(f"JSON Wire Output:       {record.model_dump_json()}")  # Emits integer timestamp in JSON output
 ```
 
 ---
@@ -1212,26 +1212,26 @@ When you need total control over how the entire model is exported (such as wrapp
 # Overriding entire model export representation with @model_serializer
 from pydantic import BaseModel, model_serializer  # Model serialization primitive
 
-class SecureTelemetryPacket(BaseModel):  # Class declaration inheriting schema attributes
-    node_id: str  # Execute statement
-    cpu_usage_pct: float  # Execute statement
-    memory_usage_pct: float  # Execute statement
+class SecureTelemetryPacket(BaseModel):  # Schema providing custom whole-model serialization
+    node_id: str  # Worker node identifier
+    cpu_usage_pct: float  # CPU load metric
+    memory_usage_pct: float  # Memory load metric
 
-    @model_serializer  # Apply decorator hook or validation metadata
-    def serialize_telemetry_payload(self) -> dict[str, object]:  # Function or method definition
+    @model_serializer  # Intercept entire model export transformation
+    def serialize_telemetry_payload(self) -> dict[str, object]:  # Custom serializer returning dictionary
         # Flatten metrics into an industry-standard monitoring payload format
-        return {  # Return computed result to caller
-            "source": f"node::{self.node_id}",  # Execute statement
-            "metrics": {  # Execute statement
-                "cpu": f"{self.cpu_usage_pct:.1f}%",  # Execute statement
-                "ram": f"{self.memory_usage_pct:.1f}%"  # Execute statement
-            },  # Closing delimiter
-            "status": "NOMINAL" if self.cpu_usage_pct < 80.0 else "WARNING"  # Execute statement
-        }  # Closing delimiter
+        return {  # Construct reshaped telemetry envelope
+            "source": f"node::{self.node_id}",  # Prefixed source identifier
+            "metrics": {  # Grouped metrics dictionary
+                "cpu": f"{self.cpu_usage_pct:.1f}%",  # Formatted CPU percentage string
+                "ram": f"{self.memory_usage_pct:.1f}%"  # Formatted RAM percentage string
+            },  # End metrics dictionary
+            "status": "NOMINAL" if self.cpu_usage_pct < 80.0 else "WARNING"  # Computed operational status
+        }  # End custom envelope
 
-packet = SecureTelemetryPacket(node_id="worker-01", cpu_usage_pct=42.5, memory_usage_pct=68.2)  # Assign and initialize variable or attribute
-print("Custom Model Serializer Output:")  # Output informational or diagnostic message
-print(packet.model_dump_json(indent=2))  # Output informational or diagnostic message
+packet = SecureTelemetryPacket(node_id="worker-01", cpu_usage_pct=42.5, memory_usage_pct=68.2)  # Instantiate packet
+print("Custom Model Serializer Output:")  # Banner
+print(packet.model_dump_json(indent=2))  # Display custom serialized JSON structure
 ```
 
 ---
@@ -1252,8 +1252,8 @@ from datetime import datetime, timezone  # Datetime primitives
 from pydantic import BaseModel, ConfigDict  # Schema configuration
 
 # Simulated SQLAlchemy ORM database entity (Not a Pydantic model)
-class MockSqlAlchemyComplaintEntity:  # Class declaration inheriting schema attributes
-    def __init__(self, id: int, title: str, status: str, created_at: datetime):  # Function or method definition
+class MockSqlAlchemyComplaintEntity:  # Mock ORM class simulating SQLAlchemy entity
+    def __init__(self, id: int, title: str, status: str, created_at: datetime):  # Constructor
         self.id = id                      # Mapped column
         self.title = title                # Mapped column
         self.status = status              # Mapped column
@@ -1261,26 +1261,26 @@ class MockSqlAlchemyComplaintEntity:  # Class declaration inheriting schema attr
         self.internal_db_row_id = 99482   # Private database column (Should not leak!)
 
 # Outbound Pydantic Response DTO with from_attributes enabled
-class ComplaintResponseDTO(BaseModel):  # Class declaration inheriting schema attributes
-    id: int  # Execute statement
-    title: str  # Execute statement
-    status: str  # Execute statement
-    created_at: datetime  # Execute statement
+class ComplaintResponseDTO(BaseModel):  # DTO reading directly from ORM instance attributes
+    id: int  # Mapped from entity.id
+    title: str  # Mapped from entity.title
+    status: str  # Mapped from entity.status
+    created_at: datetime  # Mapped from entity.created_at
 
-    model_config = ConfigDict(from_attributes=True)  # Read attributes via getattr()
+    model_config = ConfigDict(from_attributes=True)  # Read attributes via getattr() instead of dict indexing
 
 # Simulate database query result
-orm_db_record = MockSqlAlchemyComplaintEntity(  # Assign and initialize variable or attribute
-    id=202,  # Assign and initialize variable or attribute
-    title="Broken Laboratory Fume Hood",  # Assign and initialize variable or attribute
-    status="ASSIGNED",  # Assign and initialize variable or attribute
-    created_at=datetime.now(timezone.utc)  # Assign and initialize variable or attribute
-)  # Closing delimiter
+orm_db_record = MockSqlAlchemyComplaintEntity(  # Instantiate mock ORM entity
+    id=202,  # Primary key
+    title="Broken Laboratory Fume Hood",  # Title
+    status="ASSIGNED",  # Status
+    created_at=datetime.now(timezone.utc)  # Timestamp
+)  # Entity ready for DTO mapping
 
 # Convert ORM entity directly into validated Pydantic DTO
-dto = ComplaintResponseDTO.model_validate(orm_db_record)  # Assign and initialize variable or attribute
-print(f"Validated DTO from ORM: ID={dto.id} | Title='{dto.title}' | Status={dto.status}")  # Output informational or diagnostic message
-print(f"Database row id excluded: hasattr(dto, 'internal_db_row_id') == {hasattr(dto, 'internal_db_row_id')}")  # Output informational or diagnostic message
+dto = ComplaintResponseDTO.model_validate(orm_db_record)  # Read attributes into validated DTO
+print(f"Validated DTO from ORM: ID={dto.id} | Title='{dto.title}' | Status={dto.status}")  # Confirm attributes
+print(f"Database row id excluded: hasattr(dto, 'internal_db_row_id') == {hasattr(dto, 'internal_db_row_id')}")  # Verify private column stripped
 ```
 
 ---
@@ -1312,51 +1312,51 @@ Under this pattern, every model shares a common discriminator tag (`event_type`)
 from typing import Annotated, Literal, Union          # Typing tools
 from pydantic import BaseModel, Field, ValidationError  # Schema primitives
 
-class EmailComplaintEvent(BaseModel):  # Class declaration inheriting schema attributes
+class EmailComplaintEvent(BaseModel):  # Email event schema
     event_type: Literal["EMAIL"]                     # Explicit discriminator tag
-    sender_address: str  # Execute statement
-    subject_line: str  # Execute statement
+    sender_address: str  # Sender email address
+    subject_line: str  # Email subject
 
-class WebPortalComplaintEvent(BaseModel):  # Class declaration inheriting schema attributes
+class WebPortalComplaintEvent(BaseModel):  # Web portal event schema
     event_type: Literal["WEB_PORTAL"]                # Explicit discriminator tag
-    student_id: int  # Execute statement
-    form_category: str  # Execute statement
+    student_id: int  # Authenticated student ID
+    form_category: str  # Selected complaint category
 
-class IotSensorComplaintEvent(BaseModel):  # Class declaration inheriting schema attributes
+class IotSensorComplaintEvent(BaseModel):  # IoT device alert event schema
     event_type: Literal["IOT_SENSOR"]                # Explicit discriminator tag
-    device_serial_number: str  # Execute statement
-    anomaly_reading: float  # Execute statement
+    device_serial_number: str  # Hardware serial string
+    anomaly_reading: float  # Sensor measurement value
 
 # Define Discriminated Union using Annotated and Field(discriminator=...)
-AnyComplaintEvent = Annotated[  # Assign and initialize variable or attribute
-    Union[EmailComplaintEvent, WebPortalComplaintEvent, IotSensorComplaintEvent],  # Execute statement
-    Field(discriminator="event_type")  # Assign and initialize variable or attribute
-]  # Closing delimiter
+AnyComplaintEvent = Annotated[  # Type alias for O(1) indexed polymorphic union
+    Union[EmailComplaintEvent, WebPortalComplaintEvent, IotSensorComplaintEvent],  # Candidate models
+    Field(discriminator="event_type")  # Tag field used by pydantic-core for immediate dispatch
+]  # End union definition
 
-class EventEnvelope(BaseModel):  # Class declaration inheriting schema attributes
-    event_id: str  # Execute statement
+class EventEnvelope(BaseModel):  # Outer wrapper for polymorphic events
+    event_id: str  # Envelope ID
     payload: AnyComplaintEvent                       # Polymorphic discriminated field
 
 # 1. Ingesting an IoT Sensor Event
-iot_raw = {  # Assign and initialize variable or attribute
-    "event_id": "EVT-1001",  # Execute statement
-    "payload": {  # Execute statement
-        "event_type": "IOT_SENSOR",  # Execute statement
-        "device_serial_number": "HVAC-BLD2-SENSOR-09",  # Execute statement
-        "anomaly_reading": 104.8  # Execute statement
-    }  # Closing delimiter
-}  # Closing delimiter
-envelope = EventEnvelope(**iot_raw)  # Assign and initialize variable or attribute
-print(f"Ingested Event Type: {envelope.payload.event_type} (Device: {envelope.payload.device_serial_number})")  # Output informational or diagnostic message
+iot_raw = {  # Simulated incoming IoT payload
+    "event_id": "EVT-1001",  # Envelope ID
+    "payload": {  # Inner event payload matching IotSensorComplaintEvent
+        "event_type": "IOT_SENSOR",  # Discriminator tag
+        "device_serial_number": "HVAC-BLD2-SENSOR-09",  # Device serial
+        "anomaly_reading": 104.8  # Measurement
+    }  # End inner payload
+}  # End raw event dictionary
+envelope = EventEnvelope(**iot_raw)  # Ingests and dispatches directly to IotSensorComplaintEvent
+print(f"Ingested Event Type: {envelope.payload.event_type} (Device: {envelope.payload.device_serial_number})")  # Output confirmed type
 
 # 2. Pattern matching cleanly on polymorphic types in Python 3.10+
-match envelope.payload:  # Structural pattern matching evaluation
-    case IotSensorComplaintEvent(device_serial_number=sn, anomaly_reading=val):  # Pattern match branch execution
-        print(f"Handling Hardware Alert: Sensor {sn} reported anomaly {val}")  # Output informational or diagnostic message
-    case EmailComplaintEvent(sender_address=sender):  # Pattern match branch execution
-        print(f"Handling Email Ticket from {sender}")  # Output informational or diagnostic message
-    case WebPortalComplaintEvent(student_id=sid):  # Pattern match branch execution
-        print(f"Handling Web Submission for Student {sid}")  # Output informational or diagnostic message
+match envelope.payload:  # Structural pattern matching on polymorphic instance
+    case IotSensorComplaintEvent(device_serial_number=sn, anomaly_reading=val):  # Match sensor event
+        print(f"Handling Hardware Alert: Sensor {sn} reported anomaly {val}")  # Dispatch sensor alert
+    case EmailComplaintEvent(sender_address=sender):  # Match email event
+        print(f"Handling Email Ticket from {sender}")  # Dispatch email ticket
+    case WebPortalComplaintEvent(student_id=sid):  # Match portal event
+        print(f"Handling Web Submission for Student {sid}")  # Dispatch student ticket
 ```
 
 ---
@@ -1388,40 +1388,40 @@ from typing import Generic, TypeVar      # Standard typing primitives
 from pydantic import BaseModel, Field    # Schema primitives
 
 # Declare a generic TypeVar bound to any data type
-T = TypeVar("T")  # Assign and initialize variable or attribute
+T = TypeVar("T")  # Generic type variable representing payload entity
 
-class PaginationMetadata(BaseModel):  # Class declaration inheriting schema attributes
-    page: int = Field(1, ge=1)  # Assign and initialize variable or attribute
-    page_size: int = Field(20, ge=1, le=100)  # Assign and initialize variable or attribute
-    total_records: int = Field(..., ge=0)  # Assign and initialize variable or attribute
+class PaginationMetadata(BaseModel):  # Standard pagination metadata envelope
+    page: int = Field(1, ge=1)  # Current page index
+    page_size: int = Field(20, ge=1, le=100)  # Records per page limit
+    total_records: int = Field(..., ge=0)  # Total record count across database
 
-class StandardApiResponse(BaseModel, Generic[T]):  # Class declaration inheriting schema attributes
-    success: bool = True  # Assign and initialize variable or attribute
+class StandardApiResponse(BaseModel, Generic[T]):  # Reusable generic API response wrapper
+    success: bool = True  # Operation status flag
     data: T                              # Parameterized generic payload
-    meta: PaginationMetadata | None = None  # Assign and initialize variable or attribute
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Assign and initialize variable or attribute
+    meta: PaginationMetadata | None = None  # Optional pagination metadata
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Response emission time
 
 # Domain models
-class ComplaintSummaryDTO(BaseModel):  # Class declaration inheriting schema attributes
-    id: int  # Execute statement
-    tracking_code: str  # Execute statement
-    status: str  # Execute statement
+class ComplaintSummaryDTO(BaseModel):  # Summary DTO schema for complaints
+    id: int  # Primary ticket ID
+    tracking_code: str  # Tracking code string
+    status: str  # Current status flag
 
 # 1. Concrete instantiation with a single complaint record
-single_response = StandardApiResponse[ComplaintSummaryDTO](  # Assign and initialize variable or attribute
-    data=ComplaintSummaryDTO(id=1, tracking_code="TKT-001", status="OPEN")  # Assign and initialize variable or attribute
-)  # Closing delimiter
-print(f"Single Response Verified: success={single_response.success} | Tracking={single_response.data.tracking_code}")  # Output informational or diagnostic message
+single_response = StandardApiResponse[ComplaintSummaryDTO](  # Parameterize wrapper with single DTO
+    data=ComplaintSummaryDTO(id=1, tracking_code="TKT-001", status="OPEN")  # Provide single complaint instance
+)  # Validate parameterized response
+print(f"Single Response Verified: success={single_response.success} | Tracking={single_response.data.tracking_code}")  # Confirm single payload
 
 # 2. Concrete instantiation with a list collection and pagination
-batch_response = StandardApiResponse[list[ComplaintSummaryDTO]](  # Assign and initialize variable or attribute
-    data=[  # Assign and initialize variable or attribute
-        ComplaintSummaryDTO(id=1, tracking_code="TKT-001", status="OPEN"),  # Assign and initialize variable or attribute
-        ComplaintSummaryDTO(id=2, tracking_code="TKT-002", status="RESOLVED")  # Assign and initialize variable or attribute
-    ],  # Closing delimiter
-    meta=PaginationMetadata(page=1, page_size=20, total_records=2)  # Assign and initialize variable or attribute
-)  # Closing delimiter
-print(f"Batch Response: total={batch_response.meta.total_records} | Records={len(batch_response.data)}")  # Output informational or diagnostic message
+batch_response = StandardApiResponse[list[ComplaintSummaryDTO]](  # Parameterize wrapper with list of DTOs
+    data=[  # List of complaint summary instances
+        ComplaintSummaryDTO(id=1, tracking_code="TKT-001", status="OPEN"),  # First summary
+        ComplaintSummaryDTO(id=2, tracking_code="TKT-002", status="RESOLVED")  # Second summary
+    ],  # End list
+    meta=PaginationMetadata(page=1, page_size=20, total_records=2)  # Provide pagination metadata
+)  # Validate list response
+print(f"Batch Response: total={batch_response.meta.total_records} | Records={len(batch_response.data)}")  # Confirm batch payload
 ```
 
 ---
@@ -1443,22 +1443,22 @@ The `exc.errors()` method returns a list of dictionaries, where each entry repre
 # Inspecting the internal anatomy of ValidationError
 from pydantic import BaseModel, Field, ValidationError  # Validation tools
 
-class StrictTicketInput(BaseModel):  # Class declaration inheriting schema attributes
-    title: str = Field(..., min_length=5)  # Assign and initialize variable or attribute
-    severity: int = Field(..., ge=1, le=5)  # Assign and initialize variable or attribute
+class StrictTicketInput(BaseModel):  # Schema for demonstrating error inspection
+    title: str = Field(..., min_length=5)  # Title requiring >= 5 chars
+    severity: int = Field(..., ge=1, le=5)  # Severity clamped between 1 and 5
 
-try:  # Begin protected execution block
+try:  # Protected execution triggering intentional validation failures
     # Intentionally passing malformed inputs
-    StrictTicketInput(title="bad", severity=10)  # Assign and initialize variable or attribute
-except ValidationError as exc:  # Catch and handle exception
-    print(f"Total Errors Trapped: {exc.error_count()}")  # Output informational or diagnostic message
-    for idx, error in enumerate(exc.errors(), start=1):  # Iterate over collection elements
-        print(f"\n[Error {idx}]")  # Output informational or diagnostic message
-        print(f"  Field Location: {' -> '.join(str(p) for p in error['loc'])}")  # Output informational or diagnostic message
-        print(f"  Error Type:     {error['type']}")  # Output informational or diagnostic message
-        print(f"  Message:        {error['msg']}")  # Output informational or diagnostic message
-        print(f"  Offending Input: {error.get('input')}")  # Output informational or diagnostic message
-        print(f"  Context Bounds: {error.get('ctx')}")  # Output informational or diagnostic message
+    StrictTicketInput(title="bad", severity=10)  # title too short, severity out of bounds
+except ValidationError as exc:  # Catch aggregated validation error
+    print(f"Total Errors Trapped: {exc.error_count()}")  # Report total number of failed fields
+    for idx, error in enumerate(exc.errors(), start=1):  # Iterate through individual atomic errors
+        print(f"\n[Error {idx}]")  # Error index header
+        print(f"  Field Location: {' -> '.join(str(p) for p in error['loc'])}")  # Hierarchical path to field
+        print(f"  Error Type:     {error['type']}")  # Machine-readable error code
+        print(f"  Message:        {error['msg']}")  # Human-readable failure explanation
+        print(f"  Offending Input: {error.get('input')}")  # Rejected raw value
+        print(f"  Context Bounds: {error.get('ctx')}")  # Threshold constraints
 ```
 
 ---
@@ -1471,36 +1471,36 @@ In production web applications, raw Python exception traces must never leak to c
 # Converting ValidationError into an RFC 7807 standard problem detail structure
 from pydantic import BaseModel, Field, ValidationError  # Schema primitives
 
-def format_rfc7807_error_response(exc: ValidationError, instance_uri: str) -> dict:  # Function or method definition
-    formatted_errors = []  # Assign and initialize variable or attribute
-    for err in exc.errors():  # Iterate over collection elements
-        field_path = ".".join(str(elem) for elem in err["loc"] if elem != "__root__")  # Assign and initialize variable or attribute
-        formatted_errors.append({  # Execute statement
-            "field": field_path,  # Execute statement
-            "code": err["type"],  # Execute statement
-            "detail": err["msg"],  # Execute statement
-            "rejected_value": str(err.get("input", ""))  # Execute statement
-        })  # Execute statement
+def format_rfc7807_error_response(exc: ValidationError, instance_uri: str) -> dict:  # Error translation helper
+    formatted_errors = []  # Initialize error list
+    for err in exc.errors():  # Iterate through Pydantic error dictionaries
+        field_path = ".".join(str(elem) for elem in err["loc"] if elem != "__root__")  # Format dot-notated field path
+        formatted_errors.append({  # Append structured error dictionary
+            "field": field_path,  # Offending field path
+            "code": err["type"],  # Machine-readable error code
+            "detail": err["msg"],  # Human-readable detail
+            "rejected_value": str(err.get("input", ""))  # Stringified rejected input
+        })  # End error dictionary
 
-    return {  # Return computed result to caller
-        "type": "https://complaints.university.edu/errors/validation-error",  # Execute statement
-        "title": "Unprocessable Content",  # Execute statement
-        "status": 422,  # Execute statement
-        "detail": f"Request payload failed validation with {exc.error_count()} error(s).",  # Execute statement
-        "instance": instance_uri,  # Execute statement
-        "invalid_parameters": formatted_errors  # Execute statement
-    }  # Closing delimiter
+    return {  # Construct RFC 7807 problem detail envelope
+        "type": "https://complaints.university.edu/errors/validation-error",  # Canonical error URI
+        "title": "Unprocessable Content",  # Standard HTTP 422 title
+        "status": 422,  # HTTP status code
+        "detail": f"Request payload failed validation with {exc.error_count()} error(s).",  # Summary detail string
+        "instance": instance_uri,  # Request endpoint URI
+        "invalid_parameters": formatted_errors  # List of invalid parameter details
+    }  # Return envelope dictionary
 
-class InboundPayload(BaseModel):  # Class declaration inheriting schema attributes
-    ticket_id: int = Field(..., ge=1)  # Assign and initialize variable or attribute
-    category: str = Field(..., min_length=3)  # Assign and initialize variable or attribute
+class InboundPayload(BaseModel):  # Sample input schema
+    ticket_id: int = Field(..., ge=1)  # Positive integer ID
+    category: str = Field(..., min_length=3)  # Category requiring >= 3 chars
 
-try:  # Begin protected execution block
-    InboundPayload(ticket_id=-5, category="ab")  # Assign and initialize variable or attribute
-except ValidationError as exc:  # Catch and handle exception
-    rfc7807_payload = format_rfc7807_error_response(exc, instance_uri="/api/v1/complaints")  # Assign and initialize variable or attribute
-    print("Formatted RFC 7807 API Response:")  # Output informational or diagnostic message
-    print(rfc7807_payload)  # Output informational or diagnostic message
+try:  # Trigger validation errors on invalid parameters
+    InboundPayload(ticket_id=-5, category="ab")  # Both fields violate constraints
+except ValidationError as exc:  # Catch validation exception
+    rfc7807_payload = format_rfc7807_error_response(exc, instance_uri="/api/v1/complaints")  # Translate to RFC 7807
+    print("Formatted RFC 7807 API Response:")  # Banner
+    print(rfc7807_payload)  # Display structured problem details JSON
 ```
 
 ---
@@ -1520,41 +1520,41 @@ In Pydantic V2, environment management is packaged in the official companion lib
 from pydantic import Field                                      # Schema metadata
 from pydantic_settings import BaseSettings, SettingsConfigDict  # Settings primitives
 
-class PlatformSettings(BaseSettings):  # Class declaration inheriting schema attributes
+class PlatformSettings(BaseSettings):  # Twelve-Factor application configuration singleton
     # Application configuration with defaults
-    app_name: str = "Automated Smart Complaint Platform"  # Assign and initialize variable or attribute
-    environment: str = Field("development", pattern=r"^(development|staging|production)$")  # Assign and initialize variable or attribute
-    debug: bool = False  # Assign and initialize variable or attribute
+    app_name: str = "Automated Smart Complaint Platform"  # Application display name
+    environment: str = Field("development", pattern=r"^(development|staging|production)$")  # Execution environment
+    debug: bool = False  # Debug mode flag
 
     # Database connection parameters
-    database_url: str = Field(  # Assign and initialize variable or attribute
-        "sqlite:///./complaints.db",  # Execute statement
-        description="SQLAlchemy connection URI"  # Assign and initialize variable or attribute
-    )  # Closing delimiter
+    database_url: str = Field(  # SQLAlchemy database URI
+        "sqlite:///./complaints.db",  # Default local SQLite file path
+        description="SQLAlchemy connection URI"  # Description
+    )  # End database_url Field
 
     # Security secrets (Mandatory in production!)
-    jwt_secret_key: str = Field(  # Assign and initialize variable or attribute
-        "DEFAULT_DEV_SECRET_DO_NOT_USE_IN_PROD",  # Execute statement
-        min_length=16,  # Assign and initialize variable or attribute
-        description="Symmetric encryption secret"  # Assign and initialize variable or attribute
-    )  # Closing delimiter
-    jwt_algorithm: str = "HS256"  # Assign and initialize variable or attribute
-    access_token_expire_minutes: int = Field(60, gt=0)  # Assign and initialize variable or attribute
+    jwt_secret_key: str = Field(  # JWT cryptographic signing secret
+        "DEFAULT_DEV_SECRET_DO_NOT_USE_IN_PROD",  # Fallback dev secret
+        min_length=16,  # Enforce minimum secret length
+        description="Symmetric encryption secret"  # Description
+    )  # End jwt_secret_key Field
+    jwt_algorithm: str = "HS256"  # Symmetric hashing algorithm
+    access_token_expire_minutes: int = Field(60, gt=0)  # Token lifetime in minutes
 
     # Configuration dictionary for environment variables and .env files
-    model_config = SettingsConfigDict(  # Assign and initialize variable or attribute
+    model_config = SettingsConfigDict(  # Settings configuration dictionary
         env_file=".env",              # Ingest from local .env file if present
         env_file_encoding="utf-8",    # File encoding
         case_sensitive=False,         # Match case-insensitively (e.g. DATABASE_URL matches database_url)
         extra="ignore"                # Tolerate extra system env variables
-    )  # Closing delimiter
+    )  # End SettingsConfigDict
 
 # Instantiate settings singleton
-settings = PlatformSettings()  # Assign and initialize variable or attribute
-print(f"Loaded App:        {settings.app_name}")  # Output informational or diagnostic message
-print(f"Environment:       {settings.environment}")  # Output informational or diagnostic message
-print(f"Database URI:      {settings.database_url}")  # Output informational or diagnostic message
-print(f"Token Expiry Mins: {settings.access_token_expire_minutes}")  # Output informational or diagnostic message
+settings = PlatformSettings()  # Reads environment variables and populates settings object
+print(f"Loaded App:        {settings.app_name}")  # Output application name
+print(f"Environment:       {settings.environment}")  # Output active environment
+print(f"Database URI:      {settings.database_url}")  # Output database URI
+print(f"Token Expiry Mins: {settings.access_token_expire_minutes}")  # Output token expiration duration
 ```
 
 ---
@@ -1568,8 +1568,8 @@ In high-throughput microservices, applications frequently receive batch arrays o
 In Pydantic V1, validating a list of objects required creating an awkward dummy wrapper model:
 ```python
 # Legacy Pydantic V1 awkward wrapper pattern
-class ComplaintListWrapper(BaseModel):  # Class declaration inheriting schema attributes
-    items: list[ComplaintCreate]  # Execute statement
+class ComplaintListWrapper(BaseModel):  # Awkward V1 container model required to validate lists
+    items: list[str]  # List field wrapped in dummy model
 ```
 
 Pydantic V2 introduces the **`pydantic.TypeAdapter`**. `TypeAdapter` can validate, parse, and serialize **any Python type** directly (including `list[T]`, `dict[str, T]`, or primitive scalars) without wrapping them in a dummy `BaseModel`:
@@ -1578,26 +1578,26 @@ Pydantic V2 introduces the **`pydantic.TypeAdapter`**. `TypeAdapter` can validat
 # High-throughput batch validation utilizing TypeAdapter
 from pydantic import BaseModel, Field, TypeAdapter  # Schema and adapter primitives
 
-class BatchTicketItem(BaseModel):  # Class declaration inheriting schema attributes
-    ticket_id: int  # Execute statement
-    priority: int = Field(..., ge=1, le=5)  # Assign and initialize variable or attribute
+class BatchTicketItem(BaseModel):  # Item schema for bulk ingestion
+    ticket_id: int  # Sequential ticket ID
+    priority: int = Field(..., ge=1, le=5)  # Clamped priority level
 
 # Initialize a reusable TypeAdapter for a list of BatchTicketItem instances
-ticket_list_adapter = TypeAdapter(list[BatchTicketItem])  # Assign and initialize variable or attribute
+ticket_list_adapter = TypeAdapter(list[BatchTicketItem])  # Reusable adapter bypassing dummy wrapper models
 
 # Simulated raw payload containing a batch of ticket records
-raw_batch_data = [  # Assign and initialize variable or attribute
-    {"ticket_id": "101", "priority": "3"},  # Execute statement
-    {"ticket_id": 102, "priority": 4},  # Execute statement
-    {"ticket_id": "103", "priority": "1"}  # Execute statement
-]  # Closing delimiter
+raw_batch_data = [  # List of unparsed ticket dictionaries
+    {"ticket_id": "101", "priority": "3"},  # String values to be coerced
+    {"ticket_id": 102, "priority": 4},  # Native integer values
+    {"ticket_id": "103", "priority": "1"}  # String values to be coerced
+]  # End raw batch list
 
 # Validate the entire batch in a single call to the Rust core
-validated_tickets: list[BatchTicketItem] = ticket_list_adapter.validate_python(raw_batch_data)  # Assign and initialize variable or attribute
+validated_tickets: list[BatchTicketItem] = ticket_list_adapter.validate_python(raw_batch_data)  # Validates entire list
 
-print(f"Batch Successfully Validated: {len(validated_tickets)} items")  # Output informational or diagnostic message
-for item in validated_tickets:  # Iterate over collection elements
-    print(f"  Ticket #{item.ticket_id}: Priority={item.priority} (type: {type(item.ticket_id).__name__})")
+print(f"Batch Successfully Validated: {len(validated_tickets)} items")  # Confirm batch count
+for item in validated_tickets:  # Iterate through validated ticket instances
+    print(f"  Ticket #{item.ticket_id}: Priority={item.priority} (type: {type(item.ticket_id).__name__})")  # Output validated items
 ```
 
 ---
@@ -1615,22 +1615,22 @@ Pydantic provides the **`Model.model_construct()`** escape hatch:
 # Utilizing model_construct() for trusted internal data caching
 from pydantic import BaseModel  # Schema base class
 
-class CachedComplaintRecord(BaseModel):  # Class declaration inheriting schema attributes
-    ticket_id: int  # Execute statement
-    title: str  # Execute statement
-    is_resolved: bool  # Execute statement
+class CachedComplaintRecord(BaseModel):  # Schema for cached entity hydration
+    ticket_id: int  # Primary ticket ID
+    title: str  # Issue summary
+    is_resolved: bool  # Resolution status flag
 
 # Trusted internal cache tuple
-trusted_internal_db_row = (404, "Water heater malfunction", True)  # Assign and initialize variable or attribute
+trusted_internal_db_row = (404, "Water heater malfunction", True)  # Pre-validated database row tuple
 
 # Instantiate at maximum speed bypassing validation
-fast_instance = CachedComplaintRecord.model_construct(  # Assign and initialize variable or attribute
-    ticket_id=trusted_internal_db_row[0],  # Assign and initialize variable or attribute
-    title=trusted_internal_db_row[1],  # Assign and initialize variable or attribute
-    is_resolved=trusted_internal_db_row[2]  # Assign and initialize variable or attribute
-)  # Closing delimiter
+fast_instance = CachedComplaintRecord.model_construct(  # Directly populates __dict__ without running Rust validation
+    ticket_id=trusted_internal_db_row[0],  # Direct assignment of ID
+    title=trusted_internal_db_row[1],  # Direct assignment of title
+    is_resolved=trusted_internal_db_row[2]  # Direct assignment of boolean flag
+)  # Fast-path instance construction
 
-print(f"Constructed Instance: ID={fast_instance.ticket_id} | Title='{fast_instance.title}'")  # Output informational or diagnostic message
+print(f"Constructed Instance: ID={fast_instance.ticket_id} | Title='{fast_instance.title}'")  # Verify populated attributes
 ```
 
 ---
@@ -1680,23 +1680,23 @@ import time                              # Time delay module
 from pydantic import BaseModel, Field    # Schema primitives
 
 # FLAWED MODEL: Evaluates datetime.now() once at module import!
-class FlawedTimestampModel(BaseModel):  # Class declaration inheriting schema attributes
-    stale_time: datetime = datetime.now(timezone.utc)  # BUG: Shared static timestamp!
+class FlawedTimestampModel(BaseModel):  # Anti-pattern model with static default timestamp
+    stale_time: datetime = datetime.now(timezone.utc)  # BUG: Shared static timestamp evaluated at import time!
 
 # CORRECT MODEL: Invokes lambda dynamically for every single instance
-class CorrectTimestampModel(BaseModel):  # Class declaration inheriting schema attributes
-    fresh_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Assign and initialize variable or attribute
+class CorrectTimestampModel(BaseModel):  # Correct model with dynamic factory function
+    fresh_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Evaluated per instance
 
-instance_one = FlawedTimestampModel()  # Assign and initialize variable or attribute
-time.sleep(0.01)  # Brief pause
-instance_two = FlawedTimestampModel()  # Assign and initialize variable or attribute
+instance_one = FlawedTimestampModel()  # First instance of flawed model
+time.sleep(0.01)  # Brief pause of 10 milliseconds
+instance_two = FlawedTimestampModel()  # Second instance of flawed model
 
-print(f"Stale Timestamps are identical: {instance_one.stale_time == instance_two.stale_time}")  # True!
+print(f"Stale Timestamps are identical: {instance_one.stale_time == instance_two.stale_time}")  # True: Identical stale timestamps!
 
-correct_one = CorrectTimestampModel()  # Assign and initialize variable or attribute
-time.sleep(0.01)  # Execute statement
-correct_two = CorrectTimestampModel()  # Assign and initialize variable or attribute
-print(f"Fresh Timestamps are dynamic:   {correct_one.fresh_time != correct_two.fresh_time}")    # True!
+correct_one = CorrectTimestampModel()  # First instance of correct model
+time.sleep(0.01)  # Brief pause of 10 milliseconds
+correct_two = CorrectTimestampModel()  # Second instance of correct model
+print(f"Fresh Timestamps are dynamic:   {correct_one.fresh_time != correct_two.fresh_time}")    # True: Distinct dynamic timestamps!
 ```
 
 ---
