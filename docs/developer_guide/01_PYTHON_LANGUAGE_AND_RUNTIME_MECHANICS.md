@@ -4,6 +4,15 @@ This guide is the comprehensive, exhaustive technical reference for the **Python
 
 Designed to parallel an intensive **60-hour university computer science and systems engineering curriculum**, this manual starts directly above elementary loops and covers the **exact concepts, data structures, runtime mechanics, language paradigms, memory models, algorithms, standard libraries, and concurrency patterns** required to build, debug, optimize, and deploy production-grade software.
 
+### Pedagogical Architecture & Monotonic Ordering Doctrine
+This manual is structured with **strict monotonic prerequisite ordering**. Every chapter builds exclusively upon foundations established in earlier chapters:
+* No chapter requires concepts from higher-numbered chapters. Foundational CPython memory models and primitive collections precede functions and OOP; OOP precedes dunder protocols; protocols precede typing; typing precedes metaprogramming, generators, and concurrency; and concurrency precedes production diagnostics.
+* Foundational runtime mechanics established in this manual serve as the core prerequisites for downstream architecture guides across our platform:
+  - [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md) (operationalizing AsyncIO event loops and generator dependencies)
+  - [Guide 03: Pydantic v2 Data Contract Engineering](03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md) (operationalizing PEP 484/585/604 type annotations for Rust-accelerated parsing)
+  - [Guide 04: SQLite 3 Engine Architecture, Storage Mechanics & WAL Mode](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md) (CPython `sqlite3` driver and POSIX/Win32 file locking)
+  - [Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture](05_SQLALCHEMY_ORM_AND_DATA_LAYER.md) (class descriptors, Unit of Work pattern, and `Mapped[T]` typings)
+
 Every topic is structured with:
 1. **In-Depth Conceptual Exposition:** Detailed multi-paragraph explanations of the underlying theory, execution model, design trade-offs, and how it applies to our platform.
 2. **Exhaustively Commented Code:** Every single line of code in every code block includes an explicit explanatory comment describing syntax, parameters, return values, and edge cases.
@@ -21,7 +30,7 @@ Every topic is structured with:
 7. [Chapter 7: Algorithms, Searching & Sorting (Timsort, Multi-Key Lambdas, Bisect)](#chapter-7-algorithms-searching-sorting-timsort-multi-key-lambdas-bisect)
 8. [Chapter 8: Object-Oriented Programming (Classes from the Ground Up)](#chapter-8-object-oriented-programming-classes-from-the-ground-up)
 9. [Chapter 9: Advanced OOP (Inheritance, MRO, Cooperative super, Class/Static Methods)](#chapter-9-advanced-oop-inheritance-mro-cooperative-super-classstatic-methods)
-10. [Chapter 10: Modern Class Patterns (Dataclasses, Enums, __slots__ Optimization)](#chapter-10-modern-class-patterns-dataclasses-enums-__slots__-optimization)
+10. [Chapter 10: Modern Class Patterns (Dataclasses, Enums, `__slots__` Optimization)](#chapter-10-modern-class-patterns-dataclasses-enums-__slots__-optimization)
 11. [Chapter 11: Magic (Dunder) Methods & Operator Overloading](#chapter-11-magic-dunder-methods-operator-overloading)
 12. [Chapter 12: Defensive Error Handling & Custom Exception Hierarchies](#chapter-12-defensive-error-handling-custom-exception-hierarchies)
 13. [Chapter 13: Modern Type Hinting (PEP 484, 585, 604, Literal, Protocol)](#chapter-13-modern-type-hinting-pep-484-585-604-literal-protocol)
@@ -29,12 +38,11 @@ Every topic is structured with:
 15. [Chapter 15: Dates, Times & Duration Math (datetime, timedelta, UTC)](#chapter-15-dates-times-duration-math-datetime-timedelta-utc)
 16. [Chapter 16: String Processing, Encoding & Regular Expressions](#chapter-16-string-processing-encoding-regular-expressions)
 17. [Chapter 17: Unique Identifiers & Cryptographic Security (uuid, secrets)](#chapter-17-unique-identifiers-cryptographic-security-uuid-secrets)
-18. [Chapter 18: Generators, Iterators & The yield Pattern](#chapter-18-generators-iterators-the-yield-pattern)
+18. [Chapter 18: Generators, Iterators & The `yield` Pattern](#chapter-18-generators-iterators-the-yield-pattern)
 19. [Chapter 19: Decorators & Metaprogramming](#chapter-19-decorators-metaprogramming)
 20. [Chapter 20: Concurrency (Threading, Multiprocessing, AsyncIO & The GIL)](#chapter-20-concurrency-threading-multiprocessing-asyncio-the-gil)
 21. [Chapter 21: Production Logging, Benchmarking & Profiling](#chapter-21-production-logging-benchmarking-profiling)
 22. [Chapter 22: The 60-Hour Python Engineering Mastery Checklist](#chapter-22-the-60-hour-python-engineering-mastery-checklist)
-
 ---
 
 ## Chapter 1: The Python Runtime, Environment & Packaging

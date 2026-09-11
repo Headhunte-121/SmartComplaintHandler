@@ -4,6 +4,12 @@ This manual serves as the authoritative systems engineering reference for the **
 
 SQLite is the embedded storage foundation of our backend services. Unlike traditional client-server database management systems (such as PostgreSQL or MySQL) that require external network daemons, connection brokers, and inter-process socket communication, SQLite executes directly inside the Python process address space. To operate, scale, and maintain high-concurrency transactional integrity on this engine, every engineer must understand how data travels from Python memory buffers down to physical disk sectors, how the B-Tree storage hierarchy is structured, and how Write-Ahead Logging eliminates reader-writer lock contention.
 
+### Pedagogical Architecture & Monotonic Ordering Doctrine
+This manual is structured with **strict monotonic prerequisite ordering**. Every chapter builds exclusively upon foundations established in earlier chapters or referenced from prior foundational manuals:
+* Builds on CPython memory reference mechanics and file I/O fundamentals established in [Guide 01: Python 3.10+ Language & Runtime Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md).
+* Provides the embedded storage engine and concurrency locking foundations consumed by [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md) and [Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture](05_SQLALCHEMY_ORM_AND_DATA_LAYER.md).
+* No chapter requires concepts from higher-numbered chapters. In-process architecture and B-Tree disk formats precede VDBE bytecode; VDBE bytecode precedes pager caching; pager caching precedes ACID locks; lock mechanics precede WAL mode; and WAL mode precedes high-concurrency pragmas, full-text search, and multi-threaded connection management.
+
 Every chapter in this manual provides:
 1. **Low-Level Systems Theory:** Detailed architectural exposition of the C engine, virtual file system (VFS), page cache, lock escalation states, and B-Tree algorithms.
 2. **Exhaustively Commented Code:** Every single line of Python code in every code block includes an explicit explanatory comment (`#`) detailing parameters, pragmas, and runtime behavior.
@@ -19,12 +25,12 @@ Every chapter in this manual provides:
 5. [Chapter 5: ACID Guarantees & Transaction Lock States](#chapter-5-acid-guarantees-transaction-lock-states)
 6. [Chapter 6: The Legacy Rollback Journal Architecture](#chapter-6-the-legacy-rollback-journal-architecture)
 7. [Chapter 7: Write-Ahead Logging (WAL) Architecture: Under the Hood](#chapter-7-write-ahead-logging-wal-architecture-under-the-hood)
-8. [Chapter 8: The Shared Memory File (.db-shm) & WAL Indexing](#chapter-8-the-shared-memory-file-db-shm-wal-indexing)
-9. [Chapter 9: The Checkpoint Lifecycle (PRAGMA wal_checkpoint)](#chapter-9-the-checkpoint-lifecycle-pragma-wal_checkpoint)
+8. [Chapter 8: The Shared Memory File (`.db-shm`) & WAL Indexing](#chapter-8-the-shared-memory-file-db-shm-wal-indexing)
+9. [Chapter 9: The Checkpoint Lifecycle (`PRAGMA wal_checkpoint`)](#chapter-9-the-checkpoint-lifecycle-pragma-wal_checkpoint)
 10. [Chapter 10: Pragmas for High-Performance Production Systems](#chapter-10-pragmas-for-high-performance-production-systems)
 11. [Chapter 11: Concurrency Limits & The Single-Writer Constraint](#chapter-11-concurrency-limits-the-single-writer-constraint)
-12. [Chapter 12: Python's sqlite3 Standard Library: Internals & Gotchas](#chapter-12-pythons-sqlite3-standard-library-internals-gotchas)
-13. [Chapter 13: Memory-Mapped I/O (PRAGMA mmap_size)](#chapter-13-memory-mapped-io-pragma-mmap_size)
+12. [Chapter 12: Python's `sqlite3` Standard Library: Internals & Gotchas](#chapter-12-pythons-sqlite3-standard-library-internals-gotchas)
+13. [Chapter 13: Memory-Mapped I/O (`PRAGMA mmap_size`)](#chapter-13-memory-mapped-io-pragma-mmap_size)
 14. [Chapter 14: Indexing Strategies & Query Optimization](#chapter-14-indexing-strategies-query-optimization)
 15. [Chapter 15: Full-Text Search (FTS5) Engine Integration](#chapter-15-full-text-search-fts5-engine-integration)
 16. [Chapter 16: JSON1 Extension & Semi-Structured Document Storage](#chapter-16-json1-extension-semi-structured-document-storage)
@@ -34,7 +40,6 @@ Every chapter in this manual provides:
 20. [Chapter 20: SQLite in Testing & In-Memory Isolation](#chapter-20-sqlite-in-testing-in-memory-isolation)
 21. [Chapter 21: Common SQLite Anti-Patterns & Operational Pitfalls](#chapter-21-common-sqlite-anti-patterns-operational-pitfalls)
 22. [Chapter 22: The SQLite 3 Systems Engineering Mastery Checklist](#chapter-22-the-sqlite-3-systems-engineering-mastery-checklist)
-
 ---
 
 ## Chapter 1: The SQLite Philosophy & Architecture: An In-Process Engine
@@ -1336,7 +1341,7 @@ import threading  # Multi-threading utilities
 import sqlite3    # Database interface module
 
 class ThreadLocalDatabasePool:  # Thread-local pool manager
-    """Manages isolated SQLite connections per thread to eliminate contention."""
+    # Manages isolated SQLite connections per thread to eliminate lock contention
     def __init__(self, db_path: str):  # Initialize pool with target database file path
         self.db_path = db_path  # Store target path
         self._local = threading.local()  # Allocate thread-local storage container to isolate connection handles

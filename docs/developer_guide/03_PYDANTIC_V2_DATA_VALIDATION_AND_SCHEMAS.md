@@ -4,6 +4,13 @@ This manual serves as the definitive engineering reference for **Pydantic V2**, 
 
 Data contracts form the protective perimeter of our distributed system. In modern microservice and web architectures, unvalidated or loosely typed inputs are the primary source of application crashes, data corruption, type confusion vulnerabilities, and injection attacks. By establishing rigorous, schema-backed data transfer boundaries at both the network ingress and database egress layers, we ensure that every internal service operates exclusively on structurally validated, strongly typed domain primitives.
 
+### Pedagogical Architecture & Monotonic Ordering Doctrine
+This manual is structured with **strict monotonic prerequisite ordering**. Every chapter builds exclusively upon foundations established in earlier chapters or referenced from prior foundational manuals:
+* Builds directly on Python's type system (PEP 484/585/604), dataclass internals, and dunder methods established in [Guide 01: Python 3.10+ Language & Runtime Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md).
+* Operates as the contract validation engine for incoming request streams and outgoing responses in [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md).
+* Serializes relational database entities mapped by [Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture](05_SQLALCHEMY_ORM_AND_DATA_LAYER.md).
+* No chapter requires concepts from higher-numbered chapters. Foundational parsing and BaseModel anatomy precede scalar and container constraints; constraints precede custom validators; validators precede DTO architectures; and DTOs precede ORM integration, polymorphic schemas, and settings management.
+
 Every chapter in this manual provides:
 1. **Low-Level Architectural Theory:** Deep explanations of how the `pydantic-core` Rust engine, PyO3 FFI boundary, compiled validation graphs, and memory representations operate beneath Python's surface.
 2. **Exhaustively Commented Code:** Every single line of Python code in every code block includes an explicit explanatory comment (`#`) detailing syntax, parameters, type annotations, and operational behavior.
@@ -14,27 +21,26 @@ Every chapter in this manual provides:
 ## Table of Contents
 1. [Chapter 1: The Evolution of Data Validation: From Dictionaries to Pydantic V2](#chapter-1-the-evolution-of-data-validation-from-dictionaries-to-pydantic-v2)
 2. [Chapter 2: Parsing vs Validation: Pydantic's Philosophy](#chapter-2-parsing-vs-validation-pydantics-philosophy)
-3. [Chapter 3: The BaseModel Foundation & Model Anatomy](#chapter-3-the-basemodel-foundation-model-anatomy)
-4. [Chapter 4: The Field Function: Constraints & Metadata](#chapter-4-the-field-function-constraints-metadata)
+3. [Chapter 3: The `BaseModel` Foundation & Model Anatomy](#chapter-3-the-basemodel-foundation-model-anatomy)
+4. [Chapter 4: The `Field` Function: Constraints & Metadata](#chapter-4-the-field-function-constraints-metadata)
 5. [Chapter 5: Core Scalar & Standard Library Types](#chapter-5-core-scalar-standard-library-types)
 6. [Chapter 6: Complex Container Types & Modern Generics](#chapter-6-complex-container-types-modern-generics)
 7. [Chapter 7: Nested Models & Relational Composition](#chapter-7-nested-models-relational-composition)
-8. [Chapter 8: Custom Field Validation with @field_validator](#chapter-8-custom-field-validation-with-field_validator)
-9. [Chapter 9: Whole-Model Validation with @model_validator](#chapter-9-whole-model-validation-with-model_validator)
-10. [Chapter 10: Model Configuration via ConfigDict](#chapter-10-model-configuration-via-configdict)
+8. [Chapter 8: Custom Field Validation with `@field_validator`](#chapter-8-custom-field-validation-with-field_validator)
+9. [Chapter 9: Whole-Model Validation with `@model_validator`](#chapter-9-whole-model-validation-with-model_validator)
+10. [Chapter 10: Model Configuration via `ConfigDict`](#chapter-10-model-configuration-via-configdict)
 11. [Chapter 11: Field Aliasing & Serialization Naming Strategies](#chapter-11-field-aliasing-serialization-naming-strategies)
 12. [Chapter 12: Data Transfer Object (DTO) Architecture & Model Separation](#chapter-12-data-transfer-object-dto-architecture-model-separation)
-13. [Chapter 13: Serialization & Exporting: model_dump and model_dump_json](#chapter-13-serialization-exporting-model_dump-and-model_dump_json)
-14. [Chapter 14: Custom Serializers with @field_serializer and @model_serializer](#chapter-14-custom-serializers-with-field_serializer-and-model_serializer)
-15. [Chapter 15: ORM Integration & from_attributes Mode](#chapter-15-orm-integration-from_attributes-mode)
+13. [Chapter 13: Serialization & Exporting: `model_dump` and `model_dump_json`](#chapter-13-serialization-exporting-model_dump-and-model_dump_json)
+14. [Chapter 14: Custom Serializers with `@field_serializer` and `@model_serializer`](#chapter-14-custom-serializers-with-field_serializer-and-model_serializer)
+15. [Chapter 15: ORM Integration & `from_attributes` Mode](#chapter-15-orm-integration-from_attributes-mode)
 16. [Chapter 16: Discriminated Unions & Polymorphic Schemas](#chapter-16-discriminated-unions-polymorphic-schemas)
 17. [Chapter 17: Generic Models & Standardized API Envelopes](#chapter-17-generic-models-standardized-api-envelopes)
-18. [Chapter 18: Exception Handling & The ValidationError Anatomy](#chapter-18-exception-handling-the-validationerror-anatomy)
-19. [Chapter 19: Application Configuration with pydantic-settings](#chapter-19-application-configuration-with-pydantic-settings)
-20. [Chapter 20: High-Performance Batch Processing & TypeAdapter](#chapter-20-high-performance-batch-processing-typeadapter)
+18. [Chapter 18: Exception Handling & The `ValidationError` Anatomy](#chapter-18-exception-handling-the-validationerror-anatomy)
+19. [Chapter 19: Application Configuration with `pydantic-settings`](#chapter-19-application-configuration-with-pydantic-settings)
+20. [Chapter 20: High-Performance Batch Processing & `TypeAdapter`](#chapter-20-high-performance-batch-processing-typeadapter)
 21. [Chapter 21: Common Anti-Patterns & Migration Pitfalls](#chapter-21-common-anti-patterns-migration-pitfalls)
 22. [Chapter 22: The Pydantic V2 Data Engineering Mastery Checklist](#chapter-22-the-pydantic-v2-data-engineering-mastery-checklist)
-
 ---
 
 ## Chapter 1: The Evolution of Data Validation: From Dictionaries to Pydantic V2

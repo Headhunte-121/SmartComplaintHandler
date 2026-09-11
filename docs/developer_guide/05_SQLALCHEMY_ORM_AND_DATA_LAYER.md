@@ -2,12 +2,13 @@
 
 This manual serves as the authoritative systems engineering reference for the **SQLAlchemy 2.0 Object-Relational Mapping (ORM)** layer, Core expression compilation, connection pool dynamics, and transactional lifecycles across the **Automated Smart Complaint Routing & Workflow Automation Platform**.
 
-In modern distributed and high-concurrency systems, the data access layer serves as the mission-critical bridge between high-level application business logic (FastAPI route handlers, background SLA schedulers, automated routing engines) and the underlying physical storage engine (SQLite 3 WAL database). SQLAlchemy 2.0 represents a monumental architectural evolution over legacy 1.x paradigms, establishing complete separation between SQL expression compilation and execution, unifying type annotations with Declarative Mapping (`Mapped[...]` and `mapped_column()`), standardizing query construction around `select()`, and enforcing explicit transactional boundaries.
+In modern distributed and high-concurrency systems, the data access layer serves as the mission-critical bridge between high-level application business logic ([Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)) and the underlying physical storage engine ([Guide 04: SQLite 3 Engine Architecture, Storage Mechanics & WAL Mode](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)). SQLAlchemy 2.0 represents an architectural evolution over legacy 1.x paradigms, establishing complete separation between SQL expression compilation and execution, unifying type annotations with Declarative Mapping (`Mapped[...]` and `mapped_column()`), standardizing query construction around `select()`, and enforcing explicit transactional boundaries.
 
-Every chapter in this manual provides:
-1. **Low-Level Systems Theory:** Architectural mechanics explaining how Python objects are tracked, compiled into parameterized SQL ASTs, dispatched to low-level DBAPI drivers, and synchronized with relational disk tables.
-2. **Exhaustively Commented Code:** Every single line of Python code in every code block includes an explicit inline explanatory comment (`#`) detailing the precise systems action, parameter purpose, and runtime implication.
-3. **Enterprise Domain Models:** Real-world examples modeled directly on grievance intake, departmental hierarchy, maintenance squad routing, and audit logs.
+### Pedagogical Architecture & Monotonic Ordering Doctrine
+This manual is structured with **strict monotonic prerequisite ordering**. Every chapter builds exclusively upon foundations established in earlier chapters or referenced from prior foundational guides:
+* If a systems mechanism (e.g., Python type annotations, ASGI event loops, or SQLite WAL locks) originates in another document, it is explicitly cited with a direct link.
+* No chapter requires concepts introduced in higher-numbered chapters. Core connectivity and schema declarations precede queries; queries precede transactional sessions; sessions precede identity maps and unit of work; foundational models precede relationships; and relationships precede eager loaders and web framework integration.
+* Every single line of Python code in every code block includes an explicit inline explanatory comment (`#`) detailing the exact systems action, parameter purpose, and runtime implication.
 
 ---
 
@@ -17,21 +18,21 @@ Every chapter in this manual provides:
 3. [Chapter 3: Connection Pools in Depth: QueuePool, NullPool, StaticPool & SQLite Specifics](#chapter-3-connection-pools-in-depth-queuepool-nullpool-staticpool-sqlite-specifics)
 4. [Chapter 4: Declarative Mapping & Modern Mapped / mapped_column Typings](#chapter-4-declarative-mapping-modern-mapped-mapped_column-typings)
 5. [Chapter 5: Primary Keys, Composite Keys, Sequence Generation & Foreign Keys](#chapter-5-primary-keys-composite-keys-sequence-generation-foreign-keys)
-6. [Chapter 6: Table Relationships: One-to-Many, Many-to-One, and Back-Populates Mechanics](#chapter-6-table-relationships-one-to-many-many-to-one-and-back-populates-mechanics)
-7. [Chapter 7: Many-to-Many Relationships & Association Object Patterns](#chapter-7-many-to-many-relationships-association-object-patterns)
-8. [Chapter 8: Cascades and Lifecycle Propagation (`all, delete-orphan`)](#chapter-8-cascades-and-lifecycle-propagation-all-delete-orphan)
-9. [Chapter 9: Relationship Loading Strategies: Lazy vs Eager (joinedload, selectinload, subqueryload, contains_eager)](#chapter-9-relationship-loading-strategies-lazy-vs-eager-joinedload-selectinload-subqueryload-contains_eager)
-10. [Chapter 10: The Async / ASGI Lazy Loading Hazard & Greenlet Mechanics](#chapter-10-the-async-asgi-lazy-loading-hazard-greenlet-mechanics)
-11. [Chapter 11: The SQLAlchemy 2.0 Query Paradigm: select(), insert(), update(), delete()](#chapter-11-the-sqlalchemy-20-query-paradigm-select-insert-update-delete)
-12. [Chapter 12: Advanced Filtering, Expressions, Aggregations, Grouping & Having](#chapter-12-advanced-filtering-expressions-aggregations-grouping-having)
-13. [Chapter 13: Bulk Operations, Batch Inserts, and Returning Clauses](#chapter-13-bulk-operations-batch-inserts-and-returning-clauses)
-14. [Chapter 14: The Session Lifecycle, Transactional Boundaries & sessionmaker Factory](#chapter-14-the-session-lifecycle-transactional-boundaries-sessionmaker-factory)
-15. [Chapter 15: The Unit of Work Pattern & Topological Flush Sorting](#chapter-15-the-unit-of-work-pattern-topological-flush-sorting)
-16. [Chapter 16: The Identity Map & In-Memory Entity Caching](#chapter-16-the-identity-map-in-memory-entity-caching)
-17. [Chapter 17: Session States: Transient, Pending, Persistent, and Detached](#chapter-17-session-states-transient-pending-persistent-and-detached)
-18. [Chapter 18: Schema Reflection, Inspection & DDL Generation (MetaData & inspect)](#chapter-18-schema-reflection-inspection-ddl-generation-metadata-inspect)
-19. [Chapter 19: Core SQL Expression Language & Hybrid Properties / Expressions](#chapter-19-core-sql-expression-language-hybrid-properties-expressions)
-20. [Chapter 20: Database Events, Listeners & Lifecycle Hooks (before_insert, after_update)](#chapter-20-database-events-listeners-lifecycle-hooks-before_insert-after_update)
+6. [Chapter 6: The SQLAlchemy 2.0 Query Paradigm: select(), insert(), update(), delete()](#chapter-6-the-sqlalchemy-20-query-paradigm-select-insert-update-delete)
+7. [Chapter 7: Advanced Filtering, Expressions, Aggregations, Grouping & Having](#chapter-7-advanced-filtering-expressions-aggregations-grouping-having)
+8. [Chapter 8: The Session Lifecycle, Transactional Boundaries & sessionmaker Factory](#chapter-8-the-session-lifecycle-transactional-boundaries-sessionmaker-factory)
+9. [Chapter 9: The Identity Map & In-Memory Entity Caching](#chapter-9-the-identity-map-in-memory-entity-caching)
+10. [Chapter 10: The Unit of Work Pattern & Topological Flush Sorting](#chapter-10-the-unit-of-work-pattern-topological-flush-sorting)
+11. [Chapter 11: Session States: Transient, Pending, Persistent, and Detached](#chapter-11-session-states-transient-pending-persistent-and-detached)
+12. [Chapter 12: Table Relationships: One-to-Many, Many-to-One, and back_populates Mechanics](#chapter-12-table-relationships-one-to-many-many-to-one-and-back_populates-mechanics)
+13. [Chapter 13: Many-to-Many Relationships & Association Object Patterns](#chapter-13-many-to-many-relationships-association-object-patterns)
+14. [Chapter 14: Cascades and Lifecycle Propagation (`all, delete-orphan`)](#chapter-14-cascades-and-lifecycle-propagation-all-delete-orphan)
+15. [Chapter 15: Relationship Loading Strategies: Lazy vs Eager (joinedload, selectinload, subqueryload, contains_eager)](#chapter-15-relationship-loading-strategies-lazy-vs-eager-joinedload-selectinload-subqueryload-contains_eager)
+16. [Chapter 16: The Async / ASGI Lazy Loading Hazard & Greenlet Mechanics](#chapter-16-the-async-asgi-lazy-loading-hazard-greenlet-mechanics)
+17. [Chapter 17: Bulk Operations, Batch Inserts, and Returning Clauses](#chapter-17-bulk-operations-batch-inserts-and-returning-clauses)
+18. [Chapter 18: Core SQL Expression Language & Hybrid Properties / Expressions](#chapter-18-core-sql-expression-language-hybrid-properties-expressions)
+19. [Chapter 19: Database Events, Listeners & Lifecycle Hooks (before_insert, after_update)](#chapter-19-database-events-listeners-lifecycle-hooks-before_insert-after_update)
+20. [Chapter 20: Schema Reflection, Inspection & DDL Generation (MetaData & inspect)](#chapter-20-schema-reflection-inspection-ddl-generation-metadata-inspect)
 21. [Chapter 21: FastAPI Integration: Generator Dependencies, Scoped Sessions & Middleware](#chapter-21-fastapi-integration-generator-dependencies-scoped-sessions-middleware)
 22. [Chapter 22: The SQLAlchemy 2.0 Systems Engineering Mastery Checklist](#chapter-22-the-sqlalchemy-20-systems-engineering-mastery-checklist)
 ---
@@ -44,13 +45,13 @@ SQLAlchemy is deliberately engineered not as a monolithic active-record framewor
 
 1. **SQLAlchemy Core:**
    * Acts as a database abstraction toolkit and SQL expression compiler.
-   * Encapsulates the `Engine`, connection pooling (`Pool`), low-level DBAPI cursor execution, schema definition constructs (`Table`, `Column`, `MetaData`), and programmatic SQL AST nodes (`select()`, `insert()`, `update()`, `delete()`).
+   * Encapsulates the `Engine`, connection pooling (`Pool`), low-level DBAPI cursor execution, schema definition constructs (`Table`, `Column`, `MetaData`), and programmatic SQL Abstract Syntax Tree (AST) nodes (`select()`, `insert()`, `update()`, `delete()`).
    * Operates entirely without object-mapping overhead. It deals with raw relational concepts: tables, rows, columns, and tuples.
-   * Compiles abstract Python SQL expressions into dialect-specific SQL text (e.g., translating a generic `select()` statement into SQLite-compatible ANSI SQL or PostgreSQL-specific syntax with dialect-tailored parameter binding syntax like `?` or `$1`).
+   * Compiles abstract Python SQL expressions into dialect-specific SQL text (e.g., translating a generic `select()` statement into SQLite-compatible ANSI SQL with `?` parameter binding syntax as covered in [Guide 04: SQLite 3 Engine Architecture](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)).
 
 2. **SQLAlchemy ORM (Object-Relational Mapping):**
    * Built directly on top of SQLAlchemy Core.
-   * Translates Python class definitions (`Mapped` entities) into relational schema mappings and vice-versa.
+   * Translates Python class definitions (`Mapped` entities, utilizing modern typing introduced in [Guide 01: Python Language & Runtime Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md)) into relational schema mappings and vice-versa.
    * Implements enterprise architectural patterns: **Unit of Work** (buffering mutations and computing topological dependency graphs before flushing to disk) and **Identity Map** (ensuring that a given database primary key is materialized as exactly one Python object instance within a transaction session).
    * Translates object graph modifications into Core SQL execution statements during the flush phase.
 
@@ -89,32 +90,27 @@ SQLAlchemy is deliberately engineered not as a monolithic active-record framewor
 In legacy SQLAlchemy 1.x, query construction was deeply coupled to the `Session.query()` interface, which frequently obscured whether an operation was executing immediately, loading relationships lazily, or mutating internal session state. Furthermore, implicit auto-begin and ambiguous commit boundaries caused subtle transaction leaks in concurrent web frameworks.
 
 SQLAlchemy 2.0 unifies Core and ORM query execution under a single cohesive model:
-* **The `select()` Construct:** The legacy `session.query(Model)` syntax is completely deprecated in favor of explicit `select(Model)`. Queries are constructed as immutable Core AST objects and executed explicitly via `session.execute(statement)`.
+* **The `select()` Construct:** The legacy `session.query(Model)` syntax is completely deprecated in favor of explicit `select(Model)`. Queries are constructed as immutable Core AST objects.
 * **Explicit Commit Lifecycle:** Sessions require explicit transaction demarcation. "Autocommit mode" is permanently removed. Transactions must be committed using `session.commit()` or managed via contextual transaction blocks (`with session.begin():`).
-* **PEP 484 Type System Integration:** Model declarations leverage modern Python type hints via `Mapped[T]` and `mapped_column()`, eliminating runtime `Any` types and enabling full static analysis with Mypy and Pyright.
+* **PEP 484 Type System Integration:** Model declarations leverage modern Python type hints via `Mapped[T]` and `mapped_column()` (aligning with [Guide 01: Python Language Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) Chapter 13), eliminating runtime `Any` types and enabling static analysis with Mypy.
 
 ```python
-from sqlalchemy import create_engine, select  # Import engine creator and 2.0 select construct
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session  # Import ORM declarative building blocks
+from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String  # Import Core primitives
 
-class DemoBase(DeclarativeBase):  # Define isolated declarative base class for demonstration
-    pass  # Terminal pass statement establishing base class catalog
+core_meta = MetaData()  # Instantiate metadata catalog for raw relational schema definitions
 
-class DepartmentEntity(DemoBase):  # Define department mapped entity with explicit table metadata
-    __tablename__ = "demo_departments"  # Physical relational table name in SQLite
-    id: Mapped[int] = mapped_column(primary_key=True)  # Auto-incrementing primary key identifier
-    name: Mapped[str] = mapped_column(nullable=False)  # Division department name string column
+departments_table = Table(  # Define low-level Core relational table construct without ORM mapping
+    "core_departments",  # Physical table name in SQLite
+    core_meta,  # Associate table with metadata catalog
+    Column("id", Integer, primary_key=True, autoincrement=True),  # Auto-incrementing primary key
+    Column("name", String(100), nullable=False)  # Department operational name string
+)  # Finalize table definition
 
-demo_engine = create_engine("sqlite:///:memory:")  # Instantiate ephemeral in-memory database engine
-DemoBase.metadata.create_all(demo_engine)  # Emit DDL statements to construct physical schema in memory
+core_engine = create_engine("sqlite:///:memory:")  # Instantiate ephemeral in-memory database engine
+core_meta.create_all(core_engine)  # Emit physical DDL statements directly through Core engine
 
-with Session(demo_engine) as session:  # Open isolated transactional session context manager
-    session.add(DepartmentEntity(name="Electrical Services"))  # Stage new department entity into unit of work
-    session.commit()  # Flush staged insert to SQLite storage and commit transaction boundary
-
-with Session(demo_engine) as session:  # Open clean query session with empty identity map
-    stmt = select(DepartmentEntity).where(DepartmentEntity.name == "Electrical Services")  # Build immutable AST
-    dept = session.execute(stmt).scalar_one_or_none()  # Execute query and unpack single scalar entity instance
+core_query = select(departments_table).where(departments_table.c.name == "Electrical Services")  # Build Core AST
+compiled_core_sql = str(core_query.compile(dialect=core_engine.dialect))  # Inspect compiled SQL text
 ```
 
 ---
@@ -124,7 +120,7 @@ with Session(demo_engine) as session:  # Open clean query session with empty ide
 ### 2.1 The Engine: Central Architectural Anchor
 
 The `Engine` object is the central nervous system of any SQLAlchemy application. It is created once per application lifecycle and shared across all threads and worker tasks. The engine does not represent an active physical connection to the database; rather, it is a factory and coordinator that manages:
-1. **The Dialect:** The translation engine that bridges SQLAlchemy's generic relational algebra and the specific SQL syntax, data type coercions, and quirks of the target storage system (e.g., SQLite, PostgreSQL, Oracle).
+1. **The Dialect:** The translation engine that bridges SQLAlchemy's generic relational algebra and the specific SQL syntax, data type coercions, and quirks of the target storage system (such as SQLite, covered in [Guide 04: SQLite 3 Engine Architecture](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)).
 2. **The Connection Pool:** An in-memory cache of established DBAPI connections, recycling active sockets to avoid the substantial OS-level overhead of repeatedly handshaking and authenticating new database connections.
 
 ```python
@@ -154,19 +150,18 @@ When an engineer issues a query via SQLAlchemy, the engine never interpolates Py
 The dialect passes both structures directly to the underlying DBAPI driver (`sqlite3`), which transmits them to the database engine. The database compiler parses and compiles the query execution plan *before* substituting the bound parameters, guaranteeing that user input cannot alter the syntactic structure of the query.
 
 ```python
-from sqlalchemy import select, create_engine  # Import query builder construct and engine factory
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column  # Import declarative mapping tools
+from sqlalchemy import select, create_engine, MetaData, Table, Column, Integer, String  # Import Core builders
 
-class BaseCatalog(DeclarativeBase):  # Define base metadata registry class
-    pass  # Class definition terminal pass
-
-class TicketRecord(BaseCatalog):  # Define complaint ticket schema entity
-    __tablename__ = "complaint_records"  # Physical table name in SQLite
-    id: Mapped[int] = mapped_column(primary_key=True)  # Primary key auto-incrementing integer
-    tracking_code: Mapped[str] = mapped_column(nullable=False)  # Unique alphanumeric tracking code
+inspect_meta = MetaData()  # Initialize isolated metadata container for dialect compilation demonstration
+records_table = Table(  # Define raw relational table for testing parameter compilation
+    "records_table",  # Physical table name in SQLite
+    inspect_meta,  # Parent metadata registry
+    Column("id", Integer, primary_key=True),  # Primary key column
+    Column("tracking_code", String(30), nullable=False)  # Alphanumeric tracking token
+)  # Finalize table definition
 
 mock_engine = create_engine("sqlite:///:memory:")  # Instantiate mock dialect engine in memory
-query_stmt = select(TicketRecord).where(TicketRecord.tracking_code == "TICK-8492")  # Construct select AST
+query_stmt = select(records_table).where(records_table.c.tracking_code == "TICK-8492")  # Construct select AST
 
 compiled_query = query_stmt.compile(  # Compile the abstract statement into target dialect form
     dialect=mock_engine.dialect,  # Target the SQLite dialect compiler for syntax emission
@@ -187,8 +182,8 @@ Opening a physical database connection in a network database requires a multi-st
 
 SQLAlchemy provides distinct pooling implementations tailored to specific deployment topologies:
 * **`QueuePool` (Default for Network DBs):** Maintains a fixed number of persistent connections (`pool_size`) and allows a burst limit of temporary connections (`max_overflow`). When all connections are checked out, incoming requests block for up to `pool_timeout` seconds before raising an exception.
-* **`NullPool` (Serverless & Forked Environments):** Completely disables connection pooling. Every checkout establishes a new physical connection, and every checkin closes it immediately. Crucial in multiprocessing environments (like Celery or Gunicorn pre-fork workers) where child processes must never inherit open file descriptors or sockets from a parent process.
-* **`StaticPool` (In-Memory Databases):** Maintains exactly one single connection and returns that same connection on every checkout. Essential for SQLite in-memory databases (`:memory:`), because an in-memory SQLite database is instantly vaporized as soon as its establishing connection is closed.
+* **`NullPool` (Serverless & Forked Environments):** Completely disables connection pooling. Every checkout establishes a new physical connection, and every checkin closes it immediately. Crucial in multiprocessing environments (like Celery or Gunicorn pre-fork workers, detailed in [Guide 02: FastAPI ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md) Chapter 20) where child processes must never inherit open file descriptors or locks from a parent process.
+* **`StaticPool` (In-Memory Databases):** Maintains exactly one single connection and returns that same connection on every checkout. Essential for SQLite in-memory databases (`:memory:`), because an in-memory SQLite database is instantly vaporized as soon as its establishing connection is closed (explained in [Guide 04: SQLite 3 Engine Architecture](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md) Chapter 20).
 
 ```text
 Connection Checkout Lifecycle:
@@ -219,7 +214,7 @@ Connection Checkout Lifecycle:
 
 ### 3.2 SQLite Connection Pool Configuration
 
-In SQLite, the database is an embedded file on disk rather than a network server. Consequently, socket connection overhead is zero. However, SQLite's single-writer concurrency lock requires strict discipline. If `QueuePool` is used with SQLite in a multi-threaded application without WAL mode, concurrent writes will frequently collide and raise `sqlite3.OperationalError: database is locked`.
+In SQLite, the database is an embedded file on disk rather than a network server. Consequently, socket connection overhead is zero. However, SQLite's single-writer concurrency lock requires strict discipline (see [Guide 04: SQLite 3 Engine Architecture](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md) Chapter 11). If `QueuePool` is used with SQLite in a multi-threaded application without WAL mode, concurrent writes will frequently collide and raise `sqlite3.OperationalError: database is locked`.
 
 ```python
 from sqlalchemy import create_engine  # Import factory function for database engine construction
@@ -276,7 +271,7 @@ class Base(DeclarativeBase):  # Inherit from DeclarativeBase to construct applic
 ### 4.2 Type Annotations: Mapped[...] and mapped_column()
 
 SQLAlchemy 2.0 introduces the `Mapped[T]` generic type annotation in tandem with the `mapped_column()` descriptor. This construct achieves two objectives simultaneously:
-1. **Static Type Safety:** IDEs and type checkers understand that `ticket.id` evaluates to `int`, and `ticket.title` evaluates to `str` when reading an instance, eliminating type ambiguity.
+1. **Static Type Safety:** IDEs and type checkers understand that `ticket.id` evaluates to `int`, and `ticket.title` evaluates to `str` when reading an instance, eliminating type ambiguity (leveraging PEP 484 and PEP 604 typings from [Guide 01: Python Language Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) Chapter 13).
 2. **Column Metadata Specification:** `mapped_column()` defines physical database column constraints: primary keys, nullability, unique indexes, default values, and foreign keys.
 
 ```python
@@ -303,7 +298,7 @@ class ComplaintAuditTrail(Base):  # Define complaint audit trail entity mapped t
 
 ### 5.1 Primary Key Mechanics & Integer Primary Key Optimization
 
-In SQLite and relational engines, the primary key uniquely identifies each tuple in a relation. In SQLite specifically, declaring a column as `INTEGER PRIMARY KEY` creates an alias for SQLite's 64-bit signed integer `ROWID`. This creates a clustered B-Tree index, granting $O(1)$ point-lookup access speed.
+In SQLite and relational engines, the primary key uniquely identifies each tuple in a relation. In SQLite specifically, declaring a column as `INTEGER PRIMARY KEY` creates an alias for SQLite's 64-bit signed integer `ROWID` (detailed in [Guide 04: SQLite 3 Engine Architecture](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md) Chapter 2). This creates a clustered B-Tree index, granting $O(1)$ point-lookup access speed.
 
 Composite primary keys are constructed by marking multiple attributes with `primary_key=True`. This enforces a composite uniqueness constraint across the combination of keys.
 
@@ -329,7 +324,7 @@ class DepartmentSquadAssignment(Base):  # Define composite key technician assign
 
 A `ForeignKey("target_table.column")` construct establishes an explicit referential constraint between two relational tables. It guarantees that the value stored in the child column must exist within the referenced parent column.
 
-In SQLite, foreign key enforcement is disabled by default for backwards compatibility. It must be explicitly enabled per connection via `PRAGMA foreign_keys = ON;`. In SQLAlchemy, this is achieved by attaching a listener to the `connect` event on the engine.
+In SQLite, foreign key enforcement is disabled by default for backwards compatibility (as explained in [Guide 04: SQLite 3 Engine Architecture](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md) Chapter 10). It must be explicitly enabled per connection via `PRAGMA foreign_keys = ON;`. In SQLAlchemy, this is achieved by attaching a listener to the `connect` event on the engine.
 
 ```python
 from sqlalchemy import event, create_engine  # Import engine event registration decorator and engine factory
@@ -348,13 +343,308 @@ def enable_sqlite_foreign_key_pragmas(dbapi_connection, connection_record):  # C
 
 ---
 
-## Chapter 6: Table Relationships: One-to-Many, Many-to-One, and Back-Populates Mechanics
+## Chapter 6: The SQLAlchemy 2.0 Query Paradigm: select(), insert(), update(), delete()
 
-### 6.1 Bidirectional Relationships and back_populates
+### 6.1 The Result Execution Pipeline: Result, ScalarResult, and Scalars
 
-In a relational database, table associations are established strictly through value matching across primary and foreign key columns. In Python memory, however, developers interact with an object graph where models hold direct references or collections of related entity objects. SQLAlchemy bridges this difference through the `relationship()` directive.
+Building directly upon the Declarative Models established in Chapter 4 and Chapter 5, SQLAlchemy 2.0 introduces an immutable, expression-based execution pipeline. In legacy SQLAlchemy 1.x, query construction was tightly coupled to the `Session.query()` interface. In SQLAlchemy 2.0, all queries are constructed as standalone Abstract Syntax Tree (AST) objects using top-level DQL/DML functions: `select()`, `insert()`, `update()`, and `delete()`.
 
-In SQLAlchemy 2.0, the bidirectional relationship synchronization must be configured explicitly using `back_populates` on both sides of the association. Legacy SQLAlchemy allowed `backref`, which magically injected an implicit attribute onto the target class at runtime. Modern engineering standards mandate `back_populates` because it guarantees that both classes explicitly declare their navigational properties, enabling full static type checking, code discovery, and autocomplete.
+When any statement is executed, the engine or session returns a generic `Result` object. The `Result` represents an iterable stream over database rows (tuples of columns or entity instances). To extract cleanly typed entity instances from this tabular structure, SQLAlchemy provides the `.scalars()` adapter:
+
+```text
+Statement Execution Pipeline:
+session.execute(select(ComplaintAuditTrail)) ──> Result (Row Tuples: [(ComplaintAuditTrail_1,), ...])
+                                                          │
+                                                          ▼ .scalars()
+                                                 ScalarResult (Unwrapped: [ComplaintAuditTrail_1, ...])
+                                                          │
+              ┌───────────────────────────────────────────┼───────────────────────────────────────────┐
+              ▼                                           ▼                                           ▼
+        .all() -> List                             .first() -> Item/None                       .one() -> Item (or Exception)
+```
+
+The primary scalar extraction methods:
+* **`scalars().all()`:** Materializes all matching entity instances into a standard Python list.
+* **`scalars().first()`:** Returns the first entity instance or `None` if the result buffer is empty, without raising an exception.
+* **`scalar_one_or_none()`:** Returns exactly one entity or `None`. If more than one row matches the filter criteria, it raises `sqlalchemy.exc.MultipleResultsFound`.
+* **`scalar_one()`:** Returns exactly one entity. If zero rows match, it raises `sqlalchemy.exc.NoResultFound`; if more than one row matches, it raises `MultipleResultsFound`.
+
+```python
+from sqlalchemy import select, insert, update, delete, create_engine  # Core DML and DQL statement builders
+from sqlalchemy.orm import Session  # Import transactional session manager
+from app.models.ticket import Ticket  # Import Ticket domain entity defined in platform models
+
+test_engine = create_engine("sqlite:///:memory:")  # Initialize ephemeral database engine for query tests
+
+with Session(test_engine) as session:  # Open isolated database session
+    # 1. SELECT Query with explicit scalar unwrapping
+    query = select(Ticket).where(Ticket.status == "SUBMITTED").order_by(Ticket.created_at.desc())  # Build query AST
+    active_tickets = session.execute(query).scalars().all()  # Materialize all matching tickets into list
+
+    # 2. Direct Core-Style UPDATE Statement
+    update_stmt = (  # Build immutable update AST modifying status in bulk
+        update(Ticket)  # Target ticket table
+        .where(Ticket.id == 42)  # Predicate identifying target ticket
+        .values(status="IN_PROGRESS", resolution_notes="Assigned to technician")  # Values dict
+    )  # Close update statement
+    session.execute(update_stmt)  # Dispatch compiled SQL UPDATE to engine
+
+    # 3. Direct Core-Style DELETE Statement
+    delete_stmt = delete(Ticket).where(Ticket.status == "CANCELLED")  # Build delete statement AST
+    session.execute(delete_stmt)  # Dispatch compiled SQL DELETE to engine
+    session.commit()  # Commit transaction boundary to persist all modifications
+```
+
+---
+
+## Chapter 7: Advanced Filtering, Expressions, Aggregations, Grouping & Having
+
+### 7.1 Logical Operators, Range Queries & Null Handling
+
+SQLAlchemy expressions overload Python standard operators (`==`, `!=`, `<`, `>`, `&`, `|`, `~`) to produce SQL AST expression nodes rather than native booleans. To build complex boolean expressions, SQLAlchemy provides explicit functional operators:
+* `and_(*clauses)`: Conjoins multiple clauses with SQL `AND`.
+* `or_(*clauses)`: Conjoins multiple clauses with SQL `OR`.
+* `not_(clause)`: Inverts a predicate with SQL `NOT`.
+* `column.in_(iterable)`: Translates to `column IN (?, ?, ...)`.
+* `column.is_(None)` / `column.is_not(None)`: Enforces ANSI SQL standard `IS NULL` and `IS NOT NULL`.
+
+```python
+from sqlalchemy import select, and_, or_, not_  # Import relational boolean logical operators
+from app.models.ticket import Ticket  # Import Ticket model entity
+
+# Query identifying high-priority escalated tickets requiring immediate squad intervention
+escalated_tickets_stmt = (  # Construct composite predicate query
+    select(Ticket)  # Target Ticket entity
+    .where(  # Apply multi-clause boolean filter
+        and_(  # Conjoin conditions with logical AND
+            Ticket.status.in_(["SUBMITTED", "IN_PROGRESS"]),  # Must be in an active operational state
+            or_(  # Match either high urgency or critical escalation
+                Ticket.priority == "CRITICAL",  # Priority tier check
+                and_(Ticket.priority == "HIGH", Ticket.assigned_team_id.is_(None))  # High but unassigned
+            ),  # Close OR branch
+            not_(Ticket.title.like("%[TEST]%"))  # Exclude test grievances using SQL NOT LIKE
+        )  # Close AND branch
+    )  # Close where clause
+)  # Finalize statement construction
+```
+
+### 7.2 SQL Aggregations: func, GROUP BY, and HAVING
+
+The `func` object is a dynamic SQL function generator. Accessing any attribute on `func` (such as `func.count()`, `func.avg()`, `func.max()`, `func.min()`, `func.coalesce()`) produces the corresponding SQL function call in the target dialect.
+
+When computing aggregate analytics across campus departments, combining `func` with `group_by()` and `having()` allows high-performance summary calculations directly inside the SQLite engine, eliminating the memory overhead of loading thousands of raw rows into Python.
+
+```python
+from sqlalchemy import select, func, desc  # Import aggregation function helper and ordering primitives
+from app.models.ticket import Ticket  # Import Ticket domain entity
+from app.models.department import Department  # Import Department domain entity
+
+# Analytics query: Compute total grievances and unresolved backlog per department
+analytics_stmt = (  # Build relational aggregation query AST
+    select(  # Project department metadata and aggregated metric values
+        Department.name.label("department_name"),  # Department operational label
+        func.count(Ticket.id).label("total_tickets"),  # Total count of all historical tickets
+        func.sum(  # Conditional sum counting only active grievances
+            func.case(  # SQL CASE expression returning 1 for active states and 0 for resolved
+                (Ticket.status.in_(["SUBMITTED", "IN_PROGRESS"]), 1),  # Active state condition
+                else_=0  # Inactive or resolved condition
+            )  # Close CASE construct
+        ).label("active_backlog")  # Label calculated sum as active backlog
+    )  # Close projection list
+    .join(Ticket, Department.id == Ticket.department_id)  # Perform inner join linking tickets to departments
+    .group_by(Department.id, Department.name)  # Group results by department unique identifiers
+    .having(func.count(Ticket.id) > 5)  # Restrict to departments with more than 5 registered complaints
+    .order_by(desc("active_backlog"))  # Sort output by highest active backlog descending
+)  # Finalize statement AST
+```
+
+---
+
+## Chapter 8: The Session Lifecycle, Transactional Boundaries & sessionmaker Factory
+
+### 8.1 The Session: Operational Concept & Invariants
+
+Now that queries (Chapter 6) and filtering expressions (Chapter 7) have been defined, we examine how queries are executed within transactions. The `Session` is the fundamental operational coordinator in SQLAlchemy ORM. It establishes a transactional conversation with the database, maintaining:
+1. **The DBAPI Connection Reference:** Checks out a physical database connection from the pool (Chapter 3) on demand and holds it until transaction completion.
+2. **The Identity Map:** An in-memory cache mapping `(ModelClass, primary_key)` to exactly one live Python instance (detailed in Chapter 9).
+3. **The Unit of Work Buffer:** A collection of pending object additions, dirty attribute modifications, and pending deletions (detailed in Chapter 10).
+
+### 8.2 The Explicit Transaction Lifecycle: session.begin()
+
+In SQLAlchemy 2.0, transactions are strictly explicit. The recommended production pattern utilizes the context manager syntax `with session.begin():`. If an unhandled exception occurs inside the block, SQLAlchemy catches it, automatically issues a `ROLLBACK` to SQLite, and re-raises the error. If the block completes successfully, SQLAlchemy issues a `COMMIT` to persist all changes atomically.
+
+```python
+from sqlalchemy import create_engine  # Import engine initialization factory
+from sqlalchemy.orm import sessionmaker  # Import session factory generator
+from app.models.ticket import Ticket  # Import Ticket model entity
+
+engine = create_engine("sqlite:///./data/complaints.db")  # Initialize database engine
+
+# Define the standard production SessionLocal session factory
+SessionLocal = sessionmaker(  # Construct reusable session factory
+    bind=engine,  # Bind sessionmaker to application engine
+    autoflush=False,  # Prevent premature implicit flushing prior to validation
+    expire_on_commit=False  # Keep loaded attributes valid in memory after commit
+)  # Finalize sessionmaker configuration
+
+def resolve_ticket_transaction(ticket_id: int, audit_notes: str) -> None:  # Transactional resolution workflow
+    with SessionLocal() as session:  # Instantiate new independent transactional session
+        with session.begin():  # Demarcate atomic transaction boundary (commits on exit, rolls back on error)
+            ticket = session.get(Ticket, ticket_id)  # Retrieve target ticket from identity map or database
+            if ticket is None:  # Check if ticket exists in database
+                raise ValueError(f"Ticket with ID {ticket_id} does not exist.")  # Raise error aborting transaction
+            ticket.status = "RESOLVED"  # Update state machine lifecycle status
+            ticket.resolution_notes = audit_notes  # Record mandatory engineering resolution audit log
+        # At this point, session.begin() has issued COMMIT, releasing the database lock
+```
+
+---
+
+## Chapter 9: The Identity Map & In-Memory Entity Caching
+
+### 9.1 The Identity Map Pattern: Structure & Invariants
+
+The **Identity Map** pattern ensures that each database row is represented by exactly **one** object instance inside a given `Session`. Internally, the identity map is implemented as a dictionary keyed by the composite tuple of the entity's mapped class and its primary key: `(Class, (primary_key_value,))`.
+
+This pattern provides two fundamental guarantees:
+1. **Zero Redundant Database Round-Trips:** If your code requests the same entity multiple times in the same transaction (e.g., calling `session.get(Department, 1)` in five distinct business functions), the database is queried exactly once. Subsequent lookups are resolved in $O(1)$ memory time directly from the Identity Map.
+2. **Deterministic Identity & Pointer Equality:** If two different parts of your application load the same database row, they receive pointers to the identical Python object in memory (`obj_a is obj_b` evaluates to `True`, adhering to Python's memory reference model covered in [Guide 01: Python Language Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) Chapter 2). Mutations made to `obj_a` are immediately visible on `obj_b` with zero synchronization lag.
+
+```python
+from sqlalchemy import create_engine  # Import engine creation factory
+from sqlalchemy.orm import Session  # Import session management class
+from app.models.department import Department  # Import Department domain model
+
+ram_engine = create_engine("sqlite:///:memory:")  # Create in-memory database engine
+
+with Session(ram_engine) as session:  # Open isolated database session
+    # Initial query: Row does not exist in Identity Map, so SQLAlchemy executes SQL SELECT against database
+    dept_first_fetch = session.get(Department, 1)  # Executes SELECT ... WHERE id = 1
+
+    # Secondary lookup: SQLAlchemy detects (Department, (1,)) in Identity Map and returns cached instance
+    dept_second_fetch = session.get(Department, 1)  # ZERO SQL emitted; instant O(1) in-memory lookup
+
+    # Verify that both variables point to the identical Python heap memory address
+    assert dept_first_fetch is dept_second_fetch  # Strict pointer identity verification evaluates True
+```
+
+---
+
+## Chapter 10: The Unit of Work Pattern & Topological Flush Sorting
+
+### 10.1 The Unit of Work Architectural Pattern
+
+The **Unit of Work** pattern maintains a list of business objects affected by a business transaction and coordinates writing out changes and resolving concurrency constraints.
+
+When you modify objects in SQLAlchemy (e.g., calling `session.add(child)`, updating `ticket.status = "IN_PROGRESS"`, or calling `session.delete(old_record)`), the database is **not** immediately contacted. Instead, the session buffers these mutations in memory. Only when `session.flush()` or `session.commit()` is invoked does SQLAlchemy compute the exact delta between the Python memory state and the database state.
+
+### 10.2 Topological Sorting of Flush Statements
+
+During the flush phase, SQLAlchemy does not emit SQL statements in the arbitrary order in which Python code was executed. Doing so would frequently violate foreign key constraints (e.g., trying to insert a child record before its parent has been assigned a primary key).
+
+SQLAlchemy builds a **Directed Acyclic Graph (DAG)** of all pending operations and executes a **topological sort**:
+1. All `INSERT` statements for parent tables (e.g., `departments`) are executed first.
+2. Generated parent primary keys are propagated to child in-memory instances.
+3. All `INSERT` statements for child tables (e.g., `maintenance_teams`, `tickets`) are executed.
+4. All `UPDATE` statements for modified existing entities are executed.
+5. All `DELETE` statements are executed in reverse topological order (children deleted before parents to satisfy foreign key constraints).
+
+```text
+Topological Flush Execution Order:
+[Parent Entity: Department] ──(Insert 1st)──> Generates department.id = 1
+                                                     │
+                                                     ▼ (Assigns FK)
+[Child Entity: MaintenanceTeam] ──(Insert 2nd)──> maintenance_teams.department_id = 1
+                                                     │
+                                                     ▼ (Assigns FK)
+[Child Entity: Ticket] ─────────(Insert 3rd)──> tickets.assigned_team_id = 1
+```
+
+```python
+from sqlalchemy import create_engine  # Import engine constructor
+from sqlalchemy.orm import Session  # Import session management class
+from app.models.department import Department  # Import Department parent entity
+from app.models.team import MaintenanceTeam  # Import MaintenanceTeam child entity
+
+db_engine = create_engine("sqlite:///:memory:")  # Initialize in-memory SQLite engine
+
+with Session(db_engine) as session:  # Open transactional session
+    # Code execution order is intentionally reversed in Python
+    team = MaintenanceTeam(name="HVAC Emergency Squad")  # Create child entity first without foreign key
+    dept = Department(name="Heating & Air Division")  # Create parent entity second
+    team.department = dept  # Link child to parent via relationship descriptor
+    session.add(team)  # Stage child entity; cascade automatically stages parent 'dept'
+    # When flush() is invoked, SQLAlchemy analyzes foreign key dependencies, inserts Department first,
+    # extracts dept.id, assigns it to team.department_id, and inserts MaintenanceTeam second.
+    session.flush()  # Compute topological DAG and emit ordered SQL statements
+```
+
+---
+
+## Chapter 11: Session States: Transient, Pending, Persistent, and Detached
+
+### 11.1 The Four Object States
+
+Every mapped entity instance in an application always exists in exactly one of four distinct lifecycle states relative to a `Session`:
+
+1. **Transient:**
+   * The object has been instantiated in Python (e.g., `t = Ticket(title="Broken AC")`), but has never been associated with a `Session`.
+   * It has no relational representation in the database and no assigned primary key.
+2. **Pending:**
+   * The object has been associated with a session via `session.add(t)`, but has not yet been flushed to the database.
+   * It is queued in the Unit of Work's pending insertion set.
+3. **Persistent:**
+   * The object has a corresponding row in the database and is registered in the session's Identity Map (Chapter 9).
+   * This state occurs either after a `session.flush()` of a pending instance or immediately upon loading an existing record via `session.get()` or `select()`.
+4. **Detached:**
+   * The object corresponds to a database row and possesses a primary key, but is no longer bound to any active session (e.g., following `session.close()` or `session.expunge(t)`).
+   * Modifying attributes on a detached object has zero effect on the database, and attempting to access un-loaded relationships will raise a `DetachedInstanceError`.
+
+```text
+The Entity State Machine:
+ [Transient Object] ──────session.add()──────► [Pending Object]
+                                                      │
+                                                session.flush()
+                                                      ▼
+ [Detached Object] ◄──────session.close()───── [Persistent Object]
+         │                                            │
+         └─────────────session.merge()────────────────┘
+```
+
+```python
+from sqlalchemy import inspect, create_engine  # Import inspector utility and engine factory
+from sqlalchemy.orm import Session  # Import session management class
+from app.models.ticket import Ticket  # Import Ticket domain model
+
+test_eng = create_engine("sqlite:///:memory:")  # Create in-memory database engine
+
+with Session(test_eng) as session:  # Open isolated database session
+    # 1. TRANSIENT: Freshly allocated in Python heap memory, unknown to database
+    ticket = Ticket(title="Leaking valve", description="Water drip", location="Lab 1")  # Instantiate model
+    ticket_state = inspect(ticket)  # Inspect state machine descriptor for ticket instance
+    assert ticket_state.transient  # Verify instance is in transient state
+
+    # 2. PENDING: Staged into session Unit of Work buffer, not yet flushed
+    session.add(ticket)  # Register instance into active session
+    assert ticket_state.pending  # Verify instance has transitioned to pending state
+
+    # 3. PERSISTENT: Flushed to physical SQLite table, assigned primary key
+    session.flush()  # Emit SQL INSERT statement and retrieve generated primary key
+    assert ticket_state.persistent  # Verify instance is now persistent and identity-mapped
+
+# 4. DETACHED: Session context has exited and closed DB connection
+assert ticket_state.detached  # Verify instance is now detached from closed session
+```
+
+---
+
+## Chapter 12: Table Relationships: One-to-Many, Many-to-One, and back_populates Mechanics
+
+### 12.1 Bidirectional Relationships and back_populates
+
+Now that entity models (Chapters 4–5), queries (Chapters 6–7), and session lifecycles (Chapters 8–11) are established, we examine how relational tables are linked into an in-memory navigational object graph. In relational SQLite tables, associations are represented exclusively by foreign key integers. In Python code, however, engineers navigate between parent and child objects using direct attribute references (`department.teams` or `team.department`).
+
+In SQLAlchemy 2.0, bidirectional relationship synchronization must be configured explicitly using `back_populates` on both sides of the association. Legacy SQLAlchemy allowed `backref`, which magically injected an implicit attribute onto the target class at runtime. Modern engineering standards mandate `back_populates` because it guarantees that both classes explicitly declare their navigational properties, enabling full static type checking (aligning with [Guide 01: Python Language Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) Chapter 13), code discovery, and autocomplete.
 
 ```text
 Relational Foreign Key vs Object Graph Navigation:
@@ -408,20 +698,20 @@ class MaintenanceTeam(RelBase):  # Define maintenance team entity representing s
 
 ---
 
-## Chapter 7: Many-to-Many Relationships & Association Object Patterns
+## Chapter 13: Many-to-Many Relationships & Association Object Patterns
 
-### 7.1 Pure Secondary Table vs Association Object Pattern
+### 13.1 Pure Secondary Table vs Association Object Pattern
 
-When two entities exhibit a Many-to-Many relationship (e.g., Complaint Tickets and Diagnostic Tags, or Technicians and Tickets), relational theory dictates the insertion of an intermediate junction table. In SQLAlchemy, this can be implemented in two ways:
+When two entities exhibit a Many-to-Many relationship (such as Complaint Tickets and Diagnostic Tags, or Technicians and Tickets), relational database design requires an intermediate junction table. In SQLAlchemy, this can be implemented in two ways:
 
 1. **Pure Secondary Table (`secondary=table`):**
    * Uses a raw SQLAlchemy `Table` construct containing only the two foreign keys.
    * Appropriate only if the association itself carries **zero** contextual metadata.
-   * If you ever need to track *when* the association was created, *who* authorized it, or *what role* was assigned, the pure secondary table pattern fails and requires costly refactoring.
+   * If you ever need to track *when* the association was created, *who* authorized it, or *what role* was assigned, the pure secondary table pattern fails and requires costly schema migrations.
 
 2. **The Association Object Pattern (Production Standard):**
    * Promotes the junction table to a full first-class declarative entity model.
-   * Encapsulates composite primary keys alongside domain attributes (timestamps, assignment notes, technician role, active status flags).
+   * Encapsulates composite primary keys (Chapter 5) alongside domain attributes (timestamps, assignment notes, technician role, active status flags).
    * Grants complete control over querying, auditing, and lifecycle events on the junction itself.
 
 ```python
@@ -477,9 +767,9 @@ class Technician(AssocBase):  # Technician entity participating in many-to-many 
 
 ---
 
-## Chapter 8: Cascades and Lifecycle Propagation (`all, delete-orphan`)
+## Chapter 14: Cascades and Lifecycle Propagation (`all, delete-orphan`)
 
-### 8.1 The Cascade System Architecture
+### 14.1 The Cascade System Architecture
 
 When a parent entity undergoes a lifecycle change (such as being persisted, merged, or deleted), SQLAlchemy's cascade system dictates whether and how that operation propagates downward to associated child entities in memory and in the database.
 
@@ -543,9 +833,9 @@ with Session(casc_engine) as session:  # Open fresh session to test orphan delet
 
 ---
 
-## Chapter 9: Relationship Loading Strategies: Lazy vs Eager (joinedload, selectinload, subqueryload, contains_eager)
+## Chapter 15: Relationship Loading Strategies: Lazy vs Eager (joinedload, selectinload, subqueryload, contains_eager)
 
-### 9.1 The $N+1$ Query Problem: Systems Anatomy
+### 15.1 The $N+1$ Query Problem: Systems Anatomy
 
 The most catastrophic performance anti-pattern in relational ORM engineering is the **$N+1$ Query Problem**. By default, SQLAlchemy relationships configure **lazy loading** (`lazy="select"`). Under this strategy, accessing a related collection does not fetch the related records when the parent is loaded; instead, it issues a brand-new `SELECT` query on-demand the exact microsecond the attribute is accessed in Python code.
 
@@ -571,7 +861,7 @@ The Eager Loading Solution (selectinload):
 Total Round-Trips = Exactly 2 queries!
 ```
 
-### 9.2 Comparative Analysis of Eager Loading Strategies
+### 15.2 Comparative Analysis of Eager Loading Strategies
 
 To eliminate the $N+1$ problem, SQLAlchemy 2.0 provides explicit loading strategies via the `options()` clause:
 
@@ -579,7 +869,7 @@ To eliminate the $N+1$ problem, SQLAlchemy 2.0 provides explicit loading strateg
 | :--- | :--- | :--- | :--- |
 | **`joinedload()`** | Single query with `LEFT OUTER JOIN` | Many-to-One / One-to-One | Fetches parent and child in a single round-trip. Inefficient for One-to-Many collections because duplicate parent row data is transferred across the wire for every child record. |
 | **`selectinload()`** | 2 queries: Initial query followed by `WHERE id IN (...)` | One-to-Many / Many-to-Many | Optimal for collections. Transmits zero duplicate data. Scales efficiently regardless of collection depth. Preferred standard in SQLAlchemy 2.0. |
-| **`subqueryload()`**| 2 queries: Re-executes the original query as a subquery | One-to-Many with complex filters | Useful when `IN` clause parameter limits (such as SQLite's 999/32766 limit) are exceeded, but incurs query re-execution overhead on the database engine. |
+| **`subqueryload()`**| 2 queries: Re-executes the original query as a subquery | One-to-Many with complex filters | Useful when `IN` clause parameter limits (such as SQLite's 999/32766 limit, documented in [Guide 04: SQLite 3 Engine Architecture](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md) Chapter 11) are exceeded, but incurs query re-execution overhead on the database engine. |
 | **`contains_eager()`**| Consumes columns already joined via an explicit `join()` | Filtered joins across relationships | Instructs SQLAlchemy to populate relationship attributes directly from columns already selected in the primary query's `join()`. |
 
 ```python
@@ -605,11 +895,11 @@ with Session(demo_eng) as session:  # Open transactional session
 
 ---
 
-## Chapter 10: The Async / ASGI Lazy Loading Hazard & Greenlet Mechanics
+## Chapter 16: The Async / ASGI Lazy Loading Hazard & Greenlet Mechanics
 
-### 10.1 The Greenfield Hazard: DetachedInstanceError & MissingGreenlet
+### 16.1 The Greenfield Hazard: DetachedInstanceError & MissingGreenlet
 
-In modern asynchronous Python web frameworks (such as FastAPI with `AsyncSession`), lazy loading is not merely an architectural inefficiency—it is an **unrecoverable fatal crash**.
+In modern asynchronous Python web frameworks (such as FastAPI with `AsyncSession`, built on Starlette and the ASGI event loop covered in [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md) Chapter 3 and 9), lazy loading is not merely an architectural inefficiency—it is an **unrecoverable fatal crash**.
 
 When an entity is loaded asynchronously, its database socket is released back to the event loop. If your code or a Pydantic response serializer later evaluates an un-loaded relationship (e.g., `ticket.department`), SQLAlchemy detects that the attribute is missing and attempts to issue a synchronous I/O query to SQLite. Because the asynchronous event loop strictly forbids blocking synchronous socket/file I/O, the operation fails catastrophically, raising:
 `sqlalchemy.exc.MissingGreenlet: greenlet_spawn has not been called; can't call a synchronous function in an async context.`
@@ -628,10 +918,10 @@ The Async Crash Lifecycle:
 7. CRASH: DetachedInstanceError / MissingGreenlet (HTTP 500 Internal Server Error)
 ```
 
-### 10.2 Architectural Prevention: Strict Eager Loading & Expire on Commit
+### 16.2 Architectural Prevention: Strict Eager Loading & Expire on Commit
 
 To prevent these crashes across ASGI architectures:
-1. **Always Eagerly Load Related Models:** Use `selectinload()` or `joinedload()` in every query whose result will be passed to a response serializer.
+1. **Always Eagerly Load Related Models:** Use `selectinload()` or `joinedload()` (Chapter 15) in every query whose result will be passed to a response serializer.
 2. **Configure `expire_on_commit=False`:** When creating `sessionmaker` or `async_sessionmaker`, always set `expire_on_commit=False`. This prevents SQLAlchemy from expiring entity attributes upon transaction commit, allowing response models to read loaded attributes safely even after the database transaction has finalized.
 
 ```python
@@ -664,126 +954,11 @@ async def fetch_departments_safely() -> list[Department]:  # Asynchronous servic
 
 ---
 
-## Chapter 11: The SQLAlchemy 2.0 Query Paradigm: select(), insert(), update(), delete()
+## Chapter 17: Bulk Operations, Batch Inserts, and Returning Clauses
 
-### 11.1 The Result Execution Pipeline: Result, ScalarResult, and Scalars
+### 17.1 Bulk Insert Performance: Session.add() vs Bulk insert()
 
-In SQLAlchemy 2.0, executing any statement via `session.execute(statement)` returns a generic `Result` object. The `Result` represents an iterable buffer over tabular database rows (tuples of columns or entities). To extract mapped entity instances from this tabular structure, SQLAlchemy provides the `.scalars()` adapter:
-
-```text
-session.execute(select(Ticket)) ──> Result (Tabular Row Tuples: [(Ticket_1,), (Ticket_2,)])
-                                            │
-                                            ▼ .scalars()
-                                   ScalarResult (Unwrapped Entities: [Ticket_1, Ticket_2])
-                                            │
-              ┌─────────────────────────────┼─────────────────────────────┐
-              ▼                             ▼                             ▼
-        .all() -> List                .first() -> Entity/None       .one() -> Entity (or Error)
-```
-
-The key scalar extraction methods:
-* **`scalars().all()`:** Returns a Python list containing all matching entity instances.
-* **`scalars().first()`:** Returns the first entity instance or `None` if the result set is empty without raising an exception.
-* **`scalar_one_or_none()`:** Returns exactly one entity or `None`. If more than one row matches, it raises `sqlalchemy.exc.MultipleResultsFound`.
-* **`scalar_one()`:** Returns exactly one entity. If zero rows match, it raises `NoResultFound`; if more than one row matches, it raises `MultipleResultsFound`.
-
-```python
-from sqlalchemy import select, insert, update, delete, create_engine  # Import Core DML and DQL builders
-from sqlalchemy.orm import Session  # Import session management class
-from app.models.ticket import Ticket  # Import Ticket domain entity
-from app.models.department import Department  # Import Department domain entity
-
-test_engine = create_engine("sqlite:///:memory:")  # Initialize in-memory database engine
-
-with Session(test_engine) as session:  # Open isolated database session
-    # 1. SELECT Query with explicit scalar unwrapping
-    query = select(Ticket).where(Ticket.status == "SUBMITTED").order_by(Ticket.created_at.desc())  # Build query AST
-    active_tickets = session.execute(query).scalars().all()  # Materialize all matching tickets into list
-
-    # 2. 2.0-Style Direct UPDATE Statement
-    update_stmt = (  # Build immutable update AST modifying status in bulk
-        update(Ticket)  # Target ticket table
-        .where(Ticket.id == 42)  # Predicate identifying target ticket
-        .values(status="IN_PROGRESS", resolution_notes="Assigned to technician")  # Values dict
-    )  # Close update statement
-    session.execute(update_stmt)  # Dispatch compiled SQL UPDATE to engine
-
-    # 3. 2.0-Style Direct DELETE Statement
-    delete_stmt = delete(Ticket).where(Ticket.status == "CANCELLED")  # Build delete statement AST
-    session.execute(delete_stmt)  # Dispatch compiled SQL DELETE to engine
-    session.commit()  # Commit transaction boundary to persist all modifications
-```
-
----
-
-## Chapter 12: Advanced Filtering, Expressions, Aggregations, Grouping & Having
-
-### 12.1 Logical Operators, Range Queries & Null Handling
-
-SQLAlchemy expressions overload Python standard operators (`==`, `!=`, `<`, `>`, `&`, `|`, `~`) to produce SQL AST expression nodes rather than native booleans. To build complex boolean expressions, SQLAlchemy provides explicit functional operators:
-* `and_(*clauses)`: Conjoins multiple clauses with SQL `AND`.
-* `or_(*clauses)`: Conjoins multiple clauses with SQL `OR`.
-* `not_(clause)`: Inverts a predicate with SQL `NOT`.
-* `column.in_(iterable)`: Translates to `column IN (?, ?, ...)`.
-* `column.is_(None)` / `column.is_not(None)`: Enforces ANSI SQL standard `IS NULL` and `IS NOT NULL`.
-
-```python
-from sqlalchemy import select, and_, or_, not_  # Import relational boolean logical operators
-from app.models.ticket import Ticket  # Import Ticket model entity
-
-# Query identifying high-priority escalated tickets requiring immediate squad intervention
-escalated_tickets_stmt = (  # Construct composite predicate query
-    select(Ticket)  # Target Ticket entity
-    .where(  # Apply multi-clause boolean filter
-        and_(  # Conjoin conditions with logical AND
-            Ticket.status.in_(["SUBMITTED", "IN_PROGRESS"]),  # Must be in an active operational state
-            or_(  # Match either high urgency or critical escalation
-                Ticket.priority == "CRITICAL",  # Priority tier check
-                and_(Ticket.priority == "HIGH", Ticket.assigned_team_id.is_(None))  # High but unassigned
-            ),  # Close OR branch
-            not_(Ticket.title.like("%[TEST]%"))  # Exclude test grievances using SQL NOT LIKE
-        )  # Close AND branch
-    )  # Close where clause
-)  # Finalize statement construction
-```
-
-### 12.2 SQL Aggregations: func, GROUP BY, and HAVING
-
-The `func` object is a dynamic SQL function generator. Accessing any attribute on `func` (such as `func.count()`, `func.avg()`, `func.max()`, `func.min()`, `func.coalesce()`) produces the corresponding SQL function call in the target dialect.
-
-When computing aggregate analytics across campus departments, combining `func` with `group_by()` and `having()` allows high-performance summary calculations directly inside the SQLite engine, eliminating the memory overhead of loading thousands of raw rows into Python.
-
-```python
-from sqlalchemy import select, func, desc  # Import aggregation function helper and ordering primitives
-from app.models.ticket import Ticket  # Import Ticket domain entity
-from app.models.department import Department  # Import Department domain entity
-
-# Analytics query: Compute total grievances and unresolved backlog per department
-analytics_stmt = (  # Build relational aggregation query AST
-    select(  # Project department metadata and aggregated metric values
-        Department.name.label("department_name"),  # Department operational label
-        func.count(Ticket.id).label("total_tickets"),  # Total count of all historical tickets
-        func.sum(  # Conditional sum counting only active grievances
-            func.case(  # SQL CASE expression returning 1 for active states and 0 for resolved
-                (Ticket.status.in_(["SUBMITTED", "IN_PROGRESS"]), 1),  # Active state condition
-                else_=0  # Inactive or resolved condition
-            )  # Close CASE construct
-        ).label("active_backlog")  # Label calculated sum as active backlog
-    )  # Close projection list
-    .join(Ticket, Department.id == Ticket.department_id)  # Perform inner join linking tickets to departments
-    .group_by(Department.id, Department.name)  # Group results by department unique identifiers
-    .having(func.count(Ticket.id) > 5)  # Restrict to departments with more than 5 registered complaints
-    .order_by(desc("active_backlog"))  # Sort output by highest active backlog descending
-)  # Finalize statement AST
-```
-
----
-
-## Chapter 13: Bulk Operations, Batch Inserts, and Returning Clauses
-
-### 13.1 Bulk Insert Performance: Session.add() vs Bulk insert()
-
-When ingesting large batches of records (such as CSV grievance imports or historical audit migrations), adding entities individually via `session.add(model)` causes substantial latency. Every individual entity added to the session must be instantiated in Python, registered in the Identity Map, tracked for attribute mutations, and flushed as an individual SQL `INSERT` statement.
+When ingesting large batches of records (such as CSV grievance imports or historical audit migrations), adding entities individually via `session.add(model)` causes substantial latency. Every individual entity added to the session must be instantiated in Python, registered in the Identity Map (Chapter 9), tracked for attribute mutations, and flushed as an individual SQL `INSERT` statement.
 
 For high-throughput ingestion, SQLAlchemy 2.0 provides direct bulk parameter execution using Core `insert()`. By passing a list of dictionaries to `session.execute(insert(Model), list_of_dicts)`, SQLAlchemy bypasses the Identity Map overhead and emits an optimized multi-row SQL insert in a single DBAPI cursor execution call.
 
@@ -803,9 +978,9 @@ def bulk_ingest_grievances(session: Session, records: List[Dict[str, Any]]) -> N
     session.commit()  # Commit transaction boundary to persist batch to disk
 ```
 
-### 13.2 The RETURNING Clause (SQLite 3.35+)
+### 17.2 The RETURNING Clause (SQLite 3.35+)
 
-Starting with version 3.35.0, SQLite natively supports the SQL standard `RETURNING` clause. This allows an `INSERT`, `UPDATE`, or `DELETE` statement to atomically return computed columns (such as auto-incremented primary keys, default timestamps, or updated statuses) in the same round-trip without requiring an expensive secondary `SELECT` lookup.
+Starting with version 3.35.0, SQLite natively supports the SQL standard `RETURNING` clause (as covered in [Guide 04: SQLite 3 Engine Architecture](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md) Chapter 10). This allows an `INSERT`, `UPDATE`, or `DELETE` statement to atomically return computed columns (such as auto-incremented primary keys, default timestamps, or updated statuses) in the same round-trip without requiring an expensive secondary `SELECT` lookup.
 
 ```python
 from sqlalchemy import insert  # Import insert statement builder
@@ -828,220 +1003,9 @@ returning_insert_stmt = (  # Build parameterized insert statement
 
 ---
 
-## Chapter 14: The Session Lifecycle, Transactional Boundaries & sessionmaker Factory
+## Chapter 18: Core SQL Expression Language & Hybrid Properties / Expressions
 
-### 14.1 The Session: Operational Concept & Invariants
-
-The `Session` is the fundamental operational coordinator in SQLAlchemy ORM. It establishes a transactional conversation with the database, maintaining:
-1. **The DBAPI Connection Reference:** Checks out a physical database connection from the pool on demand and holds it until transaction completion.
-2. **The Identity Map:** An in-memory cache mapping `(ModelClass, primary_key)` to exactly one live Python instance.
-3. **The Unit of Work Buffer:** A collection of pending object additions, dirty attribute modifications, and pending deletions.
-
-### 14.2 The Explicit Transaction Lifecycle: session.begin()
-
-In SQLAlchemy 2.0, transactions are strictly explicit. The recommended production pattern utilizes the context manager syntax `with session.begin():`. If an unhandled exception occurs inside the block, SQLAlchemy catches it, automatically issues a `ROLLBACK` to SQLite, and re-raises the error. If the block completes successfully, SQLAlchemy issues a `COMMIT` to persist all changes atomically.
-
-```python
-from sqlalchemy import create_engine  # Import engine initialization factory
-from sqlalchemy.orm import sessionmaker  # Import session factory generator
-from app.models.ticket import Ticket  # Import Ticket model entity
-
-engine = create_engine("sqlite:///./data/complaints.db")  # Initialize database engine
-
-# Define the standard production SessionLocal session factory
-SessionLocal = sessionmaker(  # Construct reusable session factory
-    bind=engine,  # Bind sessionmaker to application engine
-    autoflush=False,  # Prevent premature implicit flushing prior to validation
-    expire_on_commit=False  # Keep loaded attributes valid in memory after commit
-)  # Finalize sessionmaker configuration
-
-def resolve_ticket_transaction(ticket_id: int, audit_notes: str) -> None:  # Transactional resolution workflow
-    with SessionLocal() as session:  # Instantiate new independent transactional session
-        with session.begin():  # Demarcate atomic transaction boundary (commits on exit, rolls back on error)
-            ticket = session.get(Ticket, ticket_id)  # Retrieve target ticket from identity map or database
-            if ticket is None:  # Check if ticket exists in database
-                raise ValueError(f"Ticket with ID {ticket_id} does not exist.")  # Raise error aborting transaction
-            ticket.status = "RESOLVED"  # Update state machine lifecycle status
-            ticket.resolution_notes = audit_notes  # Record mandatory engineering resolution audit log
-        # At this point, session.begin() has issued COMMIT, releasing the database lock
-```
-
----
-
-## Chapter 15: The Unit of Work Pattern & Topological Flush Sorting
-
-### 15.1 The Unit of Work Architectural Pattern
-
-The **Unit of Work** pattern (formalized by Martin Fowler) maintains a list of business objects affected by a business transaction and coordinates the writing out of changes and the resolution of concurrency problems.
-
-When you modify objects in SQLAlchemy (e.g., calling `session.add(child)`, updating `ticket.status = "IN_PROGRESS"`, or calling `session.delete(old_record)`), the database is **not** immediately contacted. Instead, the session buffers these mutations in memory. Only when `session.flush()` or `session.commit()` is invoked does SQLAlchemy compute the exact delta between the Python memory state and the database state.
-
-### 15.2 Topological Sorting of Flush Statements
-
-During the flush phase, SQLAlchemy does not emit SQL statements in the arbitrary order in which Python code was executed. Doing so would frequently violate foreign key constraints (e.g., trying to insert a child `MaintenanceTeam` before its parent `Department` has been assigned a primary key).
-
-SQLAlchemy builds a **Directed Acyclic Graph (DAG)** of all pending operations and executes a **topological sort**:
-1. All `INSERT` statements for parent tables (e.g., `departments`) are executed first.
-2. Generated parent primary keys are propagated to child in-memory instances.
-3. All `INSERT` statements for child tables (e.g., `maintenance_teams`, `tickets`) are executed.
-4. All `UPDATE` statements for modified existing entities are executed.
-5. All `DELETE` statements are executed in reverse topological order (children deleted before parents to satisfy foreign key constraints).
-
-```text
-Topological Flush Execution Order:
-[Parent Entity: Department] ──(Insert 1st)──> Generates department.id = 1
-                                                     │
-                                                     ▼ (Assigns FK)
-[Child Entity: MaintenanceTeam] ──(Insert 2nd)──> maintenance_teams.department_id = 1
-                                                     │
-                                                     ▼ (Assigns FK)
-[Child Entity: Ticket] ─────────(Insert 3rd)──> tickets.assigned_team_id = 1
-```
-
-```python
-from sqlalchemy import create_engine  # Import engine constructor
-from sqlalchemy.orm import Session  # Import session management class
-from app.models.department import Department  # Import Department parent entity
-from app.models.team import MaintenanceTeam  # Import MaintenanceTeam child entity
-
-db_engine = create_engine("sqlite:///:memory:")  # Initialize in-memory SQLite engine
-
-with Session(db_engine) as session:  # Open transactional session
-    # Code execution order is intentionally reversed in Python
-    team = MaintenanceTeam(name="HVAC Emergency Squad")  # Create child entity first without foreign key
-    dept = Department(name="Heating & Air Division")  # Create parent entity second
-    team.department = dept  # Link child to parent via relationship descriptor
-    session.add(team)  # Stage child entity; cascade automatically stages parent 'dept'
-    # When flush() is invoked, SQLAlchemy analyzes foreign key dependencies, inserts Department first,
-    # extracts dept.id, assigns it to team.department_id, and inserts MaintenanceTeam second.
-    session.flush()  # Compute topological DAG and emit ordered SQL statements
-```
-
----
-
-## Chapter 16: The Identity Map & In-Memory Entity Caching
-
-### 16.1 The Identity Map Pattern: Structure & Invariants
-
-The **Identity Map** pattern ensures that each database row is represented by exactly **one** object instance inside a given `Session`. Internally, the identity map is implemented as a dictionary keyed by the composite tuple of the entity's mapped class and its primary key: `(Class, (primary_key_value,))`.
-
-This pattern provides two fundamental guarantees:
-1. **Zero Redundant Database Round-Trips:** If your code requests the same entity multiple times in the same transaction (e.g., calling `session.get(Department, 1)` in five distinct business functions), the database is queried exactly once. Subsequent lookups are resolved in $O(1)$ memory time directly from the Identity Map.
-2. **Deterministic Identity & Pointer Equality:** If two different parts of your application load the same database row, they receive pointers to the identical Python object in memory (`obj_a is obj_b` evaluates to `True`). Mutations made to `obj_a` are immediately visible on `obj_b` with zero synchronization lag.
-
-```python
-from sqlalchemy import create_engine  # Import engine creation factory
-from sqlalchemy.orm import Session  # Import session management class
-from app.models.department import Department  # Import Department domain model
-
-ram_engine = create_engine("sqlite:///:memory:")  # Create in-memory database engine
-
-with Session(ram_engine) as session:  # Open isolated database session
-    # Initial query: Row does not exist in Identity Map, so SQLAlchemy executes SQL SELECT against database
-    dept_first_fetch = session.get(Department, 1)  # Executes SELECT ... WHERE id = 1
-
-    # Secondary lookup: SQLAlchemy detects (Department, (1,)) in Identity Map and returns cached instance
-    dept_second_fetch = session.get(Department, 1)  # ZERO SQL emitted; instant O(1) in-memory lookup
-
-    # Verify that both variables point to the identical Python heap memory address
-    assert dept_first_fetch is dept_second_fetch  # Strict pointer identity verification evaluates True
-```
-
----
-
-## Chapter 17: Session States: Transient, Pending, Persistent, and Detached
-
-### 17.1 The Four Object States
-
-Every mapped entity instance in an application always exists in exactly one of four distinct lifecycle states relative to a `Session`:
-
-1. **Transient:**
-   * The object has been instantiated in Python (e.g., `t = Ticket(title="Broken AC")`), but has never been associated with a `Session`.
-   * It has no relational representation in the database and no assigned primary key.
-2. **Pending:**
-   * The object has been associated with a session via `session.add(t)`, but has not yet been flushed to the database.
-   * It is queued in the Unit of Work's pending insertion set.
-3. **Persistent:**
-   * The object has a corresponding row in the database and is registered in the session's Identity Map.
-   * This state occurs either after a `session.flush()` of a pending instance or immediately upon loading an existing record via `session.get()` or `select()`.
-4. **Detached:**
-   * The object corresponds to a database row and possesses a primary key, but is no longer bound to any active session (e.g., following `session.close()` or `session.expunge(t)`).
-   * Modifying attributes on a detached object has zero effect on the database, and attempting to access un-loaded relationships will raise a `DetachedInstanceError`.
-
-```text
-The Entity State Machine:
- [Transient Object] ──────session.add()──────► [Pending Object]
-                                                      │
-                                                session.flush()
-                                                      ▼
- [Detached Object] ◄──────session.close()───── [Persistent Object]
-         │                                            │
-         └─────────────session.merge()────────────────┘
-```
-
-```python
-from sqlalchemy import inspect, create_engine  # Import inspector utility and engine factory
-from sqlalchemy.orm import Session  # Import session management class
-from app.models.ticket import Ticket  # Import Ticket domain model
-
-test_eng = create_engine("sqlite:///:memory:")  # Create in-memory database engine
-
-with Session(test_eng) as session:  # Open isolated database session
-    # 1. TRANSIENT: Freshly allocated in Python heap memory, unknown to database
-    ticket = Ticket(title="Leaking valve", description="Water drip", location="Lab 1")  # Instantiate model
-    ticket_state = inspect(ticket)  # Inspect state machine descriptor for ticket instance
-    assert ticket_state.transient  # Verify instance is in transient state
-
-    # 2. PENDING: Staged into session Unit of Work buffer, not yet flushed
-    session.add(ticket)  # Register instance into active session
-    assert ticket_state.pending  # Verify instance has transitioned to pending state
-
-    # 3. PERSISTENT: Flushed to physical SQLite table, assigned primary key
-    session.flush()  # Emit SQL INSERT statement and retrieve generated primary key
-    assert ticket_state.persistent  # Verify instance is now persistent and identity-mapped
-
-# 4. DETACHED: Session context has exited and closed DB connection
-assert ticket_state.detached  # Verify instance is now detached from closed session
-```
-
----
-
-## Chapter 18: Schema Reflection, Inspection & DDL Generation (MetaData & inspect)
-
-### 18.1 Runtime Schema Inspection with inspect()
-
-SQLAlchemy provides a unified runtime inspection system via the top-level `inspect()` function. Passing an engine, a connection, a mapped class, or an entity instance into `inspect()` returns specialized inspection objects (`Inspector`, `Mapper`, `InstanceState`) that expose the underlying relational metadata at runtime.
-
-This mechanism is vital for building dynamic diagnostic endpoints, automated test assertions, and schema drift detectors.
-
-```python
-from sqlalchemy import inspect, create_engine  # Import schema inspector and engine factory
-from app.core.database import engine  # Import configured application engine
-
-def audit_database_schema() -> dict:  # Define schema inspection diagnostic utility
-    schema_inspector = inspect(engine)  # Instantiate Inspector bound to physical database engine
-    table_manifest = {}  # Initialize dictionary to store table column metadata
-
-    # Retrieve all table names currently materialized in the SQLite database file
-    table_names = schema_inspector.get_table_names()  # Fetch list of existing physical table strings
-
-    for table in table_names:  # Iterate over each discovered relational table
-        columns = schema_inspector.get_columns(table)  # Inspect column definitions for current table
-        foreign_keys = schema_inspector.get_foreign_keys(table)  # Inspect foreign key constraints
-        table_manifest[table] = {  # Store extracted table schema metadata
-            "column_count": len(columns),  # Total count of columns defined in table
-            "columns": [col["name"] for col in columns],  # List of physical column string identifiers
-            "foreign_keys": [fk["constrained_columns"] for fk in foreign_keys]  # List of foreign key targets
-        }  # Close table metadata assignment
-
-    return table_manifest  # Return complete schema manifest for diagnostic auditing
-```
-
----
-
-## Chapter 19: Core SQL Expression Language & Hybrid Properties / Expressions
-
-### 19.1 The Hybrid Property Pattern
+### 18.1 The Hybrid Property Pattern
 
 In enterprise domain modeling, calculated attributes frequently need to be evaluated in two completely different contexts:
 1. **In Python Memory (Object-Level):** Evaluating an attribute on an already-loaded entity instance in Python (e.g., `if ticket.is_overdue: ...`).
@@ -1076,11 +1040,11 @@ class ComplaintSLAEntity(Base):  # Define complaint entity with hybrid SLA deadl
 
 ---
 
-## Chapter 20: Database Events, Listeners & Lifecycle Hooks (before_insert, after_update)
+## Chapter 19: Database Events, Listeners & Lifecycle Hooks (before_insert, after_update)
 
-### 20.1 The Event Subsystem Architecture
+### 19.1 The Event Subsystem Architecture
 
-SQLAlchemy features a comprehensive, event-driven interception framework. Events allow engineers to attach callbacks to specific lifecycle points across engines, connections, sessions, and individual ORM mappers.
+SQLAlchemy features a comprehensive, event-driven interception framework. Events allow engineers to attach callbacks to specific lifecycle points across engines, connections, sessions, and individual ORM mappers (integrating with the session lifecycle covered in Chapter 8).
 
 Key ORM lifecycle events:
 * **`before_insert`:** Fired before an entity's `INSERT` statement is emitted during a flush. Ideal for generating tracking codes, computing derived fields, or assigning cryptographic signatures.
@@ -1103,11 +1067,44 @@ def generate_ticket_tracking_code(mapper, connection, target):  # Event callback
 
 ---
 
+## Chapter 20: Schema Reflection, Inspection & DDL Generation (MetaData & inspect)
+
+### 20.1 Runtime Schema Inspection with inspect()
+
+SQLAlchemy provides a unified runtime inspection system via the top-level `inspect()` function. Passing an engine, a connection, a mapped class, or an entity instance into `inspect()` returns specialized inspection objects (`Inspector`, `Mapper`, `InstanceState`) that expose the underlying relational metadata at runtime.
+
+This mechanism is vital for building dynamic diagnostic endpoints, automated test assertions, and schema drift detectors.
+
+```python
+from sqlalchemy import inspect, create_engine  # Import schema inspector and engine factory
+from app.core.database import engine  # Import configured application engine
+
+def audit_database_schema() -> dict:  # Define schema inspection diagnostic utility
+    schema_inspector = inspect(engine)  # Instantiate Inspector bound to physical database engine
+    table_manifest = {}  # Initialize dictionary to store table column metadata
+
+    # Retrieve all table names currently materialized in the SQLite database file
+    table_names = schema_inspector.get_table_names()  # Fetch list of existing physical table strings
+
+    for table in table_names:  # Iterate over each discovered relational table
+        columns = schema_inspector.get_columns(table)  # Inspect column definitions for current table
+        foreign_keys = schema_inspector.get_foreign_keys(table)  # Inspect foreign key constraints
+        table_manifest[table] = {  # Store extracted table schema metadata
+            "column_count": len(columns),  # Total count of columns defined in table
+            "columns": [col["name"] for col in columns],  # List of physical column string identifiers
+            "foreign_keys": [fk["constrained_columns"] for fk in foreign_keys]  # List of foreign key targets
+        }  # Close table metadata assignment
+
+    return table_manifest  # Return complete schema manifest for diagnostic auditing
+```
+
+---
+
 ## Chapter 21: FastAPI Integration: Generator Dependencies, Scoped Sessions & Middleware
 
 ### 21.1 The Canonical Generator Dependency Pattern
 
-In FastAPI applications, the industry-standard pattern for managing database sessions is the **Generator Dependency** (`yield`).
+In FastAPI applications, the industry-standard pattern for managing database sessions is the **Generator Dependency** (`yield`), detailed in [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md) Chapters 10 and 11.
 
 ```text
 The FastAPI Request/Response Database Session Lifecycle:
@@ -1121,7 +1118,7 @@ The FastAPI Request/Response Database Session Lifecycle:
 8. Physical connection is returned to the pool; transaction locks are cleared.
 ```
 
-If an unhandled exception or HTTP error occurs inside the route handler, execution jumps immediately to the `finally:` block of `get_db()`. This guarantees that database connections are never leaked and SQLite file locks are released without fail.
+If an unhandled exception or HTTP error occurs inside the route handler, execution jumps immediately to the `finally:` block of `get_db()`. This guarantees that database connections are never leaked and SQLite file locks are released without fail. Loaded entities are then safely serialized into Pydantic DTO schemas configured with `from_attributes=True` (as established in [Guide 03: Pydantic v2 Data Contract Engineering](03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md) Chapter 15).
 
 ```python
 from typing import Generator  # Import generator typing construct for dependency signature
@@ -1156,16 +1153,18 @@ def retrieve_ticket(ticket_id: int, db: Session = Depends(get_db)):  # Inject da
 Before deploying any service utilizing SQLAlchemy 2.0 and SQLite to production, verify that every item on this architectural checklist is satisfied:
 
 ```markdown
-- [ ] 1. SQLAlchemy 2.0 Query Syntax: Zero occurrences of legacy `session.query()`. All queries use `select()`.
-- [ ] 2. Static Type Declarations: All models declare attributes via `Mapped[T]` and `mapped_column()`.
-- [ ] 3. Explicit Transactions: Transactions demarcated explicitly via `with session.begin():` or `session.commit()`.
-- [ ] 4. SQLite Foreign Keys Enabled: `PRAGMA foreign_keys = ON;` registered on engine connect event.
-- [ ] 5. Write-Ahead Logging (WAL): Engine verifies `PRAGMA journal_mode = WAL;` and `busy_timeout = 5000;`.
-- [ ] 6. Expire on Commit Disabled: `sessionmaker(expire_on_commit=False)` configured to prevent async greenlet errors.
-- [ ] 7. N+1 Query Elimination: Eager loading (`selectinload()` for collections, `joinedload()` for many-to-one) applied to all serialized relationships.
-- [ ] 8. Bidirectional Relationships: All `relationship()` definitions use explicit `back_populates`.
-- [ ] 9. Strict Cascade Hygiene: Child ownership relationships declare `cascade="all, delete-orphan"`.
-- [ ] 10. Bulk Ingestion Optimization: High-throughput ingestion uses Core `insert()` with value lists, bypassing Identity Map.
-- [ ] 11. Modern Returning Clauses: SQLite 3.35+ `returning()` utilized to retrieve server-computed keys in single round-trips.
-- [ ] 12. Generator Teardown: FastAPI routes receive database sessions via `yield` dependency ensuring `db.close()`.
+- [ ] 1. Monotonic Top-to-Bottom Structure: All concepts, schemas, queries, sessions, and relationships read in linear dependency order.
+- [ ] 2. Cross-Document Linking: Explicit hyperlinks to [Guide 01](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md), [Guide 02](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md), [Guide 03](03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md), and [Guide 04](04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md).
+- [ ] 3. SQLAlchemy 2.0 Query Syntax: Zero occurrences of legacy `session.query()`. All queries use `select()`.
+- [ ] 4. Static Type Declarations: All models declare attributes via `Mapped[T]` and `mapped_column()`.
+- [ ] 5. Explicit Transactions: Transactions demarcated explicitly via `with session.begin():` or `session.commit()`.
+- [ ] 6. SQLite Foreign Keys Enabled: `PRAGMA foreign_keys = ON;` registered on engine connect event.
+- [ ] 7. Write-Ahead Logging (WAL): Engine verifies `PRAGMA journal_mode = WAL;` and `busy_timeout = 5000;`.
+- [ ] 8. Expire on Commit Disabled: `sessionmaker(expire_on_commit=False)` configured to prevent async greenlet errors.
+- [ ] 9. N+1 Query Elimination: Eager loading (`selectinload()` for collections, `joinedload()` for many-to-one) applied to all serialized relationships.
+- [ ] 10. Bidirectional Relationships: All `relationship()` definitions use explicit `back_populates`.
+- [ ] 11. Strict Cascade Hygiene: Child ownership relationships declare `cascade="all, delete-orphan"`.
+- [ ] 12. Bulk Ingestion Optimization: High-throughput ingestion uses Core `insert()` with value lists, bypassing Identity Map.
+- [ ] 13. Modern Returning Clauses: SQLite 3.35+ `returning()` utilized to retrieve server-computed keys in single round-trips.
+- [ ] 14. Generator Teardown: FastAPI routes receive database sessions via `yield` dependency ensuring `db.close()`.
 ```
