@@ -12,7 +12,7 @@ Rather than siloing responsibilities, this guide is written under a core enginee
 The documentation is organized into 7 modular technical deep-dives covering each operational phase of the system:
 
 | Guide | Title | Key Architectural Concepts & Language Mechanics |
-| :--- | :--- | :--- |
+| [**`01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md`**](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) | **Guide 01: Python 3.10+ Language Mechanics** | CPython execution loop, AST tokenization, Bytecode disassembly (`dis`), Memory pointer model, Reference counting vs Generational GC, GIL mechanics & I/O release, Modern typing (PEP 604 `|`), Generics (`TypeVar`), Structural Subtyping (`Protocol`), Generators (`yield`), Parameterized Decorators, and Context Managers. |
 | [**`00_FULL_STACK_ARCHITECTURE_AND_LANGUAGES.md`**](00_FULL_STACK_ARCHITECTURE_AND_LANGUAGES.md) | **System Foundations & Language Mechanics** | HTTP wire protocol, REST semantics, ASGI vs. WSGI, Python `asyncio` event loop, JavaScript Promises, V8 engine event loop, and Client-Server DTO contracts. |
 | [**`01_DATABASE_ENGINE_AND_SHELL.md`**](01_DATABASE_ENGINE_AND_SHELL.md) | **Database Architecture & Full-Stack Shell** | SQLite WAL (Write-Ahead Log) mode, SQLAlchemy 2.0 ORM, Python generators (`yield get_db`), FastAPI lifespan context managers, Vite reverse proxy, and React Router v6 SPA routing. |
 | [**`02_INGESTION_AND_KEYWORD_ROUTING.md`**](02_INGESTION_AND_KEYWORD_ROUTING.md) | **Ticket Ingestion & Keyword Taxonomy** | Pydantic v2 Rust core validation, collision-resistant tracking code generation, regex word-boundary keyword taxonomy routing, transactional units of work, and React controlled forms. |
