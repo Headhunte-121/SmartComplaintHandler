@@ -1,743 +1,559 @@
-# Guide 01: Python 3.10+ — Language Mechanics & Runtime Architecture
+# Guide 01: Python 3.10+ — From Core Fundamentals to Production Engineering
 
-This guide is the authoritative, foundational reference on the Python runtime, language mechanics, memory model, and execution architecture for the **Automated Smart Complaint Routing & Workflow Automation Platform**.
+This guide is designed for developers who understand basic programming syntax (variables, basic `if` statements, and simple `for` loops) and want to master the **exact concepts, language mechanics, mental models, and patterns** required to build, understand, and deploy the **SmartComplaintHandler** platform.
 
-Rather than presenting surface-level tutorials, this manual is designed to build deep engineering mastery: explaining **what** each language construct is, **why** it behaves the way it does, **how** the CPython interpreter executes it under the hood, and **how** it is applied in production.
-
-Every topic is broken into:
-1. **Core Language Construct (What we use in this project)**
-2. **+2 Advanced Related Concepts (Deeper engineering mechanics & edge cases)**
-3. **Execution Model & Memory Architecture (How it works under the hood)**
-4. **Focused Syntax & Usage Examples**
-5. **Common Traps, Failure Modes & Debugging**
+Every topic is explained from first principles: **what it is**, **why we use it**, **how it works**, **a clean, relevant example**, and **the common beginner traps to avoid**.
 
 ---
 
-## 1. The CPython Execution Model & Runtime Lifecycle
+## Chapter 1: The Python Environment & How Code Runs
 
-### 1.1 What We Use in This Project
-Python is not purely interpreted or purely compiled; it is a **bytecode-compiled, virtual machine-evaluated language**. When you run our FastAPI server (`uvicorn app.main:app`), Python does not execute text source code directly.
+### 1.1 What is a Virtual Environment (`venv`)?
+When you install Python on your computer, it comes with a global package library. If Project A needs `fastapi==0.100.0` and Project B needs `fastapi==0.115.0`, installing them globally creates package collisions and breaks your projects.
+
+* **What a Virtual Environment actually is:** A `venv` is **not magic** — it is literally just a self-contained directory containing:
+  1. A copy (or symlink) of the Python interpreter executable.
+  2. Its own private `site-packages` directory where libraries are downloaded.
+  3. Activation scripts (`activate.bat` on Windows, `activate` on Linux/macOS) that temporarily update your terminal's `PATH` variable to point to this private directory.
 
 ```
-Source Code (.py)
-       │
-       ▼ [1. Lexical Analysis & Tokenization]
-Token Stream
-       │
-       ▼ [2. Parsing & AST Generation]
-Abstract Syntax Tree (AST)
-       │
-       ▼ [3. Bytecode Compilation]
-Python Bytecode (.pyc / __pycache__)
-       │
-       ▼ [4. CPython Virtual Machine Execution]
-Evaluation Loop (CEval.c) ──▶ Native OS System Calls (CPU, Memory, Disk, Sockets)
+SmartComplaintHandler/backend/
+├── venv/
+│   ├── Scripts/          <-- Python.exe, pip.exe, activate.bat
+│   └── Lib/
+│       └── site-packages/<-- Where fastapi, sqlalchemy, pydantic live
+├── app/
+└── requirements.txt
 ```
 
-1. **Lexical Analysis (Tokenizing):** The interpreter reads characters and converts them into tokens (`NAME`, `NUMBER`, `STRING`, `NEWLINE`, `INDENT`).
-2. **Parsing (AST Generation):** Tokens are arranged into an **Abstract Syntax Tree (AST)** representing the hierarchical grammar of the code.
-3. **Bytecode Compilation:** The AST is compiled into linear, low-level instructions called **Bytecode** (`LOAD_FAST`, `STORE_NAME`, `CALL_FUNCTION`). This bytecode is cached in `.pyc` files inside `__pycache__/` to eliminate compilation overhead on subsequent runs.
-4. **CPython Virtual Machine:** The CPython VM evaluates the bytecode instructions sequentially inside an infinite loop written in C (`ceval.c`).
+* **Why we use it:** It ensures that every developer on the team runs the exact same dependencies without interfering with their personal computer's global Python.
 
----
+### 1.2 `pip` & Dependency Pinning with `requirements.txt`
+`pip` is Python’s package installer. It connects to the official Python Package Index (PyPI), downloads wheel files (`.whl`), and unpacks them into your active environment's `site-packages`.
 
-### 1.2 +2 Advanced Concepts: Bytecode Disassembly & Alternative Runtimes
+* **`requirements.txt`:** A plain text file listing the required libraries:
+  ```text
+  fastapi>=0.110.0
+  uvicorn[standard]>=0.28.0
+  sqlalchemy>=2.0.0
+  pydantic>=2.6.0
+  ```
+* **Command:** `pip install -r requirements.txt` reads this file line-by-line and installs all dependencies automatically.
 
-#### Concept A: Bytecode Disassembly (`dis` Module)
-To understand what Python is actually executing at the machine level, the standard library provides the `dis` (disassembler) module.
+### 1.3 What `if __name__ == "__main__":` Actually Means
+When Python runs a file, it assigns special internal variables. One of them is `__name__`.
+* If you run a file directly from the terminal (`python main.py`), Python sets `__name__ = "__main__"`.
+* If another file imports this file (`import main`), Python sets `__name__ = "main"`.
 
 ```python
-# Conceptual Example: Inspecting CPython Bytecode
-import dis
+def start_server():
+    print("Server starting...")
 
-def calculate_urgency(base_score: int, is_emergency: bool) -> int:
-    if is_emergency:
-        return base_score * 2
-    return base_score
-
-# Disassemble the function into CPython VM opcodes
-dis.dis(calculate_urgency)
+# This block ONLY executes if you run this file directly.
+# It will NOT run if another file imports this file!
+if __name__ == "__main__":
+    start_server()
 ```
+* **Why it matters:** It prevents test scripts, database connections, or server startups from accidentally triggering when another file simply wants to import a helper function.
 
-Output of disassembly:
-```text
-  2           0 LOAD_FAST                1 (is_emergency)
-              2 POP_JUMP_IF_FALSE        5 (to 10)
+### 1.4 How Python Finds Files (Imports & `sys.path`)
+When you write `from app.core.config import settings`, how does Python find `app`?
+1. Python looks in the current working directory where the script was launched.
+2. It searches the list of directories stored in `sys.path`.
+3. It searches the standard library and `site-packages`.
 
-  3           4 LOAD_FAST                0 (base_score)
-              6 LOAD_CONST               1 (2)
-              8 BINARY_MULTIPLY
-             10 RETURN_VALUE
-
-  4     >>   12 LOAD_FAST                0 (base_score)
-             14 RETURN_VALUE
-```
-* **`LOAD_FAST`:** Pushes a local variable onto the execution evaluation stack.
-* **`POP_JUMP_IF_FALSE`:** Evaluates the top-of-stack boolean; jumps program counter if false.
-* **`BINARY_MULTIPLY`:** Pops two values, multiplies them, and pushes the result.
-* **`RETURN_VALUE`:** Pops the top-of-stack and passes it back to the caller.
-
-#### Concept B: CPython vs. PyPy vs. MicroPython
-* **CPython (Reference Implementation):** Written in C. It is the gold standard used in our project because of 100% C-extension compatibility with libraries like `pydantic-core`, `psycopg2`, and `numpy`.
-* **PyPy (JIT-Compiled Runtime):** Uses a Just-In-Time compiler. It monitors loop execution and translates hot bytecode directly into native x86/ARM assembly at runtime, achieving 4x–7x speedups for pure mathematical Python code, but often suffers from C-extension compatibility friction.
-* **MicroPython:** A stripped-down Python 3 implementation designed for microcontrollers with a few kilobytes of RAM (relevant for V3 IoT campus sensors).
+* **The `__init__.py` file:** An empty file named `__init__.py` inside a folder tells Python: *"Treat this directory as an importable package."*
 
 ---
 
-## 2. Memory Management, References & Garbage Collection
+## Chapter 2: Data Structures Beyond the Basics
 
-### 2.1 What We Use in This Project: Variables are Pointers
-In Python, **variables are not memory buckets that hold values; variables are named pointers that reference objects in the heap**.
-
-```
-Python Assignment:
-x = [1, 2, 3]
-y = x
-
-Stack (Names/Pointers)                 Heap (Actual Object in Memory)
-┌───────────┐                         ┌─────────────────────────────┐
-│     x     │ ───────────────────────▶│ Type: list                  │
-└───────────┘                         │ RefCount: 2                 │
-┌───────────┐                         │ Value: [1, 2, 3]            │
-│     y     │ ───────────────────────▶│ Address: 0x7fa2b048         │
-└───────────┘                         └─────────────────────────────┘
-```
-
-Because `x` and `y` point to the exact same memory address, mutating `y.append(4)` modifies `x` as well!
-
-#### Mutability vs. Immutability
-* **Immutable Types:** `int`, `float`, `str`, `tuple`, `frozenset`, `bytes`. Once created in memory, their values **cannot be altered**. Any "modification" creates an entirely new object in memory.
-* **Mutable Types:** `list`, `dict`, `set`, custom class instances. Their internal contents can be mutated in-place without altering their memory address.
-
----
-
-### 2.2 +2 Advanced Concepts: Reference Counting & Cyclical Garbage Collection
-
-Python uses a **two-tiered memory management system**:
-
-#### Concept A: Reference Counting (Primary Real-Time Mechanism)
-Every Python object header contains a C-level integer named `ob_refcnt`.
-* When an object is assigned to a variable, passed to a function, or placed in a list, its `ob_refcnt` increments by 1.
-* When a variable goes out of scope, is reassigned, or deleted (`del`), its `ob_refcnt` decrements by 1.
-* **The instant `ob_refcnt == 0`**, the memory is immediately deallocated and returned to the allocator. There is zero pause or latency!
+### 2.1 The Pointer Mental Model (Pass-by-Assignment)
+In Python, **variables are not boxes that hold data; variables are sticky notes (pointers) attached to objects in memory**.
 
 ```python
-import sys
+# Create a list in memory. 'a' points to it.
+a = [1, 2, 3]
 
-ticket_code = "TKT-2026-001"
-# sys.getrefcount increments reference temporarily while inspecting
-print(sys.getrefcount(ticket_code))  # Outputs: 2 (variable + argument to getrefcount)
+# 'b' now points to the EXACT SAME list in memory!
+b = a
 
-alias = ticket_code
-print(sys.getrefcount(ticket_code))  # Outputs: 3
+b.append(4)
 
-del alias
-print(sys.getrefcount(ticket_code))  # Outputs: 2
+print(a)  # Outputs: [1, 2, 3, 4]  <-- 'a' was modified too!
 ```
 
-#### Concept B: Cyclical Garbage Collector (`gc` Module)
-Reference counting has one fatal flaw: **Cyclic References**.
-If Object A points to Object B, and Object B points back to Object A, their reference counts can never drop to 0, even if the program deletes all external references to them!
+* **Mutable vs. Immutable:**
+  * **Immutable (Cannot change in-place):** `int`, `float`, `str`, `tuple`, `bool`, `None`. If you modify a string or number, Python creates a brand new object in memory.
+  * **Mutable (Can change in-place):** `list`, `dict`, `set`. Modifying them changes the object for every variable pointing to it.
+* **How to make a real copy:**
+  ```python
+  # Shallow copy (creates an independent list)
+  b = a.copy()
+  ```
 
-```
-Cyclic Reference Memory Leak:
-┌──────────────┐                  ┌──────────────┐
-│   Object A   │ ───────────────▶ │   Object B   │
-│ (refcnt: 1)  │ ◀─────────────── │ (refcnt: 1)  │
-└──────────────┘                  └──────────────┘
-       ▲
-       │ [External reference deleted!]
-       ❌ No external variables point here, but refcnt never hits 0!
-```
+### 2.2 Dictionaries in Depth (The Backbone of Web APIs)
+A dictionary (`dict`) is a collection of key-value pairs implemented as a **Hash Table**. Looking up a key in a dictionary takes $O(1)$ constant time (instantaneous), regardless of whether the dictionary has 10 items or 10 million items.
 
-To prevent memory leaks from cycles (common in bi-directional ORM relationships like `ticket.department` and `department.tickets`), Python runs an auxiliary **Cyclical Generational Garbage Collector**:
-* **Generation 0 (Youngest):** Newly created objects. Scanned very frequently.
-* **Generation 1 (Intermediate):** Objects that survived one Gen 0 collection.
-* **Generation 2 (Oldest):** Long-lived objects (modules, singletons). Scanned rarely.
-* The GC detects cycles by temporarily subtracting references from within the group; if an isolated cluster has zero external pointers, the entire cycle is purged.
-
----
-
-## 3. The Global Interpreter Lock (GIL) & Concurrency Primitives
-
-### 3.1 What We Use in This Project
-FastAPI utilizes asynchronous co-routines for network handling and offloads blocking synchronous database operations to worker threads. Understanding the **GIL** is essential to understanding why Python handles concurrency this way.
-
-### What is the GIL?
-The Global Interpreter Lock is a **mutual exclusion lock (mutex)** that prevents multiple native OS threads from executing CPython bytecode simultaneously on multiple CPU cores.
-
-```
-Multi-Threaded Python on a 4-Core CPU:
-Core 1: [ Thread 1 executing Python Bytecode (Holds GIL) ]
-Core 2: [ Thread 2 BLOCKED waiting for GIL               ]
-Core 3: [ Thread 3 BLOCKED waiting for GIL               ]
-Core 4: [ Thread 4 BLOCKED waiting for GIL               ]
-```
-
-### Why Does the GIL Exist?
-CPython's memory management relies heavily on reference counts (`ob_refcnt`). Without a lock, two threads running on different CPU cores could increment/decrement reference counts simultaneously, leading to race conditions, memory corruption, and segmentation faults.
-
-### The Critical Rule of GIL Release:
-**The GIL is released during I/O operations!**
-Whenever a thread executes:
-* Database queries (waiting for disk/socket)
-* Reading/writing local files
-* Network HTTP calls
-* Sleep statements (`time.sleep()`)
-
-CPython drops the GIL! This allows other threads to run freely while the first thread waits for I/O. Therefore, **Python multi-threading is highly effective for I/O-bound web applications (like our platform)**, but ineffective for CPU-bound computation (e.g. video rendering or raw number crunching).
-
----
-
-### 3.2 +2 Advanced Concepts: `sys.getswitchinterval()` & Multiprocessing
-
-#### Concept A: Thread Switching Intervals
-In pure Python computation, threads do not starve forever. CPython forces the active thread to release the GIL every 5 milliseconds (the default switch interval).
+#### Safe Access with `.get()`
+Accessing a missing key with square brackets crashes your application with a `KeyError`:
 ```python
-import sys
-# Returns the GIL check interval in seconds (default is 0.005 seconds = 5ms)
-interval = sys.getswitchinterval()
+user_data = {"name": "Alice", "role": "Technician"}
+
+# Dangerous: Crashes with KeyError if 'department' does not exist
+# dept = user_data["department"] 
+
+# Safe: Returns None or a custom default instead of crashing
+dept = user_data.get("department", "General")
+print(dept)  # Outputs: "General"
 ```
 
-#### Concept B: Multiprocessing vs. Multi-Threading vs. AsyncIO
-To achieve true multi-core parallel CPU execution in Python, you bypass the GIL using **Multiprocessing**:
-
-| Concurrency Model | Mechanism | Number of Processes | Memory Sharing | Best Used For |
-| :--- | :--- | :--- | :--- | :--- |
-| **AsyncIO (`async/await`)** | Cooperative Single Thread | 1 OS Process | Fully shared (same thread) | High-concurrency I/O, WebSockets, HTTP APIs |
-| **Multi-Threading (`threading`)** | Preemptive OS Threads | 1 OS Process | Shared heap memory | Blocking I/O, database queries, file transfers |
-| **Multi-Processing (`multiprocessing`)** | Multiple OS Processes | $N$ Processes (1 per core) | Isolated memory (IPC required) | Heavy CPU tasks, image processing, machine learning |
-
-In our deployment launcher (`uvicorn app.main:app --workers 4`), Uvicorn uses **multiprocessing** to spawn 4 independent Python processes, each with its own GIL and its own AsyncIO event loop, fully utilizing a 4-core processor!
-
----
-
-## 4. Modern Type System & Static Analysis (PEP 484, 585, 604)
-
-### 4.1 What We Use in This Project
-Python 3.10 introduced modern, expressive typing syntax that completely eliminates verbose imports like `typing.Union` and `typing.Optional`.
-
-#### The New Union Syntax (PEP 604)
-Instead of importing `Union` and `Optional`:
+#### Iterating Over Dictionaries
 ```python
-# Legacy Syntax (Python 3.8 and below)
-from typing import Optional, Union, List
+scores = {"Electrical": 4, "Plumbing": 8, "IT": 2}
 
-def find_ticket(code: str) -> Optional[dict]: ...
-def process_id(identifier: Union[int, str]) -> None: ...
-def get_tags() -> List[str]: ...
-
-# Modern Python 3.10+ Syntax (Used throughout our project)
-def find_ticket(code: str) -> dict | None: ...
-def process_id(identifier: int | str) -> None: ...
-def get_tags() -> list[str]: ...  # Built-in collections are generic (PEP 585)
+# Iterate over keys and values simultaneously
+for department, active_tickets in scores.items():
+    print(f"{department} currently has {active_tickets} tickets.")
 ```
 
-#### Why Typing Matters in Our Stack:
-1. **Pydantic Validation:** Pydantic inspects type hints at startup via reflection (`__annotations__`) to generate JSON validation logic.
-2. **FastAPI Route Documentation:** Type hints automatically populate Swagger UI parameters and response models.
-3. **Static Bug Prevention:** IDEs (Pylance/VS Code) catch `AttributeError` bugs (e.g. calling `.upper()` on a variable that could be `None`) before you even execute the script.
+### 2.3 Tuples & Tuple Unpacking
+A tuple is an immutable list declared with parentheses `(a, b)`. Because tuples cannot change, they are faster and can be used as dictionary keys.
 
----
+#### Unpacking Syntax:
+```python
+# Functions can return multiple values as a tuple
+def get_coordinates():
+    return (12.9716, 77.5946)
 
-### 4.2 +2 Advanced Concepts: Generics (`TypeVar`) & Structural Typing (`Protocol`)
+# Unpack directly into two variables in one line
+latitude, longitude = get_coordinates()
+```
 
-#### Concept A: Generics with `TypeVar`
-When writing reusable utility functions or base services where the return type matches the input type:
+### 2.4 Sets (Instant Deduplication & Fast Membership)
+A set is an unordered collection of unique elements. Like dictionary keys, checking `item in my_set` is $O(1)$ instantaneous, whereas checking `item in my_list` requires scanning the whole list $O(n)$.
 
 ```python
-from typing import TypeVar, Sequence
+# Instantly remove duplicates from a list
+raw_tags = ["leak", "pipe", "water", "leak", "pipe"]
+unique_tags = set(raw_tags)
+print(unique_tags)  # {'leak', 'pipe', 'water'}
 
-# Declare a generic type variable bounded to any type
-T = TypeVar('T')
+# Set operations
+allowed_roles = {"ADMIN", "SUPERVISOR", "TECHNICIAN"}
+user_role = "STUDENT"
 
-def get_first_element(items: Sequence[T]) -> T | None:
-    """Returns the first element of any sequence while preserving its exact type."""
-    return items[0] if items else None
-
-# Pylance knows num is 'int' and name is 'str'
-num: int | None = get_first_element([10, 20, 30])
-name: str | None = get_first_element(["Alpha", "Beta"])
+if user_role not in allowed_roles:
+    print("Access denied.")
 ```
 
-#### Concept B: Structural Subtyping via `Protocol` (PEP 544)
-Python has always been fundamentally "Duck Typed": *“If it walks like a duck and quacks like a duck, it is a duck.”*
-In traditional OOP, you must explicitly inherit from an Abstract Base Class (`class Dog(Animal)`).
-Using `Protocol`, Python enables **Static Duck Typing**: any class that implements the required methods automatically satisfies the type contract without explicit inheritance!
+### 2.5 List & Dictionary Comprehensions
+Comprehensions provide a clean, readable syntax to transform or filter data in a single line instead of writing clunky multi-line `for` loops.
 
 ```python
-from typing import Protocol
+# Traditional Loop (5 lines)
+ticket_codes = []
+for t in tickets:
+    if t["is_active"]:
+        ticket_codes.append(t["code"].upper())
 
-class LoggableEntity(Protocol):
-    """Any object that possesses an id (int) and a tracking_code (str)."""
-    id: int
-    tracking_code: str
+# List Comprehension (1 line, faster and cleaner)
+ticket_codes = [t["code"].upper() for t in tickets if t["is_active"]]
 
-def print_audit_entry(entity: LoggableEntity) -> None:
-    print(f"[AUDIT] ID: {entity.id} | Code: {entity.tracking_code}")
-
-# Both Ticket and ArchivedTicket satisfy LoggableEntity without shared inheritance!
+# Dictionary Comprehension
+departments = ["Electrical", "Plumbing", "IT"]
+# Creates: {'Electrical': 0, 'Plumbing': 0, 'IT': 0}
+initial_counts = {dept: 0 for dept in departments}
 ```
 
 ---
 
-## 5. Object-Oriented Architecture, Metaclasses & Dunder Methods
+## Chapter 3: Advanced Function Mechanics
 
-### 5.1 What We Use in This Project
-SQLAlchemy ORM models and Pydantic schemas are built on Python's object-oriented foundation.
+### 3.1 The Dangerous Mutable Default Argument Trap
+This is one of the most infamous interview questions and real-world bugs in Python:
 
-#### Class Attributes vs. Instance Attributes
-A critical distinction that confuses beginners in SQLAlchemy:
+```python
+# ❌ DANGEROUS BUG:
+def add_ticket(code: str, ticket_list=[]):
+    ticket_list.append(code)
+    return ticket_list
+
+print(add_ticket("TKT-001"))  # Outputs: ['TKT-001']
+print(add_ticket("TKT-002"))  # Outputs: ['TKT-001', 'TKT-002'] <-- REUSED THE SAME LIST!
+```
+* **Why this happens:** In Python, default function arguments are created **once when the function is defined**, NOT every time the function is called! The same list is shared across every subsequent function call.
+* **The Correct Pattern:**
+  ```python
+  # ✅ CORRECT: Use None as the default
+  def add_ticket(code: str, ticket_list: list[str] | None = None) -> list[str]:
+      if ticket_list is None:
+          ticket_list = []
+      ticket_list.append(code)
+      return ticket_list
+  ```
+
+### 3.2 Flexible Arguments: `*args` and `**kwargs`
+* **`*args` (Positional arguments):** Gathers extra positional arguments into a **tuple**.
+* **`**kwargs` (Keyword arguments):** Gathers extra named arguments into a **dictionary**.
+
+```python
+def log_event(event_type: str, *details, **metadata):
+    print(f"Event: {event_type}")
+    print(f"Positional details tuple: {details}")
+    print(f"Keyword metadata dictionary: {metadata}")
+
+log_event("SLA_BREACH", "Ticket 42", "Floor 3", technician="John", priority="P1")
+# details  = ('Ticket 42', 'Floor 3')
+# metadata = {'technician': 'John', 'priority': 'P1'}
+```
+
+### 3.3 Lambda Functions & Sorting with `key=`
+A `lambda` is a small, anonymous, one-line function: `lambda arguments: expression`.
+We use lambdas heavily in Module 4 to sort maintenance squads by active ticket count:
+
+```python
+teams = [
+    {"name": "Squad Alpha", "active_tickets": 4},
+    {"name": "Squad Beta",  "active_tickets": 1},
+    {"name": "Squad Gamma", "active_tickets": 3},
+]
+
+# Find the team with the minimum active tickets
+# 'key' tells Python what attribute to compare
+least_busy_team = min(teams, key=lambda t: t["active_tickets"])
+
+print(least_busy_team["name"])  # Outputs: "Squad Beta"
+```
+
+---
+
+## Chapter 4: Classes & Object-Oriented Programming (OOP)
+
+### 4.1 What is a Class vs. an Object?
+* **Class:** The blueprint (e.g. the architectural drawing of a house).
+* **Object (Instance):** The actual built house in memory. You can build 50 houses from one blueprint.
+
+### 4.2 The Mystery of `self`
+Why do you have to write `self` as the first argument in every Python method?
+* In languages like Java or C++, `this` is an invisible hidden variable.
+* Python makes it explicit: `self` represents **the specific instance of the class that called the method**.
+
 ```python
 class Ticket:
-    # CLASS ATTRIBUTE: Shared across all instances. Stored in Ticket.__dict__
-    # In SQLAlchemy, this defines the database column schema metadata!
-    status: str = "OPEN"
-
-    def __init__(self, tracking_code: str):
-        # INSTANCE ATTRIBUTE: Unique to this specific object. Stored in self.__dict__
+    def __init__(self, tracking_code: str, title: str):
+        # self.tracking_code is an INSTANCE variable (unique to this ticket)
         self.tracking_code = tracking_code
+        self.title = title
+
+    def print_summary(self):
+        print(f"[{self.tracking_code}] {self.title}")
+
+# Create two independent instances
+t1 = Ticket("TKT-001", "Broken fan")
+t2 = Ticket("TKT-002", "Leaking pipe")
+
+# When you call t1.print_summary(), Python secretly translates it to:
+# Ticket.print_summary(t1)
+t1.print_summary()
+```
+
+### 4.3 Instance Attributes vs. Class Attributes
+This distinction is critical for understanding SQLAlchemy ORM models:
+
+```python
+class MaintenanceTeam:
+    # CLASS ATTRIBUTE: Defined outside __init__.
+    # Shared across ALL instances of MaintenanceTeam!
+    # In SQLAlchemy, this defines the SQL Table Column definition!
+    max_capacity = 10
+
+    def __init__(self, name: str):
+        # INSTANCE ATTRIBUTE: Defined on self.
+        # Unique to this specific team!
+        self.name = name
+        self.active_ticket_count = 0
+```
+
+### 4.4 The `@property` Decorator (Clean Getters & Setters)
+`@property` lets you call a method like a standard attribute variable without adding `()`:
+
+```python
+class Ticket:
+    def __init__(self, priority: str):
+        self.priority = priority
+
+    @property
+    def is_urgent(self) -> bool:
+        """Computed property: access as ticket.is_urgent (no parentheses!)"""
+        return self.priority in ("P1", "P2")
+
+t = Ticket("P1")
+print(t.is_urgent)  # Outputs: True (Notice: NO parentheses needed!)
 ```
 
 ---
 
-### 5.2 +2 Advanced Concepts: Essential Dunder Methods & Metaclass Hooks
+## Chapter 5: Error Handling & Custom Exceptions
 
-#### Concept A: The Core Magic (Dunder) Methods
-Dunder ("Double Underscore") methods allow custom Python classes to integrate seamlessly with native Python language operators:
-
-| Dunder Method | Triggering Operator / Function | Architectural Purpose |
-| :--- | :--- | :--- |
-| `__repr__(self)` | `repr(obj)` or terminal output | Developer-friendly debugging representation |
-| `__str__(self)` | `str(obj)` or `print(obj)` | Human-readable presentation string |
-| `__eq__(self, other)` | `obj1 == obj2` | Custom equality logic (e.g. comparing tickets by tracking code) |
-| `__hash__(self)` | `hash(obj)`, dictionary keys, sets | Allows objects to be used as dictionary keys or in sets |
-| `__call__(self, ...)` | `obj(...)` (calling object like a function) | Turns class instances into callable functions |
-
+### 5.1 The `try...except...else...finally` Pattern
 ```python
-class TrackingCode:
-    def __init__(self, code: str):
-        self.code = code.upper().strip()
-
-    def __repr__(self) -> str:
-        return f"TrackingCode(code='{self.code}')"
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, TrackingCode):
-            return self.code == other.code
-        if isinstance(other, str):
-            return self.code == other.upper().strip()
-        return False
-
-    def __hash__(self) -> int:
-        return hash(self.code)
+try:
+    # 1. Code that might fail
+    file = open("tickets.json", "r")
+    data = file.read()
+except FileNotFoundError as err:
+    # 2. Runs ONLY if a FileNotFoundError occurred
+    print(f"Could not find file: {err}")
+else:
+    # 3. Runs ONLY if NO exceptions occurred in the try block
+    print("File read successfully.")
+finally:
+    # 4. ALWAYS runs no matter what (even if an error occurred or return was called)
+    print("Cleanup step complete.")
 ```
 
-#### Concept B: Class Construction Hooks (`__init_subclass__`)
-How do frameworks like SQLAlchemy and Pydantic detect when you inherit from `Base` or `BaseModel`?
-Instead of complex metaclasses, Python 3.6+ provides `__init_subclass__`. It executes automatically whenever a class is subclassed:
+### 5.2 Creating Custom Domain Exceptions
+In real-world backend applications, never raise generic `Exception("something broke")`. Create custom named exception classes that describe your business logic:
 
 ```python
-class SchemaRegistry:
-    registered_models = {}
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        # Automatically register any child class in a global schema registry
-        cls.registered_models[cls.__name__] = cls
-
-class ComplaintSchema(SchemaRegistry):
+# Inherit from Python's built-in Exception class
+class InvalidStateTransitionError(Exception):
+    """Raised when an illegal ticket lifecycle transition is attempted."""
     pass
 
-print(SchemaRegistry.registered_models)  # {'ComplaintSchema': <class '__main__.ComplaintSchema'>}
+class TicketNotFoundError(Exception):
+    """Raised when a ticket code cannot be found in the database."""
+    pass
+
+# Usage in business logic:
+def advance_ticket_status(current_status: str, new_status: str):
+    if current_status == "CLOSED":
+        raise InvalidStateTransitionError("Cannot modify a closed ticket!")
 ```
 
 ---
 
-## 6. Generators, Iterators & The Generator Dependency Pattern
+## Chapter 6: Modern Type Hinting (Python 3.10+)
 
-### 6.1 What We Use in This Project: `yield` in FastAPI
-In [`backend/app/api/deps.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/backend/app/api/deps.py), our database session dependency uses Python's `yield` keyword:
+### 6.1 Why We Use Type Hints
+Python is dynamically typed, meaning variables can change types at runtime. However, in modern FastAPI and Pydantic, **type hints are mandatory** because FastAPI reads them to validate incoming web requests!
+
+```python
+# Primitive Types
+title: str = "Pipe Leak"
+age: int = 21
+is_active: bool = True
+rating: float = 4.85
+
+# Collection Types (Python 3.9+ built-in syntax)
+tags: list[str] = ["plumbing", "urgent"]
+scores: dict[str, int] = {"Electrical": 5, "Plumbing": 2}
+
+# Modern Union Syntax (Python 3.10+)
+# Means: tracking_code can be a string OR None
+tracking_code: str | None = None
+
+# Means: identifier can be an integer OR a string
+identifier: int | str = "TKT-100"
+```
+
+---
+
+## Chapter 7: Working with Files, JSON & Date/Time
+
+### 7.1 The `with` Statement (Context Managers)
+Never open a file like `f = open(...)` without a `with` statement. If an error occurs before you call `f.close()`, the file stays locked by the operating system!
+
+```python
+# The with block guarantees the file is closed the moment the block exits
+with open("log.txt", "w", encoding="utf-8") as f:
+    f.write("Ticket created.\n")
+```
+
+### 7.2 JSON Parsing (`json.loads` vs. `json.dumps`)
+JSON is the language of the web. Python has a built-in `json` module:
+* **`json.loads(text)` (Load String):** Converts a JSON string into a Python dictionary.
+* **`json.dumps(dict)` (Dump String):** Converts a Python dictionary into a JSON string.
+
+```python
+import json
+
+# Receive JSON string from web request
+raw_json = '{"title": "Broken light", "priority": "P2"}'
+data_dict = json.loads(raw_json)
+print(data_dict["title"])  # "Broken light" (Now a Python dict!)
+
+# Convert Python dict back to JSON string to send over the network
+outgoing_json = json.dumps(data_dict)
+```
+
+### 7.3 Date & Time Math (`datetime` and `timedelta`)
+Calculating SLA deadlines requires date math:
+
+```python
+from datetime import datetime, timedelta
+
+# Current time in UTC
+now = datetime.utcnow()
+
+# Add 24 hours to calculate deadline
+deadline = now + timedelta(hours=24)
+
+# Check if deadline has passed (SLA Breach)
+if datetime.utcnow() > deadline:
+    print("SLA Breached!")
+
+# Format date into readable string: YYYY-MM-DD HH:MM
+formatted_string = now.strftime("%Y-%m-%d %H:%M")
+```
+
+---
+
+## Chapter 8: String Manipulation & Regular Expressions (RegEx)
+
+### 8.1 Essential String Methods
+```python
+text = "  Water Leak In Room 101  "
+
+# Strip leading/trailing whitespace
+clean = text.strip()  # "Water Leak In Room 101"
+
+# Case normalization (essential before searching keywords)
+lowered = clean.lower()  # "water leak in room 101"
+
+# Splitting and joining
+words = lowered.split(" ")  # ['water', 'leak', 'in', 'room', '101']
+slug = "-".join(words)      # "water-leak-in-room-101"
+```
+
+### 8.2 Regular Expressions & Word Boundaries (`\b`)
+In Module 2, our keyword router matches words like `"fan"` and `"leak"`.
+* **The Problem with `.contains()` or `in`:**
+  `"fan" in "infant"` evaluates to `True`! That's a false positive.
+* **The Solution: Word Boundaries (`\b`):**
+  `\b` matches the boundary between a word character and a space or punctuation.
+
+```python
+import re
+
+text = "The infant was sleeping near the electric fan."
+
+# Matches 'fan' ONLY as an independent word, NOT inside 'infant'
+pattern = r"\bfan\b"
+matches = re.findall(pattern, text)
+
+print(len(matches))  # Outputs: 1 (Correctly ignored 'infant'!)
+```
+
+---
+
+## Chapter 9: Decorators Explained Simply
+
+### 9.1 Functions are First-Class Citizens
+In Python, functions can be passed into other functions as arguments, assigned to variables, and returned from functions:
+
+```python
+def shout(text):
+    return text.upper()
+
+# Assign function to another variable
+say_loud = shout
+print(say_loud("hello"))  # "HELLO"
+```
+
+### 9.2 What is a Decorator?
+A decorator is just **a function that takes another function, wraps new behavior around it, and returns the wrapped version**.
+
+```python
+import time
+
+def log_execution_time(func):
+    """Decorator that measures and prints how long a function took to run."""
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)  # Call the original function
+        duration = time.perf_counter() - start
+        print(f"[Timer] Function '{func.__name__}' took {duration:.4f}s")
+        return result
+    return wrapper
+
+# Using the '@' syntax applies the decorator automatically:
+@log_execution_time
+def process_complaints():
+    time.sleep(0.5)
+    print("All complaints processed.")
+
+process_complaints()
+# Output:
+# All complaints processed.
+# [Timer] Function 'process_complaints' took 0.5002s
+```
+
+---
+
+## Chapter 10: Generators & The `yield` Keyword
+
+### 10.1 `return` vs. `yield`
+* **`return`:** Terminates the function completely. All local variables inside the function are wiped from memory.
+* **`yield`:** **Pauses** the function, returns a value to the caller, and **freezes the function's state in memory**. When called again, execution resumes on the very next line!
+
+### 10.2 How FastAPI Uses `yield` for Database Connections
+In [`backend/app/api/deps.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/backend/app/api/deps.py):
 
 ```python
 def get_db():
+    # 1. Open a new database connection
     db = SessionLocal()
     try:
-        yield db  # Pauses execution and provides the session to the route handler
+        # 2. Pause and hand the session to the FastAPI route handler
+        yield db
     finally:
-        db.close()  # Resumes execution after the HTTP response and closes the connection
+        # 3. After the route finishes and sends the response, resume here!
+        # Guaranteed cleanup: closes the connection!
+        db.close()
 ```
-
-### How Does a Generator Work Under the Hood?
-A standard function executes from top to bottom and terminates when reaching `return`. Its stack frame is destroyed.
-A **Generator Function** (any function containing `yield`):
-1. Returns a generator object without executing the body immediately.
-2. When `next()` is called, execution advances until hitting `yield`.
-3. **Execution is frozen in place:** Local variables, instruction pointer, and exception handlers remain preserved in memory.
-4. When `next()` is called again, execution resumes immediately after the `yield` statement.
+* **Why this is genius:** You never have to remember to close your database connection inside your route handlers. The generator handles setup before `yield` and cleanup after `yield` automatically.
 
 ---
 
-### 6.2 +2 Advanced Concepts: Memory-Efficient Streaming & Two-Way Coroutines
+## Chapter 11: Asynchronous Python (`async` and `await`)
 
-#### Concept A: Lazy Evaluation for Massive Datasets
-Never load 50,000 database rows into a single in-memory Python list `[row for row in query]`. If each row is 2KB, you allocate 100MB of RAM instantly.
-Using a generator streams records **one item at a time**, keeping memory consumption constant at $O(1)$:
+### 11.1 Synchronous vs. Asynchronous in Plain English
+Imagine a restaurant with one waiter:
+* **Synchronous (Blocking):** The waiter takes Order 1 to the kitchen and **stands there doing nothing for 20 minutes** until the chef cooks the meal. Customers 2, 3, and 4 wait outside in the rain.
+* **Asynchronous (Non-Blocking):** The waiter takes Order 1 to the kitchen. While the chef cooks, the waiter takes orders from Customers 2, 3, and 4. When meal 1 is ready, the waiter serves Customer 1.
 
-```python
-def stream_large_log_file(filepath: str):
-    """Streams lines one-by-one with near-zero memory consumption."""
-    with open(filepath, "r", encoding="utf-8") as file:
-        for line in file:
-            yield line.strip()
-```
-
-#### Concept B: Bidirectional Generators (`send()` and `throw()`)
-Generators can receive values from the outside world while paused:
-
-```python
-def running_average():
-    total = 0.0
-    count = 0
-    average = None
-    while True:
-        # yield produces 'average', and pauses waiting for new input via .send()
-        val = yield average
-        if val is None:
-            break
-        total += val
-        count += 1
-        average = total / count
-
-calc = running_average()
-next(calc)  # Prime the generator to the first yield
-print(calc.send(10))  # 10.0
-print(calc.send(20))  # 15.0
-print(calc.send(30))  # 20.0
-```
-
----
-
-## 7. Decorators, Closures & Metaprogramming
-
-### 7.1 What We Use in This Project
-Decorators are everywhere in our codebase:
-* `@router.get("/tickets")`
-* `@asynccontextmanager`
-* `@event.listens_for(engine, "connect")`
-
-### What is a Decorator?
-A decorator is simply **a higher-order function that takes a function as an argument and returns an enhanced replacement function**.
-
-```python
-# The '@' syntax is pure syntactic sugar:
-@my_decorator
-def my_function():
-    pass
-
-# Is mathematically identical to:
-my_function = my_decorator(my_function)
-```
-
----
-
-### 7.2 +2 Advanced Concepts: Parameterized Decorators & `functools.wraps`
-
-#### Concept A: Preserving Function Identity (`functools.wraps`)
-When you wrap a function, the wrapper replaces the original function. Without `functools.wraps`, the original function's `__name__`, `__doc__`, and parameter signatures are erased, breaking FastAPI's ability to inspect route arguments!
-
-```python
-import functools
-import time
-from typing import Callable, Any
-
-def audit_log(action_name: str) -> Callable:
-    """A parameterized decorator that records execution time and action metadata."""
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)  # CRITICAL: Copies __name__, __doc__, and annotations
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            start_time = time.perf_counter()
-            print(f"[*] Starting action: '{action_name}' on function '{func.__name__}'")
-            try:
-                result = func(*args, **kwargs)
-                duration = time.perf_counter() - start_time
-                print(f"[+] Completed '{action_name}' in {duration:.4f}s")
-                return result
-            except Exception as exc:
-                print(f"[!] Action '{action_name}' failed with error: {exc}")
-                raise exc
-        return wrapper
-    return decorator
-
-@audit_log("DISPATCH_TICKET")
-def assign_ticket(ticket_id: int, squad_id: int):
-    """Assigns ticket to designated maintenance squad."""
-    return f"Ticket {ticket_id} assigned to squad {squad_id}."
-
-# Inspecting function name preserves the original identity:
-print(assign_ticket.__name__)  # Outputs: 'assign_ticket' (NOT 'wrapper'!)
-```
-
-#### Concept B: Class Decorators
-Decorators can also decorate entire classes:
-```python
-def singleton(cls):
-    """Guarantees only one instance of a class ever exists."""
-    instances = {}
-    def get_instance(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
-    return get_instance
-```
-
----
-
-## 8. Context Managers & The Resource Acquisition Lifecycle
-
-### 8.1 What We Use in This Project
-Handling open file handles, database connections, and network sockets requires strict resource acquisition and release patterns (`with` blocks).
-
-```python
-# Guaranteed cleanup: The file is closed even if an unhandled exception occurs inside!
-with open("smart_complaints.log", "a") as f:
-    f.write("System online.\n")
-```
-
----
-
-### 8.2 +2 Advanced Concepts: Class-Based Context Managers & `contextlib.ExitStack`
-
-#### Concept A: Implementing the Context Manager Protocol
-Any class implementing `__enter__` and `__exit__` becomes a context manager:
-
-```python
-class DatabaseTransactionScope:
-    def __init__(self, session):
-        self.session = session
-
-    def __enter__(self):
-        # Setup phase: begins transaction
-        print("[*] Transaction started.")
-        return self.session
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # Teardown phase: handles commit or rollback
-        if exc_type is not None:
-            # An exception occurred! Roll back changes
-            print(f"[!] Rolling back due to: {exc_val}")
-            self.session.rollback()
-            # Returning False allows the exception to propagate outwards
-            return False
-        else:
-            print("[+] Committing transaction.")
-            self.session.commit()
-            return True
-```
-
-#### Concept B: Dynamic Multi-Resource Management with `ExitStack`
-When you need to dynamically open an unknown number of resources (e.g. opening 5 database files simultaneously), nesting 5 `with` statements is unmaintainable. `contextlib.ExitStack` manages dynamic resource cleanup:
-
-```python
-from contextlib import ExitStack
-
-def process_multiple_files(filepaths: list[str]):
-    with ExitStack() as stack:
-        # Dynamically opens all files and guarantees all are closed upon exit
-        files = [stack.enter_context(open(fp, "r")) for fp in filepaths]
-        # Perform processing across all files safely
-```
-
----
-
-## 9. Asynchronous Concurrency: Coroutines & The Event Loop
-
-### 9.1 What We Use in This Project
-FastAPI utilizes `async def` for non-blocking I/O and route handling.
-
-```python
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-```
-
-### What is a Coroutine?
-A coroutine is a specialized function declared with `async def`. When invoked, **it does not execute immediately**; it returns a coroutine object that must be scheduled on the event loop via `await` or `asyncio.create_task()`.
-
----
-
-### 9.2 +2 Advanced Concepts: Structured Concurrency & Task Cancellation
-
-#### Concept A: Structured Concurrency (`asyncio.TaskGroup`)
-In Python 3.11+, `asyncio.TaskGroup` provides reliable concurrent task execution. If any child task raises an exception, all other active tasks in the group are automatically cancelled, preventing orphaned background tasks:
+### 11.2 `async def` and `await`
+* **`async def`:** Declares a function as a non-blocking coroutine.
+* **`await`:** Tells Python: *"This task will take time (e.g. waiting for a network response). Pause this function and handle other incoming requests on the event loop until this finishes."*
 
 ```python
 import asyncio
 
-async def fetch_department_status(dept_id: int):
-    await asyncio.sleep(0.5)
-    return f"Dept {dept_id}: Operational"
-
-async def main():
-    # Runs multiple concurrent tasks with guaranteed completion or cleanup
-    async with asyncio.TaskGroup() as tg:
-        task1 = tg.create_task(fetch_department_status(1))
-        task2 = tg.create_task(fetch_department_status(2))
-
-    print(task1.result())
-    print(task2.result())
+async def fetch_campus_weather():
+    print("Fetching weather...")
+    # Non-blocking pause: event loop continues handling other requests!
+    await asyncio.sleep(1)
+    return "24°C Sunny"
 ```
 
-#### Concept B: Shielding Against Task Cancellation
-When performing critical database cleanup or auditing inside an async task, user disconnection might cancel the coroutine. Using `asyncio.shield()` protects vital operations from premature cancellation:
-
-```python
-await asyncio.shield(save_audit_log_to_disk())
-```
+> [!WARNING]
+> Never use `time.sleep(5)` inside an `async def` endpoint! `time.sleep()` is synchronous and freezes the entire Python process. Always use `await asyncio.sleep(5)` in async code, or write a standard `def` endpoint so FastAPI runs it in a worker thread.
 
 ---
 
-## 10. Exception Hierarchies & Robust Error Handling
+## Chapter 12: Developer Mastery Checklist
 
-### 10.1 What We Use in This Project
-In Module 5, we define custom domain exceptions to signal invalid lifecycle operations:
-```python
-class InvalidStateTransitionError(Exception):
-    """Raised when an illegal lifecycle transition is attempted."""
-    pass
-```
-
----
-
-### 10.2 +2 Advanced Concepts: Explicit Exception Chaining & Exception Groups
-
-#### Concept A: Explicit Exception Chaining (`raise ... from exc`)
-When catching a low-level error (e.g. `sqlite3.IntegrityError`) and raising a high-level domain error (`DuplicateTicketCodeError`), use `from exc` to preserve the full causal stack trace for debugging:
-
-```python
-try:
-    db.commit()
-except Exception as exc:
-    # 'from exc' sets __cause__ and prints both the original and new error in logs
-    raise TicketCreationError("Failed to persist ticket record") from exc
-```
-
-#### Concept B: Exception Groups & `except*` (Python 3.11+)
-When multiple concurrent asynchronous tasks crash simultaneously, Python packages them into an `ExceptionGroup`:
-
-```python
-try:
-    async with asyncio.TaskGroup() as tg:
-        tg.create_task(failing_task_1())
-        tg.create_task(failing_task_2())
-except* ValueError as eg:
-    # Handles only the ValueError instances from the group
-    print(f"Handled ValueErrors: {eg.exceptions}")
-except* ConnectionError as eg:
-    # Handles ConnectionErrors simultaneously
-    print(f"Handled ConnectionErrors: {eg.exceptions}")
-```
-
----
-
-## 11. Module Import Mechanics, Scopes & Package Resolution
-
-### 11.1 What We Use in This Project
-Our backend is structured as a modular Python package:
-```
-backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── config.py
-│   │   └── database.py
-```
-
-* An `__init__.py` file (even if empty) marks a folder as an importable Python package.
-* Absolute imports (`from app.core.config import settings`) resolve starting from the directory added to `sys.path`.
-
----
-
-### 11.2 +2 Advanced Concepts: Circular Imports & `sys.path` Resolution
-
-#### Concept A: The Circular Import Trap
-If `models/ticket.py` imports `models/department.py`, and `models/department.py` imports `models/ticket.py`, the interpreter hits an unresolved cycle and throws:
-```
-ImportError: cannot import name 'Ticket' from partially initialized module
-```
-
-**Resolution Strategies:**
-1. **Deferred Imports:** Move the import inside the specific function that uses it, rather than at the top of the file.
-2. **String References in SQLAlchemy:** Instead of importing the class directly for relationships, pass the model name as a string:
-   ```python
-   # No import required at top of file! SQLAlchemy resolves 'Department' lazily:
-   department = relationship("Department", back_populates="tickets")
-   ```
-
-#### Concept B: Dynamic Imports with `importlib`
-To load plugins or modules dynamically at runtime by name:
-```python
-import importlib
-
-module_name = "app.services.priority_engine"
-module = importlib.import_module(module_name)
-evaluate_fn = getattr(module, "evaluate_complaint_priority")
-```
-
----
-
-## 12. String Formatting, Unicode & RegEx Foundations
-
-### 12.1 What We Use in This Project
-Formatted string literals (**f-strings**) are evaluated at runtime with native C-speed:
-```python
-tracking_code = f"TKT-{date_str}-{random_token.upper()}"
-```
-
----
-
-### 12.2 +2 Advanced Concepts: Advanced f-String Specifiers & Unicode Normalization
-
-#### Concept A: Self-Documenting f-Strings & Format Specifiers
-* **Self-documenting debug syntax (`{var=}`):**
-  ```python
-  priority = "P1"
-  print(f"{priority=}")  # Outputs: "priority='P1'"
-  ```
-* **Precision and Padding:**
-  ```python
-  hours = 4
-  # Pad with leading zeros to 2 digits:
-  print(f"{hours:02d}:00:00")  # "04:00:00"
-  
-  score = 0.92564
-  # Format as percentage with 1 decimal place:
-  print(f"{score:.1%}")  # "92.6%"
-  ```
-
-#### Concept B: Unicode Normalization (NFC vs. NFD)
-In modern web applications, user input may contain accented characters or composite glyphs. A character like `é` can be represented in memory as:
-* Single code point: `\u00e9` (NFC - Canonical Composition)
-* Two code points: `e` + `\u0301` (NFD - Canonical Decomposition)
-
-If two students search for the same room name with different Unicode representations, standard equality (`==`) fails!
-```python
-import unicodedata
-
-# Always normalize incoming user text before hashing or keyword matching:
-clean_text = unicodedata.normalize("NFC", raw_user_input)
-```
-
----
-
-## 13. Summary Checklist for Production Deployment
-
-Before pushing Python backend code to Git or launching production:
-1. **Python Version:** Verify runtime is Python 3.10+ (`python --version`).
-2. **Type Annotations:** Ensure modern union syntax (`| None`) is used throughout; verify zero lint errors with Pylance.
-3. **Session Lifecycle:** Ensure every database interaction uses the `yield get_db()` dependency pattern to guarantee session closure.
-4. **GIL Awareness:** Never place blocking CPU or synchronous I/O loops inside an `async def` route handler.
-5. **No Mutable Default Arguments:** Never write `def func(items=[])`; always use `def func(items=None): items = items or []`.
-6. **Exception Causality:** Always use `raise CustomError(...) from exc` when re-wrapping exceptions to preserve debugging traces.
+Before writing backend code, test your comprehension against this checklist:
+- [ ] Understand why `venv` is necessary and how to activate it.
+- [ ] Know the difference between mutable objects (lists/dicts) and immutable objects (strings/ints).
+- [ ] Always use `.get(key, default)` to safely access dictionary values.
+- [ ] Never put mutable default arguments like `def func(items=[])` in functions.
+- [ ] Know how to use `min(items, key=lambda x: ...)` to sort collections by nested properties.
+- [ ] Know what `self` represents inside a class method.
+- [ ] Know how to define a custom exception inheriting from `Exception`.
+- [ ] Use modern union type hints `str | None` instead of legacy `Optional[str]`.
+- [ ] Understand why `with open(...)` is safe and `open(...)` without `with` is dangerous.
+- [ ] Understand how `yield` pauses a function to provide resources and clean them up afterwards.
+- [ ] Know that `await` can only be used inside `async def` functions.
