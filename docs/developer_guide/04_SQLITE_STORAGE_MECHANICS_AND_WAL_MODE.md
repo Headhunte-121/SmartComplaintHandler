@@ -116,24 +116,24 @@ When an application issues an SQL statement (`SELECT * FROM complaints WHERE sta
 
 ```python
 # Inspecting SQLite C library version and compilation options in Python
-import sqlite3  # Standard library SQLite wrapper
+import sqlite3  # Import standard library SQLite C interface wrapper
 
 # Connect to in-memory database to inspect engine metadata
-connection = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = connection.cursor()  # Assign and initialize variable or database handle
+connection = sqlite3.connect(":memory:")  # Open ephemeral RAM database connection bypassing disk I/O
+cursor = connection.cursor()  # Allocate execution cursor context for statement dispatch
 
 # Query compiled SQLite engine version
-cursor.execute("SELECT sqlite_version();")  # Execute database operation or statement
-engine_version = cursor.fetchone()[0]  # Assign and initialize variable or database handle
-print(f"Active SQLite Engine Version: {engine_version}")  # Output informational or diagnostic message
+cursor.execute("SELECT sqlite_version();")  # Dispatch C-level scalar function returning version string
+engine_version = cursor.fetchone()[0]  # Extract first column from the single-row scalar result tuple
+print(f"Active SQLite Engine Version: {engine_version}")  # Display semantic version of linked libsqlite3 binary
 
 # Inspect active compile-time options enabled in libsqlite3
-cursor.execute("PRAGMA compile_options;")  # Execute database operation or statement
-compile_options = [row[0] for row in cursor.fetchall()]  # Assign and initialize variable or database handle
-print(f"Total Compile-Time Flags:     {len(compile_options)}")  # Output informational or diagnostic message
-print(f"Sample Compiler Flags:        {compile_options[:5]}")  # Output informational or diagnostic message
+cursor.execute("PRAGMA compile_options;")  # Query compile-time flags baked into current SQLite binary
+compile_options = [row[0] for row in cursor.fetchall()]  # Comprehend all flag rows into a flat Python list
+print(f"Total Compile-Time Flags:     {len(compile_options)}")  # Report total number of active compilation flags
+print(f"Sample Compiler Flags:        {compile_options[:5]}")  # Display first five build optimizations (e.g. THREADSAFE)
 
-connection.close()  # Cleanly release connection
+connection.close()  # Close RAM database connection and immediately release memory structures
 ```
 
 ---
@@ -160,33 +160,33 @@ Every valid SQLite database file begins with a strictly formatted **100-byte hea
 
 ```python
 # Reading and verifying the SQLite 100-byte physical file header programmatically
-import struct  # Binary unpacking module
-import tempfile  # Temporary filesystem utilities
-import sqlite3  # SQLite database interface
+import struct  # Standard library module for decoding packed binary C struct layouts
+import tempfile  # Utilities for creating isolated temporary filesystem test fixtures
+import sqlite3  # Native SQLite binding for creating test database file
 
 # Create temporary SQLite database to inspect raw disk bytes
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Acquire context manager managing database connection
-    db_path = tmp.name  # Assign and initialize variable or database handle
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Allocate unique temporary disk file handle
+    db_path = tmp.name  # Extract absolute filesystem path string to temporary database
 
-conn = sqlite3.connect(db_path)  # Assign and initialize variable or database handle
-conn.execute("CREATE TABLE sample_data (id INTEGER PRIMARY KEY, note TEXT);")  # Execute database operation or statement
-conn.execute("INSERT INTO sample_data (note) VALUES ('Triage note 1');")  # Execute database operation or statement
-conn.commit()  # Execute database operation or statement
-conn.close()  # Execute database operation or statement
+conn = sqlite3.connect(db_path)  # Open physical database file creating default 100-byte header on disk
+conn.execute("CREATE TABLE sample_data (id INTEGER PRIMARY KEY, note TEXT);")  # Initialize table schema
+conn.execute("INSERT INTO sample_data (note) VALUES ('Triage note 1');")  # Populate row triggering page flush
+conn.commit()  # Flush transaction to disk to ensure file header counters increment
+conn.close()  # Close connection handle releasing file system lock
 
 # Read the initial 100 bytes directly from disk
-with open(db_path, "rb") as disk_file:  # Acquire context manager managing database connection
-    header_bytes = disk_file.read(100)  # Assign and initialize variable or database handle
+with open(db_path, "rb") as disk_file:  # Open database file in raw binary read-only mode
+    header_bytes = disk_file.read(100)  # Read exactly the first 100 bytes containing the SQLite header
 
 # Unpack magic string and critical configuration fields
-magic_string = header_bytes[0:16]  # Assign and initialize variable or database handle
-page_size, write_ver, read_ver = struct.unpack(">HBB", header_bytes[16:20])  # Assign and initialize variable or database handle
-change_counter, page_count = struct.unpack(">II", header_bytes[24:32])  # Assign and initialize variable or database handle
+magic_string = header_bytes[0:16]  # Extract initial 16-byte magic identifier buffer
+page_size, write_ver, read_ver = struct.unpack(">HBB", header_bytes[16:20])  # Big-endian 2-byte short + two 1-byte integers
+change_counter, page_count = struct.unpack(">II", header_bytes[24:32])  # Unpack 4-byte commit counter and total page count
 
-print(f"Magic Header String:   {magic_string.decode('ascii', errors='replace')}")  # Output informational or diagnostic message
-print(f"Configured Page Size:  {page_size} bytes")  # Output informational or diagnostic message
-print(f"File Versions:         Write={write_ver}, Read={read_ver} (2 indicates WAL mode)")  # Output informational or diagnostic message
-print(f"Database Page Count:   {page_count} pages (Total: {page_count * page_size} bytes)")  # Output informational or diagnostic message
+print(f"Magic Header String:   {magic_string.decode('ascii', errors='replace')}")  # Verify 'SQLite format 3\000'
+print(f"Configured Page Size:  {page_size} bytes")  # Output B-Tree physical page allocation block size (4096)
+print(f"File Versions:         Write={write_ver}, Read={read_ver} (2 indicates WAL mode)")  # File format version flags
+print(f"Database Page Count:   {page_count} pages (Total: {page_count * page_size} bytes)")  # Total calculated disk footprint
 ```
 
 ---
@@ -230,23 +230,23 @@ If a single row's payload exceeds the maximum amount that can fit inside a singl
 
 ```python
 # Demonstrating ROWID direct primary key mapping in SQLite
-import sqlite3  # Standard database module
+import sqlite3  # Standard SQLite database interface
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Open ephemeral database in RAM
+cursor = conn.cursor()  # Instantiate statement execution cursor
 
 # In SQLite, an INTEGER PRIMARY KEY column is an alias for the internal 64-bit ROWID
-cursor.execute("CREATE TABLE complaint_registry (ticket_id INTEGER PRIMARY KEY, summary TEXT);")  # Execute database operation or statement
-cursor.execute("INSERT INTO complaint_registry (ticket_id, summary) VALUES (101, 'Lab 2 projector outage');")  # Execute database operation or statement
+cursor.execute("CREATE TABLE complaint_registry (ticket_id INTEGER PRIMARY KEY, summary TEXT);")  # Declares ROWID alias
+cursor.execute("INSERT INTO complaint_registry (ticket_id, summary) VALUES (101, 'Lab 2 projector outage');")  # Insert row
 
 # Inspect the internal rowid vs explicit primary key
-cursor.execute("SELECT rowid, ticket_id, summary FROM complaint_registry;")  # Execute database operation or statement
-row = cursor.fetchone()  # Assign and initialize variable or database handle
-print(f"Internal ROWID:   {row[0]}")  # Output informational or diagnostic message
-print(f"Aliased Primary:  {row[1]} (rowid is ticket_id: {row[0] == row[1]})")  # Output informational or diagnostic message
-print(f"Stored Summary:   '{row[2]}'")  # Output informational or diagnostic message
+cursor.execute("SELECT rowid, ticket_id, summary FROM complaint_registry;")  # Query rowid alongside explicit column
+row = cursor.fetchone()  # Retrieve the single result row tuple
+print(f"Internal ROWID:   {row[0]}")  # Display 64-bit integer rowid generated by Table B-Tree
+print(f"Aliased Primary:  {row[1]} (rowid is ticket_id: {row[0] == row[1]})")  # Prove rowid and ticket_id are identical
+print(f"Stored Summary:   '{row[2]}'")  # Display user-provided issue summary string
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Dispose RAM database and tear down in-memory B-Tree structures
 ```
 
 ---
@@ -272,25 +272,25 @@ Engineers can inspect the exact bytecode emitted by the SQLite compiler by prepe
 # Disassembling an SQL query into VDBE virtual machine bytecode
 import sqlite3  # Database connection module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Open in-memory test database instance
+cursor = conn.cursor()  # Create statement cursor
 
-cursor.execute("CREATE TABLE tickets (id INTEGER PRIMARY KEY, status TEXT, priority INT);")  # Execute database operation or statement
-cursor.execute("CREATE INDEX idx_tickets_status ON tickets(status);")  # Execute database operation or statement
+cursor.execute("CREATE TABLE tickets (id INTEGER PRIMARY KEY, status TEXT, priority INT);")  # Create schema
+cursor.execute("CREATE INDEX idx_tickets_status ON tickets(status);")  # Construct secondary B-Tree index
 
 # Compile and disassemble query: SELECT id, priority FROM tickets WHERE status = 'OPEN'
-cursor.execute("EXPLAIN SELECT id, priority FROM tickets WHERE status = 'OPEN';")  # Assign and initialize variable or database handle
-vdbe_instructions = cursor.fetchall()  # Assign and initialize variable or database handle
+cursor.execute("EXPLAIN SELECT id, priority FROM tickets WHERE status = 'OPEN';")  # Instruct VDBE compiler to output opcodes
+vdbe_instructions = cursor.fetchall()  # Retrieve entire compiled register instruction table
 
-print(f"{'Addr':<5} {'Opcode':<16} {'P1':<5} {'P2':<5} {'P3':<5} {'P4':<15} {'Comment'}")  # Output informational or diagnostic message
-print("-" * 75)  # Output informational or diagnostic message
-for inst in vdbe_instructions[:12]:  # Display the first 12 VDBE bytecode steps
-    addr, opcode, p1, p2, p3, p4, p5, comment = inst  # Assign and initialize variable or database handle
-    p4_str = str(p4) if p4 is not None else ""  # Assign and initialize variable or database handle
-    comment_str = str(comment) if comment is not None else ""  # Assign and initialize variable or database handle
-    print(f"{addr:<5} {opcode:<16} {p1:<5} {p2:<5} {p3:<5} {p4_str:<15} {comment_str}")  # Output informational or diagnostic message
+print(f"{'Addr':<5} {'Opcode':<16} {'P1':<5} {'P2':<5} {'P3':<5} {'P4':<15} {'Comment'}")  # Format disassembly header
+print("-" * 75)  # Render visual table separator rule
+for inst in vdbe_instructions[:12]:  # Iterate through first 12 bytecode instructions
+    addr, opcode, p1, p2, p3, p4, p5, comment = inst  # Unpack VDBE instruction register arguments
+    p4_str = str(p4) if p4 is not None else ""  # Format optional string/constant parameter 4
+    comment_str = str(comment) if comment is not None else ""  # Format optional compiler generated comment
+    print(f"{addr:<5} {opcode:<16} {p1:<5} {p2:<5} {p3:<5} {p4_str:<15} {comment_str}")  # Print disassembled instruction
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Clean up database resources and close connection
 ```
 
 ---
@@ -303,25 +303,25 @@ While `EXPLAIN` shows raw assembly-like bytecode, **`EXPLAIN QUERY PLAN`** outpu
 # Analyzing execution plans to detect unindexed table scans vs index seeks
 import sqlite3  # SQLite database module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Open memory database
+cursor = conn.cursor()  # Allocate execution cursor
 
-cursor.execute("CREATE TABLE complaints (id INTEGER PRIMARY KEY, department TEXT, severity INT);")  # Execute database operation or statement
-cursor.execute("CREATE INDEX idx_dept ON complaints(department);")  # Execute database operation or statement
+cursor.execute("CREATE TABLE complaints (id INTEGER PRIMARY KEY, department TEXT, severity INT);")  # Create complaint table
+cursor.execute("CREATE INDEX idx_dept ON complaints(department);")  # Build B-Tree index on department column
 
 # 1. Indexed lookup: Uses index tree seek
-cursor.execute("EXPLAIN QUERY PLAN SELECT * FROM complaints WHERE department = 'FACILITIES';")  # Assign and initialize variable or database handle
-print("Indexed Query Plan:")  # Output informational or diagnostic message
-for step in cursor.fetchall():  # Iterate over query result rows or elements
-    print(f"  Order: {step[0]} | Plan: {step[3]}")  # Output informational or diagnostic message
+cursor.execute("EXPLAIN QUERY PLAN SELECT * FROM complaints WHERE department = 'FACILITIES';")  # Query execution plan
+print("Indexed Query Plan:")  # Section banner
+for step in cursor.fetchall():  # Iterate through query planner decision steps
+    print(f"  Order: {step[0]} | Plan: {step[3]}")  # Display index search strategy (SEARCH TABLE ... USING INDEX)
 
 # 2. Unindexed lookup: Triggers a costly linear table scan (SCAN TABLE)
-cursor.execute("EXPLAIN QUERY PLAN SELECT * FROM complaints WHERE severity > 3;")  # Execute database operation or statement
-print("\nUnindexed Query Plan (Full Scan Alert!):")  # Output informational or diagnostic message
-for step in cursor.fetchall():  # Iterate over query result rows or elements
-    print(f"  Order: {step[0]} | Plan: {step[3]}")  # Output informational or diagnostic message
+cursor.execute("EXPLAIN QUERY PLAN SELECT * FROM complaints WHERE severity > 3;")  # Query plan for unindexed column filter
+print("\nUnindexed Query Plan (Full Scan Alert!):")  # Section banner
+for step in cursor.fetchall():  # Iterate through query planner decision steps
+    print(f"  Order: {step[0]} | Plan: {step[3]}")  # Warn on linear scan across all leaf pages (SCAN TABLE complaints)
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Release database memory
 ```
 
 ---
@@ -364,21 +364,21 @@ The **`PRAGMA synchronous`** setting controls the frequency of these blocking di
 # Inspecting and configuring the Page Cache and Synchronous pragmas
 import sqlite3  # Database connection module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Open connection to in-memory database
+cursor = conn.cursor()  # Allocate statement cursor
 
 # Set cache size to exactly 32 Megabytes (negative integer denotes KiB)
-cursor.execute("PRAGMA cache_size = -32000;")  # Assign and initialize variable or database handle
-cursor.execute("PRAGMA cache_size;")  # Execute database operation or statement
-print(f"Configured Cache Size: {cursor.fetchone()[0]} (Negative indicates KiB allocation)")  # Output informational or diagnostic message
+cursor.execute("PRAGMA cache_size = -32000;")  # Request 32,000 KiB RAM allocation for B-Tree page cache
+cursor.execute("PRAGMA cache_size;")  # Query active page cache size setting
+print(f"Configured Cache Size: {cursor.fetchone()[0]} (Negative indicates KiB allocation)")  # Verify allocated KiB size
 
 # Set synchronous flush mode to NORMAL
-cursor.execute("PRAGMA synchronous = NORMAL;")  # Assign and initialize variable or database handle
-cursor.execute("PRAGMA synchronous;")  # Execute database operation or statement
-sync_mode = cursor.fetchone()[0]  # Assign and initialize variable or database handle
-print(f"Configured Synchronous Mode: {sync_mode} (1=NORMAL, 2=FULL)")  # Output informational or diagnostic message
+cursor.execute("PRAGMA synchronous = NORMAL;")  # Reduce fsync disk write frequency to safe checkpoints
+cursor.execute("PRAGMA synchronous;")  # Query active synchronous mode integer flag
+sync_mode = cursor.fetchone()[0]  # Unpack single returned integer (1 = NORMAL, 2 = FULL)
+print(f"Configured Synchronous Mode: {sync_mode} (1=NORMAL, 2=FULL)")  # Print active synchronous flush policy
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Terminate connection session
 ```
 
 ---
@@ -428,24 +428,24 @@ In legacy rollback journal mode, SQLite uses operating system file locks (`fcntl
 # Demonstrating transaction isolation modes: DEFERRED vs IMMEDIATE vs EXCLUSIVE
 import sqlite3  # Database interface module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Initialize memory database
+cursor = conn.cursor()  # Allocate command cursor
 
-cursor.execute("CREATE TABLE audit_records (id INTEGER PRIMARY KEY, note TEXT);")  # Execute database operation or statement
+cursor.execute("CREATE TABLE audit_records (id INTEGER PRIMARY KEY, note TEXT);")  # Create sample audit table
 
 # 1. BEGIN DEFERRED (Default): Acquires locks lazily upon first read or write
-cursor.execute("BEGIN DEFERRED;")  # Execute database operation or statement
-cursor.execute("INSERT INTO audit_records (note) VALUES ('Deferred lock record');")  # Execute database operation or statement
-cursor.execute("COMMIT;")  # Execute database operation or statement
-print("Committed transaction via BEGIN DEFERRED")  # Output informational or diagnostic message
+cursor.execute("BEGIN DEFERRED;")  # Start transaction with zero initial lock acquisition
+cursor.execute("INSERT INTO audit_records (note) VALUES ('Deferred lock record');")  # Lock upgraded to RESERVED on write
+cursor.execute("COMMIT;")  # Flush pages and release lock back to UNLOCKED
+print("Committed transaction via BEGIN DEFERRED")  # Confirm completion
 
 # 2. BEGIN IMMEDIATE: Acquires RESERVED lock immediately, blocking competing writers
-cursor.execute("BEGIN IMMEDIATE;")  # Execute database operation or statement
-cursor.execute("INSERT INTO audit_records (note) VALUES ('Immediate lock record');")  # Execute database operation or statement
-cursor.execute("COMMIT;")  # Execute database operation or statement
-print("Committed transaction via BEGIN IMMEDIATE (Protected from concurrent writer collisions)")  # Output informational or diagnostic message
+cursor.execute("BEGIN IMMEDIATE;")  # Immediately obtain RESERVED lock preventing other writers from starting
+cursor.execute("INSERT INTO audit_records (note) VALUES ('Immediate lock record');")  # Write row safely without contention
+cursor.execute("COMMIT;")  # Atomically commit and release RESERVED lock
+print("Committed transaction via BEGIN IMMEDIATE (Protected from concurrent writer collisions)")  # Confirm completion
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Close database handle
 ```
 
 ---
@@ -489,19 +489,19 @@ In a high-throughput FastAPI web service where hundreds of requests arrive every
 # Demonstrating legacy rollback journal modes in SQLite
 import sqlite3  # SQLite database module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Open connection
+cursor = conn.cursor()  # Create statement cursor
 
 # Query default journal mode (in-memory databases default to 'memory')
-cursor.execute("PRAGMA journal_mode;")  # Execute database operation or statement
-print(f"Default In-Memory Journal Mode: {cursor.fetchone()[0]}")  # Output informational or diagnostic message
+cursor.execute("PRAGMA journal_mode;")  # Retrieve active journal mechanism string
+print(f"Default In-Memory Journal Mode: {cursor.fetchone()[0]}")  # Reports 'memory' for RAM databases
 
 # Available disk journal modes: DELETE, TRUNCATE, PERSIST, MEMORY, OFF
 # In production file databases, DELETE repeatedly creates and unlinks the .journal file on disk
-cursor.execute("PRAGMA journal_mode = TRUNCATE;")  # Assign and initialize variable or database handle
-print(f"Updated Journal Mode:           {cursor.fetchone()[0]}")  # Output informational or diagnostic message
+cursor.execute("PRAGMA journal_mode = TRUNCATE;")  # Switch mode to reuse zero-length journal file instead of unlinking
+print(f"Updated Journal Mode:           {cursor.fetchone()[0]}")  # Verify active journal mode updated to TRUNCATE
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Release database connection
 ```
 
 ---
@@ -546,22 +546,22 @@ import tempfile  # Temporary file handling
 import sqlite3   # Database interface module
 
 # Create a temporary file database to observe WAL mode activation
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Acquire context manager managing database connection
-    db_file_path = tmp.name  # Assign and initialize variable or database handle
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Generate safe isolated disk file
+    db_file_path = tmp.name  # Retrieve absolute path string
 
-conn = sqlite3.connect(db_file_path)  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(db_file_path)  # Open physical file database connection
+cursor = conn.cursor()  # Instantiate command execution cursor
 
 # Enable WAL journal mode
-cursor.execute("PRAGMA journal_mode = WAL;")  # Assign and initialize variable or database handle
-active_mode = cursor.fetchone()[0]  # Assign and initialize variable or database handle
+cursor.execute("PRAGMA journal_mode = WAL;")  # Switch engine to Write-Ahead Logging; creates .wal and .shm files
+active_mode = cursor.fetchone()[0]  # Read response scalar confirming active mode
 print(f"Active Storage Journal Mode: {active_mode.upper()}")  # Outputs WAL
 
 # In WAL mode, PRAGMA synchronous can safely be set to NORMAL
-cursor.execute("PRAGMA synchronous = NORMAL;")  # Assign and initialize variable or database handle
-print("Configured synchronous = NORMAL for optimal WAL write speed")  # Output informational or diagnostic message
+cursor.execute("PRAGMA synchronous = NORMAL;")  # Disable per-commit fsync calls while preserving full crash safety
+print("Configured synchronous = NORMAL for optimal WAL write speed")  # Confirm configuration
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Close database handle cleanly
 ```
 
 ---
@@ -606,24 +606,24 @@ import tempfile  # Temporary directory utilities
 import sqlite3   # Database connection module
 
 # Create persistent test database file
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Acquire context manager managing database connection
-    wal_test_db = tmp.name  # Assign and initialize variable or database handle
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Allocate physical temp database file
+    wal_test_db = tmp.name  # Save path
 
-conn = sqlite3.connect(wal_test_db)  # Assign and initialize variable or database handle
-conn.execute("PRAGMA journal_mode = WAL;")  # Assign and initialize variable or database handle
-conn.execute("CREATE TABLE live_audit (id INTEGER PRIMARY KEY, event TEXT);")  # Execute database operation or statement
-conn.execute("INSERT INTO live_audit (event) VALUES ('Platform boot');")  # Execute database operation or statement
-conn.commit()  # Execute database operation or statement
+conn = sqlite3.connect(wal_test_db)  # Connect to newly allocated physical database file
+conn.execute("PRAGMA journal_mode = WAL;")  # Switch journal mode to Write-Ahead Logging
+conn.execute("CREATE TABLE live_audit (id INTEGER PRIMARY KEY, event TEXT);")  # Create persistent table
+conn.execute("INSERT INTO live_audit (event) VALUES ('Platform boot');")  # Append row to WAL file
+conn.commit()  # Write commit frame to WAL without checkpointing back to .db
 
 # Inspect auxiliary files created in the filesystem
-db_wal_file = f"{wal_test_db}-wal"  # Assign and initialize variable or database handle
-db_shm_file = f"{wal_test_db}-shm"  # Assign and initialize variable or database handle
+db_wal_file = f"{wal_test_db}-wal"  # Compute expected WAL log path
+db_shm_file = f"{wal_test_db}-shm"  # Compute expected shared memory index path
 
-print(f"Base DB exists:  {os.path.exists(wal_test_db)} (Size: {os.path.getsize(wal_test_db)} bytes)")  # Output informational or diagnostic message
-print(f"WAL file exists:  {os.path.exists(db_wal_file)} (Size: {os.path.getsize(db_wal_file)} bytes)")  # Output informational or diagnostic message
-print(f"SHM file exists:  {os.path.exists(db_shm_file)} (Size: {os.path.getsize(db_shm_file)} bytes)")  # Output informational or diagnostic message
+print(f"Base DB exists:  {os.path.exists(wal_test_db)} (Size: {os.path.getsize(wal_test_db)} bytes)")  # Canonical base file
+print(f"WAL file exists:  {os.path.exists(db_wal_file)} (Size: {os.path.getsize(db_wal_file)} bytes)")  # Append log file
+print(f"SHM file exists:  {os.path.exists(db_shm_file)} (Size: {os.path.getsize(db_shm_file)} bytes)")  # Shared memory index
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Disconnect and release shared memory mapping
 ```
 
 ---
@@ -659,31 +659,31 @@ SQLite provides four manual checkpoint modes via **`PRAGMA wal_checkpoint(MODE)`
 import tempfile  # Temporary filesystem tools
 import sqlite3   # Database connection module
 
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Acquire context manager managing database connection
-    ckpt_db = tmp.name  # Assign and initialize variable or database handle
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Create temporary disk file
+    ckpt_db = tmp.name  # Store database filepath
 
-conn = sqlite3.connect(ckpt_db)  # Assign and initialize variable or database handle
-conn.execute("PRAGMA journal_mode = WAL;")  # Assign and initialize variable or database handle
-conn.execute("CREATE TABLE workload (id INTEGER PRIMARY KEY, payload TEXT);")  # Execute database operation or statement
+conn = sqlite3.connect(ckpt_db)  # Open connection to physical database
+conn.execute("PRAGMA journal_mode = WAL;")  # Activate WAL mode
+conn.execute("CREATE TABLE workload (id INTEGER PRIMARY KEY, payload TEXT);")  # Define test table
 
 # Insert multiple records to populate the WAL file
-for i in range(50):  # Iterate over query result rows or elements
-    conn.execute("INSERT INTO workload (payload) VALUES (?);", (f"Payload data string {i}",))  # Execute database operation or statement
-conn.commit()  # Execute database operation or statement
+for i in range(50):  # Loop 50 times to generate multiple WAL frames
+    conn.execute("INSERT INTO workload (payload) VALUES (?);", (f"Payload data string {i}",))  # Append frame
+conn.commit()  # Finalize batch commit in WAL
 
 # Execute a PASSIVE checkpoint
 # Returns tuple: (busy_flag, log_size_pages, checkpointed_pages)
-cursor = conn.cursor()  # Assign and initialize variable or database handle
-cursor.execute("PRAGMA wal_checkpoint(PASSIVE);")  # Execute database operation or statement
-busy, log_pages, ckpt_pages = cursor.fetchone()  # Assign and initialize variable or database handle
-print(f"PASSIVE Checkpoint: Busy={busy}, Total Log Pages={log_pages}, Checkpointed={ckpt_pages}")  # Output informational or diagnostic message
+cursor = conn.cursor()  # Allocate cursor
+cursor.execute("PRAGMA wal_checkpoint(PASSIVE);")  # Copy committed pages without blocking active readers
+busy, log_pages, ckpt_pages = cursor.fetchone()  # Unpack checkpoint diagnostic metrics
+print(f"PASSIVE Checkpoint: Busy={busy}, Total Log Pages={log_pages}, Checkpointed={ckpt_pages}")  # Log status
 
 # Execute a TRUNCATE checkpoint to physically shrink the WAL file on disk
-cursor.execute("PRAGMA wal_checkpoint(TRUNCATE);")  # Execute database operation or statement
-busy, log_pages, ckpt_pages = cursor.fetchone()  # Assign and initialize variable or database handle
-print(f"TRUNCATE Checkpoint: Busy={busy}, Total Log Pages={log_pages}, Checkpointed={ckpt_pages}")  # Output informational or diagnostic message
+cursor.execute("PRAGMA wal_checkpoint(TRUNCATE);")  # Move all pages, reset write offset, and truncate WAL to 0 bytes
+busy, log_pages, ckpt_pages = cursor.fetchone()  # Unpack post-truncate metrics
+print(f"TRUNCATE Checkpoint: Busy={busy}, Total Log Pages={log_pages}, Checkpointed={ckpt_pages}")  # Verify 0 log pages
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Close database file handles
 ```
 
 ---
@@ -713,51 +713,50 @@ Every production database connection across our platform **must execute the foll
 # The Master Production PRAGMA Configuration Suite
 import sqlite3  # Database connection module
 
-def create_hardened_production_connection(database_path: str) -> sqlite3.Connection:  # Function or helper definition
-    """Configures a high-performance, crash-safe SQLite connection for production."""  # Docstring specification
+def create_hardened_production_connection(database_path: str) -> sqlite3.Connection:  # Connection factory function
     # Open connection with timeout parameter
-    conn = sqlite3.connect(database_path, timeout=10.0)  # Assign and initialize variable or database handle
+    conn = sqlite3.connect(database_path, timeout=10.0)  # Open connection with 10-second driver timeout
 
     # 1. Enable Write-Ahead Logging (Non-blocking readers and writers)
-    conn.execute("PRAGMA journal_mode = WAL;")  # Assign and initialize variable or database handle
+    conn.execute("PRAGMA journal_mode = WAL;")  # Decouple concurrent reads from writes via WAL log
 
     # 2. Set Synchronous to NORMAL (Completely safe in WAL mode; eliminates 95% of fsync calls)
-    conn.execute("PRAGMA synchronous = NORMAL;")  # Assign and initialize variable or database handle
+    conn.execute("PRAGMA synchronous = NORMAL;")  # Sync disk only during checkpoints, not per-commit
 
     # 3. Enforce Foreign Key relational constraints (MANDATORY: SQLite disables this by default!)
-    conn.execute("PRAGMA foreign_keys = ON;")  # Assign and initialize variable or database handle
+    conn.execute("PRAGMA foreign_keys = ON;")  # Enforce relational integrity rules on child rows
 
     # 4. Allocate 64 Megabytes of RAM for the Page Cache (Negative integer denotes KiB)
-    conn.execute("PRAGMA cache_size = -64000;")  # Assign and initialize variable or database handle
+    conn.execute("PRAGMA cache_size = -64000;")  # Pin up to 64MB of B-Tree pages in process memory
 
     # 5. Store temporary tables, indexes, and sort buffers in RAM instead of disk
-    conn.execute("PRAGMA temp_store = MEMORY;")  # Assign and initialize variable or database handle
+    conn.execute("PRAGMA temp_store = MEMORY;")  # Prevent temporary sort files from spilling to physical disk
 
     # 6. Wait up to 5,000 milliseconds for locks to clear before raising SQLITE_BUSY
-    conn.execute("PRAGMA busy_timeout = 5000;")  # Assign and initialize variable or database handle
+    conn.execute("PRAGMA busy_timeout = 5000;")  # Handle concurrent writer contention with internal backoff retry
 
     # 7. Enable Memory-Mapped I/O for up to 256 Megabytes of database reads
-    conn.execute("PRAGMA mmap_size = 268435456;")  # Assign and initialize variable or database handle
+    conn.execute("PRAGMA mmap_size = 268435456;")  # Direct kernel page cache mapping bypassing user-space copying
 
-    return conn  # Return computed result or database handle to caller
+    return conn  # Return tuned connection handle ready for query dispatch
 
 # Verify production pragmas on an active test database
-import tempfile  # Import standard or external dependency module
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Acquire context manager managing database connection
-    prod_test_db = tmp.name  # Assign and initialize variable or database handle
+import tempfile  # Temporary directory library
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Create temporary database file
+    prod_test_db = tmp.name  # Store temporary filename
 
-prod_conn = create_hardened_production_connection(prod_test_db)  # Assign and initialize variable or database handle
-cur = prod_conn.cursor()  # Assign and initialize variable or database handle
+prod_conn = create_hardened_production_connection(prod_test_db)  # Instantiate production-tuned connection
+cur = prod_conn.cursor()  # Allocate cursor
 
 # Verify foreign keys are active
-cur.execute("PRAGMA foreign_keys;")  # Execute database operation or statement
-print(f"Foreign Keys Enforced: {cur.fetchone()[0] == 1}")  # Output informational or diagnostic message
+cur.execute("PRAGMA foreign_keys;")  # Inspect foreign key enforcement status
+print(f"Foreign Keys Enforced: {cur.fetchone()[0] == 1}")  # Verify integer 1 (enabled)
 
 # Verify busy timeout is configured to 5000ms
-cur.execute("PRAGMA busy_timeout;")  # Execute database operation or statement
-print(f"Busy Timeout:          {cur.fetchone()[0]} ms")  # Output informational or diagnostic message
+cur.execute("PRAGMA busy_timeout;")  # Inspect busy handler timeout setting
+print(f"Busy Timeout:          {cur.fetchone()[0]} ms")  # Verify 5000ms threshold
 
-prod_conn.close()  # Execute database operation or statement
+prod_conn.close()  # Close connection cleanly
 ```
 
 ---
@@ -800,44 +799,44 @@ import time       # Time sleep utilities
 import tempfile   # Temporary file management
 import sqlite3    # Database interface module
 
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Acquire context manager managing database connection
-    concurrency_db = tmp.name  # Assign and initialize variable or database handle
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Generate shared disk file fixture
+    concurrency_db = tmp.name  # Store database path
 
 # Initialize table in WAL mode
-init_conn = sqlite3.connect(concurrency_db)  # Assign and initialize variable or database handle
-init_conn.execute("PRAGMA journal_mode = WAL;")  # Assign and initialize variable or database handle
-init_conn.execute("CREATE TABLE counter (id INTEGER PRIMARY KEY, val INT);")  # Execute database operation or statement
-init_conn.execute("INSERT INTO counter (id, val) VALUES (1, 0);")  # Execute database operation or statement
-init_conn.commit()  # Execute database operation or statement
-init_conn.close()  # Execute database operation or statement
+init_conn = sqlite3.connect(concurrency_db)  # Open bootstrap connection
+init_conn.execute("PRAGMA journal_mode = WAL;")  # Configure WAL mode for concurrent access
+init_conn.execute("CREATE TABLE counter (id INTEGER PRIMARY KEY, val INT);")  # Define shared counter table
+init_conn.execute("INSERT INTO counter (id, val) VALUES (1, 0);")  # Seed counter row with initial value zero
+init_conn.commit()  # Flush seed row to disk
+init_conn.close()  # Close bootstrap connection
 
-def worker_write_task(worker_id: int):  # Function or helper definition
+def worker_write_task(worker_id: int):  # Thread worker entry point
     # Open isolated connection per thread with 5-second busy timeout
-    conn = sqlite3.connect(concurrency_db, timeout=5.0)  # Assign and initialize variable or database handle
-    conn.execute("PRAGMA busy_timeout = 5000;")  # Assign and initialize variable or database handle
+    conn = sqlite3.connect(concurrency_db, timeout=5.0)  # Open dedicated per-thread connection
+    conn.execute("PRAGMA busy_timeout = 5000;")  # Wait up to 5s if competing thread holds the write lock
 
     # Use BEGIN IMMEDIATE to lock early and prevent upgrade deadlocks
-    conn.execute("BEGIN IMMEDIATE;")  # Execute database operation or statement
-    cur = conn.cursor()  # Assign and initialize variable or database handle
-    cur.execute("SELECT val FROM counter WHERE id = 1;")  # Assign and initialize variable or database handle
-    current_val = cur.fetchone()[0]  # Assign and initialize variable or database handle
-    time.sleep(0.05)  # Simulate small business logic computation
-    cur.execute("UPDATE counter SET val = ? WHERE id = 1;", (current_val + 1,))  # Assign and initialize variable or database handle
-    conn.commit()  # Execute database operation or statement
-    conn.close()  # Execute database operation or statement
+    conn.execute("BEGIN IMMEDIATE;")  # Obtain RESERVED lock immediately to avoid mid-transaction deadlock
+    cur = conn.cursor()  # Allocate statement cursor
+    cur.execute("SELECT val FROM counter WHERE id = 1;")  # Read current value under write lock
+    current_val = cur.fetchone()[0]  # Extract integer count
+    time.sleep(0.05)  # Simulate small business logic computation while holding write lock
+    cur.execute("UPDATE counter SET val = ? WHERE id = 1;", (current_val + 1,))  # Atomically increment counter
+    conn.commit()  # Commit transaction and immediately release lock to next waiting thread
+    conn.close()  # Cleanly close worker connection
 
 # Spawn 5 concurrent threads attempting to update the same record
-threads = [threading.Thread(target=worker_write_task, args=(i,)) for i in range(5)]  # Assign and initialize variable or database handle
-for t in threads:  # Iterate over query result rows or elements
-    t.start()  # Execute database operation or statement
-for t in threads:  # Iterate over query result rows or elements
-    t.join()  # Execute database operation or statement
+threads = [threading.Thread(target=worker_write_task, args=(i,)) for i in range(5)]  # Prepare 5 worker threads
+for t in threads:  # Iterate through worker threads
+    t.start()  # Launch thread execution concurrently
+for t in threads:  # Iterate through launched threads
+    t.join()  # Block until worker thread terminates
 
 # Verify final updated counter value
-verify_conn = sqlite3.connect(concurrency_db)  # Assign and initialize variable or database handle
-final_val = verify_conn.execute("SELECT val FROM counter WHERE id = 1;").fetchone()[0]  # Assign and initialize variable or database handle
-print(f"Final Counter Value after 5 concurrent worker transactions: {final_val} (Expected: 5)")  # Output informational or diagnostic message
-verify_conn.close()  # Execute database operation or statement
+verify_conn = sqlite3.connect(concurrency_db)  # Connect to verify shared database state
+final_val = verify_conn.execute("SELECT val FROM counter WHERE id = 1;").fetchone()[0]  # Read final counter value
+print(f"Final Counter Value after 5 concurrent worker transactions: {final_val} (Expected: 5)")  # Verify zero lost updates
+verify_conn.close()  # Close verification connection
 ```
 
 ---
@@ -862,21 +861,21 @@ import sqlite3  # Database connection module
 
 # Setting isolation_level=None puts sqlite3 into raw autocommit mode
 # Transactions are then controlled strictly via explicit BEGIN and COMMIT statements!
-conn = sqlite3.connect(":memory:", isolation_level=None)  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:", isolation_level=None)  # Disable Python's broken implicit transaction state machine
 
 # Table creation operates in pure autocommit mode
-conn.execute("CREATE TABLE ledger (id INTEGER PRIMARY KEY, amount REAL);")  # Execute database operation or statement
+conn.execute("CREATE TABLE ledger (id INTEGER PRIMARY KEY, amount REAL);")  # Execute DDL directly without transaction wrapper
 
 # Explicit, unambiguous transaction boundary
-conn.execute("BEGIN TRANSACTION;")  # Execute database operation or statement
-conn.execute("INSERT INTO ledger (amount) VALUES (150.00);")  # Execute database operation or statement
-conn.execute("INSERT INTO ledger (amount) VALUES (-50.00);")  # Execute database operation or statement
-conn.execute("COMMIT;")  # Execute database operation or statement
+conn.execute("BEGIN TRANSACTION;")  # Explicitly declare start of atomic transactional block
+conn.execute("INSERT INTO ledger (amount) VALUES (150.00);")  # First credit entry
+conn.execute("INSERT INTO ledger (amount) VALUES (-50.00);")  # Second debit entry
+conn.execute("COMMIT;")  # Explicitly commit both entries atomically
 
-total_balance = conn.execute("SELECT SUM(amount) FROM ledger;").fetchone()[0]  # Assign and initialize variable or database handle
-print(f"Ledger Balance after explicit transaction: ${total_balance:.2f}")  # Output informational or diagnostic message
+total_balance = conn.execute("SELECT SUM(amount) FROM ledger;").fetchone()[0]  # Compute sum across ledger entries
+print(f"Ledger Balance after explicit transaction: ${total_balance:.2f}")  # Verify balance equals 100.00
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Terminate database session
 ```
 
 ---
@@ -891,23 +890,23 @@ By setting **`conn.row_factory = sqlite3.Row`**, rows can be accessed by column 
 # Utilizing sqlite3.Row for high-performance named column access
 import sqlite3  # Standard database module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-conn.row_factory = sqlite3.Row  # Enable dictionary-like row factory
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Initialize memory database
+conn.row_factory = sqlite3.Row  # Enable dictionary-like row factory providing named column access
+cursor = conn.cursor()  # Allocate cursor
 
-cursor.execute("CREATE TABLE complaints (id INTEGER PRIMARY KEY, title TEXT, severity INT);")  # Execute database operation or statement
-cursor.execute("INSERT INTO complaints (title, severity) VALUES ('Elevator stuck', 4);")  # Execute database operation or statement
+cursor.execute("CREATE TABLE complaints (id INTEGER PRIMARY KEY, title TEXT, severity INT);")  # Define complaints table
+cursor.execute("INSERT INTO complaints (title, severity) VALUES ('Elevator stuck', 4);")  # Insert test row
 
-cursor.execute("SELECT id, title, severity FROM complaints WHERE id = 1;")  # Assign and initialize variable or database handle
-row = cursor.fetchone()  # Assign and initialize variable or database handle
+cursor.execute("SELECT id, title, severity FROM complaints WHERE id = 1;")  # Query row by primary key
+row = cursor.fetchone()  # Retrieve result row wrapped in sqlite3.Row proxy
 
 # Named column attribute access
-print(f"Ticket ID:   {row['id']}")  # Output informational or diagnostic message
-print(f"Title:       {row['title']}")  # Output informational or diagnostic message
-print(f"Severity:    {row['severity']}")  # Output informational or diagnostic message
-print(f"Column Keys: {row.keys()}")  # Output informational or diagnostic message
+print(f"Ticket ID:   {row['id']}")  # Access integer ID column by field name
+print(f"Title:       {row['title']}")  # Access issue title column by field name
+print(f"Severity:    {row['severity']}")  # Access severity rating column by field name
+print(f"Column Keys: {row.keys()}")  # Inspect all column names returned in query result
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Clean up memory resources
 ```
 
 ---
@@ -922,25 +921,25 @@ SQLite natively supports parameterized queries via positional (`?`) and named (`
 # Safe parameterized query execution preventing SQL Injection
 import sqlite3  # SQLite database module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-conn.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, is_admin INT);")  # Execute database operation or statement
-conn.execute("INSERT INTO users (username, is_admin) VALUES ('administrator', 1);")  # Execute database operation or statement
+conn = sqlite3.connect(":memory:")  # Open memory database
+conn.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, is_admin INT);")  # Define users table
+conn.execute("INSERT INTO users (username, is_admin) VALUES ('administrator', 1);")  # Insert admin user account
 
 # Malicious untrusted user input from an HTTP request
-malicious_input = "' OR 1=1 --"  # Assign and initialize variable or database handle
+malicious_input = "' OR 1=1 --"  # Classic SQL injection string designed to bypass WHERE authentication
 
 # 1. Positional parameter binding using ? placeholder
-cursor = conn.cursor()  # Assign and initialize variable or database handle
-cursor.execute("SELECT id, username FROM users WHERE username = ?;", (malicious_input,))  # Assign and initialize variable or database handle
-print(f"Positional Query Result: {cursor.fetchall()} (Injection neutralized: 0 rows returned!)")  # Output informational or diagnostic message
+cursor = conn.cursor()  # Allocate statement cursor
+cursor.execute("SELECT id, username FROM users WHERE username = ?;", (malicious_input,))  # Pass input as bound parameter
+print(f"Positional Query Result: {cursor.fetchall()} (Injection neutralized: 0 rows returned!)")  # Injection safely treated as string literal
 
 # 2. Named parameter binding using dictionary mapping
-named_payload = {"user": "administrator"}  # Assign and initialize variable or database handle
-cursor.execute("SELECT id, username, is_admin FROM users WHERE username = :user;", named_payload)  # Assign and initialize variable or database handle
-admin_row = cursor.fetchone()  # Assign and initialize variable or database handle
-print(f"Named Query Result:      User '{admin_row[1]}' (Admin: {bool(admin_row[2])})")  # Output informational or diagnostic message
+named_payload = {"user": "administrator"}  # Key-value mapping matching :user placeholder
+cursor.execute("SELECT id, username, is_admin FROM users WHERE username = :user;", named_payload)  # Execute named query
+admin_row = cursor.fetchone()  # Fetch matching user tuple
+print(f"Named Query Result:      User '{admin_row[1]}' (Admin: {bool(admin_row[2])})")  # Output verified admin user
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Dispose connection
 ```
 
 ---
@@ -965,21 +964,21 @@ When **`PRAGMA mmap_size`** is enabled, SQLite asks the operating system to map 
 import tempfile  # Temporary file handling
 import sqlite3   # Database interface module
 
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Acquire context manager managing database connection
-    mmap_db = tmp.name  # Assign and initialize variable or database handle
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:  # Allocate temporary physical file
+    mmap_db = tmp.name  # Store database path
 
-conn = sqlite3.connect(mmap_db)  # Assign and initialize variable or database handle
+conn = sqlite3.connect(mmap_db)  # Open connection to physical database file
 
 # Configure 256 Megabytes of memory-mapped address space (256 * 1024 * 1024 bytes)
-conn.execute("PRAGMA mmap_size = 268435456;")  # Assign and initialize variable or database handle
+conn.execute("PRAGMA mmap_size = 268435456;")  # Instruct OS to map up to 256MB of database directly into process virtual memory
 
 # Verify active mmap allocation
-cursor = conn.cursor()  # Assign and initialize variable or database handle
-cursor.execute("PRAGMA mmap_size;")  # Execute database operation or statement
-allocated_mmap = cursor.fetchone()[0]  # Assign and initialize variable or database handle
-print(f"Active Memory-Mapped Size: {allocated_mmap:,} bytes ({allocated_mmap // (1024 * 1024)} MB)")  # Output informational or diagnostic message
+cursor = conn.cursor()  # Allocate cursor
+cursor.execute("PRAGMA mmap_size;")  # Query confirmed memory-mapped limit
+allocated_mmap = cursor.fetchone()[0]  # Extract integer byte count
+print(f"Active Memory-Mapped Size: {allocated_mmap:,} bytes ({allocated_mmap // (1024 * 1024)} MB)")  # Print allocated MB limit
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Unmap memory buffers and close file handles
 ```
 
 ---
@@ -1023,36 +1022,36 @@ It **cannot** accelerate queries filtering solely on `(B)` or `(C)` without `(A)
 # Demonstrating Partial Indexes and Covering Indexes in SQLite
 import sqlite3  # Database connection module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Allocate memory database
+cursor = conn.cursor()  # Create statement cursor
 
-cursor.execute("""  # Execute database operation or statement
-CREATE TABLE tickets (  # Execute database operation or statement
-    id INTEGER PRIMARY KEY,  # Execute database operation or statement
-    category_id INT,  # Execute database operation or statement
-    status TEXT,  # Execute database operation or statement
-    title TEXT,  # Execute database operation or statement
-    sla_deadline DATETIME  # Execute database operation or statement
-);  # Closing delimiter
-""")  # Docstring specification
+cursor.execute(  # Define tickets table schema with SLA tracking columns
+    "CREATE TABLE tickets ("  # DDL statement header initiating table schema
+    "  id INTEGER PRIMARY KEY,"  # 64-bit signed integer aliasing internal ROWID
+    "  category_id INT,"  # Foreign key pointing to department categories
+    "  status TEXT,"  # Ticket lifecycle state flag (OPEN, ASSIGNED, RESOLVED)
+    "  title TEXT,"  # Headline summary of the reported maintenance defect
+    "  sla_deadline DATETIME"  # Calculated resolution deadline timestamp
+    ");"  # Terminate table creation statement
+)  # Dispatch table creation to in-memory database
 
 # Partial Index: Indexes ONLY unresolved active tickets, shrinking index size by 90%!
-cursor.execute("""  # Execute database operation or statement
-CREATE INDEX idx_active_tickets ON tickets(category_id, sla_deadline)  # Execute database operation or statement
-WHERE status != 'RESOLVED';  # Assign and initialize variable or database handle
-""")  # Docstring specification
+cursor.execute(  # Build partial B-Tree excluding resolved tickets from the index structure
+    "CREATE INDEX idx_active_tickets ON tickets(category_id, sla_deadline) "  # Index declaration clause
+    "WHERE status != 'RESOLVED';"  # Predicate filtering out 90% of closed historical tickets
+)  # Dispatch index creation
 
 # Verify query plan utilizes the partial index
-cursor.execute("""  # Execute database operation or statement
-EXPLAIN QUERY PLAN  # Execute database operation or statement
-SELECT id, sla_deadline FROM tickets  # Execute database operation or statement
-WHERE status != 'RESOLVED' AND category_id = 12;  # Assign and initialize variable or database handle
-""")  # Docstring specification
-print("Partial Index Query Plan:")  # Output informational or diagnostic message
-for step in cursor.fetchall():  # Iterate over query result rows or elements
-    print(f"  Plan: {step[3]}")  # Output informational or diagnostic message
+cursor.execute(  # Query plan to confirm covering index scan
+    "EXPLAIN QUERY PLAN "  # Prepend explain directive to inspect optimizer decisions
+    "SELECT id, sla_deadline FROM tickets "  # Column projection targeting covering index
+    "WHERE status != 'RESOLVED' AND category_id = 12;"  # Query matching partial index predicate
+)  # Compile and inspect planner optimization
+print("Partial Index Query Plan:")  # Print section banner
+for step in cursor.fetchall():  # Iterate through query planner decisions
+    print(f"  Plan: {step[3]}")  # Verify query planner executes SEARCH TABLE tickets USING INDEX idx_active_tickets
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Release memory resources
 ```
 
 ---
@@ -1081,40 +1080,40 @@ SQLite includes a built-in search engine called **FTS5 (Full-Text Search 5)**:
 # Implementing high-speed keyword search using the SQLite FTS5 extension
 import sqlite3  # Database module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Initialize memory database
+cursor = conn.cursor()  # Allocate cursor
 
 # Create an FTS5 virtual table
-cursor.execute("""  # Execute database operation or statement
-CREATE VIRTUAL TABLE complaints_fts USING fts5(  # Execute database operation or statement
-    ticket_id UNINDEXED,  # Execute database operation or statement
-    title,  # Execute database operation or statement
-    description,  # Execute database operation or statement
-    tokenize = 'porter unicode61'  # Applies Porter stemming and Unicode normalization
-);  # Closing delimiter
-""")  # Docstring specification
+cursor.execute(  # Initialize FTS5 virtual table applying Porter stemming algorithm
+    "CREATE VIRTUAL TABLE complaints_fts USING fts5("  # Virtual table declaration using FTS5 module
+    "  ticket_id UNINDEXED,"  # Store raw integer ID without generating search tokens
+    "  title,"  # Full-text indexed issue headline
+    "  description,"  # Full-text indexed comprehensive issue description
+    "  tokenize = 'porter unicode61'"  # Normalizes case and stems English word roots
+    ");"  # Terminate virtual table definition
+)  # Dispatch FTS5 schema compilation
 
 # Ingest sample complaint documents
-cursor.execute("""  # Execute database operation or statement
-INSERT INTO complaints_fts (ticket_id, title, description) VALUES  # Execute database operation or statement
-(101, 'Ceiling Projector Defect', 'The digital projector in room 302 flickers constantly during lectures.'),  # Execute database operation or statement
-(102, 'Plumbing Emergency', 'Severe water leakage occurring under the chemistry laboratory sink.');  # Execute database operation or statement
-""")  # Docstring specification
+cursor.execute(  # Tokenize and insert sample complaint records into inverted FTS index
+    "INSERT INTO complaints_fts (ticket_id, title, description) VALUES "  # Multi-row insert statement header
+    "(101, 'Ceiling Projector Defect', 'The digital projector in room 302 flickers constantly during lectures.'), "  # Record 1 text tuple
+    "(102, 'Plumbing Emergency', 'Severe water leakage occurring under the chemistry laboratory sink.');"  # Record 2 text tuple
+)  # Populate sample text
 
 # Query using FTS5 MATCH with Porter stemming ('flicker' matches 'flickers')
-cursor.execute("""  # Execute database operation or statement
-SELECT ticket_id, title, snippet(complaints_fts, 2, '<b>', '</b>', '...', 10)  # Execute database operation or statement
-FROM complaints_fts  # Execute database operation or statement
-WHERE complaints_fts MATCH 'projector OR leakage'  # Execute database operation or statement
-ORDER BY rank;  # Execute database operation or statement
-""")  # Docstring specification
+cursor.execute(  # Perform BM25 ranked full-text search with HTML highlighted snippets
+    "SELECT ticket_id, title, snippet(complaints_fts, 2, '<b>', '</b>', '...', 10) "  # Query highlighted snippet column
+    "FROM complaints_fts "  # Target FTS5 virtual table
+    "WHERE complaints_fts MATCH 'projector OR leakage' "  # Full-text match predicate
+    "ORDER BY rank;"  # Sort results descending by BM25 statistical relevance
+)  # Dispatch search query
 
-print("FTS5 Search Results with Highlighted Snippets:")  # Output informational or diagnostic message
-for row in cursor.fetchall():  # Iterate over query result rows or elements
-    print(f"  Ticket #{row[0]}: {row[1]}")
-    print(f"    Snippet: {row[2]}")  # Output informational or diagnostic message
+print("FTS5 Search Results with Highlighted Snippets:")  # Results banner
+for row in cursor.fetchall():  # Iterate through matching complaint records
+    print(f"  Ticket #{row[0]}: {row[1]}")  # Display matching ticket identifier and headline
+    print(f"    Snippet: {row[2]}")  # Display highlighted keyword snippet
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Release FTS virtual table memory
 ```
 
 ---
@@ -1132,30 +1131,30 @@ SQLite natively includes the **JSON1 Extension**, providing high-performance fun
 import json     # Standard JSON library
 import sqlite3  # Database connection module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Open memory database
+cursor = conn.cursor()  # Allocate cursor
 
-cursor.execute("CREATE TABLE telemetry (id INTEGER PRIMARY KEY, metadata TEXT);")  # Execute database operation or statement
+cursor.execute("CREATE TABLE telemetry (id INTEGER PRIMARY KEY, metadata TEXT);")  # Define table with text column for JSON
 
 # Insert row with raw JSON string
-sample_json = {  # Assign and initialize variable or database handle
-    "device": "IoT-Sensor-01",  # Execute database operation or statement
-    "metrics": {"temperature_c": 24.5, "humidity_pct": 60},  # Execute database operation or statement
-    "tags": ["HVAC", "BASEMENT"]  # Execute database operation or statement
-}  # Closing delimiter
-cursor.execute("INSERT INTO telemetry (metadata) VALUES (?);", (json.dumps(sample_json),))  # Execute database operation or statement
+sample_json = {  # Construct dictionary payload
+    "device": "IoT-Sensor-01",  # Hardware identifier string
+    "metrics": {"temperature_c": 24.5, "humidity_pct": 60},  # Nested sensor telemetry readings
+    "tags": ["HVAC", "BASEMENT"]  # Categorical tag array
+}  # End dictionary definition
+cursor.execute("INSERT INTO telemetry (metadata) VALUES (?);", (json.dumps(sample_json),))  # Serialize and persist JSON
 
 # 1. Querying JSON attributes with ->> (returns unquoted scalar text or number)
-cursor.execute("SELECT id, metadata ->> '$.device', metadata ->> '$.metrics.temperature_c' FROM telemetry;")  # Execute database operation or statement
-row = cursor.fetchone()  # Assign and initialize variable or database handle
-print(f"Extracted Device:      {row[1]}")  # Output informational or diagnostic message
-print(f"Extracted Temperature: {row[2]} C (type: {type(row[2]).__name__})")  # Output informational or diagnostic message
+cursor.execute("SELECT id, metadata ->> '$.device', metadata ->> '$.metrics.temperature_c' FROM telemetry;")  # Extract fields
+row = cursor.fetchone()  # Retrieve parsed JSON attributes
+print(f"Extracted Device:      {row[1]}")  # Output unquoted string attribute
+print(f"Extracted Temperature: {row[2]} C (type: {type(row[2]).__name__})")  # Output coerced float attribute
 
 # 2. Testing JSON validity with json_valid()
-cursor.execute("SELECT json_valid(metadata) FROM telemetry;")  # Execute database operation or statement
-print(f"JSON Payload Valid:    {bool(cursor.fetchone()[0])}")  # Output informational or diagnostic message
+cursor.execute("SELECT json_valid(metadata) FROM telemetry;")  # Verify JSON structural syntax in C
+print(f"JSON Payload Valid:    {bool(cursor.fetchone()[0])}")  # Confirm valid JSON format returns 1 (True)
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Clean up database resources
 ```
 
 ---
@@ -1168,28 +1167,28 @@ A major advantage of SQLite is the ability to index attributes inside JSON docum
 # Indexing inside JSON payloads using Generated Virtual Columns
 import sqlite3  # Database module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+conn = sqlite3.connect(":memory:")  # Allocate memory database
+cursor = conn.cursor()  # Allocate cursor
 
 # Create table with a Generated Column extracting an inner JSON attribute
-cursor.execute("""  # Execute database operation or statement
-CREATE TABLE ticket_events (  # Execute database operation or statement
-    id INTEGER PRIMARY KEY,  # Execute database operation or statement
-    payload TEXT,  # Execute database operation or statement
-    device_id TEXT GENERATED ALWAYS AS (payload ->> '$.device') VIRTUAL  # Execute database operation or statement
-);  # Closing delimiter
-""")  # Docstring specification
+cursor.execute(  # Define generated virtual column computed on-the-fly from JSON payload attribute
+    "CREATE TABLE ticket_events ("  # DDL statement initiating event table schema
+    "  id INTEGER PRIMARY KEY,"  # Sequential primary key
+    "  payload TEXT,"  # Raw JSON document column
+    "  device_id TEXT GENERATED ALWAYS AS (payload ->> '$.device') VIRTUAL"  # Extracted virtual column
+    ");"  # Terminate table creation
+)  # Dispatch DDL execution
 
 # Create an index directly on the generated column!
-cursor.execute("CREATE INDEX idx_events_device ON ticket_events(device_id);")  # Execute database operation or statement
+cursor.execute("CREATE INDEX idx_events_device ON ticket_events(device_id);")  # Build B-Tree index on virtual column
 
 # Verify query planner uses the B-Tree index when searching the JSON attribute
-cursor.execute("EXPLAIN QUERY PLAN SELECT * FROM ticket_events WHERE device_id = 'SENSOR-402';")  # Assign and initialize variable or database handle
-print("JSON Generated Column Index Plan:")  # Output informational or diagnostic message
-for step in cursor.fetchall():  # Iterate over query result rows or elements
-    print(f"  Plan: {step[3]}")  # Output informational or diagnostic message
+cursor.execute("EXPLAIN QUERY PLAN SELECT * FROM ticket_events WHERE device_id = 'SENSOR-402';")  # Query execution plan
+print("JSON Generated Column Index Plan:")  # Banner
+for step in cursor.fetchall():  # Iterate through query plan steps
+    print(f"  Plan: {step[3]}")  # Confirm plan uses SEARCH TABLE ticket_events USING INDEX idx_events_device
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Terminate session
 ```
 
 ---
@@ -1229,26 +1228,26 @@ SQLite provides built-in diagnostics to detect physical and logical page corrupt
 # Running forensic integrity checks on an SQLite database
 import sqlite3  # Database connection module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-conn.execute("PRAGMA foreign_keys = ON;")  # Assign and initialize variable or database handle
-conn.execute("CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT);")  # Execute database operation or statement
-conn.execute("CREATE TABLE tickets (id INTEGER PRIMARY KEY, cat_id INT REFERENCES categories(id));")  # Execute database operation or statement
-conn.execute("INSERT INTO categories (id, name) VALUES (1, 'HVAC');")  # Execute database operation or statement
-conn.execute("INSERT INTO tickets (id, cat_id) VALUES (101, 1);")  # Execute database operation or statement
+conn = sqlite3.connect(":memory:")  # Initialize memory database
+conn.execute("PRAGMA foreign_keys = ON;")  # Enforce referential integrity checks
+conn.execute("CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT);")  # Parent table
+conn.execute("CREATE TABLE tickets (id INTEGER PRIMARY KEY, cat_id INT REFERENCES categories(id));")  # Child table with FK
+conn.execute("INSERT INTO categories (id, name) VALUES (1, 'HVAC');")  # Insert parent category
+conn.execute("INSERT INTO tickets (id, cat_id) VALUES (101, 1);")  # Insert valid child ticket referencing parent 1
 
-cursor = conn.cursor()  # Assign and initialize variable or database handle
+cursor = conn.cursor()  # Allocate cursor
 
 # 1. Full database integrity check
-cursor.execute("PRAGMA integrity_check;")  # Execute database operation or statement
-integrity_result = cursor.fetchone()[0]  # Assign and initialize variable or database handle
+cursor.execute("PRAGMA integrity_check;")  # Perform deep B-Tree, freelist, and page structure validation
+integrity_result = cursor.fetchone()[0]  # Retrieve result string
 print(f"Database Integrity Status: {integrity_result}")  # Expected: 'ok'
 
 # 2. Foreign key referential integrity scan
-cursor.execute("PRAGMA foreign_key_check;")  # Execute database operation or statement
-fk_violations = cursor.fetchall()  # Assign and initialize variable or database handle
-print(f"Foreign Key Violations:    {len(fk_violations)} (Clean schema)")  # Output informational or diagnostic message
+cursor.execute("PRAGMA foreign_key_check;")  # Scan all child rows for broken or orphaned references
+fk_violations = cursor.fetchall()  # Retrieve violation list
+print(f"Foreign Key Violations:    {len(fk_violations)} (Clean schema)")  # Confirm zero integrity violations
 
-conn.close()  # Execute database operation or statement
+conn.close()  # Dispose test database
 ```
 
 ---
@@ -1277,33 +1276,33 @@ import tempfile  # Temporary file handling
 import sqlite3   # Database interface module
 
 # Create source active production database in WAL mode
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_src:  # Acquire context manager managing database connection
-    source_db_path = tmp_src.name  # Assign and initialize variable or database handle
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_src:  # Allocate source database file
+    source_db_path = tmp_src.name  # Extract path
 
-source_conn = sqlite3.connect(source_db_path)  # Assign and initialize variable or database handle
-source_conn.execute("PRAGMA journal_mode = WAL;")  # Assign and initialize variable or database handle
-source_conn.execute("CREATE TABLE production_data (id INTEGER PRIMARY KEY, msg TEXT);")  # Execute database operation or statement
-for i in range(100):  # Iterate over query result rows or elements
-    source_conn.execute("INSERT INTO production_data (msg) VALUES (?);", (f"Audit record {i}",))  # Execute database operation or statement
-source_conn.commit()  # Execute database operation or statement
+source_conn = sqlite3.connect(source_db_path)  # Open source database connection
+source_conn.execute("PRAGMA journal_mode = WAL;")  # Ensure WAL mode is active
+source_conn.execute("CREATE TABLE production_data (id INTEGER PRIMARY KEY, msg TEXT);")  # Define sample table
+for i in range(100):  # Populate 100 audit rows
+    source_conn.execute("INSERT INTO production_data (msg) VALUES (?);", (f"Audit record {i}",))  # Insert row
+source_conn.commit()  # Flush transactions into WAL file
 
 # Create target backup file
-with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_dst:  # Acquire context manager managing database connection
-    backup_db_path = tmp_dst.name  # Assign and initialize variable or database handle
+with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_dst:  # Allocate destination backup file
+    backup_db_path = tmp_dst.name  # Extract path
 
-dest_conn = sqlite3.connect(backup_db_path)  # Assign and initialize variable or database handle
+dest_conn = sqlite3.connect(backup_db_path)  # Open target database connection
 
 # Execute non-blocking online backup copying 50 pages per batch
-print("Initiating Online Hot Backup...")  # Output informational or diagnostic message
-source_conn.backup(dest_conn, pages=50)  # Safe live copy!
-dest_conn.close()  # Execute database operation or statement
-source_conn.close()  # Execute database operation or statement
+print("Initiating Online Hot Backup...")  # Progress log
+source_conn.backup(dest_conn, pages=50)  # Stream pages atomically in 50-page increments without blocking writers
+dest_conn.close()  # Safely close destination backup handle
+source_conn.close()  # Close source database connection
 
 # Verify backup integrity
-verify_conn = sqlite3.connect(backup_db_path)  # Assign and initialize variable or database handle
-total_backed_up_rows = verify_conn.execute("SELECT COUNT(*) FROM production_data;").fetchone()[0]  # Assign and initialize variable or database handle
-print(f"Backup Verified Successfully: {total_backed_up_rows} records restored in target backup file.")  # Output informational or diagnostic message
-verify_conn.close()  # Execute database operation or statement
+verify_conn = sqlite3.connect(backup_db_path)  # Open target backup to verify row count
+total_backed_up_rows = verify_conn.execute("SELECT COUNT(*) FROM production_data;").fetchone()[0]  # Count restored rows
+print(f"Backup Verified Successfully: {total_backed_up_rows} records restored in target backup file.")  # Confirm 100 rows restored
+verify_conn.close()  # Clean up verification connection
 ```
 
 ---
@@ -1336,29 +1335,29 @@ In production deployments, FastAPI typically runs behind Gunicorn or Uvicorn wit
 import threading  # Multi-threading utilities
 import sqlite3    # Database interface module
 
-class ThreadLocalDatabasePool:  # Class declaration managing database resources
-    """Manages isolated SQLite connections per thread to eliminate contention."""  # Docstring specification
-    def __init__(self, db_path: str):  # Function or helper definition
-        self.db_path = db_path  # Assign and initialize variable or database handle
-        self._local = threading.local()  # Thread-local storage container
+class ThreadLocalDatabasePool:  # Thread-local pool manager
+    """Manages isolated SQLite connections per thread to eliminate contention."""
+    def __init__(self, db_path: str):  # Initialize pool with target database file path
+        self.db_path = db_path  # Store target path
+        self._local = threading.local()  # Allocate thread-local storage container to isolate connection handles
 
-    def get_connection(self) -> sqlite3.Connection:  # Function or helper definition
+    def get_connection(self) -> sqlite3.Connection:  # Retrieve connection dedicated to the calling thread
         # Check if active thread already owns an open connection
-        if not hasattr(self._local, "conn"):  # Conditional branch evaluation
+        if not hasattr(self._local, "conn"):  # Verify if connection exists on this thread
             # Open isolated connection dedicated to this specific thread
-            conn = sqlite3.connect(self.db_path, timeout=5.0)  # Assign and initialize variable or database handle
-            conn.execute("PRAGMA journal_mode = WAL;")  # Assign and initialize variable or database handle
-            conn.execute("PRAGMA synchronous = NORMAL;")  # Assign and initialize variable or database handle
-            conn.execute("PRAGMA foreign_keys = ON;")  # Assign and initialize variable or database handle
-            conn.row_factory = sqlite3.Row  # Assign and initialize variable or database handle
-            self._local.conn = conn  # Assign and initialize variable or database handle
-        return self._local.conn  # Return computed result or database handle to caller
+            conn = sqlite3.connect(self.db_path, timeout=5.0)  # Open thread-private connection handle
+            conn.execute("PRAGMA journal_mode = WAL;")  # Enforce WAL mode for concurrent execution
+            conn.execute("PRAGMA synchronous = NORMAL;")  # Optimize disk flush frequency
+            conn.execute("PRAGMA foreign_keys = ON;")  # Enforce referential integrity
+            conn.row_factory = sqlite3.Row  # Configure dictionary-style column access
+            self._local.conn = conn  # Store connection in thread-local storage
+        return self._local.conn  # Return connection dedicated to current thread
 
 # Verify thread isolation
-pool = ThreadLocalDatabasePool(":memory:")  # Assign and initialize variable or database handle
-conn_thread_1 = pool.get_connection()  # Assign and initialize variable or database handle
-conn_thread_1_again = pool.get_connection()  # Assign and initialize variable or database handle
-print(f"Same thread returns identical connection: {conn_thread_1 is conn_thread_1_again}")  # Output informational or diagnostic message
+pool = ThreadLocalDatabasePool(":memory:")  # Instantiate pool for testing
+conn_thread_1 = pool.get_connection()  # Acquire connection on main thread
+conn_thread_1_again = pool.get_connection()  # Acquire connection again on main thread
+print(f"Same thread returns identical connection: {conn_thread_1 is conn_thread_1_again}")  # True: Reuses thread handle
 ```
 
 ---
@@ -1390,22 +1389,22 @@ file:memdb_test?mode=memory&cache=shared
 import sqlite3  # Database connection module
 
 # Connection 1 opens a named in-memory database with shared cache
-uri_path = "file:shared_test_db?mode=memory&cache=shared"  # Assign and initialize variable or database handle
-conn1 = sqlite3.connect(uri_path, uri=True)  # Assign and initialize variable or database handle
-conn1.execute("CREATE TABLE mock_tickets (id INTEGER PRIMARY KEY, code TEXT);")  # Execute database operation or statement
-conn1.execute("INSERT INTO mock_tickets (code) VALUES ('TKT-TEST-001');")  # Execute database operation or statement
-conn1.commit()  # Execute database operation or statement
+uri_path = "file:shared_test_db?mode=memory&cache=shared"  # SQLite URI specifying named memory database with shared cache
+conn1 = sqlite3.connect(uri_path, uri=True)  # Open connection 1 into shared RAM database
+conn1.execute("CREATE TABLE mock_tickets (id INTEGER PRIMARY KEY, code TEXT);")  # Create table on connection 1
+conn1.execute("INSERT INTO mock_tickets (code) VALUES ('TKT-TEST-001');")  # Insert row on connection 1
+conn1.commit()  # Flush commit into shared in-memory page cache
 
 # Connection 2 opens the identical named in-memory database in RAM!
-conn2 = sqlite3.connect(uri_path, uri=True)  # Assign and initialize variable or database handle
-cursor2 = conn2.cursor()  # Assign and initialize variable or database handle
-cursor2.execute("SELECT code FROM mock_tickets WHERE id = 1;")  # Assign and initialize variable or database handle
-fetched_code = cursor2.fetchone()[0]  # Assign and initialize variable or database handle
+conn2 = sqlite3.connect(uri_path, uri=True)  # Open connection 2 attaching to the identical shared RAM database
+cursor2 = conn2.cursor()  # Allocate cursor on connection 2
+cursor2.execute("SELECT code FROM mock_tickets WHERE id = 1;")  # Query row inserted by connection 1
+fetched_code = cursor2.fetchone()[0]  # Read result string
 
-print(f"Shared In-Memory Verification: Connection 2 read '{fetched_code}' from Connection 1!")  # Output informational or diagnostic message
+print(f"Shared In-Memory Verification: Connection 2 read '{fetched_code}' from Connection 1!")  # Confirm cross-connection sharing
 
-conn1.close()  # Execute database operation or statement
-conn2.close()  # Execute database operation or statement
+conn1.close()  # Close connection 1
+conn2.close()  # Close connection 2 (destroys in-memory database when last connection drops)
 ```
 
 ---
@@ -1451,20 +1450,20 @@ conn2.close()  # Execute database operation or statement
 import time      # Latency measurement module
 import sqlite3   # Database interface module
 
-conn = sqlite3.connect(":memory:")  # Assign and initialize variable or database handle
-conn.execute("CREATE TABLE benchmark (id INTEGER PRIMARY KEY, note TEXT);")  # Execute database operation or statement
+conn = sqlite3.connect(":memory:")  # Allocate in-memory database
+conn.execute("CREATE TABLE benchmark (id INTEGER PRIMARY KEY, note TEXT);")  # Define benchmark table
 
-sample_rows = [(f"Record number {i}",) for i in range(1000)]  # Assign and initialize variable or database handle
+sample_rows = [(f"Record number {i}",) for i in range(1000)]  # Construct 1,000 test payload tuples
 
 # High-performance batch insertion wrapped in an explicit transaction
-start_time = time.perf_counter()  # Assign and initialize variable or database handle
-conn.execute("BEGIN TRANSACTION;")  # Execute database operation or statement
-conn.executemany("INSERT INTO benchmark (note) VALUES (?);", sample_rows)  # Execute database operation or statement
-conn.execute("COMMIT;")  # Execute database operation or statement
-batch_duration = time.perf_counter() - start_time  # Assign and initialize variable or database handle
+start_time = time.perf_counter()  # Capture high-resolution start timestamp
+conn.execute("BEGIN TRANSACTION;")  # Acquire write lock once for the entire batch of 1,000 rows
+conn.executemany("INSERT INTO benchmark (note) VALUES (?);", sample_rows)  # Execute batch insertion in VDBE loop
+conn.commit()  # Flush single atomic transaction commit
+batch_duration = time.perf_counter() - start_time  # Compute total elapsed seconds
 
-print(f"Batch Inserted 1,000 rows in: {batch_duration * 1000:.2f} ms (Sub-millisecond scaling!)")  # Output informational or diagnostic message
-conn.close()  # Execute database operation or statement
+print(f"Batch Inserted 1,000 rows in: {batch_duration * 1000:.2f} ms (Sub-millisecond scaling!)")  # Log sub-millisecond duration
+conn.close()  # Cleanly release database resources
 ```
 
 ---
