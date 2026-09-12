@@ -1,1 +1,1 @@
-# Package marker
+"""SmartComplaintHandler - Schemas Validation Package."""

@@ -1,1 +1,1 @@
-# Package marker
+"""SmartComplaintHandler - Database Infrastructure Package."""

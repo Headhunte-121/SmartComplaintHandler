@@ -1,3 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+ * SmartComplaintHandler - Global Tailwind Stylesheet
+ * Blueprint Reference: docs/V1/M1/frontend/01_vite_tailwind_config.md
+ * Role: Injects Tailwind CSS base, components, and utilities layers.
+ * Status: Empty starter template for team implementation.
+ */

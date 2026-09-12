@@ -1,1 +1,1 @@
-# Package marker
+"""SmartComplaintHandler - Application Root Package."""

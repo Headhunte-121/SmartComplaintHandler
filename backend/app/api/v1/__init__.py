@@ -1,1 +1,1 @@
-# Package marker
+"""SmartComplaintHandler - API v1 Namespace Package."""
