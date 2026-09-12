@@ -1,0 +1,1 @@
+"""SmartComplaintHandler - Schemas Validation Package."""
