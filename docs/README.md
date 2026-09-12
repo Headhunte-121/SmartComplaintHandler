@@ -6,23 +6,14 @@ Welcome to the central documentation portal for the **Automated Smart Complaint 
 
 ---
 
-## 🧭 Start Here: Choose Your Goal
+## Documentation Navigation by Objective
 
-```
-┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                              WHAT DO YOU WANT TO DO?                                      │
-├─────────────────────────┬─────────────────────────┬───────────────────────────────────────┤
-│ 🚀 I Need to Build Code │ 🎓 I Need to Learn Tech │ 📐 I Need System Architecture         │
-│ (Teammate / Contributor)│ (Beginner / Student)    │ (Evaluator / Reviewer)                │
-├─────────────────────────┼─────────────────────────┼───────────────────────────────────────┤
-│ 1. Read Team Workflow   │ 1. Open Developer Guide │ 1. System Topology & Flowchart        │
-│    `V1/TEAM_WORKFLOW...`│    `developer_guide/`   │    `V1/V1_CENTRAL_BLUEPRINT.md`       │
-│ 2. Find Your Module     │ 2. Follow Part I (CS)   │ 2. 72-File Architecture Anatomy       │
-│    `V1/M1` through `M5` │ 3. Follow Part II (Py)  │    `FILE_ARCHITECTURE_GUIDE.md`       │
-│ 3. Follow Sections 1–6  │ 4. Follow Part III (UI) │ 3. Tech Stack Decision Rationale      │
-│    in file blueprints   │ 5. Follow Part IV (Sec) │    `TECH_STACK_DECISION.md`           │
-└─────────────────────────┴─────────────────────────┴───────────────────────────────────────┘
-```
+| Objective | Primary Resources | Scope & Deliverables |
+| :--- | :--- | :--- |
+| **Module Implementation** | [**`V1 Module Blueprints`**](V1/README.md)<br>[**`Team Workflow & Git Guide`**](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md) | File-by-file blueprints (M1–M5), zero-blocking mock data contracts, concurrency DAG |
+| **Engineering Concepts** | [**`Developer Guide Suite`**](developer_guide/README.md) | 34 monotonic manuals covering CS fundamentals, runtimes, protocols, security |
+| **System Architecture** | [**`V1 Master Blueprint`**](V1/V1_CENTRAL_BLUEPRINT.md)<br>[**`File Architecture Guide`**](FILE_ARCHITECTURE_GUIDE.md) | Full-stack operational trace, 72-file inventory, component topology |
+| **Architectural Decisions** | [**`Tech Stack Rationale`**](TECH_STACK_DECISION.md)<br>[**`Version Roadmap`**](VERSION_BLUEPRINT_ROADMAP.md) | Trade-off analysis for FastAPI, SQLite WAL, React Vite; V1–V3 evolution roadmap |
 
 ---
 

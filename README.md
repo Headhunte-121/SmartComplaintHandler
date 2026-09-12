@@ -1,5 +1,6 @@
-# Automated Smart Complaint Routing & Workflow Automation Platform
-### `SmartComplaintHandler` — Production Full-Stack Engineering Platform
+# Smart Complaint Handler (`SmartComplaintHandler`)
+
+> Automated grievance intake, deterministic department routing, workload-balanced squad dispatch, and SLA lifecycle management for institutional campus facilities.
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688.svg)](https://fastapi.tiangolo.com/)
@@ -7,392 +8,234 @@
 [![React 18](https://img.shields.io/badge/React-18.2-61DAFB.svg)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5.1-646CFF.svg)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg)](https://tailwindcss.com/)
-[![Developer Manuals](https://img.shields.io/badge/Engineering%20Guides-34%20Manuals-success.svg)](docs/developer_guide/README.md)
+[![Engineering Guides](https://img.shields.io/badge/Developer%20Guides-34%20Manuals-success.svg)](docs/developer_guide/README.md)
 [![Verification Suite](https://img.shields.io/badge/Quality%20Gate-100%25%20Passing-brightgreen.svg)](backend/tests/test_closed_loop.py)
 
 ---
 
-## ⚡ Quick Navigation Index
+## Table of Contents
 
-| Section | Description | Quick Link |
-| :--- | :--- | :--- |
-| **1. System Overview** | What this project does & the closed-loop automation flow | [Go to Section ↓](#1-system-overview--closed-loop-architecture) |
-| **2. 30-Second Quick Start** | Fast launch with 1-click batch scripts or terminal commands | [Go to Section ↓](#2-30-second-quick-start-how-to-run-everything) |
-| **3. First-Time Setup (Clone to Folder)** | **Step-by-step installation: How to clone & setup in your local folder** | [Go to Section ↓](#3-first-time-setup-how-to-install--setup-in-your-folder) |
-| **4. Daily Git Workflow (Push & Pull)** | **How to pull teammates' work, save your work, and push to develop** | [Go to Section ↓](#4-daily-git-workflow-how-to-save-push--pull-work-safely) |
-| **5. Teammate Onboarding Checklist** | What to do first as a developer joining the repository | [Go to Section ↓](#5-teammate-onboarding-checklist-what-do-i-do-first) |
-| **6. 5-Student Ownership Matrix** | Exact team breakdown: who writes which files & blueprints | [Go to Section ↓](#6-5-student-team-ownership--module-matrix) |
-| **7. Module Blueprints (M1–M5)** | Detailed directory of all 5 operational modules | [Go to Section ↓](#7-version-10-module-architecture-m1m5) |
-| **8. 34-Guide Curriculum** | Complete zero-prerequisite developer engineering handbook | [Go to Section ↓](#8-master-developer-guide-curriculum-34-manuals) |
-| **9. Testing & Quality Gates** | How to run tests and verify your code before pushing | [Go to Section ↓](#9-testing-verification--quality-gates) |
-| **10. Directory Architecture** | 72-file inventory, design decisions & roadmap | [Go to Section ↓](#10-directory-architecture--references) |
+- [Overview](#overview)
+- [Architecture & Workflow](#architecture--workflow)
+- [Quick Start](#quick-start)
+- [Installation & Local Setup](#installation--local-setup)
+- [Git & Development Workflow](#git--development-workflow)
+  - [Branch Strategy](#branch-strategy)
+  - [Pulling Upstream Updates](#pulling-upstream-updates)
+  - [Saving & Pushing Changes](#saving--pushing-changes)
+  - [Resolving Merge Conflicts](#resolving-merge-conflicts)
+- [Modules & Subsystems (M1–M5)](#modules--subsystems-m1m5)
+- [Developer Guide Curriculum (34 Manuals)](#developer-guide-curriculum-34-manuals)
+- [Testing & Quality Verification](#testing--quality-verification)
+- [Documentation Index](#documentation-index)
 
 ---
 
-## 1. System Overview & Closed-Loop Architecture
+## Overview
 
-### The Problem
-Campus facility grievances (water leaks, power cuts, hazardous exposed wiring, broken laboratory equipment) frequently get trapped in bureaucratic bottlenecks, lost in email threads, or neglected due to lack of transparent accountability.
+`SmartComplaintHandler` provides closed-loop automation for facility complaint resolution. It replaces manual, error-prone email chains and paper slips with deterministic software pipelines:
 
-### The Solution
-`SmartComplaintHandler` is an **automated, deterministic, closed-loop grievance routing platform**:
-1. **Intake & Code Generation:** Generates a collision-resistant tracking code (`TICK-XXXX`) using cryptographically secure operating system entropy.
-2. **Deterministic Keyword Routing:** Scans complaint narratives to assign the responsible campus department (Electrical, Plumbing, IT, Sanitation, Civil, General).
-3. **Priority & Hazard Classification:** Identifies safety emergencies (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) with short-circuit rules for hazards (e.g. fire, flooding near outlets).
-4. **Load-Balanced Squad Dispatch:** Dispatches complaints to the least-loaded maintenance squad based on real-time active ticket counts.
-5. **SLA Countdown & Dual-Sided Resolution:** Ticks live countdown clocks (4h, 12h, 24h, 72h), alerts staff to impending breaches, and requires mandatory repair documentation before ticket closure.
+* **Collision-Resistant Tracking Codes:** Generates unique tracking IDs (`TICK-XXXX`) using CSPRNG operating system entropy, excluding visually ambiguous characters (`0`, `1`, `O`, `I`).
+* **Deterministic Keyword Routing:** Scans complaint narratives against domain dictionaries to route grievances to the responsible campus department (Electrical, Plumbing, IT, Sanitation, Civil, or General Administration).
+* **Urgency & Hazard Classification:** Scores complaint urgency (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) with immediate short-circuit escalation for life-safety hazards (e.g., exposed high-voltage wiring, flooding near electrical panels).
+* **Workload-Balanced Squad Dispatch:** Evaluates real-time active queues across maintenance teams to assign incoming tickets to the least-loaded qualified squad.
+* **SLA Countdown & Escalation:** Calculates priority-based resolution deadlines (4h, 12h, 24h, 72h), tracks countdown timers, and flags overdue tickets for administrative intervention.
+* **Dual-Sided Resolution Tracking:** Enforces a finite-state lifecycle machine (`SUBMITTED` $\to$ `IN_PROGRESS` $\to$ `RESOLVED`), requiring verified staff repair documentation before closure.
+
+---
+
+## Architecture & Workflow
+
+The platform links the React 18 client, FastAPI REST controllers, and SQLite storage engine across 5 operational phases:
 
 ```mermaid
 graph TD
-    A[Student Submits Grievance] --> B[CSPRNG Ticket Code: TICK-XXXX]
+    A[Grievance Intake Form] --> B[CSPRNG Code Generator: TICK-XXXX]
     B --> C[Keyword Router: Department Assignment]
-    C --> D[Priority Engine: Hazard Scoring & Urgency]
-    D --> E[Workload Dispatcher: Least-Loaded Squad]
-    E --> F[SLA Engine: Clock Ticks 4h / 12h / 24h / 72h]
-    F --> G[Admin Dashboard: Reassignment & Actions]
-    G --> H[Staff Resolution with Mandatory Repair Notes]
-    H --> I[Student Live Stepper Updated: RESOLVED]
+    C --> D[Priority Engine: Hazard Scoring & Urgency Tiers]
+    D --> E[Workload Dispatcher: Least-Loaded Squad Assignment]
+    E --> F[SLA Engine: Countdown Timers 4h / 12h / 24h / 72h]
+    F --> G[Staff Admin Workstation: Status Updates & Reassignment]
+    G --> H[Resolution Form: Mandatory Repair Documentation]
+    H --> I[Ticket State Machine: Marked RESOLVED]
 ```
 
 ---
 
-## 2. 30-Second Quick Start (How to Run Everything)
+## Quick Start
 
-### Option A: Windows 1-Click Launch (Recommended)
-Double-click the automated launcher in the project root:
-* **`run_all.bat`** (or **`start_dev.bat`**)  
-  * Automatically sets up Python virtual environments and installs dependencies.
-  * Launches the FastAPI backend server on `http://localhost:8000`.
-  * Launches the React Vite frontend dev server on `http://localhost:5173`.
-  * Automatically opens both browser tabs.
-* **To stop all servers:** Double-click **`stop_all.bat`** (cleanly terminates both background processes and frees ports `8000` and `5173`).
+### Windows (Automated Launcher)
+Launch both backend and frontend services using the project scripts:
+* **Start:** Run `run_all.bat` (or `start_dev.bat`). Automatically initializes environments, installs missing packages, and opens both browser interfaces.
+* **Stop:** Run `stop_all.bat`. Cleanly terminates background processes on ports `8000` and `5173`.
 
----
+### Manual Service Execution
+If running services individually across terminals:
 
-### Option B: Manual CLI Setup (Any OS)
-
-#### Terminal 1 — Backend (FastAPI + SQLite WAL):
 ```bash
+# Terminal 1 — Backend API (FastAPI)
 cd backend
-python -m venv venv
-
-# Windows:
-.\venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-pip install -r requirements.txt
+.\venv\Scripts\activate   # macOS/Linux: source venv/bin/activate
 uvicorn app.main:app --reload --port 8000
-```
-* **Interactive Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
-* **Backend Health Probe:** [http://localhost:8000/health](http://localhost:8000/health)
 
-#### Terminal 2 — Frontend (React 18 + Vite + Tailwind):
-```bash
+# Terminal 2 — Frontend UI (Vite)
 cd frontend
-npm install
 npm run dev
 ```
-* **React Web Application:** [http://localhost:5173](http://localhost:5173) (Vite proxies `/api` requests to `:8000`).
+
+### Access URLs
+| Service | URL | Description |
+| :--- | :--- | :--- |
+| **Web Client** | [http://localhost:5173](http://localhost:5173) | Single-page application (reverse-proxies `/api` to `:8000`) |
+| **API Documentation** | [http://localhost:8000/docs](http://localhost:8000/docs) | Interactive Swagger UI with OpenAPI 3.0 schema |
+| **Health Probe** | [http://localhost:8000/health](http://localhost:8000/health) | System health check and database ping endpoint |
 
 ---
 
-## 3. First-Time Setup: How to Install & Setup in Your Folder
+## Installation & Local Setup
 
-Follow these exact steps to clone the repository to your own computer and get everything running inside your preferred folder.
+### Prerequisites
+* **Python:** 3.10 or higher
+* **Node.js:** 18.0 or higher (with npm)
+* **Git:** 2.30 or higher
 
-### Step 1: Open Terminal in Your Chosen Directory
-Create or navigate to the folder on your computer where you want to keep your college projects:
-* **Windows (PowerShell or CMD):**
-  ```powershell
-  cd "C:\College\IT Workshop"
-  ```
-* **macOS / Linux:**
-  ```bash
-  cd ~/Documents/College/IT_Workshop
-  ```
-
----
-
-### Step 2: Clone the Git Repository
-Run `git clone` to download the entire project into your folder:
+### Step 1: Clone the Repository
+Clone the codebase into your local workspace and navigate into the root directory:
 ```bash
 git clone https://github.com/Headhunte-121/SmartComplaintHandler.git
 cd SmartComplaintHandler
 ```
 
----
-
-### Step 3: Switch to the Active Development Branch (`develop`)
-> [!IMPORTANT]
-> The `main` branch is reserved for final releases. **All active team development, feature coding, and collaboration happen on the `develop` branch.**
-
-Make sure you switch to `develop` before doing anything else:
+### Step 2: Checkout the Development Branch
+All active development, feature implementations, and team contributions take place on the `develop` branch:
 ```bash
 git checkout develop
 ```
-Verify that your terminal confirms: `Switched to branch 'develop'` (or `Already on 'develop'`).
 
----
-
-### Step 4: Install Backend Dependencies
-Set up an isolated Python virtual environment and install all packages:
+### Step 3: Backend Setup
+Create an isolated Python virtual environment and install project dependencies:
 ```bash
-# Navigate into backend directory
 cd backend
-
-# Create virtual environment (named venv)
 python -m venv venv
 
-# Activate virtual environment:
-# On Windows (PowerShell):
+# Windows (PowerShell):
 .\venv\Scripts\Activate.ps1
-# On Windows (CMD):
+# Windows (CMD):
 .\venv\Scripts\activate.bat
-# On macOS / Linux:
+# macOS / Linux:
 source venv/bin/activate
 
-# Install all required Python packages (FastAPI, SQLAlchemy, Pydantic, etc.)
 pip install -r requirements.txt
-
-# Return back to root directory
 cd ..
 ```
 
----
-
-### Step 5: Install Frontend Dependencies
-Install the Node.js packages for the React 18 / Vite / Tailwind client:
+### Step 4: Frontend Setup
+Install frontend npm packages:
 ```bash
-# Navigate into frontend directory
 cd frontend
-
-# Install all npm dependencies
 npm install
-
-# Return back to root directory
 cd ..
 ```
 
----
-
-### Step 6: Test That Everything Runs
-You can now start both servers with the 1-click launcher or terminal commands:
-* On Windows, simply double-click **`run_all.bat`**.
-* Open your browser to [http://localhost:5173](http://localhost:5173) and [http://localhost:8000/docs](http://localhost:8000/docs). Both should load smoothly!
+### Step 5: Verify Environment
+Start the development servers via `run_all.bat` or the CLI commands above, and verify that both [http://localhost:5173](http://localhost:5173) and [http://localhost:8000/docs](http://localhost:8000/docs) load without errors.
 
 ---
 
-## 4. Daily Git Workflow: How to Save, Push & Pull Work Safely
+## Git & Development Workflow
 
-When 5 students are collaborating on the same project, following this **daily 3-part routine** ensures nobody overwrites each other's code and eliminates merge conflicts.
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                DAILY GIT COLLABORATION CYCLE                           │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│  1. START OF SESSION:  Always PULL latest changes pushed by teammates:                 │
-│                        git checkout develop                                            │
-│                        git pull origin develop                                         │
-│                                                                                        │
-│  2. DURING CODING:     Write your code in your assigned module files.                  │
-│                        Check your status frequently: git status                        │
-│                                                                                        │
-│  3. END OF SESSION:    Stage, Commit, Pull again, and PUSH your work:                  │
-│                        git add .                                                       │
-│                        git commit -m "feat(M2): implement keyword router"             │
-│                        git pull origin develop                                         │
-│                        git push origin develop                                         │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
+### Branch Strategy
+* **`main`:** Production-ready release branch. Only merged via tested pull requests.
+* **`develop`:** Primary integration branch. All daily development, module implementation, and team contributions target this branch.
 
 ---
 
-### Part A: How to PULL from the Development Branch (Start of Work)
-**Rule #1 of Team Git:** Always pull before you start typing new code. If a teammate pushed a new model or API endpoint while you were asleep, pulling ensures you have it locally.
+### Pulling Upstream Updates
+Before starting any coding session, always pull the latest commits from the remote repository to ensure your local branch is synchronized:
 
 ```bash
-# 1. Make sure you are on develop:
 git checkout develop
-
-# 2. Pull all new commits from GitHub:
 git pull origin develop
 ```
 
-#### What if you already made some edits and Git warns: *"Your local changes would be overwritten"*?
-Don't panic! Use **`git stash`** to safely shelter your work:
+If you have local modifications you want to temporarily preserve before pulling:
 ```bash
-git stash               # Temporarily shelves your edits in a safe vault
-git pull origin develop # Downloads your teammates' updates cleanly
-git stash pop           # Restores your edits on top of the latest code
+git stash
+git pull origin develop
+git stash pop
 ```
 
 ---
 
-### Part B: How to SAVE & PUSH to the Development Branch (Saving Work)
-Whenever you complete a task or reach a working milestone, save your work to GitHub following these 4 steps:
+### Saving & Pushing Changes
+When you complete a task or reach an implementation milestone, commit and push your work using standard Git conventions:
 
-#### Step 1: Check what files you changed
 ```bash
+# 1. Review modified files:
 git status
-```
-*Modified files will be shown in red.*
 
-#### Step 2: Stage the files you want to save
-You can stage specific files:
-```bash
+# 2. Stage your changes:
 git add backend/app/services/keyword_router.py
-```
-Or stage all modified files at once:
-```bash
-git add .
-```
+# (or stage all tracked modifications: git add .)
 
-#### Step 3: Commit with a descriptive message
-Write a short message explaining what you built:
-```bash
-git commit -m "feat(M2): implement keyword router for department routing"
-```
+# 3. Create a descriptive commit:
+git commit -m "feat(M2): implement keyword router service"
 
-#### Step 4: Pull first, then Push!
-Always run `git pull` right before `git push` so Git integrates any simultaneous updates before pushing:
-```bash
-# Pull any simultaneous updates:
+# 4. Pull upstream updates to integrate any concurrent commits:
 git pull origin develop
 
-# Push your commit to GitHub:
+# 5. Push to the development branch:
 git push origin develop
 ```
-Your work is now safely backed up on GitHub and immediately available to your teammates!
 
 ---
 
-### Part C: How to Handle a Merge Conflict (No-Panic 3-Step Guide)
-A merge conflict only happens if you and a teammate edited the **exact same line in the same file** at the same time. Git will pause and tell you: `CONFLICT (content): Merge conflict in <file>`.
-
-1. **Open the conflicted file in VS Code.**  
-   You will see highlighted conflict markers:
-   ```python
-   <<<<<<< HEAD (Your local code)
-   assigned_department = "Plumbing"
-   =======
-   assigned_department = "Sanitation"
-   >>>>>>> origin/develop (Teammate's code pushed to GitHub)
-   ```
-2. **Choose which code to keep:**  
-   In VS Code, click **"Accept Current Change"**, **"Accept Incoming Change"**, or simply delete the markers (`<<<<<<<`, `=======`, `>>>>>>>`) and manually combine the lines.
-3. **Stage, commit, and push:**
+### Resolving Merge Conflicts
+If Git reports a merge conflict due to simultaneous edits on the same lines:
+1. Open the conflicted file in your editor (e.g. VS Code).
+2. Locate the conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>> origin/develop`).
+3. Select the desired changes, remove the conflict markers, and save the file.
+4. Stage the resolved file and commit:
    ```bash
-   git add <conflicted-file>
-   git commit -m "merge: resolve conflict in keyword router"
+   git add <resolved-file>
+   git commit -m "merge: resolve conflicts with develop"
    git push origin develop
    ```
 
-> 📖 *For a complete reference of 15 essential Git commands with low-level internal mechanics, see the [**`TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md).*
+> 📖 For an in-depth reference on Git commands, internal object graphs, and team collaboration conventions, see [**`docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md).
 
 ---
 
-## 5. Teammate Onboarding Checklist: What Do I Do First?
+## Modules & Subsystems (M1–M5)
 
-If you are a student or teammate who just joined this project, follow this **exact 6-step checklist**:
+The platform is structured into **5 modular subsystems**. The source files in `backend/app/` and `frontend/src/` provide clean starter templates, each containing header references to their governing blueprints in `docs/V1/`:
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              NEW TEAMMATE 6-STEP ONBOARDING                            │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│  STEP 1: Clone the repository and switch to the develop branch:                        │
-│          git checkout develop                                                          │
-│                                                                                        │
-│  STEP 2: Understand the code state:                                                    │
-│          - All source files in backend/app/ and frontend/src/ are CLEAN STARTER         │
-│            TEMPLATES. Each file has a header pointing directly to its blueprint.       │
-│          - A complete reference implementation is saved at tag: v1.0-reference-impl     │
-│                                                                                        │
-│  STEP 3: Check the Ownership Matrix (Section 6 below) to find your assigned module:    │
-│          Dev A (M1 Backend), Dev B (M2 Backend), Dev C (M1/M2 Frontend),               │
-│          Dev D (M3/M4 Backend), or Dev E (M5 Backend + Admin Frontend).                │
-│                                                                                        │
-│  STEP 4: Open your module's blueprint in docs/V1/ (e.g. docs/V1/M1/):                  │
-│          Follow Section 1 (Purpose), Section 2 (Required Items), and                   │
-│          Section 3 (Implementation Details) to write your file.                        │
-│                                                                                        │
-│  STEP 5: If you don't understand a concept (e.g. WAL mode, Pydantic, Hooks, CORS),    │
-│          click the links in Section 5 of your blueprint to read the corresponding      │
-│          manual in docs/developer_guide/.                                              │
-│                                                                                        │
-│  STEP 6: Verify your work before committing:                                           │
-│          pytest backend/tests/test_closed_loop.py -v                                   │
-│          npm run build                                                                 │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 6. 5-Student Team Ownership & Module Matrix
-
-To ensure zero merge conflicts and completely independent parallel progress, work is divided across **5 teammates**:
-
-| Role / Student | Assigned Module | Key Source Files to Implement | Governing Blueprints in `docs/V1/` |
+| Module | Subsystem Focus | Key Components | Implementation Blueprints |
 | :--- | :--- | :--- | :--- |
-| **Dev A**<br>*(Database & Storage)* | **Module M1 (Backend)** | `backend/app/core/config.py`<br>`backend/app/core/database.py`<br>`backend/app/models/*.py`<br>`backend/app/db/seed.py`<br>`backend/app/api/deps.py` | [**`docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`**](docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md)<br>Follows blueprints `01` through `10` |
-| **Dev B**<br>*(Ingestion & Router)* | **Module M2 (Backend)** | `backend/app/utils/code_generator.py`<br>`backend/app/services/keyword_router.py`<br>`backend/app/schemas/complaint.py`<br>`backend/app/services/ticket_service.py`<br>`backend/app/api/v1/endpoints/complaints.py` | [**`docs/V1/M2/00_M2_CENTRAL_OVERVIEW.md`**](docs/V1/M2/00_M2_CENTRAL_OVERVIEW.md)<br>Follows blueprints `01` through `08` |
-| **Dev C**<br>*(Frontend Architecture)* | **Module M1 & M2 (Frontend)** | `frontend/src/api/client.js`<br>`frontend/src/components/Layout.jsx`<br>`frontend/src/router/AppRouter.jsx`<br>`frontend/src/pages/SubmitComplaint.jsx`<br>`frontend/src/pages/TrackTicket.jsx` | [**`docs/V1/M1/`**](docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md#frontend-subsystem-frontend) & [**`docs/V1/M2/`**](docs/V1/M2/00_M2_CENTRAL_OVERVIEW.md#frontend-subsystem-frontend)<br>Follows M1/M2 Frontend blueprints `01`–`05` |
-| **Dev D**<br>*(Triage & Dispatch)* | **Module M3 & M4 (Backend)** | `backend/app/services/priority_engine.py`<br>`backend/app/services/classifier.py`<br>`backend/app/services/dispatch_engine.py`<br>`backend/app/services/team_service.py`<br>`backend/app/api/v1/endpoints/priority.py` | [**`docs/V1/M3/00_M3_CENTRAL_OVERVIEW.md`**](docs/V1/M3/00_M3_CENTRAL_OVERVIEW.md)<br>[**`docs/V1/M4/00_M4_CENTRAL_OVERVIEW.md`**](docs/V1/M4/00_M4_CENTRAL_OVERVIEW.md)<br>Follows M3 & M4 Backend suites |
-| **Dev E**<br>*(SLA & Admin Console)* | **Module M5 (Backend) + Admin UI** | `backend/app/services/sla_engine.py`<br>`backend/app/services/lifecycle.py`<br>`backend/app/api/v1/endpoints/sla.py`<br>`frontend/src/pages/AdminDashboard.jsx`<br>`frontend/src/components/SLABreachTable.jsx` | [**`docs/V1/M5/00_M5_CENTRAL_OVERVIEW.md`**](docs/V1/M5/00_M5_CENTRAL_OVERVIEW.md)<br>Follows M5 Backend & Frontend blueprints |
+| **M1** | **Data Layer & Application Shell** | SQLite WAL engine, ORM models (`Department`, `MaintenanceTeam`, `Ticket`), seed data, base Axios client, Layout shell, AppRouter | [**`M1 Central Overview`**](docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md) (15 blueprints) |
+| **M2** | **Ingestion & Keyword Routing** | CSPRNG ticket code generator, keyword routing service, Pydantic schemas, complaint intake page, status lookup stepper | [**`M2 Central Overview`**](docs/V1/M2/00_M2_CENTRAL_OVERVIEW.md) (13 blueprints) |
+| **M3** | **Priority & Triage Engine** | Urgency scoring, hazard detection rules, domain classifier, `PriorityBadge`, debounced `LiveTriageCard`, supervisor override modal | [**`M3 Central Overview`**](docs/V1/M3/00_M3_CENTRAL_OVERVIEW.md) (12 blueprints) |
+| **M4** | **Workload Dispatch & Operations Desk** | Least-loaded dispatch algorithm, squad workload query service, `AdminDashboard` page, `TeamWorkloadView`, reassignment modal | [**`M4 Central Overview`**](docs/V1/M4/00_M4_CENTRAL_OVERVIEW.md) (12 blueprints) |
+| **M5** | **SLA Timers & Lifecycle Automata** | Priority-to-hours SLA calculator, finite-state machine, countdown timer pill, breach table, staff resolution dialog | [**`M5 Central Overview`**](docs/V1/M5/00_M5_CENTRAL_OVERVIEW.md) (12 blueprints) |
 
-> 💡 **Need mock data while backend endpoints are being built?**  
-> Frontend developers should use the **Zero-Blocking Mock Contracts** in [**`docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md#3-zero-blocking-mock-data-contracts).
-
----
-
-## 7. Version 1.0 Module Architecture (M1–M5)
-
-Click into any module to open its central overview, DAG, and blueprints:
-
-```
-docs/V1/
-├── V1_CENTRAL_BLUEPRINT.md    # Master architecture charter across all modules
-├── V1_BLUEPRINT.md            # Full operational lifecycle trace
-├── TEAM_WORKFLOW_AND_GIT_GUIDE.md # 5-student operational manual & Git guide
-├── M1/                        # Data Storage Engine, Models & Shell
-│   ├── 00_M1_CENTRAL_OVERVIEW.md
-│   ├── backend/ (10 blueprints)
-│   └── frontend/ (5 blueprints)
-├── M2/                        # Intake, Code Generator & Keyword Router
-│   ├── 00_M2_CENTRAL_OVERVIEW.md
-│   ├── backend/ (8 blueprints)
-│   └── frontend/ (5 blueprints)
-├── M3/                        # Priority Engine & Live Triage Card
-│   ├── 00_M3_CENTRAL_OVERVIEW.md
-│   ├── backend/ (7 blueprints)
-│   └── frontend/ (5 blueprints)
-├── M4/                        # Squad Dispatch & Admin Operations Desk
-│   ├── 00_M4_CENTRAL_OVERVIEW.md
-│   ├── backend/ (7 blueprints)
-│   └── frontend/ (5 blueprints)
-└── M5/                        # SLA Clocks & Lifecycle State Machine
-    ├── 00_M5_CENTRAL_OVERVIEW.md
-    ├── backend/ (7 blueprints)
-    └── frontend/ (5 blueprints)
-```
-
-> 👉 **For the complete module matrix and directory guide, see [docs/V1/README.md](docs/V1/README.md).**
+> 💡 **Reference Implementation:** A verified, complete working reference implementation of all 64 files is permanently preserved at the Git tag **`v1.0-reference-impl`**. You can inspect it at any time with:  
+> `git checkout v1.0-reference-impl` (return to development with `git checkout develop`).
 
 ---
 
-## 8. Master Developer Guide Curriculum (34 Manuals)
+## Developer Guide Curriculum (34 Manuals)
 
-If you are unfamiliar with any language, framework, or concept, read our authoritative **Developer Guide Suite (`docs/developer_guide/`)**. Every guide is written from the ground up with zero prerequisites:
+For complete technical deep-dives into the languages, runtimes, protocols, and architectural patterns used across the codebase, consult the **Developer Guide Suite (`docs/developer_guide/`)**:
 
-* 📖 [**`docs/developer_guide/README.md`**](docs/developer_guide/README.md) — Master Handbook & Full-Stack Mental Model.
+* 📖 [**`docs/developer_guide/README.md`**](docs/developer_guide/README.md) — Master Curriculum Handbook & Full-Stack Mental Model.
 
-### Curriculum Overview:
+### Curriculum Structure
 * **Part I: Computer Science, OS & Network Foundations**
   * [`Unit 00A`](docs/developer_guide/00A_DATA_STRUCTURES_ALGORITHMS_AND_COMPLEXITY.md): Data Structures, Algorithms & Complexity
-  * [`Unit 00B`](docs/developer_guide/00B_OPERATING_SYSTEMS_PROCESSES_AND_CONCURRENCY_MECHANICS.md): OS Internals, Processes, Threads & Concurrency
-  * [`Unit 01A`](docs/developer_guide/01A_COMPUTER_NETWORKING_OSI_DNS_AND_IP_ROUTING.md): Computer Networking, OSI Model, DNS & Routing
+  * [`Unit 00B`](docs/developer_guide/00B_OPERATING_SYSTEMS_PROCESSES_AND_CONCURRENCY_MECHANICS.md): OS Processes, Threads & Concurrency
+  * [`Unit 01A`](docs/developer_guide/01A_COMPUTER_NETWORKING_OSI_DNS_AND_IP_ROUTING.md): Computer Networking, OSI, DNS & Routing
   * [`Unit 01B`](docs/developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md): HTTP Protocols, TCP Sockets & Wire Framing
-* **Part II: Backend Engineering & Databases**
+* **Part II: Backend Engineering, Relational Data & Schemas**
   * [`Guide 01`](docs/developer_guide/01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md): Python 3.10+ Language & CPython Runtime Mechanics
   * [`Guide 02`](docs/developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md): FastAPI & Modern ASGI Web Architecture
   * [`Guide 03`](docs/developer_guide/03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md): Pydantic v2 & Data Contract Engineering
@@ -400,7 +243,7 @@ If you are unfamiliar with any language, framework, or concept, read our authori
   * [`Unit 03C`](docs/developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md): Regular Expressions & Automata Theory
   * [`Guide 04`](docs/developer_guide/04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md): SQLite 3 Engine Storage & WAL Mode
   * [`Guide 05`](docs/developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md): SQLAlchemy 2.0 ORM & Relational Architecture
-* **Part III: Frontend Engineering & UI**
+* **Part III: Frontend Engineering, DOM & Reactive UI**
   * [`Unit 05B`](docs/developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md): JavaScript Core Language & Syntax Primitives
   * [`Unit 05C`](docs/developer_guide/05C_TYPESCRIPT_CORE_TYPE_SYSTEM_AND_STATIC_ANALYSIS.md): TypeScript Core Type System & Static Analysis
   * [`Guide 06`](docs/developer_guide/06_JAVASCRIPT_RUNTIME_AND_V8_MECHANICS.md): Modern JavaScript (ES2022+) & V8 Mechanics
@@ -418,35 +261,26 @@ If you are unfamiliar with any language, framework, or concept, read our authori
 
 ---
 
-## 9. Testing, Verification & Quality Gates
+## Testing & Quality Verification
 
-### Automated Quality Gates
-Before creating a pull request or merging to `develop`, verify your implementation against the test suite:
+Run the automated quality gates to verify code changes before pushing:
 
 ```bash
-# 1. Verify backend closed-loop lifecycle (Intake -> Routing -> Triage -> Dispatch -> SLA -> Resolution)
+# 1. Backend closed-loop integration test (Intake -> Routing -> Triage -> Dispatch -> SLA -> Resolution)
 pytest backend/tests/test_closed_loop.py -v
 
-# 2. Verify frontend production compilation & bundle assets
+# 2. Frontend production build verification
 cd frontend
 npm run build
 ```
 
-### Reference Implementation Fallback
-If any teammate gets stuck and wants to see how a complete, working version of all 64 files was implemented:
-```bash
-# Checkout the working reference implementation tag:
-git checkout v1.0-reference-impl
-
-# Return to active development branch:
-git checkout develop
-```
-
 ---
 
-## 10. Directory Architecture & References
+## Documentation Index
 
-* 🗺️ [**`docs/FILE_ARCHITECTURE_GUIDE.md`**](docs/FILE_ARCHITECTURE_GUIDE.md) — Complete 72-file directory anatomy.
-* 💡 [**`docs/FUNDAMENTALS_OF_FULL_STACK.md`**](docs/FUNDAMENTALS_OF_FULL_STACK.md) — Full-stack architecture fundamentals.
-* ⚖️ [**`docs/TECH_STACK_DECISION.md`**](docs/TECH_STACK_DECISION.md) — Tech stack rationale.
-* 🚀 [**`docs/VERSION_BLUEPRINT_ROADMAP.md`**](docs/VERSION_BLUEPRINT_ROADMAP.md) — Roadmap from V1.0 to V2.0 (AI/NLP) and V3.0 (IoT).
+* 🧭 [**`docs/README.md`**](docs/README.md) — Master documentation portal.
+* 📐 [**`docs/V1/README.md`**](docs/V1/README.md) — Version 1.0 module hub and blueprint index.
+* 🗺️ [**`docs/FILE_ARCHITECTURE_GUIDE.md`**](docs/FILE_ARCHITECTURE_GUIDE.md) — Comprehensive 72-file repository inventory.
+* 👥 [**`docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md) — Team collaboration manual, zero-blocking mock contracts, and concurrency DAG.
+* ⚖️ [**`docs/TECH_STACK_DECISION.md`**](docs/TECH_STACK_DECISION.md) — Technical decision rationales (FastAPI, SQLite WAL, React Vite, Tailwind).
+* 🚀 [**`docs/VERSION_BLUEPRINT_ROADMAP.md`**](docs/VERSION_BLUEPRINT_ROADMAP.md) — Long-term roadmap from V1.0 to V2.0 (AI/NLP) and V3.0 (IoT).
