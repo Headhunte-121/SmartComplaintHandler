@@ -6,6 +6,7 @@ In our platform, while backend data access and business automations execute in P
 
 ### Pedagogical Architecture & Monotonic Ordering Doctrine
 This manual is structured with **strict monotonic prerequisite ordering**. Every chapter builds exclusively upon foundations established in earlier chapters or referenced from prior foundational manuals:
+* Builds on foundational language mechanics in [Guide 05B: JavaScript Core Language, Lexical Grammar, and Syntax Primitives](05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md) and semantic document/DOM foundations in [Guide 06B: HTML5 Semantic Architecture, Document Object Model, and CSS3 Foundations](06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md).
 * No chapter requires concepts from higher-numbered chapters. The physical Document Object Model (DOM) bottlenecks and JSX compilation precede React Elements; React Elements precede Virtual DOM tree diffing; tree diffing precedes the Fiber data structure; Fiber data structures precede the two-phase Render/Commit pipeline; the pipeline precedes component state; and basic state precedes Hooks, concurrency, and context injection.
 * Connects directly with foundational and downstream platform engineering manuals:
   - [Guide 06: Modern JavaScript (ES2022+) & V8 Mechanics](06_JAVASCRIPT_RUNTIME_AND_V8_MECHANICS.md) (closures, prototype chains, heap allocations, and microtask scheduling)
@@ -43,53 +44,6 @@ This manual is structured with **strict monotonic prerequisite ordering**. Every
 ---
 
 ## Chapter 1: The Declarative UI Paradigm & The Real DOM Performance Bottleneck
-
-### 1.0 React Component Model & JSX Syntax from Scratch
-
-Before analyzing Fiber reconciliation trees, synthetic event delegation, and concurrent time-slicing schedulers, software engineers must understand the foundational concepts and declarative syntax of **React** and **JSX**.
-
-React is a JavaScript library for building user interfaces based on **Components**. Instead of manually finding DOM elements and altering their inner HTML via imperative instructions, React adopts a **declarative model**: you declare *what* the UI should look like for a given application state, and React handles updating the browser DOM to match.
-
-#### Foundational React Concepts
-1. **Components**: The fundamental building block of React applications. A component is a pure JavaScript function that accepts inputs (termed **Props**) and returns a tree of React elements describing what should appear on screen.
-2. **JSX (JavaScript XML)**: A syntax extension for JavaScript that looks similar to HTML. Under the hood, build tools (like Vite, [Guide 10: Vite & Modern Build Toolchains](10_VITE_AND_MODERN_BUILD_TOOLCHAINS.md)) compile JSX tags into standard function calls (`React.createElement` or `_jsxRuntime.jsx`).
-   - Tags must be closed: `<img />`, `<br />`, or `<div></div>`.
-   - Attributes use camelCase: `className` instead of `class`, `htmlFor` instead of `for`.
-   - JavaScript expressions are embedded within curly braces: `{citizenName}` or `{priority * 2}`.
-3. **Props (Properties)**: Read-only data passed from parent components down to child components. Props are immutable within the child; a component must never modify its own props.
-4. **State (`useState`)**: Internal, reactive memory managed within a component. When state changes via its setter function, React automatically schedules a re-render of the component and its children.
-5. **Event Handlers**: Functions attached to JSX elements to respond to user interactions (e.g., `onClick={handleClick}`, `onChange={handleChange}`).
-
-```jsx
-// Foundational React component demonstrating JSX, props, state, and event handling
-import React, { useState } from 'react'; // Import React core and standard useState state hook
-
-export function ComplaintPriorityCounter({ initialSeverity, complaintTitle }) { // Declare component function with props
-  const [severity, setSeverity] = useState(initialSeverity); // Allocate reactive state for severity rating
-
-  const handleEscalate = () => { // Event handler function managing button clicks
-    if (severity < 5) { // Guard condition capping severity at maximum level 5
-      setSeverity((prevSeverity) => prevSeverity + 1); // Increment severity rating state
-    } // Conclude conditional block
-  }; // Conclude event handler function
-
-  return ( // Return JSX element tree describing component UI
-    <div className="p-4 border rounded-lg bg-white shadow-sm"> // Root container element with Tailwind classes
-      <h3 className="text-lg font-bold text-gray-800">{complaintTitle}</h3> // Render dynamic complaint title
-      <p className="text-sm text-gray-600 mt-1"> // Render explanatory description paragraph
-        Current Urgency Level: <span className="font-semibold text-red-600">{severity}</span> // Display state value
-      </p> // Conclude paragraph element
-      <button // Interactive button element triggering state mutation
-        onClick={handleEscalate} // Bind click event to escalation handler function
-        disabled={severity >= 5} // Disable button when maximum severity is reached
-        className="mt-3 px-3 py-1.5 bg-red-600 text-white rounded text-sm disabled:opacity-50" // Apply styling
-      > // Conclude opening button tag
-        Escalate Priority // Display button action label text
-      </button> // Conclude button element
-    </div> // Conclude root container element
-  ); // Conclude JSX return
-} // Conclude ComplaintPriorityCounter component
-```
 
 ### 1.1 The Real DOM: Anatomy of a Reflow and Repaint
 

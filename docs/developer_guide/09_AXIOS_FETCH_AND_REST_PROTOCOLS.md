@@ -6,6 +6,7 @@ In our platform, backend business logic, validation schemas, and database transa
 
 ### Pedagogical Architecture & Monotonic Ordering Doctrine
 This manual is structured with **strict monotonic prerequisite ordering**. Every chapter builds exclusively upon foundations established in earlier chapters or referenced from prior foundational manuals:
+* Builds on network transport and HTTP wire protocol foundations established in [Guide 01B: HTTP Network Protocols, TCP Sockets, and Wire Framing Mechanics](01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md).
 * No chapter requires concepts from higher-numbered chapters. The physical HTTP/1.1 wire protocol and TCP byte stream framing precede client abstractions; client abstractions precede Axios instance configuration; instance configuration precedes request/response interceptors; interceptors precede status code semantics; status codes precede CORS preflight handshakes; CORS precedes cancellation tokens; and cancellation precedes retry resilience and offline synchronization.
 * Connects directly with foundational and downstream platform engineering manuals:
   - [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md) (ASGI HTTP request receive/send streams, route handlers, and error response schemas)
@@ -46,73 +47,6 @@ This manual is structured with **strict monotonic prerequisite ordering**. Every
 ---
 
 ## Chapter 1: The HTTP/1.1 Wire Protocol & TCP Framing Mechanics
-
-### 1.0 HTTP & REST Wire Protocol Fundamentals from Scratch
-
-Before analyzing TCP socket handshakes, Axios interceptor pipelines, and browser `AbortController` signal chains, software engineers must master the fundamental mechanics of the **Hypertext Transfer Protocol (HTTP)** and **Representational State Transfer (REST)** architecture.
-
-HTTP is an application-layer, stateless request-response protocol that serves as the communication foundation of the World Wide Web. Distributed systems rely on HTTP to exchange structured hypermedia and JSON payloads between independent client and server processes.
-
-#### Core Architectural Mechanics
-1. **The Client-Server Model**:
-   - **Client (User Agent)**: An application (such as the citizen's browser or mobile client) that initiates a communication channel by dispatching an HTTP Request.
-   - **Server (Origin)**: A backend service (such as our Uvicorn / FastAPI ASGI server) that receives, validates, executes business logic, and returns an HTTP Response.
-2. **Anatomy of a Uniform Resource Identifier (URI/URL)**:
-   ```text
-   https://api.smartcity.gov:443/api/v1/complaints?status=OPEN&page=1#summary
-   \___/   \________________/\__/ \_______________/ \_______________/ \_____/
-     |             |           |          |                  |            |
-   Scheme      Host (FQDN)    Port       Path           Query String   Fragment
-   ```
-3. **Anatomy of an HTTP Request**:
-   - **Request Line**: HTTP Method, Request Target Path, and Protocol Version (`POST /api/v1/complaints HTTP/1.1`).
-   - **Request Headers**: Key-value metadata informing the server of client capabilities (`Host: api.smartcity.gov`, `Content-Type: application/json`, `Accept: application/json`, `Authorization: Bearer <token>`).
-   - **Empty Line (`\r\n`)**: Mandatory separator signaling the end of the header section.
-   - **Request Body (Payload)**: Raw bytes or serialized text representing the data payload (e.g., JSON complaint attributes).
-4. **Anatomy of an HTTP Response**:
-   - **Status Line**: Protocol Version, Numeric Status Code, and Reason Phrase (`HTTP/1.1 201 Created`).
-   - **Response Headers**: Metadata describing the payload (`Content-Type: application/json`, `Content-Length: 128`, `Cache-Control: private`).
-   - **Empty Line (`\r\n`)**: Mandatory delimiter separating headers from response body.
-   - **Response Body**: The data payload delivered to the client (e.g., created ticket JSON object).
-5. **Standard HTTP Methods (Verbs)**:
-   - `GET`: Safe, idempotent retrieval of resource representations. Must never mutate server state.
-   - `POST`: Non-idempotent creation of subordinate resources or trigger of business processes.
-   - `PUT`: Idempotent full replacement of the target resource with the provided payload.
-   - `PATCH`: Partial modification of specific fields within the target resource.
-   - `DELETE`: Idempotent removal of the target resource.
-6. **HTTP Status Code Families**:
-   - `1xx` Informational: Request received, continuing process (e.g., `101 Switching Protocols`).
-   - `2xx` Success: Action successfully received, understood, and accepted (`200 OK`, `201 Created`, `204 No Content`).
-   - `3xx` Redirection: Further action needed to complete request (`301 Moved Permanently`, `304 Not Modified`).
-   - `4xx` Client Error: Client submitted invalid or unauthorized request (`400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `422 Unprocessable Entity`, `429 Too Many Requests`).
-   - `5xx` Server Error: Server encountered unhandled internal fault (`500 Internal Server Error`, `502 Bad Gateway`, `503 Service Unavailable`).
-
-```javascript
-// Foundational demonstration of raw HTTP request and response framing in JavaScript
-const requestMethod = 'POST'; // Define HTTP action verb indicating resource creation
-const requestPath = '/api/v1/complaints'; // Define target resource endpoint path
-const requestHeaders = { // Map headers describing payload formatting and authentication
-  'Host': 'api.smartcity.gov', // Mandated HTTP/1.1 virtual host identifier header
-  'Content-Type': 'application/json', // Inform origin parser that body contains JSON text
-  'Accept': 'application/json' // Instruct server to respond with JSON structured data
-}; // Conclude request headers definition
-
-const complaintPayload = { // Plain JavaScript object containing citizen grievance fields
-  title: 'Water pipe leak on Oak Street', // Brief summary describing issue
-  departmentId: 'WATER', // Targeted municipal department identifier
-  severity: 4 // Numerical severity score from 1 to 5
-}; // Conclude payload definition
-
-const serializedBody = JSON.stringify(complaintPayload); // Serialize object into raw JSON string bytes
-const simulatedRawRequest = `${requestMethod} ${requestPath} HTTP/1.1\r\n` + // Format status line
-  `Host: ${requestHeaders['Host']}\r\n` + // Inject Host header
-  `Content-Type: ${requestHeaders['Content-Type']}\r\n` + // Inject Content-Type header
-  `Content-Length: ${serializedBody.length}\r\n\r\n` + // Inject Content-Length and double newline
-  serializedBody; // Append serialized body payload
-
-console.log('Constructed HTTP Request Wire Framing:'); // Informational header log
-console.log(simulatedRawRequest); // Output complete wire format stream to console
-```
 
 ### 1.1 The Physical Wire Protocol & TCP Streams
 

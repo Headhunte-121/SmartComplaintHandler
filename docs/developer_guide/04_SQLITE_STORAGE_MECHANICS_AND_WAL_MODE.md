@@ -6,7 +6,7 @@ SQLite is the embedded storage foundation of our backend services. Unlike tradit
 
 ### Pedagogical Architecture & Monotonic Ordering Doctrine
 This manual is structured with **strict monotonic prerequisite ordering**. Every chapter builds exclusively upon foundations established in earlier chapters or referenced from prior foundational manuals:
-* Builds on CPython memory reference mechanics and file I/O fundamentals established in [Guide 01: Python 3.10+ Language & Runtime Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md).
+* Builds on CPython memory reference mechanics and file I/O fundamentals established in [Guide 01: Python 3.10+ Language & Runtime Mechanics](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md) and relational query foundations established in [Guide 03B: SQL Relational Language, Query Mechanics, and Transactional Integrity](03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md).
 * Provides the embedded storage engine and concurrency locking foundations consumed by [Guide 02: FastAPI & Modern ASGI Web Architecture](02_FASTAPI_ASGI_WEB_ARCHITECTURE.md) and [Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture](05_SQLALCHEMY_ORM_AND_DATA_LAYER.md).
 * No chapter requires concepts from higher-numbered chapters. In-process architecture and B-Tree disk formats precede VDBE bytecode; VDBE bytecode precedes pager caching; pager caching precedes ACID locks; lock mechanics precede WAL mode; and WAL mode precedes high-concurrency pragmas, full-text search, and multi-threaded connection management.
 
@@ -43,65 +43,6 @@ Every chapter in this manual provides:
 ---
 
 ## Chapter 1: The SQLite Philosophy & Architecture: An In-Process Engine
-
-### 1.0 SQL Fundamentals & Relational Declarative Syntax from Scratch
-
-Before investigating B-Tree disk sector layouts, WAL shared-memory rings, and VDBE opcode execution, software engineers must master the foundational syntax and relational declarative mechanics of the **Structured Query Language (SQL)**.
-
-SQL is a domain-specific declarative language designed for managing and querying structured data held in a **Relational Database Management System (RDBMS)**. Rather than writing procedural code detailing *how* to navigate memory buffers, engineers write declarative queries specifying *what* data must be retrieved, inserted, or updated.
-
-#### Core Relational Primitives & Concepts
-1. **Tables (Relations)**: A named two-dimensional grid composed of horizontal rows and vertical columns.
-2. **Rows (Records / Tuples)**: An individual atomic data entity (e.g., a single complaint filed by a citizen).
-3. **Columns (Attributes / Fields)**: A typed property common to all rows in the table (e.g., `title`, `created_at`, `status`).
-4. **Primary Key (`PRIMARY KEY`)**: A unique, non-null identifier guaranteeing identity for every row in the table (e.g., `id INTEGER PRIMARY KEY`).
-5. **Foreign Key (`FOREIGN KEY`)**: A column referencing the primary key of another table, enforcing **referential integrity** between related entities (e.g., linking a complaint to a specific municipal department).
-6. **SQLite Storage Classes (Types)**: SQLite uses a dynamic, manifest type system with 5 native storage classes:
-   - `NULL`: Missing or unassigned value.
-   - `INTEGER`: Signed integer stored in 1, 2, 3, 4, 6, or 8 bytes.
-   - `REAL`: 8-byte IEEE floating-point number.
-   - `TEXT`: UTF-8 or UTF-16 encoded text string.
-   - `BLOB`: Binary Large Object stored exactly as input (e.g., JPEG image attachments).
-
-#### Essential SQL Statement Families
-* **Data Definition Language (DDL)**: Creates and alters relational structures (`CREATE TABLE`, `ALTER TABLE`, `DROP TABLE`).
-* **Data Manipulation Language (DML)**: Reads, inserts, modifies, and deletes records (`SELECT`, `INSERT`, `UPDATE`, `DELETE`).
-* **Relational Joins**: Recombines normalized tables into denormalized result sets (`INNER JOIN`, `LEFT JOIN`).
-
-```sql
--- Foundational SQL relational schema and queries for the SmartComplaintHandler platform
-CREATE TABLE IF NOT EXISTS departments ( -- Declare table storing municipal department records
-  id TEXT PRIMARY KEY, -- Unique string identifier (e.g., 'WATER', 'ROADS', 'SANITATION')
-  name TEXT NOT NULL, -- Formal department name string
-  sla_threshold_hours INTEGER NOT NULL DEFAULT 24 -- Escalation deadline threshold duration
-); -- Conclude table creation
-
-CREATE TABLE IF NOT EXISTS complaints ( -- Declare table storing citizen complaint records
-  id INTEGER PRIMARY KEY AUTOINCREMENT, -- Monotonically increasing primary key integer
-  title TEXT NOT NULL, -- Short summary text describing citizen issue
-  department_id TEXT NOT NULL, -- Foreign key referencing assigned municipal department
-  severity INTEGER NOT NULL CHECK (severity BETWEEN 1 AND 5), -- Constrain severity between 1 and 5
-  status TEXT NOT NULL DEFAULT 'OPEN', -- Lifecycle state string ('OPEN', 'ASSIGNED', 'RESOLVED')
-  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP), -- Automated ISO UTC timestamp string
-  FOREIGN KEY (department_id) REFERENCES departments(id) -- Enforce referential integrity constraint
-); -- Conclude complaints table definition
-
--- Insert foundational seed records into departments table
-INSERT INTO departments (id, name, sla_threshold_hours) -- Specify target table and column names
-VALUES ('WATER', 'Department of Water Resources', 12); -- Insert department seed record values
-
--- Insert new citizen grievance record into complaints table
-INSERT INTO complaints (title, department_id, severity, status) -- Specify target insertion columns
-VALUES ('Broken water pipe flooding street', 'WATER', 5, 'OPEN'); -- Insert emergency grievance values
-
--- Query complaints joining department metadata for SLA monitoring
-SELECT c.id, c.title, c.severity, d.name AS department_name -- Project selected fields from joined tables
-FROM complaints AS c -- Target complaints table aliased as c
-INNER JOIN departments AS d ON c.department_id = d.id -- Join matching department record on primary key
-WHERE c.status = 'OPEN' AND c.severity >= 4 -- Filter active emergency grievances
-ORDER BY c.created_at ASC -- Sort oldest records first for priority triage
-LIMIT 10; -- Bound result set to first ten rows to prevent memory exhaustion
-```
 
 ### 1.1 Client-Server vs In-Process Database Engines
 
