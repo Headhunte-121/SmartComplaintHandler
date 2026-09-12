@@ -151,58 +151,18 @@ To be complete, this component must define, configure, and export the following 
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Unit 00A: Data Structures, Algorithms & Complexity**](../../../developer_guide/00A_DATA_STRUCTURES_ALGORITHMS_AND_COMPLEXITY.md)  
+  Algorithmic time and space complexity ($O(N)$, $O(1)$), hash tables, and priority sorting queues.
 
-### 1. Feature Weighting in Heuristic Algorithms
-Why do we multiply title matches by 2.0 instead of treating all text equally?
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Chomsky Type 3 regular languages, Deterministic Finite Automata (DFA), word boundaries (`\b`), and linear matching engines.
 
-* **Signal-to-Noise Ratio (SNR):**
-  * In communications theory and natural language processing, **Signal** is the meaningful information, and **Noise** is the irrelevant background text.
-  * Titles have high signal-to-noise ratios: students typically spend time choosing words that summarize the problem (`"Bathroom tap leak"`).
-  * Descriptions have low signal-to-noise ratios: students often write 50 words explaining how the leak ruined their shoes, when they noticed it, and how frustrated they are.
-* **Mathematical Multipliers in RAM:**
-  * By weighting title matches ($W_{\text{title}} = 2.0$) and body matches ($W_{\text{body}} = 1.0$), we implement a lightweight linear feature classifier:
-    $$\text{Score}(D) = \sum_{t \in \text{Title}} W_{\text{title}} \cdot \mathbb{I}(t \in D) + \sum_{b \in \text{Body}} W_{\text{body}} \cdot \mathbb{I}(b \in D)$$
-  * This guarantees that a clear title easily overrules noisy, stray keywords accidentally mentioned in the description.
-
----
-
-### 2. Normalizing Arbitrary Scores into Bounded Probabilities ($0.0$ to $1.0$)
-Why can't our API simply return raw integer scores like `score = 7`?
-
-* **The Problem of Raw Magnitudes:**
-  * If a user writes a 500-word essay mentioning 7 electrical terms, the score is 7. If another user writes a concise 10-word complaint mentioning 1 electrical term, the score is 1.
-  * Does a score of 7 mean the system is 7 times more confident than a score of 1? No! Both complaints are 100% about electrical problems. Raw counts correlate with text length, not classification certainty.
-* **Bounded Normalization:**
-  * By dividing the winning score by the total competing scores and bounding the result with `min(1.0, ...)`, we map unbounded integers into a normalized mathematical range $[0.0, 1.0]$.
-  * Frontend components can immediately multiply this float by 100 to render progress bars and percentage badges (`85%`) without knowing how long the original text was.
-
----
-
-### 3. Deterministic Tie-Breaking Algorithms
-What happens inside computer memory when two departments achieve the exact same score?
-
-* **The Flaw of Python's `max()` Function:**
-  * In Python, calling `max(scores.items(), key=lambda x: x[1])` on equal values returns whichever key appeared first in the dictionary insertion order.
-  * In professional systems, relying on accidental dictionary order is an anti-pattern.
-* **Explicit Deterministic Tie-Breaking:**
-  * When two departments tie with equal positive scores:
-    1. The algorithm checks if one department had matches specifically in the **title** (giving preference to title intent).
-    2. If both matched in the title, it falls back to a deterministic priority hierarchy (e.g. Electrical precedes Carpentry due to physical infrastructure risk).
-  * This guarantees that given identical inputs, the system's behavior is 100% repeatable and never depends on arbitrary memory ordering.
-
----
-
-### 4. Data Encapsulation in Multi-Level Dictionaries
-Why use a nested dictionary `DEPARTMENTS_TAXONOMY` instead of 6 separate lists?
-
-* **Centralized Data Locality:**
-  * Storing ID, name, and keyword sets in a single nested dictionary keeps all metadata related to a department co-located in memory.
-  * If the university creates a 7th department in the future, developers add a single entry to `DEPARTMENTS_TAXONOMY`. The tokenizer, scoring loop, normalizer, and tie-breaker automatically support the new department without changing a single line of procedural code.
+* [**Unit 21B: Cryptographic Mathematics, Encoding & Hashing**](../../../developer_guide/21B_CRYPTOGRAPHIC_MATHEMATICS_ENCODING_AND_HASHING.md)  
+  Shannon entropy, high-entropy cryptographic randomness (`secrets`), and collision-resistant identifier generation.
 
 ---
 

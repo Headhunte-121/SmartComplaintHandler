@@ -120,36 +120,18 @@ Without this verification protocol:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Synthetic Timer Progression in Browser DevTools
-Testing countdown timers that take hours to transition between color bands would be impossibly slow if engineers had to wait for real-world clocks.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-In our verification protocol, we test dynamic timers using Synthetic Timestamp Injection:
-- In the browser Developer Tools console, we test the timer by passing synthetic `slaDeadline` props:
-  - 5 hours ahead: Tests green pill (`bg-emerald-50`).
-  - 2 hours ahead: Tests sky blue pill (`bg-sky-50`).
-  - 30 minutes ahead: Tests pulsing amber pill (`bg-amber-50`).
-  - 15 minutes past: Tests pulsing red overdue badge (`bg-rose-100`).
-- This allows an engineer to verify all four visual states and their corresponding accessibility tags in less than 60 seconds.
+* [**Guide 10: Vite Build Engine & Module Bundling**](../../../developer_guide/10_VITE_AND_MODERN_BUILD_TOOLCHAINS.md)  
+  Production bundle compilation, asset minification, and static export validation.
 
-### 2. Event Delegation Verification in Complex Dashboards
-In component-based software architecture, validating event delegation requires verifying the complete callback chain:
-- When the user clicks "Reassign" inside `SLABreachTable.jsx`, the button does not open the modal directly.
-- It executes `onReassign(ticket)`.
-- The verification protocol confirms that:
-  1. The event object is not swallowed.
-  2. The exact ticket entity for that row is passed to the parent handler.
-  3. The parent `AdminDashboard.jsx` updates its `selectedTicketForReassign` state.
-  4. The `ReassignTeamModal.jsx` mounts with the correct ticket title pre-populated.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Component mount validation and teardown memory leak prevention.
 
-### 3. Real-Time Memory Leak Auditing in React SPAs
-A major cause of performance degradation in single-page applications is un-cleared intervals:
-- Checkpoint 5 tests for memory leaks by navigating between the student tracker (`/track`) and the admin dashboard (`/admin`) ten times in rapid succession.
-- In Chrome Developer Tools -> Performance / Memory tab, we verify that:
-  1. JavaScript Heap size returns to baseline after garbage collection.
-  2. Zero orphan timers remain ticking in the event loop.
-  3. The browser console displays zero warnings about state updates on unmounted components.
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Browser DevTools console auditing, network inspect validation, and SOP error diagnostics.
 
 ---
 

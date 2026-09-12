@@ -163,21 +163,18 @@ To ensure tests remain robust across different developer machines, adhere to the
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. In-Memory ASGI Test Harnesses (`FastAPI TestClient`)
-* **The Concept:** In modern web architecture, running tests against a live network server requires opening TCP sockets, which is slow, requires free network ports, and can be blocked by firewalls.
-* **How `TestClient` Operates:**
-  * FastAPI's `TestClient` uses ASGI (Asynchronous Server Gateway Interface) in-memory communication.
-  * It passes mock HTTP requests directly to FastAPI's ASGI entry point in RAM without touching network hardware.
-  * The entire request lifecycle (middleware, routing, schema validation, dependency injection, and response serialization) executes in under 5 milliseconds.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Database Isolation & Transaction Cleanliness
-* **The Concept:** In automated testing, test cases must be completely isolated from one another. A test must never depend on state created by a previous test, nor leave behind side effects.
-* **How We Maintain Database Cleanliness:**
-  * In Checkpoints 3 and 4, each test that persists a `Ticket` instance explicitly captures its generated primary key (`t.id`).
-  * In the teardown block, the test queries that exact entity, calls `db.delete(entity)`, and commits the deletion to SQLite.
-  * This guarantees that subsequent test runs start with a pristine database, preventing primary key collisions or test suite crosstalk.
+* [**Guide 12: Automated Testing, Fixtures & Integration**](../../../developer_guide/12_PYTEST_AND_AUTOMATED_TEST_SYSTEMS.md)  
+  Pytest test runners, fixture dependency injection (`scope="function"`), and in-memory ASGI dispatch via Starlette `TestClient`.
+
+* [**Guide 04: SQLite 3 Engine Architecture & Storage Mechanics**](../../../developer_guide/04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)  
+  Isolated transactional rollbacks and clean SQLite in-memory test databases.
+
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Testing dependency overrides and closed-loop endpoint assertions.
 
 ---
 

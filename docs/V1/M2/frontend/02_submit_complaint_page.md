@@ -137,38 +137,24 @@ Without this blueprint:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Controlled Components vs. Uncontrolled Components
-In standard HTML form handling, the browser's Document Object Model (DOM) maintains the input field's state. You read the value only when the user submits by inspecting `document.getElementById('title').value`.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-In React, this is considered an anti-pattern. Instead, our form implements Controlled Components:
-1. Component state (`formData.title`) is the single source of truth.
-2. The `<input>` element displays the value passed in via its `value` prop.
-3. When the user presses a key, the browser fires an `onChange` event.
-4. The event handler reads `event.target.value` and updates React state via `setFormData`.
-5. React re-renders the input with the new value.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
 
-Benefits of controlled components:
-- Instant UI Feedback: The character counter (`formData.description.length`) recalculates on every keystroke without querying the DOM.
-- Instant Validation: Errors can be cleared the moment the user types a valid character.
-- Programmatic Control: Clearing the form after submission requires only `setFormData(initialState)`.
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
 
-### 2. Form State Machines & Double-Submit Protection
-A common failure mode in web applications is the "rapid double-click": a student clicks the "Submit" button twice in quick succession. Without safeguards, two identical network requests are dispatched, resulting in two separate tickets in the database with different tracking codes for the same physical issue.
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
 
-Our component implements a Form State Machine to eliminate this:
-- The component defines four mutually exclusive states: `'idle'`, `'submitting'`, `'success'`, `'error'`.
-- When the submission begins, `submitStatus` transitions to `'submitting'`.
-- In `'submitting'` state, the submit button has `disabled={true}` and inputs have `disabled={true}`.
-- Subsequent clicks on the button are completely ignored by the browser.
-- Only when the network promise resolves or rejects does the state machine transition out of `'submitting'`, guaranteeing that exactly one complaint is created per submission intent.
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
 
-### 3. Accessible Form Semantics (`aria-invalid` & `aria-describedby`)
-To ensure compliance with institutional accessibility standards (WCAG 2.1 AA):
-- Every form field links its `<label>` to its `<input>` using matching `htmlFor` and `id` attributes. Screen readers announce the label whenever an input receives keyboard focus.
-- When an input fails validation, the input element is dynamically assigned `aria-invalid="true"`.
-- The error text element is assigned an ID (e.g. `id="title-error"`) and the input references it via `aria-describedby="title-error"`. When a visually impaired student focuses the invalid field, their screen reader announces both the field label and the specific error message.
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 

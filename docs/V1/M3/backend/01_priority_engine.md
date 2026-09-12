@@ -153,63 +153,18 @@ To be complete, this component must define, configure, and export the following 
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Unit 00A: Data Structures, Algorithms & Complexity**](../../../developer_guide/00A_DATA_STRUCTURES_ALGORITHMS_AND_COMPLEXITY.md)  
+  Algorithmic time and space complexity ($O(N)$, $O(1)$), hash tables, and priority sorting queues.
 
-### 1. Short-Circuit Evaluation and Defensive Early Returns
-How does the control flow of this engine protect system safety?
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Chomsky Type 3 regular languages, Deterministic Finite Automata (DFA), word boundaries (`\b`), and linear matching engines.
 
-* **Linear Traversal vs. Guard Clauses:**
-  * In naive code, an algorithm might calculate scores for all tiers, store them in temporary variables, and compare them at the end.
-  * In safety-critical engineering, we use **Guard Clauses with Early Returns**:
-    `if is_hazard(text):`
-    `    return {"priority": PRIORITY_CRITICAL, ...}`
-* **Why This Matters in RAM:**
-  * If a high-voltage spark is detected, evaluating whether the complaint also mentions a scratched table is completely irrelevant.
-  * Returning immediately from the function halts further regex operations, releases CPU cycles, and guarantees that no secondary rule can ever accidentally overwrite or downgrade a life-safety hazard.
-
----
-
-### 2. Set Theory and Set Intersections in Memory (`set.intersection`)
-Why are keyword pools declared as Python `set` collections rather than `list` objects?
-
-* **List Membership ($O(N)$) vs. Set Lookup ($O(1)$):**
-  * In Python, checking `'fire' in my_list` scans every element in the list one by one until it finds a match or reaches the end (linear search, $O(N)$).
-  * A Python `set` is implemented as an in-memory **Hash Table** without values.
-  * When Python checks `'fire' in my_set`, it hashes the string `'fire'` and inspects the memory address directly. Membership verification takes $O(1)$ constant time.
-* **Set Intersection Operations:**
-  * When comparing a set of extracted words against keyword pools:
-    `matches = extracted_words.intersection(CRITICAL_KEYWORDS)`
-  * Python executes the intersection in low-level C code at memory speed, identifying all shared terms in a single optimized pass.
-
----
-
-### 3. Substring Collisions & Word Boundaries Revisited (`"paint"` vs. `"complaint"`)
-Why is word boundary matching even more critical for priority calculations than department routing?
-
-* **The Catastrophic Downgrade Bug:**
-  * Suppose our cosmetic pool contains `"paint"`.
-  * A student submits a serious report: *"The electrical switch caught fire. This is my third **complaint**."*
-  * If the engine used simple substring matching:
-    `'paint' in 'This is my third complaint'` ➔ Evaluates to `True`!
-  * If the rule logic was flawed, the word `"complaint"` could falsely trigger the cosmetic rule and downgrade an electrical fire to `LOW` priority!
-* **Regular Expression Word Boundaries (`\b`):**
-  * Wrapping keywords in `r"\b" + keyword + r"\b"` guarantees that the letter `p` in `"paint"` must not be preceded by `"com"`.
-  * Only genuine, standalone words match, preventing catastrophic misclassifications.
-
----
-
-### 4. Explainable System Architecture (Transparency in Decision Engines)
-Why is returning a `reasoning` string considered standard architectural practice?
-
-* **The "Black Box" Problem:**
-  * If a system outputs only `{"priority": "HIGH"}`, human operators cannot determine why the decision was made. If a ticket is misclassified, debugging requires stepping through code with a debugger.
-* **Audit Transparency:**
-  * By returning `{"priority": "HIGH", "detected_keywords": ["burst", "pipe"], "reasoning": "Major infrastructure failure detected: burst"}`, the system explains its own internal logic.
-  * If an evaluator asks during a project demo: *"Why is this ticket marked High?"*, the frontend can display the reasoning string directly on the screen, proving that the algorithm works deterministically.
+* [**Unit 21B: Cryptographic Mathematics, Encoding & Hashing**](../../../developer_guide/21B_CRYPTOGRAPHIC_MATHEMATICS_ENCODING_AND_HASHING.md)  
+  Shannon entropy, high-entropy cryptographic randomness (`secrets`), and collision-resistant identifier generation.
 
 ---
 

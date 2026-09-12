@@ -159,21 +159,18 @@ To ensure UI consistency across different developer laptops, adhere to the follo
 
 ---
 
-# 5. Advanced Frontend Concepts Explained: State & React Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Full-Stack Data Flow & Non-Blocking Asynchronous UI
-* **The Concept:** Modern web applications decouple user interfaces from backend database writes using asynchronous protocols.
-* **How It Operates Across the Stack:**
-  * When a supervisor clicks "Confirm Reassignment", React displays a loading spinner on the button.
-  * The browser dispatches an asynchronous HTTP request over the network.
-  * The backend acquires a database connection, updates the row in SQLite, commits the change, and responds with HTTP 200.
-  * React receives the response, updates component state, and triggers a lightweight virtual DOM reconciliation that re-renders only the modified table row.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Microtask Execution & Virtual DOM Diffing
-* **The Concept:** React does not redraw the entire browser page when data changes; it computes the minimal difference (diff) between virtual DOM trees.
-* **Performance Impact:**
-  * When `setTickets(...)` updates a single ticket in an array of 500 items, React's reconciliation engine updates only that specific `<tr>` DOM node.
-  * The rest of the page (the search bar, the filter dropdowns, the telemetry cards) remains completely untouched, ensuring sub-16ms render frames ($60\text{ FPS}$).
+* [**Guide 10: Vite Build Engine & Module Bundling**](../../../developer_guide/10_VITE_AND_MODERN_BUILD_TOOLCHAINS.md)  
+  Production bundle compilation, asset minification, and static export validation.
+
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Component mount validation and teardown memory leak prevention.
+
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Browser DevTools console auditing, network inspect validation, and SOP error diagnostics.
 
 ---
 

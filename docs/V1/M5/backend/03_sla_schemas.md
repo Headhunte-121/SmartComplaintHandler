@@ -135,36 +135,18 @@ Without these schemas:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Pydantic V2 Rust Core Validation Performance
-In Pydantic V1, data parsing was implemented in pure Python. Every field validation traversed multiple Python function frames, incurring noticeable CPU overhead on high-throughput REST APIs.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-Pydantic V2 re-engineers validation around `pydantic-core`, a high-speed compiled Rust engine:
-- When a JSON request body arrives, FastAPI passes the raw bytes directly to the Rust core.
-- Type coercion, string length assertions, and enum matching execute in compiled machine code, operating 5 to 20 times faster than pure Python.
-- If validation succeeds, Python objects are created directly from validated memory buffers, minimizing memory allocation overhead.
+* [**Guide 03: Pydantic v2 & Data Contract Engineering**](../../../developer_guide/03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md)  
+  Pydantic v2 validation engine, field constraints (`Field`), custom validators (`@field_validator`), and DTO serialization.
 
-### 2. Strict String Enums vs. Loose String Literals
-In junior Python applications, status fields are often typed as loose strings (`status: str`):
-- Any arbitrary string is accepted by the schema.
-- Typographical errors (such as `"in_progress"` vs `"IN_PROGRESS"`) slip past validation and enter the database.
-- Every service function must write defensive `if status == ...` checks repeatedly.
+* [**Guide 01: Python Language and Runtime Mechanics**](../../../developer_guide/01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md)  
+  Modern Python typing (PEP 484/604 union operators), structural subtyping, and memory object lifecycle.
 
-Our schemas enforce Strict String Enumerations:
-- `TicketStatusEnum` defines an exhaustive, closed set of allowed values.
-- If a client passes `"IN_PROGRESS"`, Pydantic accepts it.
-- If a client passes `"INPROGRESS"` or `"done"`, Pydantic's Rust core immediately rejects the payload with an automated HTTP 422 error, generating OpenAPI schema documentation that informs frontend developers of the exact allowed values.
-
-### 3. Schema Decoupling from Database ORM Entities
-In naive software design, developers often attempt to use database ORM models directly as API request/response payloads:
-- Database columns (such as internal foreign keys or sensitive audit notes) are accidentally exposed to public clients.
-- Modifying a database column requires refactoring all client-facing APIs, breaking mobile applications and third-party integrations.
-
-Our architecture enforces strict Schema Decoupling:
-- ORM entities in Module M1 (`Ticket`, `Department`, `MaintenanceTeam`) govern physical disk storage.
-- Pydantic DTOs in this module (`StatusUpdateRequest`, `TicketResolveRequest`, `TicketLifecycleResponse`) govern the public network interface.
-- Changes to database indexing or table layouts have zero impact on external clients, and public API changes never inadvertently corrupt database tables.
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Deterministic regex syntax constraints and ReDoS prevention for string inputs.
 
 ---
 

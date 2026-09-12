@@ -150,32 +150,18 @@ To preserve database consistency across teammates' components, follow these oper
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Relational Joins vs. Lazy Loading in SQLAlchemy 2.0
-* **The Concept:** When querying teams, each `Team` has a parent `Department`. In SQLAlchemy, accessing `team.department.name` can trigger a secondary SQL query if the relationship is configured for **Lazy Loading**.
-* **The N+1 Query Problem:**
-  * If you fetch 12 teams and access `team.department.name` inside a loop, SQLAlchemy fires 1 query to fetch the teams, plus 12 additional queries to fetch each department (13 queries total). This is known as the **N+1 Query Problem**.
-* **The Optimized Solution (Eager Joining):**
-  * By writing `db.query(Team).join(Department)` or using `joinedload(Team.department)`, SQLAlchemy executes a single unified SQL `INNER JOIN` query: `SELECT teams.*, departments.* FROM teams JOIN departments ON teams.department_id = departments.id`.
-  * All 12 squads and their parent department names are loaded into memory in one single disk roundtrip, executing in under 1 millisecond.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Workload Banding & Business Telemetry Categorization
-* **The Concept:** Raw numbers (e.g. `active_ticket_count = 7`) are difficult for human supervisors to parse quickly during high-stress operational shifts.
-* **How Business Telemetry Categorization Works:**
-  * The service translates raw numerical counters into discrete operational status bands:
-    * `0 - 2`: `LOW` (Green: squad is underutilized and ready for immediate dispatch).
-    * `3 - 5`: `NORMAL` (Blue: healthy operational queue depth).
-    * `6 - 8`: `HIGH` (Yellow: squad approaching capacity limit).
-    * `9+`: `AT_CAPACITY` (Red: squad saturated; dispatch should be avoided).
-  * This abstraction simplifies frontend rendering: the UI simply checks `workload_status` to apply Tailwind color styles (`bg-emerald-500`, `bg-amber-500`, `bg-rose-500`) without hardcoding mathematical threshold rules in React components.
+* [**Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture**](../../../developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md)  
+  Unit of Work transaction management (`db.commit()`, `db.rollback()`), query execution, and entity hydration.
 
-### 3. Atomic State Updates & Identity Map Refreshing
-* **The Concept:** When `toggle_team_availability()` updates a squad's status and commits the change, the in-memory Python object may have stale attributes compared to SQLite's disk state.
-* **Why `db.refresh()` Is Mandatory:**
-  * When `db.commit()` executes, SQLAlchemy marks all objects in the `Session` Identity Map as expired.
-  * Calling `db.refresh(team)` forces SQLAlchemy to immediately re-read the updated row from SQLite, reloading all current database column values and relational properties into the Python object.
-  * This guarantees that when the function returns `team`, the caller receives an object whose in-memory state matches physical disk storage with 100% fidelity.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Service layer decoupling, dependency injection wiring, and custom exception hierarchies.
+
+* [**Unit 03B: SQL Relational Language & Query Mechanics**](../../../developer_guide/03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)  
+  Atomic transaction isolation, ACID guarantees, and declarative relational queries.
 
 ---
 

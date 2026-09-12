@@ -98,59 +98,18 @@ To be complete, this component must establish, configure, and declare two essent
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture**](../../../developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md)  
+  Declarative table mapping (`Mapped`, `mapped_column`), relationship back-populates, and lazy vs eager joins.
 
-### 1. Python Packages vs. Modules: The Anatomy of `__init__.py`
-In Python's runtime architecture:
-* A **Module** is a single `.py` file containing Python definitions and statements.
-* A **Package** is a directory that contains an `__init__.py` file.
-* **Why Does `__init__.py` Exist?**
-  * When Python searches for code on your computer, it inspects the directories listed in `sys.path`.
-  * If you write `import app.models`, Python looks for a folder named `models` inside `app`.
-  * If `__init__.py` is present, Python executes it and initializes a `module` object in memory whose `__package__` attribute is set to `"app.models"`.
-  * Any variables, classes, or functions defined or imported inside `__init__.py` become direct attributes of the package object itself.
+* [**Unit 03B: SQL Relational Language & Query Mechanics**](../../../developer_guide/03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)  
+  Relational schema definitions, primary keys, foreign key constraints, 1:N cardinality, and index B-trees.
 
----
-
-### 2. The Facade Architectural Design Pattern
-In software engineering, the **Facade Pattern** is an architectural design principle where a single, unified interface is placed in front of a complex subsystem of disparate modules.
-
-* **Without a Facade:**
-  * External consumers must understand the internal file organization of the subsystem (`department.py`, `team.py`, `ticket.py`).
-  * If the internal files are split, merged, or renamed, every consuming module across the application must update its import paths.
-* **With `__init__.py` as a Facade:**
-  * External consumers only interact with the facade: `from app.models import Department, Team, Ticket`.
-  * The internal organization of files inside the `models/` directory can be refactored freely without altering a single line of consuming code in routers, services, or tests.
-
----
-
-### 3. Python's Module Execution Side-Effects and `sys.modules`
-Understanding how Python executes imports is essential to understanding how SQLAlchemy discovers database tables:
-
-* **Top-Level Code Execution on First Import:**
-  * When Python imports a module for the first time, it does not just read definitions; it **executes** all top-level statements from line 1 to the end of the file.
-  * Once executed, Python places the resulting module into the global cache `sys.modules`. Future imports simply return the cached reference from `sys.modules`.
-* **Metaclass Table Registration as a Side-Effect:**
-  * When `__init__.py` executes `from app.models.department import Department`, Python loads and executes `department.py`.
-  * As Python parses the line `class Department(Base):`, SQLAlchemy's declarative metaclass immediately runs.
-  * The metaclass constructs a `Table` schema object and registers it inside the central `Base.metadata.tables` dictionary.
-  * Therefore, simply importing all models inside `__init__.py` has the vital architectural **side-effect** of fully populating `Base.metadata` in memory, ensuring that subsequent table-creation commands have full knowledge of all database tables.
-
----
-
-### 4. Public API Contracts with `__all__`
-In Python, `__all__` is an explicit declaration of a module's public interface:
-
-* **Controlling Wildcard Imports (`from ... import *`):**
-  * If a module writes `from app.models import *`, Python checks if `__all__` is defined in `__init__.py`.
-  * If `__all__ = ["Department", "Team", "Ticket"]`, Python imports *only* those three symbols into the caller's namespace.
-  * If `__all__` were omitted, Python would import every symbol defined in `__init__.py`, including internal helper modules and temporary variables, polluting the caller's namespace and introducing subtle naming collision bugs.
-* **Static Analysis Contracts:**
-  * Linting tools (like Flake8) and type checkers (like Mypy) treat `__all__` as an immutable public API contract, allowing them to verify that exported classes are present and typed correctly.
+* [**Guide 04: SQLite 3 Engine Architecture & Storage Mechanics**](../../../developer_guide/04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)  
+  Physical SQLite page formatting, WAL concurrency, and atomic disk transactions.
 
 ---
 

@@ -240,67 +240,18 @@ To be complete, this component must define, configure, and establish the followi
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture**](../../../developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md)  
+  Declarative table mapping (`Mapped`, `mapped_column`), relationship back-populates, and lazy vs eager joins.
 
-### 1. First-Class Functions, Callables, and Deferred Execution with `lambda`
-Notice how timestamps are configured on `created_at` and `updated_at`:
-`default=lambda: datetime.now(timezone.utc)`
-Why do we use a `lambda` here instead of simply writing `default=datetime.now(timezone.utc)`?
+* [**Unit 03B: SQL Relational Language & Query Mechanics**](../../../developer_guide/03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)  
+  Relational schema definitions, primary keys, foreign key constraints, 1:N cardinality, and index B-trees.
 
-* **Functions as First-Class Objects in Python:**
-  * In Python, functions are first-class values, exactly like integers or strings. You can pass a function itself as an argument into another function without calling it.
-* **The Catastrophic Bug of Immediate Evaluation (`()`):**
-  * When Python imports `ticket.py`, it executes the class definition **once** when the server boots up (e.g. at 9:00:00 AM on Monday).
-  * If you write `default=datetime.now()`, the parentheses `()` instruct Python to call the function immediately at import time. The resulting timestamp (Monday 9:00:00 AM) is permanently baked into the column definition in memory.
-  * Every single ticket created on Monday, Tuesday, or next month would receive that exact same 9:00:00 AM timestamp!
-* **Deferred Execution via Callable Lambdas:**
-  * A `lambda` is an anonymous function—a package of executable code that has not been called yet.
-  * Writing `lambda: datetime.now(timezone.utc)` hands SQLAlchemy a **Callable Reference** (a pointer to code).
-  * SQLAlchemy stores this pointer. Whenever a new `Ticket` object is created and flushed to the database, SQLAlchemy invokes the callable at that exact millisecond, producing the true current time.
-
----
-
-### 2. Unit of Work Lifecycle Event Triggers (`onupdate`)
-How does `updated_at` automatically refresh its timestamp without requiring developers to manually write update lines in every API route handler?
-
-* **SQLAlchemy's Unit of Work State Tracker:**
-  * Inside a session, SQLAlchemy tracks every model instance across four states:
-    1. **Transient:** Newly created in Python RAM, not yet associated with a database session.
-    2. **Pending:** Added to a session, awaiting database write.
-    3. **Persistent:** Synchronized with an existing row on disk.
-    4. **Dirty:** An existing persistent object whose attributes have been modified in RAM.
-* **The `onupdate` Event Trigger:**
-  * When you modify an attribute on an existing ticket (e.g. `ticket.status = "IN_PROGRESS"`), SQLAlchemy’s descriptor marks the ticket object as "dirty".
-  * When `db.commit()` is called, SQLAlchemy inspects all dirty objects. It detects that `updated_at` has an `onupdate` callable hook registered.
-  * SQLAlchemy automatically invokes the lambda, stamps the new timestamp into `updated_at`, and appends the updated column to the generated SQL `UPDATE` statement. This keeps audit trails 100% automated and immune to developer forgetfulness.
-
----
-
-### 3. Timezone-Aware vs. Naive Datetime Objects in Python
-Notice that timestamps explicitly use `datetime.now(timezone.utc)` rather than plain `datetime.now()`.
-
-* **Naive Datetimes (The Root of Time Bugs):**
-  * A **Naive Datetime** object in Python holds only numbers (year, month, day, hour, minute) with no timezone context.
-  * If a server running in New York saves a naive timestamp at 3:00 PM, and a developer running in India queries that timestamp, the computer cannot determine whether 3:00 PM was EST, UTC, or IST.
-  * Comparing naive datetimes with aware datetimes raises a `TypeError: can't compare offset-naive and offset-aware datetimes`.
-* **Aware Datetimes (`timezone.utc`):**
-  * An **Aware Datetime** explicitly attaches a timezone reference object (`tzinfo=timezone.utc`).
-  * Coordinated Universal Time (UTC) is the global, unambiguous scientific time standard. It does not observe Daylight Saving Time shifts.
-  * Standardizing on UTC across the entire database ensures that calculating remaining SLA durations ($T_{deadline} - T_{current}$) is mathematically deterministic across all servers and client browsers globally.
-
----
-
-### 4. Insecure Direct Object References (IDOR) & Public Token Architecture
-Why does this model maintain both an integer `id` and a string `tracking_code`?
-
-* **Internal Efficiency vs. External Security:**
-  * Relational database engines are optimized for numeric integers: comparing two integers takes 1 CPU cycle, and integer B-trees are highly compact. Therefore, internal foreign keys and database joins should always use integer primary keys (`id`).
-  * However, exposing sequential numeric IDs to public users creates severe security vulnerabilities: anyone can scrape tickets by looping through numbers `1..10000`.
-  * By generating a randomized, formatted public string (`tracking_code = "TICK-2026-A1B2"`), the application achieves the best of both worlds: maximum database engine performance internally, and complete IDOR protection for students externally.
+* [**Guide 04: SQLite 3 Engine Architecture & Storage Mechanics**](../../../developer_guide/04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)  
+  Physical SQLite page formatting, WAL concurrency, and atomic disk transactions.
 
 ---
 

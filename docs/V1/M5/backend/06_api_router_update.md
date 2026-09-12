@@ -93,32 +93,15 @@ Without this central router update:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. FastAPI APIRouter Hierarchical Aggregation
-In ASGI (Asynchronous Server Gateway Interface) applications, routing is structured as a tree:
-- Root Level: `FastAPI()` application in `main.py`.
-- Level 1: `api_router` in `router.py` mounted with prefix `/api/v1`.
-- Level 2: Domain routers (`tickets.router`, `priority.router`, `assignment.router`, `sla.router`).
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-When an HTTP packet arrives, the routing engine traverses the tree using radix tree lookup:
-- It strips `/api/v1`.
-- It matches the remaining path against Level 2 routers.
-- This hierarchical tree structure ensures $O(K)$ path resolution speed (where $K$ is the length of the URL path string), completely independent of how many total endpoints exist in the application.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Hierarchical router aggregation, Composite architectural pattern, and prefix tree URL compilation.
 
-### 2. Path Precedence & Parameter Shadowing
-A common routing vulnerability in web frameworks is Parameter Shadowing:
-- If a route `GET /tickets/{ticket_id}` is declared *before* `GET /tickets/breaches/active`, a naive router might interpret the literal string `"breaches"` as an integer `ticket_id`, triggering a 422 validation error.
-
-FastAPI prevents this through explicit route ordering and type constraints:
-- By declaring `ticket_id: int` on individual resource routes, FastAPI rejects non-integer strings like `"breaches"`, allowing the router to continue searching down the tree.
-- Furthermore, our SLA breach endpoint is scoped under `/sla/breaches/active`, completely avoiding path collision with `/tickets/{id}`.
-
-### 3. Automated OpenAPI Schema Compilation
-FastAPI generates interactive API documentation dynamically:
-- When `api_router.include_router(sla.router)` is invoked, FastAPI inspects the Pydantic type annotations of all endpoint handlers.
-- It automatically compiles JSON Schema specifications for `StatusUpdateRequest`, `TicketResolveRequest`, `EscalationRequest`, and `SLABreachResponse`.
-- Frontend developers can open `http://127.0.0.1:8000/docs` in their browser, view the exact JSON payload structures, and click "Try it out" to send live test requests to the database without writing a single line of test code.
+* [**Guide 01: Python Language and Runtime Mechanics**](../../../developer_guide/01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md)  
+  Module import hierarchy, namespace isolation, and clean architectural boundaries.
 
 ---
 

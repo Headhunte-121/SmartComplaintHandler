@@ -178,29 +178,21 @@ To preserve system compatibility across teammates' components, follow these oper
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. RESTful Path Design & Resource Hierarchies
-* **The Concept:** Standard REST architecture models APIs around **Resources** and **Sub-Resources**.
-* **How We Structure Assignment URLs:**
-  * Notice that `/tickets/{ticket_id}/reassign` and `/tickets/{ticket_id}/dispatch` operate on a specific ticket resource (`/tickets/{id}`).
-  * Conversely, `/teams/workloads` and `/teams/{team_id}/availability` operate on the squad resource (`/teams`).
-  * By maintaining clean resource paths, the API remains intuitive for frontend developers and complies with industry REST best practices.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Dependency Injection Graphs & Resource Teardown Safety
-* **The Concept:** In high-concurrency web servers, database connections are limited resources that must be acquired, used, and released reliably.
-* **How FastAPI Manages Connection Lifecycles:**
-  * When a request arrives at `reassign_ticket(...)`, FastAPI inspects the parameter `db: Session = Depends(get_db)`.
-  * FastAPI calls the `get_db` generator function, which retrieves a connection from SQLite's connection pool.
-  * When the route finishes executing (or if an unhandled exception is raised), FastAPI resumes the `get_db` generator past the `yield` statement, executing `db.close()`.
-  * This architecture guarantees that database connections are never leaked or left hanging open in memory.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Starlette route matching, ASGI specification (`scope, receive, send`), `async def` event loops vs `def` worker thread pools, and dependency injection (`Depends`).
 
-### 3. Controller Error Propagation & RFC 7807 Error Responses
-* **The Concept:** When a request fails, the API should return a structured, standardized error format rather than unhandled Python tracebacks.
-* **How `HTTPException` Operates:**
-  * When an endpoint raises `HTTPException(status_code=404, detail="Ticket not found")`, FastAPI intercepts the exception before it crashes the ASGI server.
-  * It formats a standardized JSON response: `{"detail": "Ticket not found"}` with an HTTP 404 status header.
-  * This guarantees that frontend Axios/Fetch interceptors can catch errors cleanly and display user-friendly error banners rather than blank screens.
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP/1.1 request/response framing, REST status code semantics (200, 201, 404, 422), and header exchange.
+
+* [**Guide 03: Pydantic v2 & Data Contract Engineering**](../../../developer_guide/03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md)  
+  Request body deserialization, path parameter validation, and response DTO filtering.
+
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Same-Origin Policy (SOP), CORS preflight checks, and defensive security headers.
 
 ---
 

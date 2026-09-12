@@ -116,27 +116,18 @@ Without this domain API client:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Client-Side Defensive Pre-Validation
-In distributed web systems, Network Latency is an expensive resource. Submitting an invalid request to the server consumes bandwidth, allocates server thread memory, and incurs 100ms to 500ms of round-trip network lag before returning an error.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-Our SLA API client implements Defensive Pre-Validation:
-- Before any bytes are transmitted across the network, `resolveTicket()` inspects `resolutionNotes.trim().length`.
-- If the student or technician typed fewer than 10 characters, the function throws an immediate JavaScript exception.
-- The UI modal catches this exception in 0 milliseconds, displays a red validation outline, and keeps keyboard focus on the input without ever touching the network.
+* [**Guide 09: Network Clients, Wire Protocols & Axios**](../../../developer_guide/09_AXIOS_FETCH_AND_REST_PROTOCOLS.md)  
+  Axios client architecture, request/response interceptor pipelines, error normalization, and timeout cancellation.
 
-### 2. Semantic HTTP Verb Matching for Operational Lifecycle
-In REST engineering, HTTP methods communicate intent:
-- `PATCH`: Modifies specific fields of an existing resource without altering the rest. Used by `updateTicketStatus()` because only `status` and `resolution_notes` are updated.
-- `POST`: Executes a non-idempotent business transaction that produces significant operational side effects. Used by `resolveTicket()` and `escalateTicket()` because resolving a ticket triggers timestamp calculations, SLA compliance evaluation, and permanent closure locking.
-- `GET`: Safe, idempotent read-only query. Used by `fetchActiveBreaches()` to inspect overdue records without mutating any data.
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP wire streams, headers, payload serialization, and REST status codes.
 
-### 3. Graceful Error Recovery & Domain Exception Unwrapping
-When an illegal state machine transition is attempted (e.g. two staff members try to update the same ticket simultaneously):
-- The backend returns `HTTP 400 Bad Request` with `{ "detail": "Illegal state transition from 'SUBMITTED' to 'RESOLVED'..." }`.
-- The base client interceptor (`client.js`) unwraps the error and extracts `error.response.data.detail`.
-- The `sla.js` transport client allows this clean error message to bubble up directly to the React component's catch block, allowing the UI to display: "This ticket cannot be resolved directly from Submitted state. Please click 'Start Work' first."
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Asynchronous Promises, `async/await` mechanics, and lexical closures in network clients.
 
 ---
 

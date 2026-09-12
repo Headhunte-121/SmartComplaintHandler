@@ -149,37 +149,18 @@ To maintain system compatibility across the engineering team, follow these opera
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Greedy Heuristics & Queue Depth Optimization in Operations Research
-* **The Concept:** A **Greedy Algorithm** is an algorithmic paradigm that makes the locally optimal choice at each stage with the goal of finding a global optimum.
-* **How It Operates in Dispatch:**
-  * In computer science and operations research, finding the globally perfect schedule for tasks across a continuous timeline with unknown future arrivals is mathematically NP-Hard.
-  * Our dispatch engine applies an online Greedy Heuristic: whenever a new complaint arrives, it immediately queries the current state of queues and assigns the task to the worker with the minimum current depth ($\min(Q_1, Q_2, \dots, Q_k)$).
-  * This guarantees that no technician sits idle while another technician has multiple pending tasks, achieving balanced load distribution with minimal computational overhead ($O(K)$ where $K$ is the number of active squads in the department).
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. SQL Aggregation (`func.count()`) vs. In-Memory Python Filtering
-* **The Architectural Principle:** Always perform data aggregation in the database engine, not in application memory.
-* **The Inefficient Anti-Pattern (RAM Exhaustion):**
-  * An inexperienced developer might query every ticket in the database: `tickets = db.query(Ticket).all()`, and then use a Python list comprehension to filter: `count = len([t for t in tickets if t.assigned_team == "Hostel Squad"])`.
-  * If the campus database contains 50,000 historical tickets, this loads 50,000 Python ORM objects into RAM, consuming hundreds of megabytes of memory and taking hundreds of milliseconds.
-* **The Efficient Production Pattern (SQL `COUNT`):**
-  * By writing `db.query(func.count(Ticket.id)).filter(...)`, SQLAlchemy emits an optimized SQL statement: `SELECT count(tickets.id) AS count_1 FROM tickets WHERE tickets.assigned_team = ? AND tickets.status IN (?, ?)`.
-  * SQLite executes the count directly on its indexed B-Tree in disk cache and returns a single 8-byte integer. The Python process allocates zero additional entity memory.
+* [**Unit 00A: Data Structures, Algorithms & Complexity**](../../../developer_guide/00A_DATA_STRUCTURES_ALGORITHMS_AND_COMPLEXITY.md)  
+  Algorithmic time and space complexity ($O(N)$, $O(1)$), hash tables, and priority sorting queues.
 
-### 3. Deterministic Tie-Breaking & Audit Reproducibility
-* **The Concept:** In enterprise software engineering, an algorithm is **deterministic** if, given the exact same initial state and inputs, it produces the exact same output every single time.
-* **Why Random Selection Fails Audits:**
-  * If Squad A and Squad B both have 0 active tickets, an algorithm using `random.choice([SquadA, SquadB])` makes automated tests flaky.
-  * More importantly, if an incident is audited following property damage, investigators must be able to reproduce why Squad A was assigned instead of Squad B.
-  * By sorting tied candidates by `Team.id`, the tie-break is completely deterministic, explainable, and reproducible.
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Chomsky Type 3 regular languages, Deterministic Finite Automata (DFA), word boundaries (`\b`), and linear matching engines.
 
-### 4. The Strategy Pattern in Dispatch Orchestration
-* **The Architectural Rule:** The **Strategy Pattern** enables selecting an algorithm's behavior at runtime without altering the client components that use it.
-* **How We Apply It Here:**
-  * `dispatch_engine.py` provides the concrete "Least-Loaded Heuristic Strategy".
-  * The business service layer (`ticket_service.py`) calls `select_optimal_team()` through this clean boundary.
-  * When Version 2 introduces an "AI Predictive Strategy" (inspecting estimated labor hours or technician skill matrices), we can swap the internal strategy function while `ticket_service.py` continues calling the exact same interface without modifying a single database write or status update.
+* [**Unit 21B: Cryptographic Mathematics, Encoding & Hashing**](../../../developer_guide/21B_CRYPTOGRAPHIC_MATHEMATICS_ENCODING_AND_HASHING.md)  
+  Shannon entropy, high-entropy cryptographic randomness (`secrets`), and collision-resistant identifier generation.
 
 ---
 

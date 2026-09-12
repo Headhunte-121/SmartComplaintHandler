@@ -129,40 +129,15 @@ To preserve routing integrity across the backend, adhere to the following rules:
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. The Composite Pattern in Web Routing Trees
-* **The Concept:** The **Composite Pattern** is a Gang-of-Four design pattern that allows you to treat a group of objects the same way as a single instance of the object.
-* **How FastAPI Implements the Composite Pattern:**
-  * Both the root application (`FastAPI()`) and sub-routers (`APIRouter()`) implement the exact same routing interface (`include_router()`).
-  * An `APIRouter` can hold individual routes (leaf nodes), or it can hold other `APIRouter` instances (composite nodes).
-  * When `main.py` includes `api_router`, and `api_router` includes `priority.router`, FastAPI traverses the tree like a composite data structure, prepending prefixes recursively: `"" + "/api/v1" + "/tickets" + "/triage-preview" = "/api/v1/tickets/triage-preview"`.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Route Matching Precedence & URL Collision Avoidance
-* **The Concept:** Web routers evaluate incoming HTTP request URLs against registered route patterns sequentially or using a trie data structure.
-* **The Potential Collision Problem:**
-  * Suppose Router A registers `GET /tickets/{tracking_code}`.
-  * If Router B registered `GET /tickets/triage-preview` *after* Router A, the web framework might mistake `"triage-preview"` for a tracking code parameter, passing `"triage-preview"` into the tracking code lookup query!
-* **Why Our Design Is Immune to Collisions:**
-  * In our architecture, `/triage-preview` is an **HTTP POST** endpoint, whereas `/{tracking_code}` is an **HTTP GET** endpoint. HTTP routers partition route tables by HTTP method first (`GET` table vs `POST` table).
-  * Furthermore, `/{ticket_id}/priority` has a distinct sub-path `/priority` after the parameter, preventing any ambiguity with other ticket endpoints.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Hierarchical router aggregation, Composite architectural pattern, and prefix tree URL compilation.
 
-### 3. Directed Acyclic Graphs (DAG) in Architectural Layering
-* **The Concept:** A Directed Acyclic Graph is a structural graph with directed edges and no closed loops. High-quality software architectures are always strict DAGs.
-* **Layer Hierarchy in Our Platform:**
-  1. `main.py` (Top layer: application lifecycle & middleware).
-  2. `api/v1/router.py` (Routing facade: aggregates endpoints).
-  3. `api/v1/endpoints/*.py` (Presentation controllers: HTTP handling).
-  4. `services/*.py` (Business logic: algorithms & orchestration).
-  5. `models/*.py` & `schemas/*.py` (Data foundation: ORM tables and DTOs).
-* **The Rule:** Dependencies must always point strictly downwards. If an endpoint imported `router.py`, or if a service imported an endpoint, a circular import cycle would form, causing Python's module loader to crash with `ImportError: cannot import name ... from partially initialized module`.
-
-### 4. OpenAPI Tag Partitioning & Developer Ergonomics
-* **The Concept:** When building large backend systems, API documentation quickly becomes unreadable if hundreds of routes are dumped into a single flat list.
-* **How `tags=["priority"]` Enhances Usability:**
-  * FastAPI assigns the specified tags to every route inherited from that router.
-  * In the generated Swagger UI at `/docs`, endpoints are automatically grouped into collapsable visual accordion sections labeled `"tickets"` and `"priority"`.
-  * Frontend developers can collapse sections they aren't working on, find relevant schemas instantly, and test endpoints interactively.
+* [**Guide 01: Python Language and Runtime Mechanics**](../../../developer_guide/01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md)  
+  Module import hierarchy, namespace isolation, and clean architectural boundaries.
 
 ---
 

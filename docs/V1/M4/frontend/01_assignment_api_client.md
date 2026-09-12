@@ -146,30 +146,18 @@ To preserve full-stack compatibility across teammates, follow these operational 
 
 ---
 
-# 5. Advanced Frontend Concepts Explained: State & Network Architecture
+# 5. Architectural & Theoretical References
 
-### 1. The API Gateway / Client Pattern in Single Page Applications
-* **The Concept:** In clean frontend architecture, components should follow the Single Responsibility Principle (SRP).
-* **Why Component-Level Fetching Is Fragile:**
-  * If five different components make direct `fetch()` calls to `/api/v1/teams/workloads`, a minor URL path update requires editing five different React files.
-  * If one developer forgets to check `response.ok`, that component will silently fail when the backend returns an error.
-* **How the API Client Pattern Solves This:**
-  * All network requests are channeled through centralized functions.
-  * Components simply call `const data = await fetchSquadWorkloads()` and receive clean, parsed data or catch normalized errors.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. JavaScript Asynchronous Event Loop & Promises
-* **The Concept:** JavaScript in web browsers is single-threaded; it cannot pause execution while waiting for a server across a network.
-* **How Async/Await Operates:**
-  * When `fetch()` is called, JavaScript registers a non-blocking network I/O task with the browser runtime and yields control back to the event loop.
-  * The React UI thread continues rendering animations and responding to user clicks smoothly.
-  * Once the server responds, the Promise resolves and the execution resumes in the **Microtask Queue**, updating React state without UI freezing.
+* [**Guide 09: Network Clients, Wire Protocols & Axios**](../../../developer_guide/09_AXIOS_FETCH_AND_REST_PROTOCOLS.md)  
+  Axios client architecture, request/response interceptor pipelines, error normalization, and timeout cancellation.
 
-### 3. Error Normalization Across Full-Stack Boundaries
-* **The Concept:** FastAPI returns error details as structured JSON: `{"detail": "Ticket with ID 5 not found"}`.
-* **Why Normalization Is Critical:**
-  * In standard JavaScript `fetch()`, HTTP error status codes (like 404 or 500) do not reject the promise; they resolve with `response.ok = false`.
-  * If a component only checks `await response.json()`, it treats error responses as successful data.
-  * Our API client explicitly checks `if (!response.ok)`, parses `data.detail`, and throws `new Error(data.detail || 'Request failed')`, guaranteeing that calling React components land squarely in their `catch` blocks.
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP wire streams, headers, payload serialization, and REST status codes.
+
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Asynchronous Promises, `async/await` mechanics, and lexical closures in network clients.
 
 ---
 

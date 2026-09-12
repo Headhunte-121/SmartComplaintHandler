@@ -122,33 +122,18 @@ Without this engine:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Temporal Calculations & UTC Normalization in Distributed Systems
-In web engineering, storing or calculating deadlines using local wall-clock time (e.g. Indian Standard Time or Eastern Standard Time) introduces fatal edge cases:
-- Daylight Saving Time (DST) Transitions: Clocks jumping forward or backward by one hour creates synthetic 60-minute time gaps or duplicate hours.
-- Client-Server Clock Disparities: A student submitting a ticket from a laptop set to an incorrect timezone could produce negative creation timestamps relative to the server.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-Our SLA engine enforces UTC Normalization:
-- All database timestamps (`created_at`, `sla_deadline`, `resolved_at`) are stored as UTC timestamps in ISO 8601 format.
-- Temporal arithmetic uses Python's `datetime.timedelta`, which operates on absolute physical time progression (atomic elapsed seconds) regardless of calendar shifts.
-- Conversion to the student's local timezone occurs exclusively at the presentation layer in the browser using the client's native `Intl.DateTimeFormat` API.
+* [**Unit 00A: Data Structures, Algorithms & Complexity**](../../../developer_guide/00A_DATA_STRUCTURES_ALGORITHMS_AND_COMPLEXITY.md)  
+  Algorithmic time and space complexity ($O(N)$, $O(1)$), hash tables, and priority sorting queues.
 
-### 2. Stateless Pure Functions vs. Stateful Timers
-A common architectural mistake in junior engineering is attempting to implement SLAs using stateful operating system timers or background threads that sleep for 4 hours:
-- If the backend server restarts, all in-memory timers are destroyed.
-- Managing 10,000 active concurrent timers exhausts operating system threads and memory.
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Chomsky Type 3 regular languages, Deterministic Finite Automata (DFA), word boundaries (`\b`), and linear matching engines.
 
-Our SLA engine implements the Stateless Deadline Paradigm:
-- The engine calculates a fixed timestamp once (`sla_deadline = created_at + duration`) and persists it to disk.
-- Evaluating whether a ticket is breached is computed dynamically on demand: `current_time > sla_deadline`.
-- This approach requires zero persistent background threads, survives server crashes and restarts with zero data loss, and scales effortlessly to millions of concurrent tickets.
-
-### 3. Floating-Point Precision in Elapsed Time Mathematics
-When calculating elapsed durations, comparing floating-point seconds directly can introduce subtle precision errors (e.g. `0.1 + 0.2 = 0.30000000000000004`):
-- Python's `datetime.timedelta.total_seconds()` returns a floating-point number of seconds.
-- In our engine, remaining time conversions perform integer floor division (`total_seconds // 3600`) to compute discrete hours and modulo arithmetic (`total_seconds % 3600 // 60`) for minutes.
-- This guarantees clean integer outputs without fractional second artifacts in user-facing countdown displays.
+* [**Unit 21B: Cryptographic Mathematics, Encoding & Hashing**](../../../developer_guide/21B_CRYPTOGRAPHIC_MATHEMATICS_ENCODING_AND_HASHING.md)  
+  Shannon entropy, high-entropy cryptographic randomness (`secrets`), and collision-resistant identifier generation.
 
 ---
 

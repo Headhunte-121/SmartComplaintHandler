@@ -142,24 +142,15 @@ To preserve routing integrity across the backend, adhere to the following rules:
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. The Composite Pattern & Tree-Structured Routing in Web Frameworks
-* **The Concept:** The **Composite Pattern** allows treating a group of objects the same way as a single instance of the object.
-* **How FastAPI Implements the Composite Pattern:**
-  * Both the root application (`FastAPI()`) and sub-routers (`APIRouter()`) implement the exact same routing interface (`include_router()`).
-  * An `APIRouter` can hold individual routes (leaf nodes), or it can hold other `APIRouter` instances (composite nodes).
-  * When `main.py` includes `api_router`, and `api_router` includes `assignment.router`, FastAPI traverses the tree like a composite data structure, stitching together URL paths recursively: `"" + "/api/v1" + "/teams/workloads" = "/api/v1/teams/workloads"`.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Directed Acyclic Graphs (DAG) in Architectural Layering
-* **The Concept:** A Directed Acyclic Graph is a structural graph with directed edges and no closed loops. High-quality software architectures are always strict DAGs.
-* **Layer Hierarchy in Our Platform:**
-  1. `main.py` (Top layer: application lifecycle & middleware).
-  2. `api/v1/router.py` (Routing facade: aggregates endpoints).
-  3. `api/v1/endpoints/*.py` (Presentation controllers: HTTP handling).
-  4. `services/*.py` (Business logic: algorithms & orchestration).
-  5. `models/*.py` & `schemas/*.py` (Data foundation: ORM tables and DTOs).
-* **The Rule:** Dependencies must always point strictly downwards. If an endpoint imported `router.py`, or if a service imported an endpoint, a circular import cycle would form, causing Python's module loader to crash with `ImportError`.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Hierarchical router aggregation, Composite architectural pattern, and prefix tree URL compilation.
+
+* [**Guide 01: Python Language and Runtime Mechanics**](../../../developer_guide/01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md)  
+  Module import hierarchy, namespace isolation, and clean architectural boundaries.
 
 ---
 

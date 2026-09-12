@@ -83,30 +83,30 @@ The Smart Complaint Handler automates the end-to-end lifecycle of campus facilit
 
 Module M1 is structured into dedicated **`backend/`** and **`frontend/`** documentation suites:
 
-### Backend Subsystem (`c:/College/IT Workshop/V1/M1/backend/`)
+### Backend Subsystem (`ackend/`)
 
 | Blueprint File | Target Source Component | Build Phase | Primary Role & Responsibility |
 | :--- | :--- | :--- | :--- |
-| [**`01_config_and_env.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/01_config_and_env.md) | `backend/app/core/config.py` | Phase 1 (Parallel) | Type-safe environment management via `pydantic-settings`, reading database paths and application metadata from `.env`. |
-| [**`02_database.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/02_database.md) | `backend/app/db/session.py` | Phase 2 (Sequential) | SQLite engine instantiation, WAL-mode PRAGMA configuration, and thread-safe `sessionmaker` creation. |
-| [**`03_base.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/03_base.md) | `backend/app/db/base.py` | Phase 1 (Parallel) | SQLAlchemy 2.0 `DeclarativeBase` establishment with automated table name resolution and shared metadata registry. |
-| [**`04_department_model.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/04_department_model.md) | `backend/app/models/department.py` | Phase 2 (Parallel) | `Department` ORM model representing the 6 institutional campus domains (Electrical, Plumbing, IT, etc.). |
-| [**`05_team_model.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/05_team_model.md) | `backend/app/models/team.py` | Phase 2 (Parallel) | `MaintenanceTeam` ORM model defining field squads, capacity limits, shift availability, and foreign key relations. |
-| [**`06_ticket_model.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/06_ticket_model.md) | `backend/app/models/ticket.py` | Phase 2 (Parallel) | `Ticket` ORM model tracking unique tracking code (`TICK-XXXX`), status, priority, SLA deadlines, and audit trail notes. |
-| [**`07_models_init.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/07_models_init.md) | `backend/app/models/__init__.py` | Phase 3 (Sequential) | Facade module exposing all models so SQLAlchemy metadata registers all foreign key relationships cleanly. |
-| [**`08_seed_data.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/08_seed_data.md) | `backend/app/db/seed.py` | Phase 4 (Sequential) | Idempotent database seeder pre-populating the 6 campus departments and initial maintenance squads. |
-| [**`09_api_deps.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/09_api_deps.md) | `backend/app/api/deps.py` | Phase 3 (Sequential) | FastAPI dependency injection generator (`get_db`) providing transaction-safe session context per HTTP request. |
-| [**`10_verification_and_testing.md`**](file:///c:/College/IT%20Workshop/V1/M1/backend/10_verification_and_testing.md) | Backend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing schema creation, foreign key enforcement, seed data, and session teardown. |
+| [**`01_config_and_env.md`**](backend/01_config_and_env.md) | `backend/app/core/config.py` | Phase 1 (Parallel) | Type-safe environment management via `pydantic-settings`, reading database paths and application metadata from `.env`. |
+| [**`02_database.md`**](backend/02_database.md) | `backend/app/db/session.py` | Phase 2 (Sequential) | SQLite engine instantiation, WAL-mode PRAGMA configuration, and thread-safe `sessionmaker` creation. |
+| [**`03_base.md`**](backend/03_base.md) | `backend/app/db/base.py` | Phase 1 (Parallel) | SQLAlchemy 2.0 `DeclarativeBase` establishment with automated table name resolution and shared metadata registry. |
+| [**`04_department_model.md`**](backend/04_department_model.md) | `backend/app/models/department.py` | Phase 2 (Parallel) | `Department` ORM model representing the 6 institutional campus domains (Electrical, Plumbing, IT, etc.). |
+| [**`05_team_model.md`**](backend/05_team_model.md) | `backend/app/models/team.py` | Phase 2 (Parallel) | `MaintenanceTeam` ORM model defining field squads, capacity limits, shift availability, and foreign key relations. |
+| [**`06_ticket_model.md`**](backend/06_ticket_model.md) | `backend/app/models/ticket.py` | Phase 2 (Parallel) | `Ticket` ORM model tracking unique tracking code (`TICK-XXXX`), status, priority, SLA deadlines, and audit trail notes. |
+| [**`07_models_init.md`**](backend/07_models_init.md) | `backend/app/models/__init__.py` | Phase 3 (Sequential) | Facade module exposing all models so SQLAlchemy metadata registers all foreign key relationships cleanly. |
+| [**`08_seed_data.md`**](backend/08_seed_data.md) | `backend/app/db/seed.py` | Phase 4 (Sequential) | Idempotent database seeder pre-populating the 6 campus departments and initial maintenance squads. |
+| [**`09_api_deps.md`**](backend/09_api_deps.md) | `backend/app/api/deps.py` | Phase 3 (Sequential) | FastAPI dependency injection generator (`get_db`) providing transaction-safe session context per HTTP request. |
+| [**`10_verification_and_testing.md`**](backend/10_verification_and_testing.md) | Backend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing schema creation, foreign key enforcement, seed data, and session teardown. |
 
-### Frontend Subsystem (`c:/College/IT Workshop/V1/M1/frontend/`)
+### Frontend Subsystem (`rontend/`)
 
 | Blueprint File | Target Source Component | Build Phase | Primary Role & Responsibility |
 | :--- | :--- | :--- | :--- |
-| [**`01_vite_tailwind_config.md`**](file:///c:/College/IT%20Workshop/V1/M1/frontend/01_vite_tailwind_config.md) | `vite.config.js`, `tailwind.config.js` | Phase 1 (Parallel) | Vite bundler setup, dev server proxy (`/api` -> `:8000`), Tailwind design tokens, and semantic priority color classes. |
-| [**`02_base_api_client.md`**](file:///c:/College/IT%20Workshop/V1/M1/frontend/02_base_api_client.md) | `frontend/src/api/client.js` | Phase 2 (Parallel) | Singleton Axios client with environment base URL, 10s timeout, response data auto-unwrapping, and Pydantic 422 error normalization. |
-| [**`03_layout_and_navigation.md`**](file:///c:/College/IT%20Workshop/V1/M1/frontend/03_layout_and_navigation.md) | `src/components/Layout.jsx`, `Navbar.jsx` | Phase 3 (Parallel) | Persistent application shell, `<Outlet />` viewport, responsive navbar with active link indicator, health heartbeat dot, and footer. |
-| [**`04_app_router.md`**](file:///c:/College/IT%20Workshop/V1/M1/frontend/04_app_router.md) | `src/App.jsx`, `src/routes/AppRouter.jsx` | Phase 4 (Sequential) | Declarative React Router DOM v6 tree, lazy-loaded route chunks, Suspense loading spinners, and styled 404 Not Found fallback page. |
-| [**`05_frontend_verification.md`**](file:///c:/College/IT%20Workshop/V1/M1/frontend/05_frontend_verification.md) | Frontend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing Vite build, Tailwind purging, API client interceptors, route navigation, and mobile layout. |
+| [**`01_vite_tailwind_config.md`**](frontend/01_vite_tailwind_config.md) | `vite.config.js`, `tailwind.config.js` | Phase 1 (Parallel) | Vite bundler setup, dev server proxy (`/api` -> `:8000`), Tailwind design tokens, and semantic priority color classes. |
+| [**`02_base_api_client.md`**](frontend/02_base_api_client.md) | `frontend/src/api/client.js` | Phase 2 (Parallel) | Singleton Axios client with environment base URL, 10s timeout, response data auto-unwrapping, and Pydantic 422 error normalization. |
+| [**`03_layout_and_navigation.md`**](frontend/03_layout_and_navigation.md) | `src/components/Layout.jsx`, `Navbar.jsx` | Phase 3 (Parallel) | Persistent application shell, `<Outlet />` viewport, responsive navbar with active link indicator, health heartbeat dot, and footer. |
+| [**`04_app_router.md`**](frontend/04_app_router.md) | `src/App.jsx`, `src/routes/AppRouter.jsx` | Phase 4 (Sequential) | Declarative React Router DOM v6 tree, lazy-loaded route chunks, Suspense loading spinners, and styled 404 Not Found fallback page. |
+| [**`05_frontend_verification.md`**](frontend/05_frontend_verification.md) | Frontend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing Vite build, Tailwind purging, API client interceptors, route navigation, and mobile layout. |
 
 ---
 

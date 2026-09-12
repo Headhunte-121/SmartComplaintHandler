@@ -108,57 +108,18 @@ To be complete, this component must define, configure, and export the following 
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture**](../../../developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md)  
+  Unit of Work transaction management (`db.commit()`, `db.rollback()`), query execution, and entity hydration.
 
-### 1. Python Generators and Coroutine Context Frames (`yield` vs. `return`)
-To understand why `yield` is used instead of `return`, you must understand how Python manages function execution in computer memory:
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Service layer decoupling, dependency injection wiring, and custom exception hierarchies.
 
-* **What Happens During a Standard `return`:**
-  * When a standard Python function executes `return x`, it hands the value `x` to the caller.
-  * The Python Virtual Machine immediately **destroys the function's Call Stack Frame**. All local variables inside that function are erased from memory.
-  * If you write code after a `return` statement, that code is unreachable and will never execute.
-* **What Happens During a Generator `yield`:**
-  * When a function contains the `yield` keyword, Python compiles it as a specialized **Generator Function**.
-  * When `yield db` executes, Python **suspends** the function's execution frame in RAM. It does not destroy it!
-  * Python passes `db` to FastAPI's dependency injection runner, while `get_db` remains paused at that exact line number with its local `db` variable preserved.
-* **Resuming the Frame via Python's Iteration Protocol:**
-  * Once the route handler finishes processing the HTTP request, FastAPI calls `next()` on the suspended generator.
-  * Python wakes up `get_db` exactly where it paused. Execution advances directly into the `finally:` block, where `db.close()` runs. This elegant mechanism allows clean resource teardown after external code has finished executing.
-
----
-
-### 2. Generator Type Annotations (`Generator[Session, None, None]`)
-In modern Python type systems, a generator is annotated using three parametric type arguments: `Generator[YieldType, SendType, ReturnType]`.
-
-* **YieldType (`Session`):**
-  * Declares what type of object is handed out to the caller during `yield`.
-  * Here, it is `Session`, informing the IDE and static analyzers that any route handler injecting `get_db` will receive a fully typed SQLAlchemy `Session` object with full method autocompletion (`db.query()`, `db.add()`, `db.commit()`).
-* **SendType (`None`):**
-  * Advanced Python generators allow callers to pass data back into the generator while it is running using `generator.send(value)`.
-  * Because FastAPI does not send data back into `get_db`, this parameter is typed as `None`.
-* **ReturnType (`None`):**
-  * Declares what value the generator produces when it terminates completely.
-  * Because `get_db` exists purely to loan and close the session without producing a final return value, this is typed as `None`.
-
----
-
-### 3. Inversion of Control (IoC) and The Hollywood Principle
-In traditional procedural software design, high-level code directly constructs its low-level tools:
-`def create_ticket():`
-`    db = SessionLocal()`  # Tight coupling!
-`    ...`
-
-* **The Problem of Tight Coupling:**
-  * The route handler is tightly coupled to `SessionLocal`. If you want to run an automated unit test without touching the physical hard drive, you have to monkey-patch Python's internal modules.
-* **The Hollywood Principle ("Don't call us, we'll call you"):**
-  * In modern architecture, components invert control: the route handler simply declares what it needs as a function parameter (`db: Session = Depends(get_db)`).
-  * The route handler does not know—and does not care—how the session was created, where the database lives, or what transaction rules were configured.
-  * FastAPI's Dependency Injection container takes control: it calls `get_db`, resolves the session, injects it into the route handler, and closes it when finished.
-  * During automated testing, the test suite can execute `app.dependency_overrides[get_db] = override_test_db`, swapping the production database for a temporary in-memory database with zero code modifications to the route handlers.
+* [**Unit 03B: SQL Relational Language & Query Mechanics**](../../../developer_guide/03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)  
+  Atomic transaction isolation, ACID guarantees, and declarative relational queries.
 
 ---
 

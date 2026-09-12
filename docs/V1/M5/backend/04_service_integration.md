@@ -135,25 +135,18 @@ Without this service integration:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. The Open-Closed Principle in Service Architecture
-The Open-Closed Principle (a fundamental tenet of object-oriented and service-oriented design stating that software entities should be open for extension, but closed for modification) is strictly observed in this service upgrade:
-- We did NOT rewrite `ticket_service.py` from scratch, nor did we change the parameters expected by existing callers (Module M2).
-- We extended `create_ticket()` by inserting the SLA deadline calculation step, preserving the existing signature so that all existing tests and endpoints continue to function without modification.
-- We added new, specialized methods (`update_ticket_status`, `resolve_ticket`, `escalate_ticket`) to handle new lifecycle workflows as independent extensions.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Transaction Isolation & Rollback Guarantees
-In relational database management, an ACID Transaction (Atomicity, Consistency, Isolation, Durability) guarantees that a series of operations either all succeed together or fail completely with zero side effects:
-- When a staff member resolves a ticket, three separate mutations occur: `status` is updated, `resolved_at` is stamped, and `resolution_notes` is appended.
-- If an unexpected error occurs (such as a database lock timeout) during notes formatting, SQLAlchemy automatically executes `db.rollback()`.
-- The database returns to its exact pre-mutation state: the ticket remains `IN_PROGRESS` and no corrupt, half-written data is committed to disk.
+* [**Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture**](../../../developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md)  
+  Unit of Work transaction management (`db.commit()`, `db.rollback()`), query execution, and entity hydration.
 
-### 3. Temporal Indexing & Breach Query Optimization
-In large-scale database deployments with hundreds of thousands of tickets, querying all records to evaluate deadlines in Python can degrade performance:
-- In `Ticket` ORM model (Module M1), `sla_deadline` is explicitly declared with `index=True`.
-- The SQLite query engine utilizes a B-tree index on `sla_deadline`, allowing the database to identify tickets where `sla_deadline < now` using logarithmic binary search $O(\log N)$ rather than scanning the entire table $O(N)$.
-- In `get_active_sla_breaches()`, the service pre-filters tickets at the database level (`Ticket.status.in_(["SUBMITTED", "IN_PROGRESS", "ESCALATED"])`), ensuring that only active, unresolved issues are loaded into Python memory for evaluation.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Service layer decoupling, dependency injection wiring, and custom exception hierarchies.
+
+* [**Unit 03B: SQL Relational Language & Query Mechanics**](../../../developer_guide/03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)  
+  Atomic transaction isolation, ACID guarantees, and declarative relational queries.
 
 ---
 

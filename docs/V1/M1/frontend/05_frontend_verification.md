@@ -112,27 +112,18 @@ Without this verification protocol:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Shift-Left Quality Assurance in Frontend Engineering
-In software engineering, Shift-Left Testing refers to the practice of executing testing, verification, and quality checks as early as possible in the development lifecycle rather than waiting for an end-of-project integration phase.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-By establishing this 5-checkpoint verification suite directly within Module M1:
-- Defect Discovery at Root: Build issues, proxy misconfigurations, and CSS compilation bugs are caught immediately in Week 1, before any student begins authoring feature forms or dashboard tables.
-- Zero Defect Propagation: Subsequent modules (M2, M3, M4) inherit a completely stable foundation, ensuring that developer debugging time is spent on business logic rather than diagnosing why styles are not rendering.
+* [**Guide 10: Vite Build Engine & Module Bundling**](../../../developer_guide/10_VITE_AND_MODERN_BUILD_TOOLCHAINS.md)  
+  Production bundle compilation, asset minification, and static export validation.
 
-### 2. Automated CSS Bundle Analysis & Purge Efficiency
-A critical metric of frontend engineering quality is the CSS Purge Efficiency Ratio (the percentage of framework utility classes eliminated from the production bundle during compilation).
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Component mount validation and teardown memory leak prevention.
 
-In development, Tailwind CSS generates thousands of class possibilities in memory to give developers instant flexibility. However, deploying all classes to production bloats page download times:
-- Checkpoint 1 verifies that Rollup and PostCSS eliminate 98%+ of unused utilities.
-- By confirming that `dist/assets/*.css` is smaller than 25 KB, we guarantee that students loading the portal over slow campus Wi-Fi or mobile 4G networks experience sub-second page rendering.
-
-### 3. Client-Side Synthetic Error Injection Testing
-To rigorously verify error handling without waiting for real-world server crashes, engineers use Synthetic Error Injection:
-- Stopping the local FastAPI process intentionally simulates a complete server outage.
-- Checkpoint 2 tests how the base client behaves when the TCP socket is refused, verifying that the client-side error interceptor catches `!error.response`, assigns synthetic status `0`, and provides actionable troubleshooting instructions.
-- This ensures that when students experience network interruptions, the application presents a calm, helpful explanation rather than a broken or unresponsive screen.
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Browser DevTools console auditing, network inspect validation, and SOP error diagnostics.
 
 ---
 

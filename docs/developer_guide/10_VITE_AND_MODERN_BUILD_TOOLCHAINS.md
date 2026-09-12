@@ -415,7 +415,7 @@ export function TriageCounter() {  // React function component definition
 }  // Component definition complete
 
 // 2. Registers component function with Fast Refresh registry
-_s(TriageCounter, "useState{[count, setCount](0)}");  // Records hook signature string
+_s(TriageCounter, "useState{count}");  // Records hook signature string
 window.$RefreshReg$(TriageCounter, "TriageCounter");  // Binds component to global registry
 ```
 

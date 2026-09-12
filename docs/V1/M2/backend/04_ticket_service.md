@@ -154,67 +154,18 @@ To be complete, this component must define, configure, and export the following 
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture**](../../../developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md)  
+  Unit of Work transaction management (`db.commit()`, `db.rollback()`), query execution, and entity hydration.
 
-### 1. The Service Layer Pattern: Decoupling Presentation from Domain Logic
-Why is placing business logic directly inside API route handlers considered a critical architectural flaw?
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Service layer decoupling, dependency injection wiring, and custom exception hierarchies.
 
-* **The Coupling Dilemma:**
-  * If the logic to generate tracking codes and calculate departments lived inside `endpoints/tickets.py`:
-    * You cannot test the logic without sending mock HTTP network packets.
-    * If you later build a CLI admin tool (like `seed_data.py`) or an automated escalation background daemon, you cannot reuse that logic without triggering HTTP requests to your own server.
-* **The Service Layer Solution:**
-  * The Service Layer sits as an architectural mediator between high-level controllers and low-level databases.
-  * It knows nothing about HTTP request methods (`POST`, `GET`), status codes (`201`, `404`), or JSON serialization.
-  * It operates strictly on domain concepts: taking data, invoking business rules, managing database state, and returning domain objects. This achieves complete **Separation of Concerns**.
-
----
-
-### 2. SQLAlchemy's Unit of Work and Identity Map Mechanics
-What actually happens inside computer memory when you call `db.add()`, `db.commit()`, and `db.refresh()`?
-
-* **The Unit of Work Pattern:**
-  * When you instantiate `db_ticket = Ticket(...)`, the object exists only in Python RAM as a **Transient** object. The database file has no knowledge of it.
-  * When you execute `db.add(db_ticket)`, SQLAlchemy does **not** write to disk immediately. It places the object in its **Identity Map** and registers it as **Pending**.
-* **The Commit Flush:**
-  * When `db.commit()` is called, SQLAlchemy's Unit of Work manager inspects all pending objects, generates the optimal SQL statement (`INSERT INTO tickets (...) VALUES (...)`), sends the SQL statement across the driver to the SQLite file, and commits the transaction on disk.
-* **The Memory Stale State & `db.refresh()`:**
-  * After `commit()`, SQLite generated an auto-incrementing integer `id` (e.g. `id = 1`) on the hard drive.
-  * But the Python object in RAM does not have that `id` yet! Its `db_ticket.id` attribute is still `None`.
-  * If your code tries to return `db_ticket` immediately, the client receives `{"id": null}`!
-  * Calling `db.refresh(db_ticket)` emits a `SELECT` query to SQLite, retrieves the database-generated columns, and updates the attributes of the Python object in memory. Now `db_ticket.id` holds the real primary key integer.
-
----
-
-### 3. Nullable Object Returns vs. Exception Raising in Services
-Notice that `get_ticket_by_code()` returns `Ticket | None` instead of raising an `HTTPException(404)`. Why?
-
-* **The Transport Contamination Anti-Pattern:**
-  * `HTTPException` is an HTTP-specific concept.
-  * If a service function raised `HTTPException(404, "Ticket not found")`, that service would be permanently tied to the web framework.
-  * If a background worker or CLI script called `get_ticket_by_code()` to look up an expired ticket, it would catch an HTTP web exception inside a non-web environment!
-* **The Clean Return Strategy:**
-  * The service simply returns the domain truth: *"Here is the `Ticket` object, or `None` if it does not exist."*
-  * It leaves the decision of what to do with `None` to the caller:
-    * The API route handler can turn `None` into an HTTP 404 response.
-    * A CLI tool can turn `None` into a terminal warning.
-    * A test runner can assert `ticket is None`.
-
----
-
-### 4. Timezone-Aware UTC Timestamping (`timezone.utc`)
-Why must resolution timestamps explicitly declare `timezone.utc`?
-
-* **The Naive Time Trap:**
-  * If you write `ticket.resolved_at = datetime.now()`, Python creates a **Naive Datetime** containing local wall-clock numbers without timezone offset information.
-  * If technician A resolves a ticket in India (IST, UTC+5:30) and the server runs in UTC, comparing `ticket.resolved_at` against `ticket.created_at` produces calculation errors or raises `TypeError: can't compare offset-naive and offset-aware datetimes`.
-* **The Universal UTC Standard:**
-  * By writing `datetime.now(timezone.utc)`, the timestamp includes explicit timezone offset data (+00:00).
-  * This guarantees that calculating turnaround durations ($T_{\text{resolved}} - T_{\text{created}}$) produces mathematically deterministic results regardless of where technicians or servers are physically located.
+* [**Unit 03B: SQL Relational Language & Query Mechanics**](../../../developer_guide/03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)  
+  Atomic transaction isolation, ACID guarantees, and declarative relational queries.
 
 ---
 

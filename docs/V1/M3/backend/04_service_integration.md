@@ -181,34 +181,18 @@ To maintain system integrity while allowing operational flexibility, adhere to t
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. The Open-Closed Principle (OCP) in Service Architecture
-* **The Architectural Rule:** The Open-Closed Principle states that software entities (classes, modules, functions) should be **open for extension, but closed for modification**.
-* **How We Apply It Here:**
-  * When Module M2 was written, `create_ticket()` established the contract for ticket ingestion.
-  * In Module M3, we extend the system's intelligence by plugging in `calculate_priority()`. Notice that the function signature `create_ticket(db: Session, ticket_in: TicketCreate) -> Ticket` remains completely unchanged!
-  * Because the public signature and return type did not change, none of the existing callers (API endpoints, test scripts, CLI tools) broke. We extended the internal behavior without breaking external contracts.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. SQLAlchemy Unit of Work Pattern & Identity Map
-* **The Concept:** SQLAlchemy's `Session` is not just a database connection; it is an implementation of Martin Fowler's **Unit of Work** and **Identity Map** patterns.
-* **How It Works in RAM:**
-  * When `override_ticket_priority()` executes `ticket = db.query(Ticket).filter(...).first()`, SQLAlchemy reads the row from SQLite, instantiates a Python `Ticket` object, and places it in an internal memory registry called the **Identity Map**.
-  * When you execute `ticket.priority = "HIGH"`, SQLAlchemy's attribute instrumentation detects that an attribute was modified. It marks the object as **dirty**.
-  * You do not need to call `db.update(ticket)`. When `db.commit()` is called, SQLAlchemy inspects the Identity Map, identifies all dirty objects, constructs a highly optimized SQL `UPDATE tickets SET priority = 'HIGH', resolution_notes = ... WHERE id = ?` statement, and executes it inside an atomic transaction.
+* [**Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture**](../../../developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md)  
+  Unit of Work transaction management (`db.commit()`, `db.rollback()`), query execution, and entity hydration.
 
-### 3. Database Transaction Isolation & Atomic Commits
-* **The Concept:** A database transaction is an isolated, atomic unit of work governed by ACID principles (Atomicity, Consistency, Isolation, Durability).
-* **Why `db.rollback()` Is Mandatory:**
-  * In SQLite, if an operation begins staging writes and an error occurs (such as a database file lock or disk space error), the transaction remains open in a failed state.
-  * If the connection is returned to the connection pool without executing `db.rollback()`, subsequent requests using that connection will fail with `sqlite3.OperationalError: cannot start a transaction within a transaction`.
-  * By wrapping commits in try/except blocks with explicit rollback calls, we guarantee that failed transactions are instantly aborted and the connection is restored to a pristine state.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Service layer decoupling, dependency injection wiring, and custom exception hierarchies.
 
-### 4. Audit Trails & Non-Repudiation in Operations Engineering
-* **The Concept:** In cybersecurity and enterprise governance, **non-repudiation** guarantees that an action cannot be denied by the party that performed it.
-* **Why Priority Overrides Require Audit Logging:**
-  * If a fire hazard ticket is submitted as `CRITICAL` (4-hour resolution deadline) and someone lowers it to `LOW` (72-hour deadline), causing property damage because technicians arrived too late, the institution must determine who lowered the priority and why.
-  * By embedding an immutable timestamped audit log directly into the ticket record, the service layer creates an irrefutable audit trail that preserves system integrity.
+* [**Unit 03B: SQL Relational Language & Query Mechanics**](../../../developer_guide/03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)  
+  Atomic transaction isolation, ACID guarantees, and declarative relational queries.
 
 ---
 

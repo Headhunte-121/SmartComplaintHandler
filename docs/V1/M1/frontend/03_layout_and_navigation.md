@@ -98,32 +98,21 @@ Without this blueprint:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Component Composition & The React Router Outlet Pattern
-In enterprise software architecture, component composition (the architectural pattern of combining simple, specialized components together to build complex user interfaces) prevents bloated "god components."
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-React Router implements component composition via the `<Outlet />` pattern:
-1. The route tree in `AppRouter.jsx` configures `Layout` as a parent route wrapping child routes.
-2. The React virtual DOM establishes an inheritance hierarchy where `Layout` is the persistent parent node.
-3. When the browser URL changes (for example, from `/` to `/track`), React Router performs reconciliation (the algorithm React uses to diff one tree of elements with another to determine which parts need to be updated).
-4. Because the parent `Layout` component did not change, React preserves its DOM elements completely, maintaining the mounted state of the `Navbar` (including the active health check state and mobile menu toggles). React dismounts only the inner component located at `<Outlet />` and mounts the incoming component. This achieves 60 FPS page transitions.
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Semantic landmark elements (`<header>`, `<nav>`, `<main>`), WCAG accessibility, and responsive Box Model layouts.
 
-### 2. Declarative Route Active-State Highlighting
-In traditional web engineering, highlighting the active navigation link required writing imperative JavaScript to inspect `window.location.pathname`, comparing strings, and manually toggling CSS classes via `classList.add()`.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Component composition, Virtual DOM tree diffing, and declarative UI rendering.
 
-React Router's `NavLink` provides a declarative state-driven mechanism:
-- `NavLink` subscribes directly to the internal Router context.
-- During every render cycle, `NavLink` compares its `to` destination with the current location pathname.
-- It exposes this match state as a boolean property `isActive` passed into a callback function assigned to the `className` prop:
-  `className={({ isActive }) => isActive ? activeClasses : inactiveClasses}`
-This eliminates imperative DOM manipulation bugs and guarantees that the active indicator remains in perfect sync even when navigating via browser Forward/Back buttons.
+* [**Guide 17: Scalable Vector Graphics & Icon Systems**](../../../developer_guide/17_SVG_ICONOGRAPHY_AND_LUCIDE_REACT.md)  
+  SVG XML geometry, vector coordinate viewports, and tree-shakable icon components.
 
-### 3. Asynchronous Health Heartbeat Polling Architecture
-To prevent student frustration when the backend is offline, the navbar incorporates an asynchronous health check:
-- It initiates an HTTP `GET /health` request once when the navbar mounts via `useEffect()`.
-- It maintains three distinct states in React state: `'connecting'` (initial indeterminate state), `'online'` (backend returned HTTP 200), and `'offline'` (network error or timeout).
-- By decoupling the health check from page-level data fetching, the UI remains fully responsive. If the backend is offline, the user is immediately alerted by the amber status dot and can restart the backend before attempting to fill out a lengthy complaint form.
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Client-side History API routing and URL query parameter security.
 
 ---
 

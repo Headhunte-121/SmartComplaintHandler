@@ -168,32 +168,24 @@ To maintain design and functional consistency across the frontend team, follow t
 
 ---
 
-# 5. Advanced Frontend Concepts Explained: State & React Architecture
+# 5. Architectural & Theoretical References
 
-### 1. State Lifting & Controlled Modal Paradigms
-* **The Concept:** In React, child components cannot directly pass data to sibling components. Data must be **lifted** to their closest common parent.
-* **How We Apply It Here:**
-  * Both the complaints table and `<ReassignTeamModal />` need access to the currently selected ticket.
-  * We lift the state to `AdminDashboard.jsx`: declaring `const [activeModalTicket, setActiveModalTicket] = useState(null)`.
-  * When the supervisor clicks "Reassign" on a table row, the table calls `setActiveModalTicket(ticket)`. The parent passes `activeModalTicket` down into the modal.
-  * When the modal completes, it calls `onClose()`, and the parent resets `activeModalTicket` to `null`, cleanly closing the modal.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Derived State vs. Redundant State Variables
-* **The Concept:** Storing computed data in separate state variables creates synchronization bugs.
-* **The Anti-Pattern (State Duplication):**
-  * Storing both `tickets` and `filteredTickets` in state requires manually updating `filteredTickets` every time a filter changes, leading to stale data.
-* **The Production Pattern (Derived State):**
-  * We store only the raw `tickets` array and the filter criteria (`selectedPriority`, `selectedDept`).
-  * Inside the render body, we calculate:
-    `const visibleTickets = tickets.filter(t => (!selectedPriority || t.priority === selectedPriority) && (!selectedDept || t.department_id === selectedDept));`
-  * This calculation takes less than 1 millisecond for hundreds of items and guarantees that visible tickets are always 100% synchronized with active filters.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
 
-### 3. Optimistic UI Updates & Immediate Perceived Performance
-* **The Concept:** Waiting for a backend database write before updating the UI creates noticeable lag for the user.
-* **How Optimistic Updates Work:**
-  * When a supervisor successfully reassigns a ticket, instead of re-fetching all 500 tickets over the network, the dashboard updates the local ticket object in state immediately:
-    `setTickets(prev => prev.map(t => t.id === updated.id ? updated : t));`
-  * The supervisor sees the squad badge update instantly, creating a fluid, desktop-class user experience.
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
+
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
+
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
+
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 

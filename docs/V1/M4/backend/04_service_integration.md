@@ -193,29 +193,18 @@ To ensure system stability across the full stack, adhere to the following rules:
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. The Open-Closed Principle (OCP) Across Multiple Module Milestones
-* **The Architectural Rule:** The Open-Closed Principle states that code should be open for extension, but closed for modification.
-* **How Our Architecture Demonstrates OCP:**
-  * In Module M2, `create_ticket()` handled basic ingestion with placeholder defaults.
-  * In Module M3, we plugged in dynamic priority calculation (`calculate_priority`).
-  * In Module M4, we plug in automated squad dispatch (`select_optimal_team`).
-  * Notice that the public signature `create_ticket(db: Session, ticket_in: TicketCreate) -> Ticket` has never changed! Existing API route handlers, integration tests, and scripts continue to work without modifying a single line of caller code.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Transactional Atomicity & The Unit of Work Pattern
-* **The Concept:** A database transaction must be completely atomic: all operations succeed together, or all fail together (All-or-Nothing).
-* **Why Multi-Stage Ingestion Requires Strict Atomicity:**
-  * In `create_ticket()`, the system: (1) mints a tracking code, (2) computes classification, (3) computes priority, (4) selects an optimal squad, and (5) writes the row to SQLite.
-  * If the process fails at step 4, the database must not store an incomplete ticket with missing priority or missing tracking code.
-  * Because all steps execute within a single open `db: Session` before `db.commit()` is invoked, any exception automatically triggers `db.rollback()`, aborting the transaction and leaving the database completely clean.
+* [**Guide 05: SQLAlchemy 2.0 ORM & Relational Architecture**](../../../developer_guide/05_SQLALCHEMY_ORM_AND_DATA_LAYER.md)  
+  Unit of Work transaction management (`db.commit()`, `db.rollback()`), query execution, and entity hydration.
 
-### 3. Human-in-the-Loop (HITL) Supervisory Architecture
-* **The Architectural Rule:** In mission-critical enterprise systems, automated algorithms (whether heuristics or AI models) must always operate under human supervisory oversight.
-* **How It Operates in Smart Complaint Handler:**
-  * The automated dispatch engine assigns 95% of routine complaints in under 2 milliseconds without human intervention.
-  * However, real-world campus situations (such as a technician calling in sick or specialized equipment breaking down) require immediate human adjustment.
-  * The `reassign_ticket_team()` function provides the formal, secure mechanism for human supervisors to override automated decisions while enforcing non-repudiation by permanently logging the rationale into the ticket's resolution history.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Service layer decoupling, dependency injection wiring, and custom exception hierarchies.
+
+* [**Unit 03B: SQL Relational Language & Query Mechanics**](../../../developer_guide/03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)  
+  Atomic transaction isolation, ACID guarantees, and declarative relational queries.
 
 ---
 

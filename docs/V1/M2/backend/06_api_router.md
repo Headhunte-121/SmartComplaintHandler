@@ -112,52 +112,15 @@ To be complete, this component must define, configure, and export the following 
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Hierarchical router aggregation, Composite architectural pattern, and prefix tree URL compilation.
 
-### 1. The Composite Architectural Design Pattern
-How does FastAPI allow routers to be nested inside other routers like Russian nesting dolls?
-
-* **The Composite Pattern:**
-  * In Object-Oriented Architecture, the **Composite Pattern** allows you to treat individual objects and compositions of objects uniformly.
-  * In FastAPI, an individual endpoint (a `Route`) and a group of endpoints (an `APIRouter`) implement the same internal routing interface.
-* **The Recursive Tree in RAM:**
-  * `endpoints/tickets.py` builds an `APIRouter` containing 4 leaf routes.
-  * `api/v1/router.py` builds a parent `APIRouter` and includes the tickets router as a child node.
-  * `main.py` takes the root `FastAPI` application and includes the parent router.
-  * When a web request arrives, FastAPI traverses this **Directed Acyclic Tree** in RAM from root to leaf, matching URL prefix segments hierarchically. This eliminates massive, flat lookup tables and keeps routing lookup $O(D)$ (where $D$ is path depth).
-
----
-
-### 2. Prefix Concatenation Mechanics in Hierarchical Routing
-How does an endpoint defined with path `""` end up responding to `POST http://localhost:8000/api/v1/tickets`?
-
-* **String Path Concatenation at Mount Time:**
-  * When sub-routers are mounted, FastAPI computes the effective path for each route by concatenating prefixes in order:
-    1. Base prefix in `main.py`: `"/api/v1"`
-    2. Sub-router prefix in `router.py`: `"/tickets"`
-    3. Endpoint path in `tickets.py`: `""`
-    $$\text{Final Route Path} = "/api/v1" + "/tickets" + "" = "/api/v1/tickets"$$
-  * For the lookup endpoint defined as `"/{tracking_code}"`:
-    $$\text{Final Route Path} = "/api/v1" + "/tickets" + "/{tracking_code}" = "/api/v1/tickets/{tracking_code}"$$
-* **Zero Runtime Overhead:**
-  * This concatenation happens once during server boot. The compiled regex patterns are stored in memory, ensuring that request dispatching incurs zero string concatenation overhead during live web traffic.
-
----
-
-### 3. Separation of Aggregation from Definition
-Why is it better to have a dedicated `router.py` file rather than importing endpoints directly in `main.py`?
-
-* **The Single Responsibility Principle (SRP):**
-  * `main.py` has the single responsibility of **Server Bootstrapping** (CORS, lifespan events, database table checks, middleware).
-  * `endpoints/tickets.py` has the single responsibility of **Handling Ticket Requests**.
-  * `router.py` has the single responsibility of **Namespacing & Version Aggregation**.
-* **Clean Dependency Flow:**
-  * If `main.py` imported all endpoint files directly, modifying an endpoint route could accidentally break server startup logic or cause circular import issues.
-  * Placing `router.py` as an architectural firewall protects `main.py` and creates a clean, modular structure.
+* [**Guide 01: Python Language and Runtime Mechanics**](../../../developer_guide/01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md)  
+  Module import hierarchy, namespace isolation, and clean architectural boundaries.
 
 ---
 

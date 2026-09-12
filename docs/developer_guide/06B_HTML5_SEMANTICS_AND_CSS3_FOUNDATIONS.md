@@ -2,7 +2,7 @@
 
 Welcome to the foundational systems engineering manual for **HTML5 Semantic Markup**, the **Document Object Model (DOM)**, and **CSS3 Cascading Style Sheets** within the **SmartComplaintHandler** platform.
 
-In our full-stack architecture, while the backend processes relational queries via Python and SQLite ([Guide 01](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md), [Guide 03B](03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)), and the frontend leverages JavaScript primitives ([Guide 05B](05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)), the user experience is physically rendered by the browser's HTML parser and CSS layout engine. Before constructing reactive Virtual DOM component trees in React 18 ([Guide 07: React 18 & Virtual DOM Architecture](07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)) or composing utility-first design tokens in Tailwind CSS ([Guide 08: Tailwind CSS Design System & Responsive UI](08_TAILWIND_CSS_DESIGN_SYSTEM_AND_RESPONSIVE_UI.md)), engineers must thoroughly master semantic document structure, accessibility standards, the CSS cascade, the box model, Flexbox, and CSS Grid.
+In our full-stack architecture, while the backend processes relational queries via Python and SQLite ([Guide 01](01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md), [Guide 03B](03B_SQL_RELATIONAL_LANGUAGE_AND_QUERY_MECHANICS.md)), and the frontend leverages JavaScript primitives ([Guide 05B](05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)), the user experience is physically rendered by the browser's HTML parser and CSS layout engine. Before constructing reactive Virtual DOM component trees in React 18 ([Guide 07: React 18 & Virtual DOM Architecture](07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)) or composing utility-first design tokens in Tailwind CSS ([Guide 08: Tailwind CSS & PostCSS Engineering](08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)), engineers must thoroughly master semantic document structure, accessibility standards, the CSS cascade, the box model, Flexbox, and CSS Grid.
 
 This manual establishes the foundational mechanics of modern web document construction and layout systems from the absolute ground up.
 
@@ -12,8 +12,8 @@ This manual establishes the foundational mechanics of modern web document constr
 
 This manual serves as the direct prerequisite for all client-side layout, design, and UI components:
 * [Guide 07: React 18 & Virtual DOM Architecture](07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md) - React JSX compiles directly to DOM element representations.
-* [Guide 08: Tailwind CSS Design System & Responsive UI](08_TAILWIND_CSS_DESIGN_SYSTEM_AND_RESPONSIVE_UI.md) - Tailwind utility classes wrap the CSS Box Model, Flexbox, and Grid.
-* [Guide 18: Accessibility (WCAG 2.1 AA) and Internationalization (i18n)](18_ACCESSIBILITY_AND_INTERNATIONALIZATION.md) - Deep dive into assistive technology tree mappings and WCAG compliance.
+* [Guide 08: Tailwind CSS & PostCSS Engineering](08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md) - Tailwind utility classes wrap the CSS Box Model, Flexbox, and Grid.
+* [Guide 14B: Web Browser Security & Origin Policies](14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md) - Browser security model, origin isolation, DOM access controls, and sandboxing.
 * [Guide 20: Form State Machines and Optimistic UI](20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md) - Form controls, input events, and client-side validation states.
 
 ---

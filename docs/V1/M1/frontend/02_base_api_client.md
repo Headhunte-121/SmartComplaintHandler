@@ -90,35 +90,18 @@ Without this centralized base client:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. The Axios Interceptor Middleware Pipeline
-An HTTP interceptor functions as an asynchronous chain of promises (an object representing the eventual completion or failure of an asynchronous operation). When `apiClient.request()` is invoked, Axios constructs a promise execution queue:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-`[Request Interceptor 1, ..., Dispatch HTTP Request, ..., Response Interceptor 1]`
+* [**Guide 09: Network Clients, Wire Protocols & Axios**](../../../developer_guide/09_AXIOS_FETCH_AND_REST_PROTOCOLS.md)  
+  Axios client architecture, request/response interceptor pipelines, error normalization, and timeout cancellation.
 
-The request interceptors execute in First-In-First-Out (FIFO) sequence, passing the configuration dictionary from one middleware step to the next. Once the browser receives the raw TCP response, the response interceptors execute in sequence.
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP wire streams, headers, payload serialization, and REST status codes.
 
-If an error occurs at any point in the pipeline, execution jumps immediately to the error handler of the next interceptor in the chain. This guarantees that centralized security, logging, and error-formatting policies are executed deterministically before any application component receives the result.
-
-### 2. Error Normalization Architecture & Pydantic 422 Unwrapping
-FastAPI validates incoming JSON payloads against Pydantic schemas before executing any endpoint handler. When a request violates schema constraints, FastAPI automatically generates an `HTTP 422 Unprocessable Entity` response with a structured JSON body following this schema:
-`{ "detail": [ { "loc": ["body", "title"], "msg": "ensure this value has at least 5 characters", "type": "value_error.any_str.min_length" } ] }`
-
-If a frontend component tries to display this error by reading `error.message`, it displays nothing helpful because the message is deeply nested inside an array of dictionaries.
-
-Our response interceptor normalizes this error shape through deterministic transformation:
-1. It inspects whether `error.response.status === 422` and verifies that `error.response.data.detail` is an array.
-2. It maps over the array, extracting the field name from the last element of `loc` and concatenating it with `msg`.
-3. It constructs a unified, user-facing error string (e.g. `Validation failed: title: ensure this value has at least 5 characters`).
-4. It creates a standardized JavaScript `Error` instance and attaches a `fields` dictionary mapping each field directly to its error message. This allows form inputs to highlight individual red borders beneath the specific invalid input.
-
-### 3. Graceful Network Degradation & Status Code 0
-When a user loses network connectivity or the local backend crashes, the browser fails to complete the TCP handshake. In this scenario, the browser does not receive an HTTP status code (such as 400 or 500) because no HTTP response ever arrived.
-
-Axios represents this condition by returning an error where `error.response` is completely `undefined`, while `error.request` is populated.
-
-If an application does not check for this condition, it throws a secondary JavaScript error (`TypeError: Cannot read properties of undefined (reading 'status')`), masking the real root cause. Our base client explicitly checks for `!error.response`, assigns a synthetic status code of `0`, and provides a crystal-clear, actionable message instructing the student or developer to verify that the FastAPI backend server is running on port 8000.
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Asynchronous Promises, `async/await` mechanics, and lexical closures in network clients.
 
 ---
 

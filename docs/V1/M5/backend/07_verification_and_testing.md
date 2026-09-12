@@ -115,33 +115,18 @@ Without this verification protocol:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Temporal State Machine Testing & Time Freezing
-Testing software that depends on elapsed time (such as countdown timers or breach detectors) is notoriously difficult because real-world time progresses uncontrollably.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-In our verification protocol, we test temporal logic through Controlled Timestamp Offsetting:
-- Rather than waiting 4 hours to verify that a ticket breaches, the test script creates a synthetic creation timestamp offset into the past:
-  `past_time = datetime.now(timezone.utc) - timedelta(hours=5)`
-- When passed into `calculate_time_remaining()`, the engine immediately evaluates the ticket as 1 hour overdue.
-- This allows the entire 5-checkpoint verification protocol to execute in under 3 seconds, delivering instantaneous test results without requiring artificial sleep delays.
+* [**Guide 12: Automated Testing, Fixtures & Integration**](../../../developer_guide/12_PYTEST_AND_AUTOMATED_TEST_SYSTEMS.md)  
+  Pytest test runners, fixture dependency injection (`scope="function"`), and in-memory ASGI dispatch via Starlette `TestClient`.
 
-### 2. Idempotent Test Data Isolation
-Running verification tests against a shared database risks leaving leftover dummy records:
-- If a test script creates 10 test tickets and crashes midway, subsequent test runs find unexpected records, causing count assertions to fail.
+* [**Guide 04: SQLite 3 Engine Architecture & Storage Mechanics**](../../../developer_guide/04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)  
+  Isolated transactional rollbacks and clean SQLite in-memory test databases.
 
-Our verification protocol adheres to Idempotent Test Isolation:
-- Tests operate within explicit database sessions.
-- In automated test suites, each test executes inside a transaction that rolls back upon completion (`db.rollback()`), ensuring that the database remains in its pristine seed state.
-- For live HTTP tests, unique tracking code prefixes (e.g. `TICK-TEST-XXXX`) are used so test records are easily distinguished from production complaints.
-
-### 3. Assertion Testing of Negative Control Paths
-In software engineering, testing only the "happy path" (scenarios where everything goes right) catches less than 20% of production defects.
-
-Our verification protocol places heavy emphasis on Negative Control Paths:
-- Checkpoint 3 deliberately attempts illegal state jumps (`SUBMITTED` -> `RESOLVED`), verifies that `InvalidStateTransitionError` is raised, and asserts that the ticket status was *not* mutated in SQLite.
-- It deliberately submits 5-character resolution notes, verifies that `MissingResolutionNotesError` is raised, and confirms that `resolved_at` remains null.
-- This mathematically proves that our validation guards operate as impenetrable security barriers.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Testing dependency overrides and closed-loop endpoint assertions.
 
 ---
 

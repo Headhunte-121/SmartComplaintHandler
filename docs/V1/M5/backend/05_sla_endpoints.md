@@ -129,36 +129,21 @@ Without these controllers:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. HTTP PATCH Semantics vs. PUT in State Automata
-In HTTP specification (RFC 5789 and RFC 7231):
-- `PUT`: Idempotent resource replacement. The client transmits the complete representation of the resource. If fields are omitted, they are reset to defaults.
-- `PATCH`: Non-idempotent or incremental partial modification. The client transmits only the specific delta of changes to be applied.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-In state machine engineering, modifying entity status is an incremental event:
-- A staff member starting work transmits only `{"status": "IN_PROGRESS"}`.
-- Using `PATCH` guarantees that the client does not inadvertently overwrite existing fields (such as `title`, `location`, or `created_at`).
-- Furthermore, transition validation guards execute as side-effect checks during the patch operation, ensuring state machine integrity.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Starlette route matching, ASGI specification (`scope, receive, send`), `async def` event loops vs `def` worker thread pools, and dependency injection (`Depends`).
 
-### 2. Standardized Error Response Mapping (RFC 7807)
-FastAPI's `HTTPException` aligns with modern web API error standards:
-- Status `400 Bad Request`: Used when the client's request is syntactically well-formed JSON, but violates business domain rules (such as attempting an illegal state machine transition or providing insufficient resolution documentation).
-- Status `404 Not Found`: Used when the resource identified by the URL path (`ticket_id`) does not exist in SQLite.
-- Status `422 Unprocessable Entity`: Used when the request body violates Pydantic structural boundaries (such as passing an invalid enum string or missing a required field).
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP/1.1 request/response framing, REST status code semantics (200, 201, 404, 422), and header exchange.
 
-By mapping domain exceptions to these precise status codes, frontend clients can programmatically distinguish between a typo in the URL (404), a form syntax mistake (422), and an operational rule violation (400).
+* [**Guide 03: Pydantic v2 & Data Contract Engineering**](../../../developer_guide/03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md)  
+  Request body deserialization, path parameter validation, and response DTO filtering.
 
-### 3. Concurrency & Optimistic State Verification
-In busy campus environments, two staff members might view the same ticket simultaneously:
-- Staff A clicks "Start Work" (`IN_PROGRESS`).
-- Staff B clicks "Start Work" milliseconds later.
-
-Our endpoint architecture handles this gracefully:
-- When Staff A's request executes, the state machine transitions `SUBMITTED` -> `IN_PROGRESS`.
-- When Staff B's request executes, the ticket's current state is already `IN_PROGRESS`.
-- The state machine checks `TRANSITION_RULES['IN_PROGRESS']`. Because `IN_PROGRESS` cannot transition to `IN_PROGRESS`, it raises `InvalidStateTransitionError`.
-- Staff B receives an immediate HTTP 400 informing them that the ticket is already under repair, preventing conflicting duplicate assignments.
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Same-Origin Policy (SOP), CORS preflight checks, and defensive security headers.
 
 ---
 

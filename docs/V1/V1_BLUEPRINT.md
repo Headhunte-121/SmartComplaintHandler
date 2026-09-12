@@ -67,7 +67,7 @@ Priority is HIGH ➔ SLA turnaround duration = 12 Hours
 # Team Concurrency & Dependency Flowchart (DAG)
 
 > **Team Operations Manual & Git Guide Reference:**  
-> For the comprehensive 5-student operational manual, 5-day concurrency DAG, zero-blocking mock data contracts, and beginner Git collaboration guide, see [**`TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](file:///c:/College/IT%20Workshop/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md).
+> For the comprehensive 5-student operational manual, 5-day concurrency DAG, zero-blocking mock data contracts, and beginner Git collaboration guide, see [**`TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](TEAM_WORKFLOW_AND_GIT_GUIDE.md).
 
 To enable a 5-student engineering team to build this platform concurrently without blocking each other, work is structured across parallel tracks:
 

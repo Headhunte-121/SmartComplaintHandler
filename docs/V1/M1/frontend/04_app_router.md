@@ -90,37 +90,21 @@ Without this blueprint:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. The HTML5 History API & Client-Side Navigation
-In early web architectures, changing the browser URL without requesting a new HTML file was impossible. Modern client-side routers achieve this using the HTML5 History API:
-- `window.history.pushState(state, title, url)`: Pushes a new entry into the browser's session history stack, updating the address bar without triggering a network request or document reload.
-- `window.addEventListener('popstate', callback)`: Listens for user interactions with browser Back and Forward navigation buttons.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-React Router abstracts these low-level browser APIs into declarative components:
-1. When a student clicks `<NavLink to="/track">`, React Router intercepts the browser click event via `event.preventDefault()`.
-2. It executes `pushState()` to update the browser URL to `/track`.
-3. It broadcasts an internal state change through React Context.
-4. The router tree re-evaluates the active path and mounts `<TrackTicket />` into the persistent `<Outlet />`, achieving instant client-side rendering.
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Semantic landmark elements (`<header>`, `<nav>`, `<main>`), WCAG accessibility, and responsive Box Model layouts.
 
-### 2. Code Splitting & Dynamic Imports with `React.lazy()`
-In a typical build pipeline, all application code is compiled into a single JavaScript bundle (`index.js`). As the application grows to include heavy administrative tables, charting libraries, and modal forms, the bundle size expands to several megabytes, slowing down initial page loads for mobile users filing quick complaints.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Component composition, Virtual DOM tree diffing, and declarative UI rendering.
 
-Dynamic importing solves this through on-demand loading:
-- `React.lazy()` accepts a callback function that calls the dynamic import syntax: `() => import('./pages/AdminDashboard')`.
-- During compilation, Vite and Rollup detect dynamic imports and automatically isolate the targeted component and its private dependencies into a distinct bundle chunk (e.g. `AdminDashboard-Bf2a9.js`).
-- When a user lands on the student home page (`/`), their browser downloads only the core application shell and the `SubmitComplaint` chunk.
-- The administrative dashboard chunk is never downloaded over the network unless a user actually navigates to `/admin`, saving mobile bandwidth and dramatically accelerating initial load times.
+* [**Guide 17: Scalable Vector Graphics & Icon Systems**](../../../developer_guide/17_SVG_ICONOGRAPHY_AND_LUCIDE_REACT.md)  
+  SVG XML geometry, vector coordinate viewports, and tree-shakable icon components.
 
-### 3. Error Boundaries and Graceful Component Isolation
-In React, an unhandled runtime error inside a component's render function or lifecycle hook unmounts the entire component tree by default, leaving the user with an empty white screen and console errors.
-
-An Error Boundary is a specialized component that implements either `static getDerivedStateFromError()` (which updates state so the next render shows the fallback UI) or `componentDidCatch()` (which logs error details to monitoring services).
-
-By wrapping the router tree in a root Error Boundary:
-- If an unexpected API response crashes a table inside the Admin Desk, the Error Boundary catches the exception.
-- The user is presented with an informative, styled error notification card with a "Refresh" button rather than a dead browser window.
-- The top-level application shell and navigation bar remain intact, allowing the user to navigate back to safety.
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Client-side History API routing and URL query parameter security.
 
 ---
 

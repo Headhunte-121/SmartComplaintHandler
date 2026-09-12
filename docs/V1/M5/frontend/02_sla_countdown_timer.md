@@ -124,32 +124,24 @@ Without this dynamic timer:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. React Interval Management & Memory Leak Prevention
-In React component lifecycles, background asynchronous processes (like `setInterval()` or WebSocket listeners) operate outside the React virtual DOM tree:
-- If a component mounts an interval and the user navigates away, the browser's JavaScript runtime retains the interval callback in the event loop queue.
-- If the callback invokes a state setter (`setTimeRemaining`), React throws a console warning: `Can't perform a React state update on an unmounted component`.
-- If a user navigates between 50 tickets, 50 orphan intervals tick simultaneously, degrading laptop battery life and causing memory leaks.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-Our component implements Bulletproof Interval Cleanup:
-- The `useEffect` hook returns an explicit cleanup function: `() => clearInterval(timer)`.
-- When React dismounts the component, it invokes the cleanup function immediately, terminating the background interval at the browser engine level.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
 
-### 2. Client-Side Clock Drift vs. Server-Calculated Deadlines
-A subtle failure mode in web applications is Client-Side Clock Drift:
-- If a student's laptop clock is manually set 20 minutes slow, `new Date()` on their computer produces timestamps that lag behind the server.
-- The student might see "20m remaining" when the ticket is already technically breached on the server.
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
 
-Our architecture mitigates this:
-- The source of truth is always the server's UTC `sla_deadline`.
-- When absolute synchronization is required, the base API client can capture the server's `Date` response header and calculate a client-server offset (`serverTimeOffset = serverDate - clientDate`), applying the offset to `new Date()` before computing countdowns.
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
 
-### 3. Accessible Live Regions (`aria-live="polite"`)
-For visually impaired students using screen readers:
-- Screen readers do not constantly re-read text that changes every second, as that would overwhelm the user with speech chatter.
-- By assigning `role="timer"` and `aria-live="polite"`, we inform the screen reader that the element represents a ticking timer.
-- The screen reader announces the remaining time when the element receives focus, but avoids interrupting the student while reading other page content.
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
+
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 

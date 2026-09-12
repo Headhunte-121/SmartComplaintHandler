@@ -162,35 +162,21 @@ To maintain API compatibility across the project, adhere to the following operat
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Stateless vs. Stateful API Design & Computational Efficiency
-* **The Concept:** An operation is **stateless** if its execution depends exclusively on the inputs passed in the current request and creates no persistent side-effects. An operation is **stateful** if it reads or modifies persistent storage (like a database or session store).
-* **Why `/triage-preview` Is Stateless:**
-  * Complaint intake forms often trigger preview requests on every debounced keystroke as the user types.
-  * If the preview endpoint wrote to SQLite or opened database connections, a thousand concurrent students typing complaints would lock SQLite (which allows only one writer at a time).
-  * By making `/triage-preview` pure in-memory computation ($O(K)$ where $K$ is keyword count), the endpoint can serve tens of thousands of requests per second directly from CPU cache with zero disk I/O.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. FastAPI Dependency Injection (`Depends(get_db)`) & Generator Lifetime Management
-* **The Concept:** Dependency Injection (DI) is an architectural pattern where a component receives its dependencies from an external assembler rather than instantiating them itself.
-* **How It Works in FastAPI:**
-  * When a request arrives at `override_priority(...)`, FastAPI inspects the parameter type hints using Python's reflection system.
-  * It sees `db: Session = Depends(get_db)`. FastAPI halts endpoint execution, calls `get_db()`, advances the generator until the `yield` statement, and injects the resulting `Session` object into the `db` parameter.
-  * Once the endpoint finishes executing (or raises an exception), FastAPI returns to the `get_db()` generator and executes the code after the `yield` statement (which calls `db.close()`).
-  * This guarantees that database connections are never leaked, even if an unhandled error occurs during endpoint processing.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Starlette route matching, ASGI specification (`scope, receive, send`), `async def` event loops vs `def` worker thread pools, and dependency injection (`Depends`).
 
-### 3. REST Semantics: HTTP `PATCH` vs. HTTP `PUT`
-* **The Architectural Rule:** In RFC 9110 and standard REST conventions:
-  * `PUT` represents complete resource replacement. If you `PUT` to `/tickets/12` with only `{"priority": "HIGH"}`, a strictly compliant server would replace the entire ticket, wiping out the title, description, and creation timestamp.
-  * `PATCH` represents a partial delta update. It instructs the server: "Apply these specific attribute modifications to the existing resource, leaving all unspecified attributes untouched."
-  * Therefore, priority adjustments must standardly be exposed over `PATCH`, preserving all other ticket attributes.
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP/1.1 request/response framing, REST status code semantics (200, 201, 404, 422), and header exchange.
 
-### 4. Controller-Service Pattern & Thin Controllers
-* **The Concept:** In modern backend design, route handlers are designed as **Thin Controllers**.
-* **What Thin Controllers Do:**
-  * A thin controller only handles HTTP concerns: validating JSON input via schemas, calling the service layer, checking for `None`, and returning the HTTP response.
-  * A thin controller never executes raw SQL queries, never calculates priority math, and never performs string tokenization.
-  * By keeping `endpoints/priority.py` thin, all core business logic remains testable, reusable, and cleanly encapsulated inside the service layer (`ticket_service.py` and `priority_engine.py`).
+* [**Guide 03: Pydantic v2 & Data Contract Engineering**](../../../developer_guide/03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md)  
+  Request body deserialization, path parameter validation, and response DTO filtering.
+
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Same-Origin Policy (SOP), CORS preflight checks, and defensive security headers.
 
 ---
 

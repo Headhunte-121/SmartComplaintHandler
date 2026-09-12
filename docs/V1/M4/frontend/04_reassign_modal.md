@@ -167,23 +167,24 @@ To maintain UI harmony and functional reliability across the frontend, follow th
 
 ---
 
-# 5. Advanced Frontend Concepts Explained: State & React Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Controlled Component Form Validation in React
-* **The Concept:** In React, a form input is **controlled** when its value is driven entirely by React state rather than internal DOM state.
-* **How We Enforce Dynamic Validation:**
-  * We bind: `<textarea value={reason} onChange={e => setReason(e.target.value)} />`.
-  * Every keystroke updates `reason` in state and triggers a fast re-render.
-  * We derive the validity dynamically: `const isValid = selectedTeamId && reason.trim().length >= 5;`.
-  * The submit button uses `disabled={!isValid || submitting}`.
-  * This guarantees that the user cannot bypass validation rules via copy-pasting or rapid clicking.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Preventing DOM Memory Leaks with Cleanup Hooks
-* **The Concept:** When a modal is opened, attaching global window event listeners (like listening for the Escape key) can cause memory leaks if not cleaned up when the modal unmounts.
-* **The Solution (Effect Cleanup Function):**
-  * Inside `useEffect(() => { ... }, [isOpen])`, we attach the event listener: `window.addEventListener('keydown', handleKeyDown)`.
-  * At the end of the effect, we return a cleanup function: `return () => window.removeEventListener('keydown', handleKeyDown);`.
-  * React executes this cleanup function whenever `isOpen` changes or the component unmounts, ensuring no orphaned event listeners remain in browser RAM.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
+
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
+
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
+
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
+
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 

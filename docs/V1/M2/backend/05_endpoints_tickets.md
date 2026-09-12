@@ -165,68 +165,21 @@ To be complete, this component must define, configure, and export the following 
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Starlette route matching, ASGI specification (`scope, receive, send`), `async def` event loops vs `def` worker thread pools, and dependency injection (`Depends`).
 
-### 1. Function Decorators in Web Frameworks (`@router.post`, `@router.get`)
-What actually happens inside Python when you prefix a function with `@router.post("")`?
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP/1.1 request/response framing, REST status code semantics (200, 201, 404, 422), and header exchange.
 
-* **Metaprogramming & Route Registration:**
-  * In Python, a decorator is evaluated at **Import Time** (when the file is first loaded into memory), not when an HTTP request arrives.
-  * When Python executes `@router.post("", response_model=TicketResponse)`:
-    1. FastAPI's `APIRouter` inspects the decorated function's signature using Python's `inspect` module.
-    2. It reads the function's parameter names (`ticket_in`, `db`) and type annotations (`TicketCreate`, `Session`).
-    3. It registers an internal **Route Definition Object** into the router's routing table, mapping the HTTP verb `POST` and URL path `""` directly to this function pointer in RAM.
-* **Separation of Definition from Execution:**
-  * The decorator does not run the endpoint. It simply registers the endpoint into FastAPI's internal dispatch table so that hours later, when a client sends an HTTP packet, the framework knows which function to execute.
+* [**Guide 03: Pydantic v2 & Data Contract Engineering**](../../../developer_guide/03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md)  
+  Request body deserialization, path parameter validation, and response DTO filtering.
 
----
-
-### 2. Dependency Injection and The Call-Stack Lifecycle (`Depends(get_db)`)
-How does FastAPI inject `db: Session` into an endpoint without requiring the caller to pass it manually?
-
-* **The Inversion of Control Container:**
-  * In standard Python, if a function declares `def my_func(db: Session):`, calling `my_func()` without arguments raises `TypeError: missing 1 required positional argument`.
-  * But in FastAPI, you never call `create_ticket()` yourself! FastAPI's internal ASGI request runner calls it.
-* **The Dependency Resolution Graph:**
-  * When an HTTP request hits `POST /api/v1/tickets`:
-    1. FastAPI inspects the function parameters and finds `Depends(get_db)`.
-    2. It realizes that `get_db` is a dependency. It resolves `get_db` first by advancing its generator frame.
-    3. `get_db` instantiates `SessionLocal()` and executes `yield db`.
-    4. FastAPI captures the yielded `db` session and passes it into the `db` parameter of `create_ticket()`.
-    5. Once `create_ticket()` finishes and returns the response, FastAPI returns to the suspended `get_db` generator and calls `next()`, advancing into `finally: db.close()`.
-  * This guarantees 100% deterministic resource lifecycle management without placing connection management code inside route handlers.
-
----
-
-### 3. RESTful HTTP Status Codes and Machine-to-Machine Contracts
-Why is returning specific HTTP status codes critical for web development?
-
-* **Status Codes as an Architectural Protocol:**
-  * HTTP status codes are standard 3-digit numbers defined by the Internet Engineering Task Force (IETF) that communicate the outcome of a request:
-    * **`200 OK`:** Standard successful response for read or update operations.
-    * **`201 Created`:** Explicit confirmation that a new persistent entity was created and assigned an identity on the server.
-    * **`404 Not Found`:** Communicates that the requested resource identifier does not exist in storage.
-    * **`422 Unprocessable Entity`:** Communicates that the server understood the JSON format, but the data violated semantic boundary rules (e.g. title was too short).
-* **Frontend Automation:**
-  * Modern frontend libraries (like Axios or Fetch) inspect status codes automatically.
-  * A `201` triggers a redirect to the tracking page; a `422` highlights invalid form inputs in red; a `404` renders an error banner. Using proper codes allows the frontend to respond deterministically.
-
----
-
-### 4. Path Parameter Extraction & Regex Routing
-How does FastAPI know that `{tracking_code}` in `GET /{tracking_code}` is a variable and not a literal folder path?
-
-* **URL Pattern Compilation:**
-  * When the router loads `GET /{tracking_code}`, FastAPI converts the path string into an internal Regular Expression:
-    `^/tickets/(?P<tracking_code>[^/]+)$`
-* **Named Capture Groups in RAM:**
-  * When a request arrives for `/tickets/TICK-8F2D`, the regex matches and extracts `"TICK-8F2D"` from the named capture group `tracking_code`.
-  * FastAPI passes that extracted string directly into the function parameter named `tracking_code`.
-  * Because the parameter is type-annotated as `str`, FastAPI performs type coercion and validation, ensuring total type safety before the function body executes.
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Same-Origin Policy (SOP), CORS preflight checks, and defensive security headers.
 
 ---
 

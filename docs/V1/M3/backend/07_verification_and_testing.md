@@ -166,35 +166,18 @@ To ensure tests remain robust across different developer machines, adhere to the
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Test Harnesses & In-Memory Test Clients (`FastAPI TestClient`)
-* **The Concept:** In web architecture, running tests against a live network server requires opening TCP sockets, which is slow, requires free network ports, and can be blocked by firewalls.
-* **How `TestClient` Works Behind the Scenes:**
-  * FastAPI's `TestClient` is powered by the `httpx` library.
-  * Instead of sending packets over physical network cards, `TestClient` uses ASGI (Asynchronous Server Gateway Interface) in-memory communication.
-  * It passes the mock HTTP request directly to FastAPI's ASGI entry point function in memory. The entire request lifecycle (middleware, routing, schema validation, dependency injection, and response serialization) executes in under 5 milliseconds without touching network hardware.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Deterministic Verification vs. Flaky Tests
-* **The Concept:** A software test is **flaky** if it sometimes passes and sometimes fails without any changes to the underlying source code (often caused by random seeds, network timeouts, or asynchronous race conditions).
-* **Why Our Triage Engine Is 100% Deterministic:**
-  * Unlike non-deterministic Large Language Models (LLMs) which can return different priorities on different days, our Module M3 classification and priority engine is purely deterministic mathematics.
-  * Given the exact string `"Ceiling fan smoking"`, the priority engine will return `CRITICAL` 100% of the time, whether executed today, tomorrow, or a million times in succession.
-  * Deterministic test suites provide mathematical certainty during system audits and viva presentations.
+* [**Guide 12: Automated Testing, Fixtures & Integration**](../../../developer_guide/12_PYTEST_AND_AUTOMATED_TEST_SYSTEMS.md)  
+  Pytest test runners, fixture dependency injection (`scope="function"`), and in-memory ASGI dispatch via Starlette `TestClient`.
 
-### 3. Database Isolation & Transaction Cleanliness
-* **The Concept:** In automated testing, test cases must be completely isolated from one another. A test must never depend on state created by a previous test, nor leave behind side effects.
-* **How We Maintain Database Cleanliness:**
-  * In Checkpoints 3 and 4, each test that persists a `Ticket` instance explicitly captures its generated primary key (`t.id`).
-  * In the teardown block, the test queries that exact entity, calls `db.delete(entity)`, and commits the deletion to SQLite.
-  * This guarantees that subsequent test runs start with a pristine database, preventing primary key collisions or test suite crosstalk.
+* [**Guide 04: SQLite 3 Engine Architecture & Storage Mechanics**](../../../developer_guide/04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)  
+  Isolated transactional rollbacks and clean SQLite in-memory test databases.
 
-### 4. Boundary Value Analysis (BVA) in Software Quality Assurance
-* **The Concept:** In software testing theory, bugs concentrate around the extreme boundaries of input ranges rather than in the center.
-* **How Our Checkpoints Apply Boundary Value Analysis:**
-  * Minimum title length is 5 characters: Checkpoint 2 tests a 4-character string (`"bad"`) to verify rejection, and a 5-character string to verify acceptance.
-  * Description length is 10 characters: Checkpoint 2 tests a 9-character string to ensure proper boundary guarding.
-  * Normalizing confidence scores: Checkpoint 2 verifies that confidence never exceeds `1.0` or falls below `0.0`, catching mathematical normalization errors.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Testing dependency overrides and closed-loop endpoint assertions.
 
 ---
 

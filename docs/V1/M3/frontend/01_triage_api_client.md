@@ -131,22 +131,18 @@ To preserve full-stack compatibility across teammates, follow these operational 
 
 ---
 
-# 5. Advanced Frontend Concepts Explained: State & Network Architecture
+# 5. Architectural & Theoretical References
 
-### 1. The API Gateway / Client Pattern in Single Page Applications
-* **The Concept:** In clean frontend architecture, components should follow the Single Responsibility Principle (SRP).
-* **Why Component-Level Fetching Is Fragile:**
-  * If multiple components make direct `fetch()` calls to `/api/v1/tickets/triage-preview`, a minor URL path update requires editing multiple React files.
-  * If one developer forgets to check `response.ok`, that component will silently fail when the backend returns an error.
-* **How the API Client Pattern Solves This:**
-  * All network requests are channeled through centralized functions.
-  * Components simply call `const data = await fetchTriagePreview(title, desc)` and receive clean, parsed data or catch normalized errors.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Request Abort Controllers & Race Condition Prevention
-* **The Concept:** When a user types rapidly into a form, multiple asynchronous preview requests are sent in close succession. If an older request takes longer to resolve than a newer request, it can overwrite the newer result. This is known as a **Network Race Condition**.
-* **How It Is Mitigated:**
-  * Modern frontend clients can pass an optional `AbortSignal` to `fetch()`.
-  * When a new keystroke occurs, the calling component aborts the previous in-flight request, guaranteeing that only the freshest response updates the UI.
+* [**Guide 09: Network Clients, Wire Protocols & Axios**](../../../developer_guide/09_AXIOS_FETCH_AND_REST_PROTOCOLS.md)  
+  Axios client architecture, request/response interceptor pipelines, error normalization, and timeout cancellation.
+
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP wire streams, headers, payload serialization, and REST status codes.
+
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Asynchronous Promises, `async/await` mechanics, and lexical closures in network clients.
 
 ---
 

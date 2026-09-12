@@ -110,38 +110,18 @@ Without this domain API client:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. REST Resource Modeling & Path Parameter Semantics
-In RESTful API design (Representational State Transfer, an architectural style for network applications based on standard HTTP verbs and resource identifiers):
-- Collections are nouns: `/tickets` represents the entire collection of complaints.
-- New resources are created by issuing a `POST` request to the collection URI: `POST /tickets`.
-- Individual resources are addressed by unique identifiers in the path: `GET /tickets/{tracking_code}`.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-Our complaints API client strictly adheres to these REST conventions:
-- `submitComplaint` targets the collection endpoint (`POST /tickets`).
-- `fetchTicketByCode` targets the individual resource endpoint (`GET /tickets/{tracking_code}`).
-- Because tracking codes are unique, URL-safe, and immutable, they serve as the public resource identifier, keeping the internal auto-incrementing database integer ID (`id: 1, 2, 3`) hidden from public tampering.
+* [**Guide 09: Network Clients, Wire Protocols & Axios**](../../../developer_guide/09_AXIOS_FETCH_AND_REST_PROTOCOLS.md)  
+  Axios client architecture, request/response interceptor pipelines, error normalization, and timeout cancellation.
 
-### 2. Network Idempotency & Duplicate Submission Prevention
-In web applications, users frequently double-click submit buttons when networks are slow, accidentally submitting identical complaints twice.
+* [**Unit 01B: HTTP Network Protocols & Wire Framing**](../../../developer_guide/01B_HTTP_NETWORK_PROTOCOLS_AND_WIRE_FRAMING.md)  
+  HTTP wire streams, headers, payload serialization, and REST status codes.
 
-The complaints API service mitigates this through client-side state coordination:
-1. The submission function verifies that all fields are non-empty and well-formed before touching the network.
-2. The UI component disables the submit button immediately upon invocation of `submitComplaint()`.
-3. In Version 2, the client will attach an `Idempotency-Key` header (a unique UUID generated per form session), allowing the backend to detect and discard accidental duplicate submissions without creating redundant database records.
-
-### 3. The `AbortController` API & Search Race Condition Prevention
-When a student types a tracking code into a search input, an asynchronous HTTP request is triggered. If the student types `TICK-1` and then quickly changes it to `TICK-2`:
-1. Request 1 (`TICK-1`) is dispatched.
-2. Request 2 (`TICK-2`) is dispatched.
-3. If Request 1 experiences network jitter and takes 800ms, while Request 2 resolves in 150ms, Request 1 may arrive *after* Request 2.
-4. Without cancellation, Request 1 overwrites the display with stale data for `TICK-1`, even though the user is looking at `TICK-2`.
-
-Our API client prevents this by supporting standard browser `AbortController` signals:
-- The UI creates an `AbortController` instance before calling `fetchTicketByCode(code, { signal: controller.signal })`.
-- If the user changes the input before the request finishes, the UI calls `controller.abort()`.
-- The browser immediately aborts the in-flight HTTP request at the socket level, preventing stale responses from ever touching application state.
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Asynchronous Promises, `async/await` mechanics, and lexical closures in network clients.
 
 ---
 

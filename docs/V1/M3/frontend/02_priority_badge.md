@@ -133,19 +133,24 @@ To preserve design system harmony, follow these operational rules:
 
 ---
 
-# 5. Advanced Frontend Concepts Explained: State & React Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Atomic Component Design in Modern Web Architectures
-* **The Concept:** In Brad Frost's **Atomic Design** methodology, components are categorized hierarchically: Atoms, Molecules, Organisms, Templates, and Pages.
-* **Why `PriorityBadge` Is an Atom:**
-  * An atom is a fundamental UI building block that cannot be broken down further without losing its meaning.
-  * Because `PriorityBadge` is a pure atom with zero external dependencies, it can be embedded anywhere across the frontend architecture without creating dependency conflicts.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Pure Functional Components & Memoization
-* **The Concept:** A React component is **pure** if it contains no internal state and always returns the exact same JSX for the same input props.
-* **Why Pure Components Perform Better:**
-  * `PriorityBadge` is a pure functional component. When rendered 500 times inside a large complaints table, React can evaluate it with sub-microsecond speed.
-  * If performance optimization is needed in large tables, wrapping it in `React.memo(PriorityBadge)` guarantees that React only re-renders badges whose `priority` prop has actually changed.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
+
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
+
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
+
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
+
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 

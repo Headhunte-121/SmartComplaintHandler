@@ -85,28 +85,28 @@ Module M2 constructs a complete closed-loop lifecycle from initial student keyst
 
 Module M2 is structured into dedicated **`backend/`** and **`frontend/`** documentation suites:
 
-### Backend Subsystem (`c:/College/IT Workshop/V1/M2/backend/`)
+### Backend Subsystem (`ackend/`)
 
 | Blueprint File | Target Source Component | Build Phase | Primary Role & Responsibility |
 | :--- | :--- | :--- | :--- |
-| [**`01_code_generator.md`**](file:///c:/College/IT%20Workshop/V1/M2/backend/01_code_generator.md) | `backend/app/utils/code_generator.py` | Phase 1 (Parallel) | Generates collision-resistant tracking codes (`TICK-XXXX`) using OS entropy, excluding visually ambiguous characters (`0`, `1`, `O`, `I`). |
-| [**`02_keyword_router.md`**](file:///c:/College/IT%20Workshop/V1/M2/backend/02_keyword_router.md) | `backend/app/services/keyword_router.py` | Phase 1 (Parallel) | Rule-based keyword scanner mapping complaint vocabulary across the 6 campus departments with safe General Admin fallback. |
-| [**`03_ticket_schemas.md`**](file:///c:/College/IT%20Workshop/V1/M2/backend/03_ticket_schemas.md) | `backend/app/schemas/ticket.py` | Phase 1 (Parallel) | Pydantic V2 data contracts (`TicketCreate`, `TicketResponse`, `TicketFilter`) with whitespace stripping and length validators. |
-| [**`04_ticket_service.md`**](file:///c:/College/IT%20Workshop/V1/M2/backend/04_ticket_service.md) | `backend/app/services/ticket_service.py` | Phase 2 (Sequential) | Core business orchestrator coordinating code generation, keyword routing, ORM entity staging, and atomic commit transactions. |
-| [**`05_endpoints_tickets.md`**](file:///c:/College/IT%20Workshop/V1/M2/backend/05_endpoints_tickets.md) | `backend/app/api/v1/endpoints/tickets.py` | Phase 3 (Sequential) | REST API controllers exposing `POST /tickets`, `GET /tickets/{tracking_code}`, and `GET /tickets` with query filtering. |
-| [**`06_api_router.md`**](file:///c:/College/IT%20Workshop/V1/M2/backend/06_api_router.md) | `backend/app/api/v1/router.py` | Phase 4 (Sequential) | Aggregates endpoint routers into the centralized `/api/v1` router namespace. |
-| [**`07_main_app.md`**](file:///c:/College/IT%20Workshop/V1/M2/backend/07_main_app.md) | `backend/app/main.py` | Phase 4 (Sequential) | ASGI FastAPI application instance, CORS middleware configuration, lifespan startup events, and global exception handlers. |
-| [**`08_verification_and_testing.md`**](file:///c:/College/IT%20Workshop/V1/M2/backend/08_verification_and_testing.md) | Backend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing code collision resistance, keyword accuracy, Pydantic validation, and REST persistence. |
+| [**`01_code_generator.md`**](backend/01_code_generator.md) | `backend/app/utils/code_generator.py` | Phase 1 (Parallel) | Generates collision-resistant tracking codes (`TICK-XXXX`) using OS entropy, excluding visually ambiguous characters (`0`, `1`, `O`, `I`). |
+| [**`02_keyword_router.md`**](backend/02_keyword_router.md) | `backend/app/services/keyword_router.py` | Phase 1 (Parallel) | Rule-based keyword scanner mapping complaint vocabulary across the 6 campus departments with safe General Admin fallback. |
+| [**`03_ticket_schemas.md`**](backend/03_ticket_schemas.md) | `backend/app/schemas/ticket.py` | Phase 1 (Parallel) | Pydantic V2 data contracts (`TicketCreate`, `TicketResponse`, `TicketFilter`) with whitespace stripping and length validators. |
+| [**`04_ticket_service.md`**](backend/04_ticket_service.md) | `backend/app/services/ticket_service.py` | Phase 2 (Sequential) | Core business orchestrator coordinating code generation, keyword routing, ORM entity staging, and atomic commit transactions. |
+| [**`05_endpoints_tickets.md`**](backend/05_endpoints_tickets.md) | `backend/app/api/v1/endpoints/tickets.py` | Phase 3 (Sequential) | REST API controllers exposing `POST /tickets`, `GET /tickets/{tracking_code}`, and `GET /tickets` with query filtering. |
+| [**`06_api_router.md`**](backend/06_api_router.md) | `backend/app/api/v1/router.py` | Phase 4 (Sequential) | Aggregates endpoint routers into the centralized `/api/v1` router namespace. |
+| [**`07_main_app.md`**](backend/07_main_app.md) | `backend/app/main.py` | Phase 4 (Sequential) | ASGI FastAPI application instance, CORS middleware configuration, lifespan startup events, and global exception handlers. |
+| [**`08_verification_and_testing.md`**](backend/08_verification_and_testing.md) | Backend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing code collision resistance, keyword accuracy, Pydantic validation, and REST persistence. |
 
-### Frontend Subsystem (`c:/College/IT Workshop/V1/M2/frontend/`)
+### Frontend Subsystem (`rontend/`)
 
 | Blueprint File | Target Source Component | Build Phase | Primary Role & Responsibility |
 | :--- | :--- | :--- | :--- |
-| [**`01_complaints_api_client.md`**](file:///c:/College/IT%20Workshop/V1/M2/frontend/01_complaints_api_client.md) | `frontend/src/api/complaints.js` | Phase 1 (Parallel) | Encapsulated HTTP transport module exposing `submitComplaint`, `fetchTicketByCode`, and `fetchRecentTickets` with uppercase code normalization. |
-| [**`02_submit_complaint_page.md`**](file:///c:/College/IT%20Workshop/V1/M2/frontend/02_submit_complaint_page.md) | `frontend/src/pages/SubmitComplaint.jsx` | Phase 2 (Parallel) | Controlled student grievance intake form with character counters, real-time validation error borders, and double-submit protection. |
-| [**`03_submission_success_modal.md`**](file:///c:/College/IT%20Workshop/V1/M2/frontend/03_submission_success_modal.md) | `frontend/src/components/SubmissionSuccessModal.jsx` | Phase 3 (Parallel) | Post-submission confirmation dialog with large monospace `TICK-XXXX` display, 1-click clipboard copy, and direct tracking link. |
-| [**`04_track_ticket_page.md`**](file:///c:/College/IT%20Workshop/V1/M2/frontend/04_track_ticket_page.md) | `frontend/src/pages/TrackTicket.jsx` | Phase 4 (Sequential) | Self-service tracking portal featuring 3-step visual progress stepper (`SUBMITTED` -> `IN_PROGRESS` -> `RESOLVED`), deep-link auto-fill, and staff notes. |
-| [**`05_frontend_verification.md`**](file:///c:/College/IT%20Workshop/V1/M2/frontend/05_frontend_verification.md) | Frontend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing form validation, live ticket creation, clipboard copy mechanics, stepper milestones, and 404 recovery. |
+| [**`01_complaints_api_client.md`**](frontend/01_complaints_api_client.md) | `frontend/src/api/complaints.js` | Phase 1 (Parallel) | Encapsulated HTTP transport module exposing `submitComplaint`, `fetchTicketByCode`, and `fetchRecentTickets` with uppercase code normalization. |
+| [**`02_submit_complaint_page.md`**](frontend/02_submit_complaint_page.md) | `frontend/src/pages/SubmitComplaint.jsx` | Phase 2 (Parallel) | Controlled student grievance intake form with character counters, real-time validation error borders, and double-submit protection. |
+| [**`03_submission_success_modal.md`**](frontend/03_submission_success_modal.md) | `frontend/src/components/SubmissionSuccessModal.jsx` | Phase 3 (Parallel) | Post-submission confirmation dialog with large monospace `TICK-XXXX` display, 1-click clipboard copy, and direct tracking link. |
+| [**`04_track_ticket_page.md`**](frontend/04_track_ticket_page.md) | `frontend/src/pages/TrackTicket.jsx` | Phase 4 (Sequential) | Self-service tracking portal featuring 3-step visual progress stepper (`SUBMITTED` -> `IN_PROGRESS` -> `RESOLVED`), deep-link auto-fill, and staff notes. |
+| [**`05_frontend_verification.md`**](frontend/05_frontend_verification.md) | Frontend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing form validation, live ticket creation, clipboard copy mechanics, stepper milestones, and 404 recovery. |
 
 ---
 

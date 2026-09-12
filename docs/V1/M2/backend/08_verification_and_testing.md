@@ -178,44 +178,18 @@ Take the `tracking_code` returned from Test A (e.g. `TICK-8F2D`) and query it:
 
 ---
 
-# 4. Advanced Python Concepts Explained (OOP & Architecture)
+# 4. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this verification suite:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Guide 12: Automated Testing, Fixtures & Integration**](../../../developer_guide/12_PYTEST_AND_AUTOMATED_TEST_SYSTEMS.md)  
+  Pytest test runners, fixture dependency injection (`scope="function"`), and in-memory ASGI dispatch via Starlette `TestClient`.
 
-### 1. Programmatic Assertions as Formal Invariants
-In our terminal verification commands, you see statements like `assert code.startswith('TICK-')`. What is the role of `assert` in software engineering?
+* [**Guide 04: SQLite 3 Engine Architecture & Storage Mechanics**](../../../developer_guide/04_SQLITE_STORAGE_MECHANICS_AND_WAL_MODE.md)  
+  Isolated transactional rollbacks and clean SQLite in-memory test databases.
 
-* **What an Assertion Is:**
-  * In computer science, an **Invariant** is a mathematical or logical condition that must *always* be true during program execution.
-  * In Python, `assert condition` evaluates the expression. If the condition evaluates to `True`, execution continues with zero performance overhead.
-  * If the condition evaluates to `False`, Python immediately halts execution and raises an `AssertionError`.
-* **Fail-Fast Engineering:**
-  * In automated verification, using assertions guarantees that if even one small calculation is wrong (e.g. `department_id` evaluates to `3` instead of `1`), the script fails fast and alerts the developer immediately, rather than silently passing and leaving hidden bugs in the platform.
-
----
-
-### 2. Network Client Simulation vs. In-Process Service Execution
-Notice that Checkpoint 3 tests logic directly in Python RAM, while Checkpoint 5 tests logic over HTTP using PowerShell. What is the difference?
-
-* **In-Process Testing (Checkpoint 3):**
-  * Executes directly inside the Python Virtual Machine.
-  * Verifies business logic, ORM mapping, and database commit boundaries with zero network latency.
-* **End-to-End Network Testing (Checkpoint 5):**
-  * Traverses the entire physical network stack: TCP socket binding, HTTP request serialization, ASGI request dispatching, CORS header evaluation, Pydantic JSON parsing, and response serialization.
-  * Confirms that the application functions not just as Python code, but as a fully operational, standards-compliant web service.
-
----
-
-### 3. Ephemeral Integration Testing & State Cleanup
-Why did Checkpoint 3 explicitly execute `db.delete(updated); db.commit()`?
-
-* **The Dirty Database Problem:**
-  * If automated tests insert dummy records (like `"Test Electrical Issue"`) and leave them in `smart_complaints.db`, the database quickly accumulates garbage data.
-  * Subsequent tests that count total complaints or verify seed records will encounter unexpected rows and fail.
-* **The Ephemeral Principle:**
-  * A professional test must always clean up its own state. By deleting the test row and committing the deletion, the database remains in a pristine state ready for genuine user submissions.
+* [**Guide 02: FastAPI & Modern ASGI Web Architecture**](../../../developer_guide/02_FASTAPI_ASGI_WEB_ARCHITECTURE.md)  
+  Testing dependency overrides and closed-loop endpoint assertions.
 
 ---
 

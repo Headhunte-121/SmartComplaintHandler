@@ -103,32 +103,21 @@ Without this blueprint:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. The Vite Development Server Architecture vs. Traditional Bundlers
-Traditional frontend bundlers (such as Webpack) operate by crawling every single module and dependency in the entire application, building an in-memory abstract syntax tree (AST), and compiling a complete bundle before the local server can even start serving the first HTTP request. As projects grow to hundreds of files, server cold-starts slow down from seconds to minutes.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-Vite fundamentally re-engineers this pipeline by dividing application modules into two distinct categories:
-1. Dependencies: Third-party vendor libraries (such as `react`, `react-dom`, `axios`) that do not change during development. Vite pre-bundles these dependencies ahead of time using `esbuild` (an extremely fast Go-based compiler), executing 10 to 100 times faster than JavaScript-based bundlers.
-2. Source Code: Application source files (`.jsx`, `.css`) written by developers. Vite serves source code over native browser ES Modules (`import`/`export`). When the browser requests a component, Vite transforms and serves only that specific file on-demand. When a file is edited, Vite uses HMR to invalidate only the updated module, enabling near-instantaneous browser screen updates regardless of codebase size.
+* [**Guide 10: Vite Build Engine & Module Bundling**](../../../developer_guide/10_VITE_AND_MODERN_BUILD_TOOLCHAINS.md)  
+  Native ES Modules (ESM) in modern browsers, Esbuild pre-bundling, Rollup production bundling, and HMR WebSocket invalidation.
 
-### 2. Tailwind CSS Just-In-Time (JIT) Compilation Mechanics
-Historically, CSS frameworks generated massive pre-compiled stylesheets containing thousands of unused classes, bloating production bundles to several megabytes.
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Utility-first CSS compilation, Just-In-Time (JIT) class purging, and PostCSS AST transformations.
 
-Tailwind's JIT compiler reverses this workflow by acting as a high-speed scanner:
-1. Lexical Scanning: The compiler scans source code files specified in the `content` configuration array, searching for raw strings that match utility syntax patterns (such as `px-4`, `hover:bg-indigo-600`, or `grid-cols-3`).
-2. On-Demand CSS Generation: Rather than compiling all possible variations, the engine generates pure CSS rules only for the exact utility strings discovered in your codebase.
-3. Tree Shaking & Optimization: During production compilation, zero unused styles make it into the final bundle. An entire enterprise application typically produces less than 15 KB of gzipped CSS, resulting in lightning-fast initial page paint metrics (First Contentful Paint, FCP).
+* [**Unit 09B: Package Management, Dependency Graphs & SemVer**](../../../developer_guide/09B_PACKAGE_MANAGEMENT_DEPENDENCY_GRAPHS_AND_SEMVER.md)  
+  NPM dependency tree resolution, lockfile subresource integrity, and module resolution.
 
-### 3. The API Reverse Proxy & CORS Mitigation
-When a web browser renders a page loaded from `http://localhost:5173` and JavaScript on that page attempts to transmit an `XMLHttpRequest` or `fetch()` call to `http://localhost:8000/api/v1/tickets`, the browser halts the request due to the Same-Origin Policy (SOP, a security mechanism that prevents malicious scripts on one origin from accessing sensitive data on a different origin).
-
-The browser dispatches a preflight `OPTIONS` HTTP request demanding access headers (`Access-Control-Allow-Origin`). If backend configuration is slightly misaligned, the request is rejected with a network error.
-
-The Vite development proxy completely bypasses this browser security limitation during authoring:
-1. The frontend code issues requests to relative URLs on its own origin: `fetch('/api/v1/tickets')`.
-2. The browser sees that the request origin matches the document origin (`http://localhost:5173`) and allows it to proceed without preflight checks.
-3. The Vite local Node.js server intercepts the `/api` HTTP packet at the socket level and re-transmits it as a direct server-to-server call to `http://127.0.0.1:8000/api/v1/tickets`. Because server-to-server HTTP communication is not bound by browser Same-Origin policies, data passes cleanly without CORS errors.
+* [**Unit 14B: Web Browser Security & Origin Policies**](../../../developer_guide/14B_WEB_BROWSER_SECURITY_AND_ORIGIN_POLICIES.md)  
+  Development reverse proxy forwarding and browser Same-Origin Policy (SOP) bypass mechanics.
 
 ---
 

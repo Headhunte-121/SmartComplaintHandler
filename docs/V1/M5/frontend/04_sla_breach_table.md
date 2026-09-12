@@ -128,26 +128,24 @@ Without this breach escalation panel:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Exception-Based Reporting Architecture
-In operational data design, the Signal-to-Noise Ratio (the ratio of useful, actionable information to irrelevant background data) dictates manager productivity:
-- A dashboard displaying 500 routine tickets is high-noise: a manager must scroll through pages of normal tickets to spot an overdue water leak.
-- Exception-Based Reporting reverses this: `SLABreachTable` filters strictly for anomalies (tickets where `overdue_seconds > 0` or `remaining_seconds < warning_threshold`).
-- The general ticket queue remains available below, but the top of the workstation is permanently reserved for issues requiring immediate managerial intervention.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Periodic Polling vs. WebSocket Push Trade-Offs
-In web systems, synchronizing real-time operational data can be implemented via Polling or WebSockets:
-- WebSockets: Maintains persistent TCP connections. Ideal for high-frequency chat apps, but introduces connection state management overhead and proxy timeout complexities in campus networks.
-- Periodic Polling: Issues a lightweight HTTP `GET` request every 30 seconds.
-- In our Version 1.0 architecture, 30-second polling provides an optimal balance: it requires zero persistent socket management, works seamlessly behind all college firewalls and proxies, and guarantees that supervisors see updated breach metrics within 30 seconds of an SLA violation.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
 
-### 3. The Action Delegation Pattern in Complex Dashboards
-In React component hierarchy, child tables should not manage global modal states:
-- If `SLABreachTable` managed its own escalation and reassignment modals, those modal definitions would be duplicated across `AdminDashboard.jsx`, creating code duplication and conflicting overlay layers.
-- By using Action Delegation:
-  `onClick={() => onEscalate(ticket)}`
-  the table simply reports the user's intent to the parent component. The parent `AdminDashboard.jsx` maintains a single modal instance at the root, mounting it with the selected ticket data.
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
+
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
+
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
+
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 

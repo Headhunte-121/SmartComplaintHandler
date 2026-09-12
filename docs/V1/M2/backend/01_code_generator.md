@@ -124,67 +124,18 @@ To be complete, this component must define, configure, and export the following 
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Unit 00A: Data Structures, Algorithms & Complexity**](../../../developer_guide/00A_DATA_STRUCTURES_ALGORITHMS_AND_COMPLEXITY.md)  
+  Algorithmic time and space complexity ($O(N)$, $O(1)$), hash tables, and priority sorting queues.
 
-### 1. Cryptographically Secure PRNG (CSPRNG) vs. Standard PRNG
-Why does Python provide two separate random modules (`random` and `secrets`), and why is using `random` considered a critical security flaw in web backends?
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Chomsky Type 3 regular languages, Deterministic Finite Automata (DFA), word boundaries (`\b`), and linear matching engines.
 
-* **Standard Pseudo-Random Number Generators (`random` module):**
-  * The `random` module uses an algorithm called the **Mersenne Twister** (MT19937).
-  * The Mersenne Twister is deterministic: it maintains an internal state vector of 624 32-bit integers.
-  * Every time you call `random.choice()`, it performs mathematical bit-shifts on this vector to produce the next number.
-  * **The Fatal Security Flaw:** If an attacker observes just 624 consecutive outputs from `random`, they can reconstruct the entire internal state vector. Once reconstructed, the attacker can predict every single future tracking code with 100% mathematical certainty!
-* **Cryptographically Secure Pseudo-Random Number Generators (`secrets` module):**
-  * Introduced in Python 3.6 (PEP 506), `secrets` does not use the Mersenne Twister.
-  * Instead, it queries the operating system kernel directly (`CryptGenRandom` on Windows, `getrandom()` on Linux, `/dev/urandom` on macOS).
-  * The operating system continuously collects **Physical Environmental Entropy**—microscopic hardware timing variations such as mouse movements, keyboard intervals, network packet arrival latencies, and CPU thermal fluctuations.
-  * Because the seed is physically random hardware noise, it is mathematically impossible for an attacker to predict future generated tokens, providing true security for student complaint tracking.
-
----
-
-### 2. Combinatorics, Collision Probability & The Birthday Paradox
-How many unique tracking codes can our 4-character generator produce, and what is the risk of a collision?
-
-* **Total Permutation Space:**
-  * Our sanitized alphabet contains 32 characters.
-  * With a code length of 4 characters, the total number of unique combinations is:
-    $$N = 32^4 = 1,048,576 \text{ unique tracking codes}$$
-* **The Birthday Paradox:**
-  * Beginners often assume a collision will only happen after all 1,048,576 codes are used. In probability theory, this assumption is false due to the **Birthday Paradox**.
-  * The probability $P$ that at least one collision occurs among $k$ randomly generated items from a pool of $N$ combinations is approximately:
-    $$P(k) \approx 1 - e^{-\frac{k^2}{2N}}$$
-  * For $N = 1,048,576$, when our campus database reaches $k = 1,200$ tickets, the mathematical chance of encountering our first collision reaches approximately $50\%$.
-* **Why the Retry Loop Is Mandatory:**
-  * Because collisions will mathematically occur long before the pool is exhausted, the database verification loop in `generate_unique_tracking_code` is mandatory.
-  * If a collision occurs, the database query catches it in RAM, the loop discards the collided string, and the CSPRNG immediately generates a fresh token. This prevents the database write from crashing on SQLite's `UNIQUE` constraint.
-
----
-
-### 3. Pure Functions vs. Stateful Database Functions
-Notice that this file splits code generation into two distinct functions: `generate_tracking_code()` and `generate_unique_tracking_code()`. This illustrates a fundamental architectural pattern:
-
-* **Pure Functions (`generate_tracking_code`):**
-  * A function is **Pure** if its output depends solely on its input arguments and it produces zero side-effects (no reading files, no network calls, no database queries).
-  * Pure functions execute in sub-microseconds, never fail due to network blips, and can be unit tested without setting up database fixtures or mock servers.
-* **Impure / Stateful Functions (`generate_unique_tracking_code`):**
-  * This function interacts with an external, stateful I/O resource (the SQLite database on disk).
-  * By isolating the database dependency to this wrapper function, we keep the core algorithmic logic completely decoupled from data persistence infrastructure.
-
----
-
-### 4. Bounded Retry Loops & Defensive Programming
-Why not write an infinite loop `while True:` to check for collisions?
-
-* **The Saturation Trap:**
-  * If a database grows over many years to contain hundreds of thousands of tickets, generating a unique 4-character code becomes progressively harder.
-  * In an extreme scenario where all combinations are exhausted, an unconstrained `while True:` loop will spin the CPU at 100% utilization forever, hanging the web server and blocking all other student requests.
-* **Defensive Bounded Retries (`max_attempts = 10`):**
-  * By enforcing `for attempt in range(max_attempts):`, the function guarantees execution termination.
-  * If 10 consecutive cryptographic generations collide, the function fails fast by raising a descriptive `RuntimeError("Failed to generate unique tracking code after 10 attempts")`. This alerts the engineering team that it is time to expand `length` from 4 to 6 characters.
+* [**Unit 21B: Cryptographic Mathematics, Encoding & Hashing**](../../../developer_guide/21B_CRYPTOGRAPHIC_MATHEMATICS_ENCODING_AND_HASHING.md)  
+  Shannon entropy, high-entropy cryptographic randomness (`secrets`), and collision-resistant identifier generation.
 
 ---
 

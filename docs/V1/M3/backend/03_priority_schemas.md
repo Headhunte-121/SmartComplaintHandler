@@ -154,38 +154,18 @@ To preserve architectural stability while allowing institutional customization, 
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Dual-Inheritance Enumerations (`str, Enum`) & Metaclass Resolution
-* **The Concept:** In Python, `Enum` is a special class from the standard library `enum` module constructed by a custom metaclass called `EnumMeta`. When you define:
-  * `class PriorityEnum(str, Enum):`
-  the class uses multiple inheritance. It inherits from both the primitive `str` type and the `Enum` base class.
-* **Why This Is Necessary in Modern Web APIs:**
-  * A standard Python enum (`class Status(Enum):`) creates member objects that are instances of `Status`, not `str`. If you evaluate `isinstance(Status.CRITICAL, str)`, the result is `False`.
-  * Consequently, when a standard JSON encoder attempts to serialize a standard enum, it raises `TypeError: Object of type Status is not JSON serializable` because JSON only understands strings, numbers, booleans, arrays, and objects.
-  * By subclassing `str` first (`str, Enum`), Python's Method Resolution Order (MRO) ensures that every enum member is simultaneously an instance of `str` and `Enum`. Thus, `isinstance(PriorityEnum.CRITICAL, str)` evaluates to `True`. The object can be passed directly to JSON serializers, database string columns, and string formatting functions without calling `.value`.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Pydantic V2 `BaseModel` & Rust-Backed Type Coercion (`pydantic-core`)
-* **The Concept:** In traditional Python, classes do not validate attribute types at runtime. If you declare a variable as `x: int`, Python does not stop you from assigning `x = "hello"`.
-* **How Pydantic Changes This:**
-  * When a class inherits from `pydantic.BaseModel`, Pydantic intercepts class construction. In Pydantic V2, the internal validation engine is implemented in compiled Rust (`pydantic-core`).
-  * When raw JSON data is fed into `TriagePreviewRequest(title=..., description=...)`, Pydantic passes the dictionary to the compiled Rust engine. The Rust engine parses the types, verifies string lengths, strips whitespace, and converts data at machine-code speed (10 to 50 times faster than pure Python).
-  * If validation succeeds, Pydantic instantiates the Python object with immutable, strongly-typed attributes accessible via standard attribute access (`request.title`). If validation fails, it generates a structured `ValidationError` containing the exact line, field name, and constraint violation.
+* [**Guide 03: Pydantic v2 & Data Contract Engineering**](../../../developer_guide/03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md)  
+  Pydantic v2 validation engine, field constraints (`Field`), custom validators (`@field_validator`), and DTO serialization.
 
-### 3. The Ellipsis (`...`) Sentinel & Field Descriptors in Pydantic
-* **The Concept:** In Python syntax, three consecutive dots `...` represent a built-in singleton object known as `Ellipsis`.
-* **How Pydantic Uses the Ellipsis:**
-  * When defining a schema attribute, writing `Field(..., min_length=5)` instructs Pydantic that the field is **strictly required**.
-  * If a default value was intended, you would write `Field(default="Draft")` or `Field("Draft")`. By passing `...` as the first positional argument, you explicitly tell the validation engine: "There is no default value; if the client omits this field from the JSON payload, reject the request immediately with a missing field error."
-  * Furthermore, `Field()` returns a `FieldInfo` descriptor object. Pydantic reads this descriptor during class definition to construct metadata rules (such as `ge=0.0` for greater-than-or-equal, `le=1.0` for less-than-or-equal, and OpenAPI documentation tags) without polluting the instance attributes during normal runtime execution.
+* [**Guide 01: Python Language and Runtime Mechanics**](../../../developer_guide/01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md)  
+  Modern Python typing (PEP 484/604 union operators), structural subtyping, and memory object lifecycle.
 
-### 4. The Data Transfer Object (DTO) Architectural Pattern vs. Active Record
-* **The Concept:** In software engineering, the DTO pattern separates data representation intended for inter-process communication (network APIs) from data representation intended for database persistence (ORM models).
-* **The Danger of Missing DTOs (Over-Posting Vulnerability):**
-  * If an API endpoint directly binds an incoming HTTP request to an ORM database model (`Ticket`), a malicious user can send extra JSON keys in their request, such as `{"id": 999, "status": "RESOLVED", "created_at": "1970-01-01"}`.
-  * If the ORM blindly unpacks this request dictionary into the database entity, the user successfully overrides protected internal database fields. This attack is known in cybersecurity as **Mass Assignment** or **Over-Posting**.
-* **How DTO Schemas Guarantee Security:**
-  * By defining explicit request schemas like `TriagePreviewRequest` and `PriorityOverrideRequest`, the system creates an impenetrable whitelist. Only the attributes explicitly declared in the schema can be read from the HTTP request. Any attempt to inject unapproved attributes is completely ignored or rejected, keeping the database layer completely isolated and secure.
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Deterministic regex syntax constraints and ReDoS prevention for string inputs.
 
 ---
 

@@ -135,38 +135,18 @@ Without this state machine:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Finite State Automata Theory in Enterprise Software
-A Finite State Automaton (FSA) is a formal mathematical structure defined as a 5-tuple: $(Q, \Sigma, \delta, q_0, F)$:
-- $Q$: The finite set of states: `{SUBMITTED, IN_PROGRESS, ESCALATED, ON_HOLD, RESOLVED, CLOSED, CANCELLED}`.
-- $\Sigma$: The set of input triggers: `{assign_squad, start_work, resolve, escalate, close, cancel}`.
-- $\delta$: The transition function mapping a state and trigger to a next state: $\delta: Q \times \Sigma \rightarrow Q$.
-- $q_0$: The initial state: `SUBMITTED`.
-- $F$: The set of final (terminal) states: `{CLOSED, CANCELLED}`.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-By formally modeling ticket lifecycles as an FSA:
-- Determinism: At every moment, the system is in exactly one well-defined state.
-- Provable Safety: We mathematically prove that an unreachable or illegal state (e.g. a closed ticket returning to submitted) is impossible.
-- Decoupling: The business logic of *what transitions are permitted* is completely isolated from the database operations of *how rows are updated*.
+* [**Unit 00A: Data Structures, Algorithms & Complexity**](../../../developer_guide/00A_DATA_STRUCTURES_ALGORITHMS_AND_COMPLEXITY.md)  
+  Algorithmic time and space complexity ($O(N)$, $O(1)$), hash tables, and priority sorting queues.
 
-### 2. Transition Invariants & ACID Transactional Integrity
-In database systems, an Invariant is a condition that must remain true for the database to be considered valid.
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Chomsky Type 3 regular languages, Deterministic Finite Automata (DFA), word boundaries (`\b`), and linear matching engines.
 
-Our lifecycle engine establishes strict transaction invariants:
-1. When `update_ticket_status()` is invoked in `ticket_service.py`, it first executes `validate_transition()`.
-2. If `validate_transition()` raises an exception, execution never reaches `db.commit()`.
-3. SQLAlchemy rolls back the pending transaction (`db.rollback()`), guaranteeing that the SQLite table row is never left with partial, invalid data.
-4. If validation succeeds, the status update, the audit log append, and the timestamp updates are committed in a single atomic database transaction.
-
-### 3. Append-Only Audit Trail Architecture
-In compliance engineering, overwriting previous status notes creates a catastrophic loss of historical provenance:
-- If Staff Member A notes "Inspected wiring, requires replacement part" and Staff Member B later resolves the ticket by overwriting the field with "Replaced wiring," the historical contribution of Staff Member A is erased.
-
-Our lifecycle engine implements an Append-Only Audit Trail:
-- When a status change occurs, the newly generated audit line from `format_audit_log_entry()` is concatenated to the existing text:
-  `ticket.resolution_notes = (ticket.resolution_notes or "") + "\n" + new_audit_entry`
-- The database column operates as a chronologically ordered, append-only ledger that documents every state transition, the user who performed it, and the timestamp down to the second.
+* [**Unit 21B: Cryptographic Mathematics, Encoding & Hashing**](../../../developer_guide/21B_CRYPTOGRAPHIC_MATHEMATICS_ENCODING_AND_HASHING.md)  
+  Shannon entropy, high-entropy cryptographic randomness (`secrets`), and collision-resistant identifier generation.
 
 ---
 

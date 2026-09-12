@@ -147,28 +147,18 @@ To preserve API stability across the engineering team, follow these operational 
 
 ---
 
-# 5. Advanced Python Concepts Explained: OOP & System Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Pydantic V2 `from_attributes=True` & In-Memory ORM Descriptors
-* **The Concept:** In Python, SQLAlchemy database models are not standard dictionaries; their attributes are managed by custom descriptors that execute SQL queries or identity map lookups behind the scenes.
-* **How Pydantic V2 Bridges This Gap:**
-  * In Pydantic V1, this was called `orm_mode = True`. In Pydantic V2, it is declared as `model_config = ConfigDict(from_attributes=True)`.
-  * When you pass a SQLAlchemy `Team` object into `TeamWorkloadResponse.model_validate(team_orm)`, Pydantic bypasses standard dictionary key indexing (`obj["team_name"]`) and uses Python's `getattr(obj, "team_name")`.
-  * This allows the schema to seamlessly extract properties from SQLAlchemy models without requiring developers to manually write tedious dictionary conversion code: `{"team_name": team.name, ...}`.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Boundary Invariants & Data Integrity Guarantees
-* **The Concept:** In software engineering, an **invariant** is a condition that must always remain true throughout the execution of a program.
-* **How Schemas Protect Invariants:**
-  * An active ticket count can never physically be negative: a squad cannot have $-3$ tickets assigned to them.
-  * By defining `active_ticket_count: int = Field(..., ge=0)`, Pydantic enforces this mathematical invariant at the boundary.
-  * If a database bug or concurrency race condition somehow computed a negative number, Pydantic immediately halts execution with a `ValidationError` rather than allowing corrupted data to leak into frontend user interfaces.
+* [**Guide 03: Pydantic v2 & Data Contract Engineering**](../../../developer_guide/03_PYDANTIC_V2_DATA_VALIDATION_AND_SCHEMAS.md)  
+  Pydantic v2 validation engine, field constraints (`Field`), custom validators (`@field_validator`), and DTO serialization.
 
-### 3. Data Transfer Objects (DTO) as Architectural Insulation
-* **The Concept:** The DTO pattern insulates client-facing HTTP contracts from physical database schema changes.
-* **Why This Matters:**
-  * Suppose the engineering team decides to rename the database column `teams.name` to `teams.operational_title` in SQLite.
-  * Because the frontend consumes `TeamWorkloadResponse.team_name`, we simply update the model mapping inside `team_service.py`. The public JSON key `team_name` sent to the frontend remains completely unchanged!
-  * This insulation prevents changes in database storage from rippling across frontend applications, mobile clients, and external integrations.
+* [**Guide 01: Python Language and Runtime Mechanics**](../../../developer_guide/01_PYTHON_LANGUAGE_AND_RUNTIME_MECHANICS.md)  
+  Modern Python typing (PEP 484/604 union operators), structural subtyping, and memory object lifecycle.
+
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Deterministic regex syntax constraints and ReDoS prevention for string inputs.
 
 ---
 

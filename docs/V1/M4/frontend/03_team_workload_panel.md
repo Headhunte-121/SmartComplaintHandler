@@ -161,27 +161,24 @@ To preserve UI harmony and functional reliability, adhere to the following rules
 
 ---
 
-# 5. Advanced Frontend Concepts Explained: State & React Architecture
+# 5. Architectural & Theoretical References
 
-### 1. Optimistic State Updates with Error Reversion
-* **The Concept:** When a user flips an interactive toggle switch, waiting for a network roundtrip (200-500ms) makes the interface feel sluggish and unresponsive.
-* **How Optimistic Updates Work:**
-  * We immediately update the React state variable (`setWorkloads(...)`) so the toggle flips instantaneously ($0\text{ms}$ delay).
-  * Simultaneously, we dispatch the asynchronous network call `toggleSquadAvailability()` in the background.
-  * If the network call succeeds, nothing more needs to be done.
-  * If the network call fails (e.g. WiFi drops or server returns 500), the `catch` block intercepts the error, alerts the user, and reverts the state back to its previous value. This delivers maximum responsiveness without sacrificing data integrity.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-### 2. Micro-Interactions & Accessible State Indicators
-* **The Concept:** Micro-interactions are subtle visual animations and state transitions that convey meaning to the user.
-* **How We Apply Them in Squad Cards:**
-  * When a squad goes off-duty, we don't just change a text label; we apply CSS transition classes (`transition-all duration-300 opacity-60 bg-slate-50 border-dashed`).
-  * The supervisor immediately perceives that the squad is inactive, even when scanning the screen peripherally.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
 
-### 3. Dynamic Progress Bar Normalization
-* **The Concept:** A progress bar element requires a percentage value between $0\%$ and $100\%$.
-* **The Math:**
-  * We calculate: `const percentage = Math.min(Math.round((squad.active_ticket_count / 10) * 100), 100);`
-  * Using `Math.min(..., 100)` ensures that if an emergency causes a squad to have 14 active tickets, the progress bar stays at $100\%$ width rather than overflowing its visual container.
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
+
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
+
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
+
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 

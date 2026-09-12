@@ -128,38 +128,24 @@ Without this blueprint:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. The Asynchronous Clipboard API & Fallback Architecture
-Copying text to the user's operating system clipboard is an asynchronous browser operation:
-- Modern Browsers (HTTPS / localhost): Support `navigator.clipboard.writeText(text)`. This returns a JavaScript Promise that resolves when the operating system clipboard buffer has accepted the text.
-- Legacy / Insecure HTTP Contexts: In environments without HTTPS or in restricted WebView browsers, `navigator.clipboard` may be `undefined`.
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-Our modal implements a resilient dual-tier copy strategy:
-1. Primary Tier: Checks `if (navigator?.clipboard?.writeText)`. If available, executes `await navigator.clipboard.writeText(code)`.
-2. Fallback Tier: If unavailable, dynamically creates an off-screen HTML `<textarea>`, sets its value to the tracking code, appends it to `document.body`, invokes `textarea.select()`, calls `document.execCommand('copy')`, and immediately removes the textarea from the DOM.
-This guarantees that regardless of whether a student is using Chrome on Android, Safari on iOS, or an older browser, the 1-click copy functionality works reliably.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
 
-### 2. URL Query Parameter Deep Linking
-In Single Page Application design, navigation typically swaps components in place. However, users expect deep links (URLs that specify both the destination page and the active data state to load).
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
 
-Our modal utilizes URL Query Parameter Deep Linking:
-- When the student clicks "Track Complaint Now", the modal does not simply navigate to `/track`.
-- It appends a search parameter: `/track?code=TICK-8F2D`.
-- The `TrackTicket.jsx` page (Module M2) uses React Router's `useSearchParams()` hook on initial mount to inspect `searchParams.get('code')`.
-- If a code is present in the URL, `TrackTicket.jsx` immediately triggers the tracking query without waiting for the student to press search.
-- Furthermore, students can copy and share this entire URL (`http://campus.edu/track?code=TICK-8F2D`) with classmates or hall wardens, allowing anyone with the link to inspect the live status directly.
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
 
-### 3. Event Bubbling & Backdrop Click Dismissal
-In the browser DOM event model, an event (such as a mouse click) travels through two phases: capture and bubble. During the bubbling phase, the click event fires on the target element and then travels up through all its parent elements until it reaches `window`.
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
 
-Because our backdrop container renders behind the modal card, a naive click listener on the backdrop:
-`<div className="backdrop" onClick={onClose}><div className="modal-card">...</div></div>`
-would cause any click inside the modal card to bubble up to the backdrop, triggering `onClose()` and abruptly closing the modal while the user is trying to click the copy button.
-
-By attaching an explicit stop-propagation handler to the inner card:
-`onClick={e => e.stopPropagation()}`
-we halt the event propagation at the card boundary. Clicks on the dark blurred backdrop close the modal, while clicks on the card or its buttons execute their intended actions safely.
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 

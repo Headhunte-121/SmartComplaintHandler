@@ -142,67 +142,18 @@ To be complete, this component must define, configure, and export the following 
 
 ---
 
-# 5. Advanced Python Concepts Explained (OOP & Architecture)
+# 5. Architectural & Theoretical References
 
-Since you already understand programming fundamentals like loops, conditions, and basic variables, here is an exhaustive, first-principles breakdown of the Object-Oriented Programming (OOP) and software architecture concepts that drive this file:
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
----
+* [**Unit 00A: Data Structures, Algorithms & Complexity**](../../../developer_guide/00A_DATA_STRUCTURES_ALGORITHMS_AND_COMPLEXITY.md)  
+  Algorithmic time and space complexity ($O(N)$, $O(1)$), hash tables, and priority sorting queues.
 
-### 1. Deterministic vs. Probabilistic Computational Models
-Why do modern software architectures combine rule-based deterministic engines with machine learning models?
+* [**Unit 03C: Regular Expressions & Automata Theory**](../../../developer_guide/03C_REGULAR_EXPRESSIONS_AND_AUTOMATA_THEORY.md)  
+  Chomsky Type 3 regular languages, Deterministic Finite Automata (DFA), word boundaries (`\b`), and linear matching engines.
 
-* **Probabilistic Models (Machine Learning & LLMs):**
-  * Systems like Gemini or BERT compute statistical probabilities over token embeddings.
-  * They are non-deterministic: given identical inputs, temperature settings or slight network token variations can produce varying outputs.
-  * They require external networks, consume memory, introduce latency, and cost money per request.
-* **Deterministic Models (Rule-Based Keyword Routing):**
-  * A **Deterministic Algorithm** guarantees that given the exact same input state, it will traverse the exact same execution path and produce the exact same output 100% of the time:
-    $$f(x) = y \quad \forall \text{ identical } x$$
-  * It executes locally in computer RAM with $O(K \times M)$ time complexity (where $K$ is the number of keywords and $M$ is text length), taking less than 1 millisecond.
-  * In mission-critical software, deterministic rules provide the unshakeable foundation: they handle high-frequency standard operations and act as the fail-safe recovery floor when probabilistic AI models fail.
-
----
-
-### 2. Regular Expression Word Boundaries (`\b`) & The Substring Dilemma
-Why is Python's standard `in` keyword insufficient for production text matching?
-
-* **The Substring Collision Flaw:**
-  * In Python, `'leak' in 'bleak'` evaluates to `True`.
-  * If a student writes *"The exam results look bleak"*, a naive `'leak' in text` check matches the word `"leak"` and routes an academic grievance to the Plumbing department!
-  * Similarly, the Electrical keyword `'ac'` is contained inside common English words like `"action"`, `"practice"`, `"account"`, and `"tractor"`.
-* **How Word Boundary Assertions Work in RAM (`\b`):**
-  * In regular expressions, `\b` is a **Zero-Width Assertion**. It does not match a physical character; it matches an architectural boundary between an alphanumeric character (`\w`) and a non-alphanumeric character (`\W` or string start/end).
-  * The pattern `r"\b" + "leak" + r"\b"` requires that the letter `l` be preceded by a non-word character (like a space or comma) and the letter `k` be followed by a non-word character.
-  * This guarantees that only genuine, independent words trigger department classification, eliminating entire classes of false-positive triage bugs.
-* **Escaping Special Characters (`re.escape`):**
-  * If a keyword contains special regex metacharacters (such as `wi-fi` with a hyphen, or `c++`), passing it raw to `re.search` could cause regex compilation syntax errors.
-  * Wrapping keywords in `re.escape(keyword)` automatically neutralizes metacharacters, ensuring safe pattern compilation.
-
----
-
-### 3. Hash Maps and In-Memory Associative Lookups (`dict`)
-How does Python store and traverse the `DEPARTMENT_KEYWORDS` dictionary in memory?
-
-* **Hash Table Storage:**
-  * A Python `dict` is an implementation of a **Hash Table**.
-  * When Python evaluates `DEPARTMENT_KEYWORDS[1]`, it does not perform a linear search through a list ($O(N)$).
-  * Instead, it passes the key `1` to an internal hash function: `hash(1)`. The resulting integer acts as a direct memory array index.
-  * The CPU jumps directly to the physical RAM address holding the keyword list in $O(1)$ constant time.
-* **Memory Reference Stability:**
-  * The dictionary is defined at the module level (global scope of `keyword_router.py`).
-  * It is loaded into memory exactly once when Python boots. All subsequent incoming requests access the pre-compiled dictionary in RAM without incurring allocation overhead.
-
----
-
-### 4. The Fallback Pattern (Defensive Exceptionless Design)
-In beginner programming, if an algorithm cannot find an answer, it often returns `None` or raises an exception. Why is that an anti-pattern in pipeline architectures?
-
-* **The Crash Cascade of Returning `None`:**
-  * If `classify_complaint()` returned `None`, every upstream component (the ticket service, the database model, the API endpoint) would have to write defensive checks: `if dept_id is None: ...`.
-  * If a developer forgets that check, the code crashes with `IntegrityError: NOT NULL constraint failed: tickets.department_id` or `TypeError: 'NoneType' object is not subscriptable`.
-* **The Fallback Pattern:**
-  * By defining `DEFAULT_DEPARTMENT_ID = 6`, the function guarantees that it **always returns a valid, typed, non-null integer**.
-  * The calling code does not need complex branching; it can safely assign `new_ticket.department_id = result["department_id"]` with total confidence that the database foreign key constraint will always be satisfied.
+* [**Unit 21B: Cryptographic Mathematics, Encoding & Hashing**](../../../developer_guide/21B_CRYPTOGRAPHIC_MATHEMATICS_ENCODING_AND_HASHING.md)  
+  Shannon entropy, high-entropy cryptographic randomness (`secrets`), and collision-resistant identifier generation.
 
 ---
 

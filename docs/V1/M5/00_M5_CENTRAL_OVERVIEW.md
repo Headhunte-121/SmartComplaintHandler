@@ -148,27 +148,27 @@ A complaint must progress through a deterministic lifecycle state machine. The s
 
 Module M5 is structured into dedicated **`backend/`** and **`frontend/`** documentation suites:
 
-### Backend Subsystem (`c:/College/IT Workshop/V1/M5/backend/`)
+### Backend Subsystem (`ackend/`)
 
 | Blueprint File | Target Source Component | Build Phase | Primary Role & Responsibility |
 | :--- | :--- | :--- | :--- |
-| [**`01_sla_engine.md`**](file:///c:/College/IT%20Workshop/V1/M5/backend/01_sla_engine.md) | `backend/app/services/sla_engine.py` | Phase 1 (Parallel) | Priority-to-hours mapping, exact deadline calculation math, time-remaining algorithms, and breach status evaluators. |
-| [**`02_lifecycle_state_machine.md`**](file:///c:/College/IT%20Workshop/V1/M5/backend/02_lifecycle_state_machine.md) | `backend/app/services/lifecycle.py` | Phase 1 (Parallel) | Deterministic state automata enforcing allowed transition paths, closure notes validation, and structured audit stamps. |
-| [**`03_sla_schemas.md`**](file:///c:/College/IT%20Workshop/V1/M5/backend/03_sla_schemas.md) | `backend/app/schemas/sla.py` | Phase 1 (Parallel) | Pydantic V2 DTOs (`TicketStatusEnum`, `StatusUpdateRequest`, `TicketResolveRequest`, `EscalationRequest`, `SLABreachResponse`). |
-| [**`04_service_integration.md`**](file:///c:/College/IT%20Workshop/V1/M5/backend/04_service_integration.md) | `backend/app/services/ticket_service.py` (Upgrade) | Phase 2 (Sequential) | Service layer upgrade: automatic deadline stamping on creation, `update_ticket_status()`, and verified `resolve_ticket()`. |
-| [**`05_sla_endpoints.md`**](file:///c:/College/IT%20Workshop/V1/M5/backend/05_sla_endpoints.md) | `backend/app/api/v1/endpoints/sla.py` | Phase 3 (Sequential) | REST controllers (`PATCH /tickets/{id}/status`, `POST /tickets/{id}/resolve`, `POST /tickets/{id}/escalate`, `GET /tickets/breaches/active`). |
-| [**`06_api_router_update.md`**](file:///c:/College/IT%20Workshop/V1/M5/backend/06_api_router_update.md) | `backend/app/api/v1/router.py` (Update) | Phase 4 (Sequential) | Aggregator wiring, mounting SLA and lifecycle endpoints under `/tickets` and `/sla` with OpenAPI tags. |
-| [**`07_verification_and_testing.md`**](file:///c:/College/IT%20Workshop/V1/M5/backend/07_verification_and_testing.md) | Backend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing SLA calculation, legal transitions, illegal rejections, closure notes, and breach filtering. |
+| [**`01_sla_engine.md`**](backend/01_sla_engine.md) | `backend/app/services/sla_engine.py` | Phase 1 (Parallel) | Priority-to-hours mapping, exact deadline calculation math, time-remaining algorithms, and breach status evaluators. |
+| [**`02_lifecycle_state_machine.md`**](backend/02_lifecycle_state_machine.md) | `backend/app/services/lifecycle.py` | Phase 1 (Parallel) | Deterministic state automata enforcing allowed transition paths, closure notes validation, and structured audit stamps. |
+| [**`03_sla_schemas.md`**](backend/03_sla_schemas.md) | `backend/app/schemas/sla.py` | Phase 1 (Parallel) | Pydantic V2 DTOs (`TicketStatusEnum`, `StatusUpdateRequest`, `TicketResolveRequest`, `EscalationRequest`, `SLABreachResponse`). |
+| [**`04_service_integration.md`**](backend/04_service_integration.md) | `backend/app/services/ticket_service.py` (Upgrade) | Phase 2 (Sequential) | Service layer upgrade: automatic deadline stamping on creation, `update_ticket_status()`, and verified `resolve_ticket()`. |
+| [**`05_sla_endpoints.md`**](backend/05_sla_endpoints.md) | `backend/app/api/v1/endpoints/sla.py` | Phase 3 (Sequential) | REST controllers (`PATCH /tickets/{id}/status`, `POST /tickets/{id}/resolve`, `POST /tickets/{id}/escalate`, `GET /tickets/breaches/active`). |
+| [**`06_api_router_update.md`**](backend/06_api_router_update.md) | `backend/app/api/v1/router.py` (Update) | Phase 4 (Sequential) | Aggregator wiring, mounting SLA and lifecycle endpoints under `/tickets` and `/sla` with OpenAPI tags. |
+| [**`07_verification_and_testing.md`**](backend/07_verification_and_testing.md) | Backend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing SLA calculation, legal transitions, illegal rejections, closure notes, and breach filtering. |
 
-### Frontend Subsystem (`c:/College/IT Workshop/V1/M5/frontend/`)
+### Frontend Subsystem (`rontend/`)
 
 | Blueprint File | Target Source Component | Build Phase | Primary Role & Responsibility |
 | :--- | :--- | :--- | :--- |
-| [**`01_sla_api_client.md`**](file:///c:/College/IT%20Workshop/V1/M5/frontend/01_sla_api_client.md) | `frontend/src/api/sla.js` | Phase 1 (Parallel) | Encapsulated HTTP transport module for lifecycle mutations, ticket resolution, manual escalation, and active breach queries. |
-| [**`02_sla_countdown_timer.md`**](file:///c:/College/IT%20Workshop/V1/M5/frontend/02_sla_countdown_timer.md) | `frontend/src/components/SLACountdownTimer.jsx` | Phase 2 (Parallel) | Dynamic, color-shifting countdown timer pill ticking every second, transitioning from green to amber to pulsing red for overdue tickets. |
-| [**`03_resolution_notes_modal.md`**](file:///c:/College/IT%20Workshop/V1/M5/frontend/03_resolution_notes_modal.md) | `frontend/src/components/ResolutionNotesModal.jsx` | Phase 3 (Parallel) | Staff resolution dialog requiring structured repair documentation with a mandatory 10-character validation guard and loading state. |
-| [**`04_sla_breach_table.md`**](file:///c:/College/IT%20Workshop/V1/M5/frontend/04_sla_breach_table.md) | `frontend/src/components/SLABreachTable.jsx` | Phase 4 (Sequential) | High-visibility administrative escalation panel displaying all overdue and high-risk tickets with one-click escalation triggers. |
-| [**`05_frontend_verification.md`**](file:///c:/College/IT%20Workshop/V1/M5/frontend/05_frontend_verification.md) | Frontend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing countdown ticks, color shifts, modal validation guards, status updates, and breach table filters. |
+| [**`01_sla_api_client.md`**](frontend/01_sla_api_client.md) | `frontend/src/api/sla.js` | Phase 1 (Parallel) | Encapsulated HTTP transport module for lifecycle mutations, ticket resolution, manual escalation, and active breach queries. |
+| [**`02_sla_countdown_timer.md`**](frontend/02_sla_countdown_timer.md) | `frontend/src/components/SLACountdownTimer.jsx` | Phase 2 (Parallel) | Dynamic, color-shifting countdown timer pill ticking every second, transitioning from green to amber to pulsing red for overdue tickets. |
+| [**`03_resolution_notes_modal.md`**](frontend/03_resolution_notes_modal.md) | `frontend/src/components/ResolutionNotesModal.jsx` | Phase 3 (Parallel) | Staff resolution dialog requiring structured repair documentation with a mandatory 10-character validation guard and loading state. |
+| [**`04_sla_breach_table.md`**](frontend/04_sla_breach_table.md) | `frontend/src/components/SLABreachTable.jsx` | Phase 4 (Sequential) | High-visibility administrative escalation panel displaying all overdue and high-risk tickets with one-click escalation triggers. |
+| [**`05_frontend_verification.md`**](frontend/05_frontend_verification.md) | Frontend Verification Protocol | Phase 5 (Sequential) | 5-checkpoint verification protocol testing countdown ticks, color shifts, modal validation guards, status updates, and breach table filters. |
 
 ---
 

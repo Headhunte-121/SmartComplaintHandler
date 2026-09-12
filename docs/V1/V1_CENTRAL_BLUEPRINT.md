@@ -86,7 +86,7 @@ This diagram illustrates how data flows between the React Frontend Subsystem, th
 # Team Concurrency & Workflow DAG (Parallel vs. Sequential)
 
 > **Team Operations Manual & Git Guide Reference:**  
-> For the exhaustive 5-student operational manual, 5-day step-by-step concurrency DAG, zero-blocking mock data contracts, and first-principles beginner Git guide (including step-by-step conflict resolution), see [**`TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](file:///c:/College/IT%20Workshop/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md).
+> For the exhaustive 5-student operational manual, 5-day step-by-step concurrency DAG, zero-blocking mock data contracts, and first-principles beginner Git guide (including step-by-step conflict resolution), see [**`TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](TEAM_WORKFLOW_AND_GIT_GUIDE.md).
 
 To enable a 5-student engineering team to build the entire platform within 5 to 7 days without stepping on each other's code or suffering Git merge conflicts, work is divided across three parallel execution tracks:
 

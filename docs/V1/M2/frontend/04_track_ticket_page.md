@@ -147,42 +147,24 @@ Without this blueprint:
 
 ---
 
-## Section 5: Advanced Concepts Explained
+## Section 5: Architectural & Theoretical References
 
-### 1. Declarative Stepper UI State Machines
-In user interface engineering, a progress stepper is a visual representation of a finite state machine:
-- State 0: `SUBMITTED` -> Step index 0
-- State 1: `IN_PROGRESS` -> Step index 1
-- State 2: `RESOLVED` -> Step index 2
+This specification operates strictly as an **implementation and integration blueprint**. For the exhaustive computer science fundamentals, language runtime mechanics, and protocol specifications governing this component, consult the following authoritative manuals in the **Developer Guide Suite**:
 
-Rather than writing procedural, fragile conditional statements across dozens of HTML elements (`if status == 'SUBMITTED' render this, else if status == 'IN_PROGRESS' render that`), our component implements a Declarative Step Mapping Array:
-- We declare an immutable array of step definitions:
-  `const STEPS = [ { id: 'SUBMITTED', title: 'Complaint Lodged' }, { id: 'IN_PROGRESS', title: 'In Progress' }, { id: 'RESOLVED', title: 'Resolved' } ];`
-- We compute the active index dynamically:
-  `const currentStepIndex = STEPS.findIndex(s => s.id === ticket.status);`
-- When rendering each node at index `i`:
-  - If `i < currentStepIndex`: The step is completed -> render solid green checkmark.
-  - If `i === currentStepIndex`: The step is currently active -> render pulsing indigo ring.
-  - If `i > currentStepIndex`: The step is upcoming -> render muted gray border.
-This declarative architecture guarantees that adding a new intermediate state (such as `PARTS_ON_ORDER` in V2) requires modifying only the step array without rewriting any layout logic.
+* [**Guide 07: React 18 Architecture & Virtual DOM**](../../../developer_guide/07_REACT_18_AND_VIRTUAL_DOM_ARCHITECTURE.md)  
+  Fiber tree reconciliation, React Hooks lifecycle (`useState`, `useEffect`, `useCallback`, `useMemo`), and closure capture safety.
 
-### 2. Synchronization with URL Search Parameters
-In modern web applications, the browser address bar is a vital piece of application state:
-- When a user searches for a tracking code, the component does not simply store the code in isolated React memory.
-- It invokes `setSearchParams({ code: normalizedCode })`.
-- This synchronizes the URL without triggering a page refresh: `http://localhost:5173/track?code=TICK-8F2D`.
+* [**Guide 08: Tailwind CSS & PostCSS Architecture**](../../../developer_guide/08_TAILWIND_CSS_AND_POSTCSS_ENGINEERING.md)  
+  Semantic design tokens, responsive breakpoints, and utility class composition.
 
-Benefits of this synchronization:
-1. Browser History Navigation: The user can click the browser's Back button to return to their previously searched ticket.
-2. Shareable Deep Links: A student can copy the address bar link and email it to a campus administrator, who opens the exact same ticket view instantly upon clicking.
-3. Refresh Resilience: If the student accidentally refreshes their browser tab, the ticket reloads automatically from the URL parameter rather than resetting to an empty screen.
+* [**Guide 20: Form State Machines & Optimistic UI**](../../../developer_guide/20_FORM_STATE_MACHINES_AND_OPTIMISTIC_UI.md)  
+  Controlled input architectures, debounced event handling, and form validation state automata.
 
-### 3. Native Date Formatting via `Intl.DateTimeFormat`
-Displaying raw UTC ISO timestamps (such as `2026-09-11T12:30:00Z`) creates a poor user experience. Rather than importing heavy third-party date libraries (like `moment.js`) that bloat the bundle by hundreds of kilobytes, our component utilizes the browser's native `Intl.DateTimeFormat` API:
-- It creates a reusable formatter:
-  `const dateFormatter = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });`
-- It converts ISO strings into clean, human-readable text: "11 Sep 2026, 05:30 PM".
-- It automatically handles user timezone conversions based on the client's operating system settings, ensuring that timestamps are always accurate for the student's local time.
+* [**Unit 05B: JavaScript Core Language & Syntax Primitives**](../../../developer_guide/05B_JAVASCRIPT_CORE_LANGUAGE_AND_SYNTAX_PRIMITIVES.md)  
+  Object destructuring, arrow functions, and array declarative manipulation methods.
+
+* [**Unit 06B: HTML5 Semantics & CSS3 Foundations**](../../../developer_guide/06B_HTML5_SEMANTICS_AND_CSS3_FOUNDATIONS.md)  
+  Form controls, interactive focus indicators, and WCAG accessibility standards.
 
 ---
 
