@@ -17,12 +17,15 @@
 | Section | Description | Quick Link |
 | :--- | :--- | :--- |
 | **1. System Overview** | What this project does & the closed-loop automation flow | [Go to Section ↓](#1-system-overview--closed-loop-architecture) |
-| **2. 30-Second Quick Start** | How to run the entire full-stack app on Windows/Mac/Linux | [Go to Section ↓](#2-30-second-quick-start-how-to-run-everything) |
-| **3. Teammate Onboarding Guide** | **Step-by-step instructions: What do I do first as a developer?** | [Go to Section ↓](#3-teammate-onboarding-guide-what-do-i-do-first) |
-| **4. 5-Student Ownership Matrix** | Exact team breakdown: who writes which files & blueprints | [Go to Section ↓](#4-5-student-team-ownership--module-matrix) |
-| **5. Module Blueprints (M1–M5)** | Detailed directory of all 5 operational modules | [Go to Section ↓](#5-version-10-module-architecture-m1m5) |
-| **6. 34-Guide Curriculum** | Complete zero-prerequisite developer engineering handbook | [Go to Section ↓](#6-master-developer-guide-curriculum-34-manuals) |
-| **7. Testing & Quality Gates** | How to run tests and verify your code before pushing | [Go to Section ↓](#7-testing-verification--quality-gates) |
+| **2. 30-Second Quick Start** | Fast launch with 1-click batch scripts or terminal commands | [Go to Section ↓](#2-30-second-quick-start-how-to-run-everything) |
+| **3. First-Time Setup (Clone to Folder)** | **Step-by-step installation: How to clone & setup in your local folder** | [Go to Section ↓](#3-first-time-setup-how-to-install--setup-in-your-folder) |
+| **4. Daily Git Workflow (Push & Pull)** | **How to pull teammates' work, save your work, and push to develop** | [Go to Section ↓](#4-daily-git-workflow-how-to-save-push--pull-work-safely) |
+| **5. Teammate Onboarding Checklist** | What to do first as a developer joining the repository | [Go to Section ↓](#5-teammate-onboarding-checklist-what-do-i-do-first) |
+| **6. 5-Student Ownership Matrix** | Exact team breakdown: who writes which files & blueprints | [Go to Section ↓](#6-5-student-team-ownership--module-matrix) |
+| **7. Module Blueprints (M1–M5)** | Detailed directory of all 5 operational modules | [Go to Section ↓](#7-version-10-module-architecture-m1m5) |
+| **8. 34-Guide Curriculum** | Complete zero-prerequisite developer engineering handbook | [Go to Section ↓](#8-master-developer-guide-curriculum-34-manuals) |
+| **9. Testing & Quality Gates** | How to run tests and verify your code before pushing | [Go to Section ↓](#9-testing-verification--quality-gates) |
+| **10. Directory Architecture** | 72-file inventory, design decisions & roadmap | [Go to Section ↓](#10-directory-architecture--references) |
 
 ---
 
@@ -62,7 +65,7 @@ Double-click the automated launcher in the project root:
   * Launches the FastAPI backend server on `http://localhost:8000`.
   * Launches the React Vite frontend dev server on `http://localhost:5173`.
   * Automatically opens both browser tabs.
-* **To stop all servers:** Double-click **`stop_all.bat`** (cleanly terminates both processes).
+* **To stop all servers:** Double-click **`stop_all.bat`** (cleanly terminates both background processes and frees ports `8000` and `5173`).
 
 ---
 
@@ -90,11 +93,206 @@ cd frontend
 npm install
 npm run dev
 ```
-* **React Web Application:** [http://localhost:5173](http://localhost:5173) (Vite proxies `/api` to `:8000`).
+* **React Web Application:** [http://localhost:5173](http://localhost:5173) (Vite proxies `/api` requests to `:8000`).
 
 ---
 
-## 3. Teammate Onboarding Guide: What Do I Do First?
+## 3. First-Time Setup: How to Install & Setup in Your Folder
+
+Follow these exact steps to clone the repository to your own computer and get everything running inside your preferred folder.
+
+### Step 1: Open Terminal in Your Chosen Directory
+Create or navigate to the folder on your computer where you want to keep your college projects:
+* **Windows (PowerShell or CMD):**
+  ```powershell
+  cd "C:\College\IT Workshop"
+  ```
+* **macOS / Linux:**
+  ```bash
+  cd ~/Documents/College/IT_Workshop
+  ```
+
+---
+
+### Step 2: Clone the Git Repository
+Run `git clone` to download the entire project into your folder:
+```bash
+git clone https://github.com/Headhunte-121/SmartComplaintHandler.git
+cd SmartComplaintHandler
+```
+
+---
+
+### Step 3: Switch to the Active Development Branch (`develop`)
+> [!IMPORTANT]
+> The `main` branch is reserved for final releases. **All active team development, feature coding, and collaboration happen on the `develop` branch.**
+
+Make sure you switch to `develop` before doing anything else:
+```bash
+git checkout develop
+```
+Verify that your terminal confirms: `Switched to branch 'develop'` (or `Already on 'develop'`).
+
+---
+
+### Step 4: Install Backend Dependencies
+Set up an isolated Python virtual environment and install all packages:
+```bash
+# Navigate into backend directory
+cd backend
+
+# Create virtual environment (named venv)
+python -m venv venv
+
+# Activate virtual environment:
+# On Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+# On Windows (CMD):
+.\venv\Scripts\activate.bat
+# On macOS / Linux:
+source venv/bin/activate
+
+# Install all required Python packages (FastAPI, SQLAlchemy, Pydantic, etc.)
+pip install -r requirements.txt
+
+# Return back to root directory
+cd ..
+```
+
+---
+
+### Step 5: Install Frontend Dependencies
+Install the Node.js packages for the React 18 / Vite / Tailwind client:
+```bash
+# Navigate into frontend directory
+cd frontend
+
+# Install all npm dependencies
+npm install
+
+# Return back to root directory
+cd ..
+```
+
+---
+
+### Step 6: Test That Everything Runs
+You can now start both servers with the 1-click launcher or terminal commands:
+* On Windows, simply double-click **`run_all.bat`**.
+* Open your browser to [http://localhost:5173](http://localhost:5173) and [http://localhost:8000/docs](http://localhost:8000/docs). Both should load smoothly!
+
+---
+
+## 4. Daily Git Workflow: How to Save, Push & Pull Work Safely
+
+When 5 students are collaborating on the same project, following this **daily 3-part routine** ensures nobody overwrites each other's code and eliminates merge conflicts.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                DAILY GIT COLLABORATION CYCLE                           │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  1. START OF SESSION:  Always PULL latest changes pushed by teammates:                 │
+│                        git checkout develop                                            │
+│                        git pull origin develop                                         │
+│                                                                                        │
+│  2. DURING CODING:     Write your code in your assigned module files.                  │
+│                        Check your status frequently: git status                        │
+│                                                                                        │
+│  3. END OF SESSION:    Stage, Commit, Pull again, and PUSH your work:                  │
+│                        git add .                                                       │
+│                        git commit -m "feat(M2): implement keyword router"             │
+│                        git pull origin develop                                         │
+│                        git push origin develop                                         │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Part A: How to PULL from the Development Branch (Start of Work)
+**Rule #1 of Team Git:** Always pull before you start typing new code. If a teammate pushed a new model or API endpoint while you were asleep, pulling ensures you have it locally.
+
+```bash
+# 1. Make sure you are on develop:
+git checkout develop
+
+# 2. Pull all new commits from GitHub:
+git pull origin develop
+```
+
+#### What if you already made some edits and Git warns: *"Your local changes would be overwritten"*?
+Don't panic! Use **`git stash`** to safely shelter your work:
+```bash
+git stash               # Temporarily shelves your edits in a safe vault
+git pull origin develop # Downloads your teammates' updates cleanly
+git stash pop           # Restores your edits on top of the latest code
+```
+
+---
+
+### Part B: How to SAVE & PUSH to the Development Branch (Saving Work)
+Whenever you complete a task or reach a working milestone, save your work to GitHub following these 4 steps:
+
+#### Step 1: Check what files you changed
+```bash
+git status
+```
+*Modified files will be shown in red.*
+
+#### Step 2: Stage the files you want to save
+You can stage specific files:
+```bash
+git add backend/app/services/keyword_router.py
+```
+Or stage all modified files at once:
+```bash
+git add .
+```
+
+#### Step 3: Commit with a descriptive message
+Write a short message explaining what you built:
+```bash
+git commit -m "feat(M2): implement keyword router for department routing"
+```
+
+#### Step 4: Pull first, then Push!
+Always run `git pull` right before `git push` so Git integrates any simultaneous updates before pushing:
+```bash
+# Pull any simultaneous updates:
+git pull origin develop
+
+# Push your commit to GitHub:
+git push origin develop
+```
+Your work is now safely backed up on GitHub and immediately available to your teammates!
+
+---
+
+### Part C: How to Handle a Merge Conflict (No-Panic 3-Step Guide)
+A merge conflict only happens if you and a teammate edited the **exact same line in the same file** at the same time. Git will pause and tell you: `CONFLICT (content): Merge conflict in <file>`.
+
+1. **Open the conflicted file in VS Code.**  
+   You will see highlighted conflict markers:
+   ```python
+   <<<<<<< HEAD (Your local code)
+   assigned_department = "Plumbing"
+   =======
+   assigned_department = "Sanitation"
+   >>>>>>> origin/develop (Teammate's code pushed to GitHub)
+   ```
+2. **Choose which code to keep:**  
+   In VS Code, click **"Accept Current Change"**, **"Accept Incoming Change"**, or simply delete the markers (`<<<<<<<`, `=======`, `>>>>>>>`) and manually combine the lines.
+3. **Stage, commit, and push:**
+   ```bash
+   git add <conflicted-file>
+   git commit -m "merge: resolve conflict in keyword router"
+   git push origin develop
+   ```
+
+> 📖 *For a complete reference of 15 essential Git commands with low-level internal mechanics, see the [**`TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](docs/V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md).*
+
+---
+
+## 5. Teammate Onboarding Checklist: What Do I Do First?
 
 If you are a student or teammate who just joined this project, follow this **exact 6-step checklist**:
 
@@ -110,7 +308,7 @@ If you are a student or teammate who just joined this project, follow this **exa
 │            TEMPLATES. Each file has a header pointing directly to its blueprint.       │
 │          - A complete reference implementation is saved at tag: v1.0-reference-impl     │
 │                                                                                        │
-│  STEP 3: Check the Ownership Matrix (Section 4 below) to find your assigned module:    │
+│  STEP 3: Check the Ownership Matrix (Section 6 below) to find your assigned module:    │
 │          Dev A (M1 Backend), Dev B (M2 Backend), Dev C (M1/M2 Frontend),               │
 │          Dev D (M3/M4 Backend), or Dev E (M5 Backend + Admin Frontend).                │
 │                                                                                        │
@@ -130,7 +328,7 @@ If you are a student or teammate who just joined this project, follow this **exa
 
 ---
 
-## 4. 5-Student Team Ownership & Module Matrix
+## 6. 5-Student Team Ownership & Module Matrix
 
 To ensure zero merge conflicts and completely independent parallel progress, work is divided across **5 teammates**:
 
@@ -147,7 +345,7 @@ To ensure zero merge conflicts and completely independent parallel progress, wor
 
 ---
 
-## 5. Version 1.0 Module Architecture (M1–M5)
+## 7. Version 1.0 Module Architecture (M1–M5)
 
 Click into any module to open its central overview, DAG, and blueprints:
 
@@ -182,7 +380,7 @@ docs/V1/
 
 ---
 
-## 6. Master Developer Guide Curriculum (34 Manuals)
+## 8. Master Developer Guide Curriculum (34 Manuals)
 
 If you are unfamiliar with any language, framework, or concept, read our authoritative **Developer Guide Suite (`docs/developer_guide/`)**. Every guide is written from the ground up with zero prerequisites:
 
@@ -220,7 +418,7 @@ If you are unfamiliar with any language, framework, or concept, read our authori
 
 ---
 
-## 7. Testing, Verification & Quality Gates
+## 9. Testing, Verification & Quality Gates
 
 ### Automated Quality Gates
 Before creating a pull request or merging to `develop`, verify your implementation against the test suite:
@@ -246,7 +444,7 @@ git checkout develop
 
 ---
 
-## 8. Directory Architecture & References
+## 10. Directory Architecture & References
 
 * 🗺️ [**`docs/FILE_ARCHITECTURE_GUIDE.md`**](docs/FILE_ARCHITECTURE_GUIDE.md) — Complete 72-file directory anatomy.
 * 💡 [**`docs/FUNDAMENTALS_OF_FULL_STACK.md`**](docs/FUNDAMENTALS_OF_FULL_STACK.md) — Full-stack architecture fundamentals.
