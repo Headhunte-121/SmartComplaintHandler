@@ -44,6 +44,67 @@ This manual is structured with **strict monotonic prerequisite ordering**. Every
 
 ## Chapter 1: The Cascading Style Sheets (CSS) Engine & The Classical Semantic CSS Dilemma
 
+### 1.0 CSS Declarative Syntax & Styling Fundamentals from Scratch
+
+Before exploring PostCSS Abstract Syntax Trees, JIT compilation passes, and utility-first architectural economics, software engineers must understand the foundational mechanics of Cascading Style Sheets (CSS).
+
+CSS is a declarative, rule-based styling language used to specify the presentation, layout, typography, and visual aesthetics of documents written in HTML or XML.
+
+#### Anatomy of a CSS Rule
+A CSS stylesheet consists of discrete rule-sets. Each rule-set pairs a **Selector** with a **Declaration Block**:
+
+```
+.complaint-card {               <-- Selector (targets matching HTML elements)
+    background-color: #ffffff;  <-- Declaration: Property ('background-color') + Value ('#ffffff')
+    padding: 1rem;              <-- Declaration: Property ('padding') + Value ('1rem')
+    border-radius: 0.5rem;      <-- Declaration: Property ('border-radius') + Value ('0.5rem')
+}                               <-- Declaration Block delimiter
+```
+
+#### Foundational CSS Building Blocks
+1. **Selectors**:
+   - **Type / Tag Selector (`div`, `p`, `button`)**: Targets elements by HTML node name.
+   - **Class Selector (`.urgent`, `.badge`)**: Targets elements declaring matching `class="..."` attributes. The foundational workhorse of web styling.
+   - **ID Selector (`#root`, `#main`)**: Targets unique elements declaring `id="..."`. Highly specific.
+   - **Combinators**: Descendant space (`.card p`), direct child (`.list > li`), adjacent sibling (`h2 + p`).
+2. **Values and Units**:
+   - **Absolute Units (`px`)**: Physical screen pixel approximations (e.g., `16px`).
+   - **Relative Units (`rem`, `em`, `%`, `vw`, `vh`)**:
+     - `rem` (Root EM): Proportional to the `<html>` root element's font size (typically $1\text{ rem} = 16\text{px}$). Ensures user font-scaling preferences are respected.
+     - `%`: Relative to parent container's computed box dimension.
+     - `vw` / `vh`: Percentage of the browser viewport width and height.
+3. **The Visual Box Model**:
+   - Every rendered element forms a rectangular box composed of four concentric layers:
+     `Content Box` $\rightarrow$ `Padding` $\rightarrow$ `Border` $\rightarrow$ `Margin`.
+4. **Display Models**:
+   - `block`: Stacks vertically, consuming 100% available container width (e.g., `<div>`, `<p>`).
+   - `inline`: Flows horizontally alongside text; ignores top/bottom margins (e.g., `<span>`, `<a>`).
+   - `flex`: One-dimensional layout engine distributing space along a primary row or column axis.
+   - `grid`: Two-dimensional spatial grid orchestrating rows and columns simultaneously.
+
+```css
+/* Foundational CSS styling rules for a municipal complaint grievance card */
+.complaint-card-base { /* Class selector targeting container card element */
+  display: flex; /* Establish flexbox layout context for child element alignment */
+  flex-direction: column; /* Stack children vertically in single column flow */
+  gap: 0.75rem; /* Enforce 12px spatial gap between successive child elements */
+  padding: 1.25rem; /* Apply 20px internal breathing room padding on all four edges */
+  background-color: #ffffff; /* Set opaque white background color for card surface */
+  border: 1px solid #e2e8f0; /* Render subtle slate-200 boundary border around box */
+  border-radius: 0.5rem; /* Curve card corners with 8px radius */
+} /* Conclude container declaration block */
+
+.complaint-badge-urgent { /* Class selector styling emergency urgency indicator */
+  display: inline-block; /* Allow element to flow horizontally while respecting height */
+  font-size: 0.75rem; /* Set 12px fluid typography size relative to root rem */
+  font-weight: 700; /* Apply bold font weight to emphasize critical triage state */
+  color: #b91c1c; /* Render high-contrast red-700 text color for accessibility */
+  background-color: #fee2e2; /* Fill badge background with light red-100 alert tint */
+  padding: 0.25rem 0.5rem; /* Apply 4px vertical and 8px horizontal padding */
+  border-radius: 9999px; /* Fully round badge ends creating pill shape */
+} /* Conclude badge declaration block */
+```
+
 ### 1.1 The CSS Parsing and Cascading Engine
 
 Cascading Style Sheets (CSS) is a declarative domain-specific language processed by the browser's layout engine (Blink in Chromium, WebKit in Safari, Gecko in Firefox). 
