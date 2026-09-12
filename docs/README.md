@@ -6,18 +6,15 @@ All documentation is tracked directly within this Git repository so every team m
 
 ---
 
-## 1. Developer Engineering & Architecture Guides (`developer_guide/`)
+## 1. Master Developer Engineering & Architecture Guide Suite (`developer_guide/`)
 
-The core engineering manual for writing, understanding, and debugging the platform from scratch across the full stack:
+The authoritative engineering manual suite for writing, understanding, and debugging the platform from scratch across the full stack (34 exhaustive technical manuals with 100% comment coverage, zero-prerequisite bottom-up progression):
 
-* [**`developer_guide/README.md`**](developer_guide/README.md) — Master Developer Handbook & Language Runtime Overview.
-* [**`developer_guide/00_FULL_STACK_ARCHITECTURE_AND_LANGUAGES.md`**](developer_guide/00_FULL_STACK_ARCHITECTURE_AND_LANGUAGES.md) — HTTP wire protocol, REST semantics, ASGI vs. WSGI, Python `asyncio` event loop, JavaScript Promises, V8 engine event loop, and Client-Server DTO contracts.
-* [**`developer_guide/01_DATABASE_ENGINE_AND_SHELL.md`**](developer_guide/01_DATABASE_ENGINE_AND_SHELL.md) — SQLite WAL (Write-Ahead Log) mode, SQLAlchemy 2.0 ORM, Python generators (`yield get_db`), FastAPI lifespan context managers, Vite reverse proxy, and React Router v6 SPA routing.
-* [**`developer_guide/02_INGESTION_AND_KEYWORD_ROUTING.md`**](developer_guide/02_INGESTION_AND_KEYWORD_ROUTING.md) — Pydantic v2 Rust core validation, collision-resistant tracking code generation, regex word-boundary keyword taxonomy routing, transactional units of work, and React controlled forms.
-* [**`developer_guide/03_DETERMINISTIC_TRIAGE_AND_PRIORITY.md`**](developer_guide/03_DETERMINISTIC_TRIAGE_AND_PRIORITY.md) — ITIL 2D Severity-Impact Cartesian matrix, emergency keyword regex amplifiers, real-time debounced API calls in React, and semantic design tokens.
-* [**`developer_guide/04_WORKLOAD_DISPATCH_AND_BALANCING.md`**](developer_guide/04_WORKLOAD_DISPATCH_AND_BALANCING.md) — Multi-server queue balancing theory ($M/M/c$), greedy lowest-load dispatch heuristic, race conditions, atomic database counter updates, and admin capacity grids.
-* [**`developer_guide/05_SLA_AND_LIFECYCLE_AUTOMATA.md`**](developer_guide/05_SLA_AND_LIFECYCLE_AUTOMATA.md) — Finite State Machine (FSM) theory, state transition graphs, transition guards, Python `timedelta` deadline math, and memory-leak-free React countdown timer cleanup hooks.
-* [**`developer_guide/06_TESTING_AND_GIT_DELIVERY.md`**](developer_guide/06_TESTING_AND_GIT_DELIVERY.md) — Pytest `TestClient` integration suites, closed-loop E2E smoke tests, Git branching strategies, and interactive 3-way merge conflict resolution in VS Code.
+* [**`developer_guide/README.md`**](developer_guide/README.md) — **Master Developer Handbook, Full-Stack Mental Model & 34-Guide Curriculum**.
+  * **Part I: Computational Foundations, Operating Systems & Networking** (Units `00A`, `00B`, `01A`, `01B`).
+  * **Part II: Backend Runtimes, Contracts, Databases & Parsing** (Guides `01`, `02`, `03`, Units `03B`, `03C`, Guides `04`, `05`).
+  * **Part III: Frontend Languages, Type Systems, DOM & Reactive UI** (Units `05B`, `05C`, Guide `06`, Unit `06B`, Guides `07`, `08`, `09`, Unit `09B`, Guide `10`).
+  * **Part IV: Concurrency, Testing, Release & Browser Security** (Guides `11`, `12`, `13`, `14`, Unit `14B`, Guides `15`, `16`, `17`, `18`, `19`, `20`, `21`, Unit `21B`, Guide `22`).
 
 ---
 
