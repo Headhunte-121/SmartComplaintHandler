@@ -278,6 +278,7 @@ npm run build
 
 ## Documentation Index
 
+* 📄 [**`docs/PRODUCT_DESIGN_REPORT_PDR.md`**](docs/PRODUCT_DESIGN_REPORT_PDR.md) — **Product Design Report (PDR / PRD)**: Executive summary, user personas, NFRs, system architecture, data dictionary, and 5-student ownership matrix.
 * 🧭 [**`docs/README.md`**](docs/README.md) — Master documentation portal.
 * 📐 [**`docs/V1/README.md`**](docs/V1/README.md) — Version 1.0 module hub and blueprint index.
 * 🗺️ [**`docs/FILE_ARCHITECTURE_GUIDE.md`**](docs/FILE_ARCHITECTURE_GUIDE.md) — Comprehensive 72-file repository inventory.

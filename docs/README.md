@@ -1,6 +1,6 @@
 # Smart Complaint Handler — Master Documentation Portal
 
-> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md) &nbsp;│&nbsp; [👥 Team Workflow & Git Guide](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md)
+> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md) &nbsp;│&nbsp; [👥 Team Workflow & Git Guide](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md)
 
 Welcome to the central documentation portal for the **Automated Smart Complaint Routing & Workflow Automation Platform (`SmartComplaintHandler`)**. This repository contains the complete technical specifications, architectural blueprints, foundational engineering manuals, and developer implementation guides.
 
@@ -10,6 +10,7 @@ Welcome to the central documentation portal for the **Automated Smart Complaint 
 
 | Objective | Primary Resources | Scope & Deliverables |
 | :--- | :--- | :--- |
+| **Product Specification & PDR** | [**`Product Design Report (PDR/PRD)`**](PRODUCT_DESIGN_REPORT_PDR.md) | Official PDR/PRD: Personas, functional requirements, NFRs, KPIs, work breakdown |
 | **Module Implementation** | [**`V1 Module Blueprints`**](V1/README.md)<br>[**`Team Workflow & Git Guide`**](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md) | File-by-file blueprints (M1–M5), zero-blocking mock data contracts, concurrency DAG |
 | **Engineering Concepts** | [**`Developer Guide Suite`**](developer_guide/README.md) | 34 monotonic manuals covering CS fundamentals, runtimes, protocols, security |
 | **System Architecture** | [**`V1 Master Blueprint`**](V1/V1_CENTRAL_BLUEPRINT.md)<br>[**`File Architecture Guide`**](FILE_ARCHITECTURE_GUIDE.md) | Full-stack operational trace, 72-file inventory, component topology |
