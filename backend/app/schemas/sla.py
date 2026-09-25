@@ -85,9 +85,17 @@ class TicketLifecycleResponse(BaseModel):
     id: int
     tracking_code: str
     status: str
+    new_status: Optional[str] = None
+    resolved: Optional[bool] = None
     priority: str
     sla_deadline: Optional[datetime] = None
     resolved_at: Optional[datetime] = None
     resolution_notes: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+    def model_post_init(self, __context):
+        if self.new_status is None:
+            self.new_status = self.status
+        if self.resolved is None:
+            self.resolved = (self.status == "RESOLVED")

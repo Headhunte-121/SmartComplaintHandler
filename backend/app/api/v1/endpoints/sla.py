@@ -125,6 +125,7 @@ def escalate(
     return ticket
 
 
+@router.get("/sla/breaches", response_model=List[SLABreachResponse])
 @router.get("/sla/breaches/active", response_model=List[SLABreachResponse])
 def get_breaches(
     threshold_ratio: float = Query(0.20, ge=0.0, le=1.0, description="Approaching breach warning threshold ratio"),

@@ -11,9 +11,17 @@ from app.core.database import engine
 from app.db.base import Base
 from app.api.v1.router import api_router
 
+from app.core.database import SessionLocal
+from app.db.seed import seed_database
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_database(db)
+    finally:
+        db.close()
     yield
 
 app = FastAPI(
