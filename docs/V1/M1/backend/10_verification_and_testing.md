@@ -154,12 +154,24 @@ If an error occurs during any verification checkpoint, inspect the bottom line o
 
 ---
 
-# 6. Milestone Sign-Off
+---
 
-Module M1 is 100% complete, hardened, and verified when all four checkpoints pass cleanly in sequence:
-1. Configuration loads without validation errors.
-2. Tables `departments`, `teams`, and `tickets` are generated on disk in `smart_complaints.db`.
-3. The 6 campus departments and 12 teams are seeded idempotently.
-4. An end-to-end ticket transaction successfully creates, links, queries, and deletes a test complaint.
+# 6. Definition of Done & Live Website Verification
 
-The backend data subsystem is now officially certified and ready for Module M2 (API Routers and Pydantic Schemas).
+### What This File Is Responsible For
+This specification is responsible for **governing the automated quality assurance test suite and milestone certification for Module M1's backend data layer**. It ensures that database schemas, model relationships, configuration settings, and seed scripts remain 100% stable as new features are integrated.
+
+### What It Should Perform
+When executed, this testing suite verifies:
+1. **Configuration Integrity:** Asserts that `settings` correctly reads `.env` variables with valid default fallbacks.
+2. **Schema & Relation Constraints:** Verifies that foreign keys between Departments, Teams, and Tickets enforce referential integrity and cascading rules.
+3. **Seed Idempotency:** Validates that executing seed functions multiple times produces exactly the same database state without duplicate key errors.
+
+### How to See It Performing Its Job on the Live Website
+1. Run the test suite in your terminal:
+   `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
+2. **Observe 100% Pass Rate:**
+   * All tests pass cleanly in $<2$ seconds.
+3. Open **`http://localhost:8000/docs`** in your browser:
+   * Verify all API endpoints and schemas are active and functional.
+   * Test any endpoint (e.g. `GET /api/v1/departments`) using Swagger's "Try it out" button to witness live, verified database records returned with HTTP 200 OK.

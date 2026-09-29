@@ -166,18 +166,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and ready when the following conditions are verified:
+# 6. Definition of Done & Live Website Verification
 
-1. **Physical File Existence:**
-   * An environment file named `.env` exists in the `backend/` root directory containing at minimum `PROJECT_NAME` and `DATABASE_URL`.
-   * A Python module named `config.py` exists precisely at `backend/app/core/config.py`.
-2. **Schema & Class Integrity:**
-   * The `Settings` class inherits directly from `BaseSettings`.
-   * All three core configuration attributes (`PROJECT_NAME`, `API_V1_STR`, `DATABASE_URL`) are declared with explicit type annotations and fallback defaults.
-   * The inner configuration explicitly links to `.env` using UTF-8 encoding and specifies `extra = "ignore"`.
-3. **Singleton Export:**
-   * An active instance of `Settings` is instantiated and exported under the exact identifier `settings`.
-4. **Programmatic Verification:**
-   * Executing an inline Python command in the terminal to import `settings` from `app.core.config` prints the project name and database URL cleanly without throwing `ValidationError`, `AttributeError`, or `FileNotFoundError`.
+### What This File Is Responsible For
+This Python module (`backend/app/core/config.py`) is responsible for **central environment variable ingestion, path resolution, and type-checked application configuration**. It reads settings from the local `.env` file and provides an immutable, validated configuration singleton (`settings`) consumed by every backend service, database connector, and API router.
+
+### What It Should Perform
+When loaded during application startup, this module performs the following functions:
+1. **Pydantic BaseSettings Ingestion:** Reads environment variables (`PROJECT_NAME`, `DATABASE_URL`, `API_V1_STR`) and falls back safely to default development settings if variables are omitted.
+2. **Path & URL Normalization:** Validates the SQLite database connection string (`sqlite:///./smart_complaints.db`) and constructs the root API namespace prefix (`/api/v1`).
+3. **Fail-Fast Error Handling:** Rejects malformed configuration at boot time, preventing the FastAPI server from starting in an undefined or insecure state.
+
+### How to See It Performing Its Job on the Live Website
+1. Boot the FastAPI backend server:
+   `uvicorn app.main:app --port 8000 --reload`
+2. Open **`http://localhost:8000/docs`** in your browser.
+3. **Observe Configuration Live:**
+   * Notice the Swagger documentation header prominently displays the configured title: **"Smart Campus Complaint System"** (derived directly from `settings.PROJECT_NAME`).
+   * Observe all registered API endpoints begin with the prefix defined in `settings.API_V1_STR` (`/api/v1/...`).
+4. To test live environment overrides, stop the server, change `PROJECT_NAME="Custom Campus Desk"` in `.env`, and restart `uvicorn`: notice the documentation header updates immediately.

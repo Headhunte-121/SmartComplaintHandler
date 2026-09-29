@@ -150,16 +150,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python file exists precisely at `backend/app/core/database.py`.
-2. **Engine Initialization:**
-   * The `engine` object is created using `create_engine` with `settings.DATABASE_URL` and `connect_args={"check_same_thread": False}`.
-3. **Session Factory Configuration:**
-   * `SessionLocal` is created using `sessionmaker` with `autocommit=False`, `autoflush=False`, and `bind=engine`.
-4. **Clean Import and Type Verification:**
-   * Running an inline verification command in the terminal to import `engine` and `SessionLocal` from `app.core.database` succeeds without errors.
-   * Calling `db = SessionLocal()` creates a valid, active SQLAlchemy `Session` instance, and calling `db.close()` releases it cleanly without throwing exceptions.
+### What This File Is Responsible For
+This Python module (`backend/app/core/database.py`) is responsible for **managing the database engine connection pool, session manufacturing (`SessionLocal`), and the declarative ORM base class**. It serves as the single source of truth for connecting FastAPI to the SQLite relational database.
+
+### What It Should Perform
+When interacting with the data persistence layer, this module performs the following functions:
+1. **Thread-Safe SQLite Engine Initialization:** Configures the SQLAlchemy engine with `connect_args={"check_same_thread": False}`, allowing multi-threaded FastAPI request workers to safely share connection resources.
+2. **Session Factory Lifecycle:** Provides `SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)` to manufacture isolated database sessions per request.
+3. **Declarative Base Registry:** Provides `Base = declarative_base()`, which binds all platform entity models to the SQLAlchemy metadata registry.
+
+### How to See It Performing Its Job on the Live Website
+1. Start both backend and frontend servers:
+   `uvicorn app.main:app --port 8000 --reload` and `npm run dev` in `frontend/`.
+2. Open **`http://localhost:5173/`** in your browser and submit a complaint or view the dashboard.
+3. **Observe Database Operations Live:**
+   * Notice that SQLite creates or reads `smart_complaints.db` in the project root directory.
+   * Refresh the browser or open a new browser tab at `http://localhost:5173/track`: notice that all submitted complaints persist across page reloads and server restarts.
+   * In your backend terminal, notice that transactions commit cleanly with zero "database locked" or multi-threading conflict errors.

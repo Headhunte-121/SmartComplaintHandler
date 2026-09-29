@@ -172,23 +172,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/models/department.py`.
-2. **Model Class Definition:**
-   * `Department` inherits directly from `Base` imported from `app.db.base`.
-   * `__tablename__` is set explicitly to `"departments"`.
-3. **Column & Constraint Specifications:**
-   * `id`: Integer, primary key, indexed.
-   * `name`: String(100), unique, non-nullable, indexed.
-   * `description`: Text, nullable.
-   * `is_active`: Boolean, default=True, non-nullable.
-4. **Relational Bridges:**
-   * `teams`: Relationship targeting `"Team"` with bidirectional synchronization (`back_populates="department"`) and cascade deletion (`cascade="all, delete-orphan"`).
-   * `tickets`: Relationship targeting `"Ticket"` with bidirectional synchronization (`back_populates="department"`).
-5. **Programmatic Verification:**
-   * Importing `Department` from `app.models.department` in an isolated terminal session succeeds cleanly.
-   * Inspecting `Department.__table__.columns.keys()` confirms that `id`, `name`, `description`, and `is_active` are registered on the table schema without errors.
+### What This File Is Responsible For
+This Python module (`backend/app/models/department.py`) is responsible for **defining the database schema and relationship mappings for campus maintenance departments** (`Department` model). It codifies the organizational units (Electrical, Plumbing, IT Support, Carpentry, Civil, Other) responsible for resolving student grievances.
+
+### What It Should Perform
+When querying or updating departmental data, this model performs the following operations:
+1. **Relational Field Integrity:** Enforces unique primary keys, unique department codes (e.g. `ELEC`, `PLUMB`, `IT`), human-readable names, and active status flags.
+2. **Cascading One-to-Many Relationships:** Defines SQLAlchemy relationships linking each department to its subordinate maintenance teams (`teams = relationship("Team", back_populates="department")`).
+3. **Data Serialization:** Converts database department records into structured dictionaries for API serialization.
+
+### How to See It Performing Its Job on the Live Website
+1. Open the complaint submission page at **`http://localhost:5173/`**.
+2. Locate the **Category / Department** dropdown selector.
+3. **Observe Department Model Live:**
+   * Notice the dropdown is populated with the official campus departments: `Electrical`, `Plumbing`, `IT Support`, `Carpentry`, `Civil`, and `Other`.
+   * Open `http://localhost:8000/docs` and execute `GET /api/v1/departments`: verify that the returned JSON matches the database department entities with their corresponding IDs and codes.

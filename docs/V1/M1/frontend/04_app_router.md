@@ -108,36 +108,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/routes/AppRouter.jsx` exists and configures `Layout` as parent route with child routes for `/`, `/track`, `/admin`, and `*`.
-* [ ] `src/App.jsx` exists, wrapping the router in a global Error Boundary and React Suspense loading fallback.
-* [ ] Visiting `http://localhost:5173/` renders the persistent layout and `SubmitComplaint` form.
-* [ ] Visiting `http://localhost:5173/track` renders the ticket tracking view.
-* [ ] Visiting `http://localhost:5173/admin` renders the admin dashboard view.
-* [ ] Visiting an invalid route like `http://localhost:5173/non-existent-page` renders the styled 404 Not Found component with a working return button.
-* [ ] Page components are lazy-loaded via `React.lazy()`, verifying that code chunks load asynchronously without throwing Suspense errors.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This React routing module (`frontend/src/router/AppRouter.jsx`) is responsible for **declaring the client-side URL hierarchy and managing page transitions without full browser reloads**. It acts as the traffic switchboard for the single-page application.
 
-1. **Verify Route Loading & Code Splitting in Browser:**
-   Run Vite dev server: `npm run dev`
-   Open browser Developer Tools (F12) and switch to the Network tab. Filter by `JS`.
-   Load `http://localhost:5173/`. Observe that only base chunks load.
-   Click "Staff Admin Desk". Observe a new network request fetching `AdminDashboard.jsx` chunk on demand, followed by instant screen rendering.
+### What It Should Perform
+When users navigate the portal, this router performs the following operations:
+1. **URL Route Mapping:** Maps `/` to Home, `/submit` to SubmitComplaint, `/track` to TrackTicket, and `/admin` to AdminDashboard.
+2. **Seamless Client-Side Navigation:** Utilizes HTML5 History API (`pushState`) to swap views instantly without triggering white-screen page reloads.
+3. **404 Fallback Boundary:** Catches all undefined or broken URLs (`path="*"`) and renders a helpful "Page Not Found" screen with a "Return to Home" button.
 
-2. **Verify 404 Fallback Route:**
-   Navigate browser manually to `http://localhost:5173/some/broken/link`.
-   Verify the 404 Not Found screen renders with message "The page you are looking for does not exist" and clicking "Return to Complaint Portal" navigates smoothly back to `/`.
-
-3. **Troubleshooting Matrix:**
-   * *Problem:* Browser throws error `A component suspended while rendering, but no fallback was provided`.
-     * *Cause:* A component imported with `React.lazy()` is rendered outside of a `<React.Suspense fallback={...}>` wrapper.
-     * *Fix:* Verify that `<Suspense fallback={<RouteLoadingSpinner />}>` wraps the `<RouterProvider />` or `<Routes>` container in `src/App.jsx`.
-   * *Problem:* Navigating to `/track` or `/admin` directly via browser address bar results in 404 from Vite in production preview.
-     * *Cause:* The static web server does not have Single Page Application fallback routing enabled (all unmatched paths must serve `index.html`).
-     * *Fix:* In development, Vite handles this automatically. For production preview (`npm run preview`), ensure Vite's preview server is used.
-   * *Problem:* Clicking the 404 return button does nothing or reloads the broken page.
-     * *Cause:* Button lacks a click handler or uses an incorrect `useNavigate('/')` invocation.
-     * *Fix:* Verify the button uses `<Link to="/">Return to Complaint Portal</Link>` or `onClick={() => navigate('/')}`.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/`** in your browser.
+2. Click **Submit Complaint**: observe the URL updates to `http://localhost:5173/submit` and the form renders instantly without the browser refreshing.
+3. Click **Track Ticket**: observe the URL updates to `http://localhost:5173/track` smoothly.
+4. Manually type an invalid address in the browser bar: `http://localhost:5173/non-existent-page`.
+5. **Observe 404 Route Live:**
+   * The custom 404 screen appears with the message *"The page you are looking for does not exist"*.
+   * Click the **Return Home** button: notice it routes you back to `/` cleanly.

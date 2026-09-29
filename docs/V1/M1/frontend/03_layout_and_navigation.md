@@ -116,38 +116,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/components/Layout.jsx` exists, rendering `Navbar`, `<Outlet />` inside `<main>`, and `Footer`.
-* [ ] `src/components/Navbar.jsx` exists with campus branding, desktop navigation links, responsive mobile hamburger menu, and health status dot.
-* [ ] `src/components/Footer.jsx` exists with campus attribution, version badge `v1.0.0-core`, and emergency hotline notice.
-* [ ] Navigating between `/`, `/track`, and `/admin` transitions page views instantaneously without full page reloads.
-* [ ] Active navigation link correctly renders with indigo color and bottom border.
-* [ ] On mobile viewports (< 768px), desktop links hide and clicking the hamburger icon smoothly reveals the mobile navigation drawer.
-* [ ] When FastAPI backend is running, the health indicator displays a pulsing green dot (`System Online`).
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This React component module (`Layout.jsx`, `Navbar.jsx`, `Footer.jsx`) is responsible for **rendering the universal application shell, brand header, navigation bar, and sticky footer**. It provides the consistent visual frame that wraps every page across the platform.
 
-1. **Verify Layout Rendering & Route Transitions:**
-   Start Vite dev server: `npm run dev`
-   Open browser to `http://localhost:5173/`. Verify the navbar and footer appear. Click "Track Complaint". Verify URL changes to `http://localhost:5173/track` with zero browser reload indicator and active styling switches to the clicked link.
+### What It Should Perform
+When rendered on screen, this component performs the following visual behaviors:
+1. **Persistent Responsive Navigation:** Displays the university logo, portal title, and navigation links (*"Submit Complaint"*, *"Track Ticket"*, *"Admin Desk"*) with active route highlighting.
+2. **Mobile Drawer Menu:** Collapses navigation into an accessible hamburger menu on mobile and tablet viewport widths ($<768\text{px}$).
+3. **Structured Content Outlet:** Wraps dynamic page content inside a responsive container (`<main className="flex-1 max-w-7xl mx-auto px-4 ...">`) and pins a copyright footer to the bottom of the viewport.
 
-2. **Verify Mobile Drawer Responsiveness:**
-   In browser Developer Tools (F12), toggle Device Toolbar (Ctrl+Shift+M) to simulate mobile viewport (e.g. iPhone 12, 390px width).
-   Verify desktop links disappear and hamburger button appears. Tap hamburger button; verify mobile dropdown opens. Tap "Submit Complaint"; verify drawer closes and navigates.
-
-3. **Verify System Health Indicator:**
-   With FastAPI backend running on port 8000, verify navbar renders a green dot with `System Online`.
-   Stop the FastAPI process in terminal; refresh frontend; verify navbar renders an amber dot indicating connecting/offline state.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* Content beneath the navbar is completely blank when opening any page.
-     * *Cause:* `<Outlet />` from `react-router-dom` was omitted from `src/components/Layout.jsx`.
-     * *Fix:* Ensure `import { Outlet } from 'react-router-dom'` is present and `<Outlet />` is rendered inside the `<main>` element of `Layout.jsx`.
-   * *Problem:* Clicking navigation links causes a full browser page refresh.
-     * *Cause:* Regular `<a href="...">` tags were used instead of `NavLink` or `Link` from `react-router-dom`.
-     * *Fix:* Replace all internal `<a>` tags with `<NavLink to="...">`.
-   * *Problem:* Footer overlaps or obscures form inputs on mobile screens.
-     * *Cause:* Missing `flex-1` on `<main>` or absolute positioning was improperly applied to the footer.
-     * *Fix:* Verify `Layout.jsx` has `min-h-screen flex flex-col` on the outer div and `flex-1` on the `<main>` tag, and remove any `absolute` positioning from `Footer.jsx`.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/`** in your browser.
+2. **Observe Layout & Navigation Live:**
+   * Notice the deep-blue campus header at the top and the institutional footer at the bottom.
+   * Click between **Submit Complaint**, **Track Ticket**, and **Admin Operations**: notice the top navigation bar remains stable while page content changes, and the active link is underlined with a distinct highlight color.
+   * Press `F12`, toggle the Device Toolbar (mobile mode), and resize the screen to phone width: notice the navigation links collapse into a hamburger menu button that opens a smooth slide-out drawer when clicked.

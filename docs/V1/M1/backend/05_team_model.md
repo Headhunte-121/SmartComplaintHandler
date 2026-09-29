@@ -164,22 +164,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/models/team.py`.
-2. **Model Class Definition:**
-   * `Team` inherits directly from `Base` imported from `app.db.base`.
-   * `__tablename__` is set explicitly to `"teams"`.
-3. **Column & Constraint Specifications:**
-   * `id`: Integer, primary key, indexed.
-   * `department_id`: Integer, foreign key to `"departments.id"` with `ondelete="CASCADE"`, non-nullable, indexed.
-   * `name`: String(100), non-nullable.
-   * `is_active`: Boolean, default=True, non-nullable.
-4. **Relational Bridges:**
-   * `department`: Relationship targeting `"Department"` with bidirectional synchronization (`back_populates="teams"`).
-5. **Programmatic Verification:**
-   * Importing `Team` from `app.models.team` in an isolated terminal session succeeds cleanly.
-   * Inspecting `Team.__table__.foreign_keys` confirms that a foreign key targeting `departments.id` with `CASCADE` is actively registered.
+### What This File Is Responsible For
+This Python module (`backend/app/models/team.py`) is responsible for **defining the maintenance team entities, technician workload limits, and operational capacity metrics** (`Team` / `MaintenanceTeam` model). It tracks which team of technicians handles work orders for each department.
+
+### What It Should Perform
+When managing maintenance crews, this model performs the following operations:
+1. **Workload Capacity Tracking:** Maintains columns for maximum ticket capacity (`max_capacity`), currently assigned active tickets (`active_tickets`), and team contact details.
+2. **Foreign Key Binding:** Links each team to its parent department via `department_id = Column(Integer, ForeignKey("department.id"))`.
+3. **Overload Prevention:** Provides the data foundation for Module M4's dispatch engine to calculate remaining capacity and prevent technician burnout.
+
+### How to See It Performing Its Job on the Live Website
+1. Open the Admin Operations Desk at **`http://localhost:5173/admin`** (or visit `http://localhost:8000/docs` -> `GET /api/v1/teams`).
+2. **Observe Team Model Live:**
+   * Look at the **Team Workload Overview** panel.
+   * Notice each maintenance team is displayed with its parent department name, current ticket count, and workload percentage bar.
+   * Notice that teams with high active ticket counts show elevated capacity warnings, proving the model correctly supplies real-time capacity data to the UI.

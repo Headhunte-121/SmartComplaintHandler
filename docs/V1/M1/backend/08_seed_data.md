@@ -163,18 +163,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/db/seed_data.py`.
-2. **Catalog Integrity:**
-   * The script defines all 6 campus departments (Electrical, Plumbing, IT Support, Carpentry, Sanitation, Hostel Maintenance) with their associated maintenance squads.
-3. **Idempotency & Transaction Safety:**
-   * Pre-insert queries check for existing records before staging.
-   * `db.rollback()` is executed in the `except` block.
-   * `db.close()` is executed in the `finally` block.
-4. **Programmatic Verification:**
-   * Running `python -m app.db.seed_data` from the `backend/` directory inserts all 6 departments and 12 squads, printing success confirmations.
-   * Running `python -m app.db.seed_data` a second time immediately afterwards executes cleanly, skips all existing records, and exits with zero errors.
+### What This File Is Responsible For
+This Python script (`backend/app/db/seed.py`) is responsible for **populating the database with initial campus departments, baseline maintenance teams, and default test tickets**. It guarantees that developers and evaluators can immediately run and test the platform without manually inserting database rows.
+
+### What It Should Perform
+When executed during setup or server boot, this module performs the following operations:
+1. **Idempotent Fixture Seeding:** Checks whether default departments and teams already exist in SQLite before inserting, preventing primary key violations or duplicate records upon repeated executions.
+2. **Dual-Signature Compatibility:** Supports both `seed_database(db: Session)` and standalone `seed_data()` invocations, ensuring complete interoperability with all teammate workflows.
+3. **Comprehensive Sample Data:** Seeds 6 standard departments (Electrical, Plumbing, IT Support, Carpentry, Civil, Other) and realistic maintenance teams with assigned capacities.
+
+### How to See It Performing Its Job on the Live Website
+1. Delete or rename the local `smart_complaints.db` file to test a clean installation.
+2. Run the seed script:
+   `backend\venv\Scripts\python.exe -m app.db.seed`
+3. Launch the web application: `npm run dev` and `uvicorn app.main:app --reload`.
+4. Open **`http://localhost:5173/`**:
+   * Navigate to the complaint submission form: verify all 6 seeded departments appear in the dropdown.
+   * Navigate to the Admin Dashboard at `http://localhost:5173/admin`: verify that pre-seeded maintenance teams and sample tickets appear immediately.

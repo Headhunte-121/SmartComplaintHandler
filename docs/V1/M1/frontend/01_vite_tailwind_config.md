@@ -121,34 +121,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `vite.config.js` exists in the project root with React plugin, port `5173`, strict port setting, and `/api` proxy bridge configured.
-* [ ] `tailwind.config.js` exists with correct `content` scanning globs, semantic brand colors, priority colors, and sans-serif font stack.
-* [ ] `postcss.config.js` exists and exports `tailwindcss` and `autoprefixer` plugins.
-* [ ] `src/index.css` contains the 3 `@tailwind` directives and base canvas body styling rules.
-* [ ] Executing `npm run dev` starts the Vite server on `http://localhost:5173` in under 1 second.
-* [ ] Editing a component's Tailwind class updates the browser view instantly via Hot Module Replacement without a full page reload.
-* [ ] Executing `npm run build` compiles the production bundle into `dist/` with a minified CSS file smaller than 25 KB.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This configuration module (`vite.config.js`, `tailwind.config.js`, `postcss.config.js`) is responsible for **powering the frontend build toolchain, local development proxy server, and the semantic design token system**. It provides the core developer environment and visual styling foundation for the entire React single-page application.
 
-1. **Verify Vite Development Server Startup:**
-   Run in frontend directory: `npm run dev`
-   Expected terminal output: `VITE v5.x.x ready in xxx ms` and `Local: http://localhost:5173/`.
+### What It Should Perform
+When executing development or production builds, this toolchain performs the following operations:
+1. **API Proxying:** In `vite.config.js`, transparently proxies `/api` requests to backend port 8000, completely eliminating CORS configuration issues during local development.
+2. **Sub-Second Hot Module Replacement (HMR):** Reflects code changes in the browser within $<100\text{ms}$ without reloading the entire page.
+3. **Tailwind Design Token Compilation:** Scans JSX files, purges unused CSS, and compiles semantic utility classes for campus branding, typography, priority colors, and responsive layouts into an optimized `<25\text{ KB}` bundle.
 
-2. **Verify Production Bundle Compilation & Tailwind Purging:**
-   Run in frontend directory: `npm run build`
-   Expected terminal output: `dist/index.html`, `dist/assets/index-xxxx.css` (verify size is < 25 KB), and `dist/assets/index-xxxx.js`.
-
-3. **Troubleshooting Matrix:**
-   * *Problem:* Tailwind classes do not appear in the browser; plain unstyled HTML renders.
-     * *Cause:* `src/index.css` is not imported inside `src/main.jsx`, or `tailwind.config.js` has an incorrect `content` glob path.
-     * *Fix:* Ensure `import './index.css'` is present on line 1 of `src/main.jsx` and confirm `content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"]`.
-   * *Problem:* Terminal shows `Port 5173 is in use`.
-     * *Cause:* A previous Vite instance or another application is holding port 5173 open.
-     * *Fix:* Terminate the zombie process with `npx kill-port 5173` or temporarily change `server.port` to `5174` in `vite.config.js`.
-   * *Problem:* API calls return `404 Not Found` with HTML payload instead of JSON.
-     * *Cause:* The Vite proxy rewrite rule is stripping `/api` incorrectly or FastAPI backend is not running on port `8000`.
-     * *Fix:* Confirm FastAPI is running via `curl http://127.0.0.1:8000/docs` and verify `target: 'http://127.0.0.1:8000'` in `vite.config.js`.
+### How to See It Performing Its Job on the Live Website
+1. In `frontend/`, run: `npm run dev`.
+2. Open **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
+3. **Observe Build & Styling Live:**
+   * Notice the page loads instantly with crisp Tailwind typography, custom primary blue header accents, and responsive layout grids.
+   * Open `frontend/src/components/Navbar.jsx`, change a text label, and save: observe the browser update instantly via HMR without losing form state.
+   * Open browser DevTools (`F12`), navigate to the Network tab, and perform an action: observe API requests sent to `/api/...` succeed without CORS errors.

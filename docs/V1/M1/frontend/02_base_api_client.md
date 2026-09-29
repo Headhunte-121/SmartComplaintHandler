@@ -105,40 +105,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/api/client.js` exists and exports both a named export `apiClient` and a default export.
-* [ ] Base URL properly evaluates `import.meta.env.VITE_API_BASE_URL` with fallback to `/api/v1`.
-* [ ] Request timeout is configured to `10000` ms (10 seconds).
-* [ ] Request interceptor ensures `'Content-Type': 'application/json'` header is attached.
-* [ ] Response interceptor unwraps `response.data` so that `apiClient.get()` returns the data object directly.
-* [ ] Response error interceptor normalizes network connection dropouts into `{ message: 'Backend service unreachable...', status: 0 }`.
-* [ ] Response error interceptor parses FastAPI Pydantic 422 validation arrays into clean readable strings.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This JavaScript module (`frontend/src/api/client.js`) is responsible for **centralizing all HTTP network transport between the React frontend and the FastAPI backend**. It configures the shared Axios/Fetch instance, manages request/response interceptors, and unifies error handling.
 
-1. **Verify Base Client Compilation & Import:**
-   In `src/App.jsx` or a test script, verify the client can be imported without syntax errors:
-   `import { apiClient } from './api/client';`
+### What It Should Perform
+When UI components request backend data, this client performs the following operations:
+1. **Standardized Base URL & Headers:** Sets the default base URL to `/api/v1` and injects `Content-Type: application/json` into every outbound request.
+2. **Global Timeout Enforcement:** Aborts stalled requests after 10 seconds to prevent frozen UI states.
+3. **Unified Response Unwrapping & Error Interception:** Extracts clean JSON response payloads and normalizes backend error messages (HTTP 400, 404, 422, 500) into user-friendly error objects.
 
-2. **Verify Network Error Interception (Backend Offline):**
-   Stop the backend server and issue a request from browser developer console:
-   `import('./src/api/client.js').then(m => m.apiClient.get('/health').catch(e => console.error(e.message)));`
-   Expected console output: `Backend service unreachable. Please ensure the server is running on port 8000.`
-
-3. **Verify Data Unwrapping (Backend Online):**
-   With backend running, issue a request from browser developer console:
-   `import('./src/api/client.js').then(m => m.apiClient.get('/tickets').then(data => console.log('Received data:', data)));`
-   Expected console output: `Received data: [...]` (direct array/object, not nested inside `.data`).
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* All API requests fail with `Network Error` and status 0 even when backend is running.
-     * *Cause:* Vite development server proxy is misconfigured or backend is listening on a different port than 8000.
-     * *Fix:* Check `vite.config.js` proxy settings and verify backend is running on `http://127.0.0.1:8000` via terminal curl.
-   * *Problem:* Form errors render as `[object Object]` in the UI.
-     * *Cause:* A component bypassed `client.js` or the 422 error normalization failed to extract the string message.
-     * *Fix:* Inspect response error interceptor to ensure `error.response.data.detail` is mapped to string before `Promise.reject()`.
-   * *Problem:* Requests time out prematurely after 1 second.
-     * *Cause:* `timeout` was erroneously set to `1000` instead of `10000` (milliseconds).
-     * *Fix:* Verify `timeout: 10000` in `src/api/client.js`.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/`** in your browser and press `F12` to open the Developer Tools Console.
+2. In the console, test the base client directly:
+   `import('/src/api/client.js').then(m => m.default.get('/departments')).then(r => console.log(r.data))`
+3. **Observe Client Live:**
+   * The console prints the list of campus departments returned by the backend.
+   * Now disconnect the backend server (Ctrl+C in terminal) and re-run the snippet: observe the client catch the connection error and return a standardized offline alert message.

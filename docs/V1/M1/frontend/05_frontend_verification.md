@@ -127,49 +127,26 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Complete Verification Commands & Troubleshooting Matrix
+---
 
-### Verification Execution Commands
+## Section 6: Definition of Done & Live Website Verification
 
-1. **Execute Development Server Cold-Start Check:**
-   Run in frontend root directory:
-   `npm run dev`
-   Confirm terminal outputs: `VITE v5.x.x ready in xxx ms` and server is bound to `http://localhost:5173/`.
+### What This File Is Responsible For
+This document is responsible for **governing the complete frontend verification and quality certification protocol for Module M1**. It provides the operational checkpoints required to verify that the build engine, Tailwind styling, base API client, persistent layout, and router hierarchy function cohesively together.
 
-2. **Execute Production Bundle Compilation Check:**
-   Run in frontend root directory:
+### What It Should Perform
+When executing verification across the frontend, this protocol ensures:
+1. **Production Bundle Compilation:** Validates that `npm run build` generates a production-ready, minified bundle without syntax or asset resolution errors.
+2. **CORS & Network Proxy Integrity:** Verifies that HTTP requests from port 5173 route through Vite's proxy to port 8000 with zero origin blocking.
+3. **Responsive Visual Rendering:** Confirms that application shell components render cleanly across desktop, tablet, and mobile viewports.
+
+### How to See It Performing Its Job on the Live Website
+1. In `frontend/`, run the production build:
    `npm run build`
-   Confirm exit code is 0 and output directory `dist/` contains:
-   - `dist/index.html`
-   - `dist/assets/index-xxxx.js`
-   - `dist/assets/index-xxxx.css` (verify file size is under 25 KB)
-
-3. **Execute Client-Side API Base Test (in Browser Console):**
-   Open `http://localhost:5173/` in Google Chrome or Firefox. Open Developer Tools (F12) -> Console.
-   Paste the following command:
-   `fetch('/api/v1/health').then(r => r.json()).then(d => console.log('API Proxy OK:', d)).catch(e => console.error('Proxy Error:', e));`
-   Confirm console outputs: `API Proxy OK: { status: 'healthy' }` (assuming backend is running).
-
-4. **Execute Synthetic Backend Outage Test:**
-   Stop the FastAPI backend terminal. Refresh `http://localhost:5173/`.
-   Observe the navbar health indicator: verify the status dot changes to amber with tooltip indicating the server is offline.
-   Restart FastAPI: verify the indicator returns to green (`System Online`).
-
-5. **Execute Client-Side Route Sweep:**
-   Navigate sequentially in the browser:
-   - Click "Submit Complaint" -> confirm URL is `http://localhost:5173/`
-   - Click "Track Complaint" -> confirm URL is `http://localhost:5173/track`
-   - Click "Staff Admin Desk" -> confirm URL is `http://localhost:5173/admin`
-   - Type `http://localhost:5173/does-not-exist` -> confirm 404 page renders with "Return to Complaint Portal" button.
-
-### Complete Troubleshooting Matrix
-
-| Symptom / Error | Root Cause | Exact Resolution Procedure |
-| :--- | :--- | :--- |
-| `npm run dev` fails with `command not found: vite` | Dependencies were not installed or `node_modules` is corrupted. | Run `npm install` in the frontend directory to install all package dependencies. |
-| Page renders with zero styling; all text is unstyled serif font. | `src/index.css` is not imported or Tailwind `content` glob does not match JSX files. | Verify line 1 of `src/main.jsx` contains `import './index.css'`. Verify `tailwind.config.js` has `content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"]`. |
-| API calls fail with `CORS policy: No 'Access-Control-Allow-Origin' header` | Vite proxy is not matching the request path or component bypassed proxy with absolute URL. | Verify API calls use relative paths (e.g. `/api/v1/tickets`) and check `vite.config.js` proxy target is set to `http://127.0.0.1:8000`. |
-| Browser console shows `Uncaught TypeError: Cannot read properties of undefined (reading 'data')` | A component attempted to access `response.data` after the base client interceptor already unwrapped it. | Remove `.data` in the caller component; the base client's response interceptor returns the data object directly. |
-| Clicking navigation links causes the entire browser page to reload. | Component uses traditional HTML `<a>` tags instead of `NavLink` or `Link` from `react-router-dom`. | Replace `<a href="...">` with `<NavLink to="...">` inside `src/components/Navbar.jsx`. |
-| Mobile menu does not open when clicking hamburger button. | `isMobileMenuOpen` state is missing or click handler does not toggle state. | Verify `onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}` is attached to the hamburger button in `Navbar.jsx`. |
-| Production build fails with `Rollup failed to resolve import` | A component imports a file using an incorrect relative path or case-sensitive typo. | Check the import statement in the referenced file; verify path matches actual filename on disk exactly. |
+   * Confirm the build succeeds with 0 errors and generates minified assets in `dist/`.
+2. Start the development server: `npm run dev`.
+3. Open **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
+4. **Complete Live Verification:**
+   * Check console logs (`F12`): verify 0 JavaScript runtime errors.
+   * Navigate through all top-level routes (`/`, `/submit`, `/track`, `/admin`).
+   * Verify header, footer, navigation highlights, and responsive layouts behave smoothly on all screen sizes.

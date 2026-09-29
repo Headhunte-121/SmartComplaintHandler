@@ -117,16 +117,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/db/base.py`.
-2. **Class & Metaclass Integrity:**
-   * The `Base` class inherits directly from `sqlalchemy.orm.DeclarativeBase`.
-   * It possesses an accessible `.metadata` attribute holding an initialized `MetaData` catalog.
-3. **Decoupled Verification:**
-   * Importing `Base` from `app.db.base` in an isolated terminal session succeeds instantly without importing any model files or throwing import errors.
-4. **Subclass Compatibility:**
-   * Creating a temporary test class inheriting from `Base` in a Python terminal automatically registers that test class into `Base.metadata.tables` without errors.
+### What This File Is Responsible For
+This Python module (`backend/app/db/base.py`) is responsible for **declaring the foundational base class for all SQLAlchemy ORM models and common database mixins**. It automates table name generation and injects standardized audit timestamps into every table in the schema.
+
+### What It Should Perform
+When model classes inherit from this base, the module performs the following operations:
+1. **Automated Table Name Generation:** Dynamically converts CamelCase model class names into lowercase snake_case database table names (e.g. `Department` becomes `department`, `Ticket` becomes `ticket`).
+2. **Audit Timestamp Mixin:** Automatically provides `created_at` and `updated_at` datetime columns initialized to UTC on every table.
+3. **Model Decoupling:** Allows domain models (`Department`, `Team`, `Ticket`) to inherit common database traits without redundant boilerplate.
+
+### How to See It Performing Its Job on the Live Website
+1. Open the interactive API documentation at **`http://localhost:8000/docs`**.
+2. Locate `GET /api/v1/tickets` and click **Try it out** -> **Execute**.
+3. **Observe Audit Fields Live:**
+   * Inspect the returned JSON payload in the response body.
+   * Notice that every ticket and entity object contains automated `created_at` and `updated_at` ISO-8601 timestamps.
+   * On the live web portal at **`http://localhost:5173/track`**, verify that complaints display formatted submission dates and times derived directly from these timestamp attributes.

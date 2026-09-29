@@ -255,22 +255,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/models/ticket.py`.
-2. **Model Class Definition:**
-   * `Ticket` inherits directly from `Base` imported from `app.db.base`.
-   * `__tablename__` is set explicitly to `"tickets"`.
-3. **Column & Constraint Specifications:**
-   * All 14 columns (`id`, `tracking_code`, `title`, `description`, `location`, `department_id`, `assigned_team`, `priority`, `status`, `sla_deadline`, `created_at`, `updated_at`, `resolved_at`, `resolution_notes`) are declared with proper types and nullability rules.
-   * `department_id` is a Foreign Key to `departments.id` and is explicitly `nullable=True`.
-   * Indexes are configured on `id`, `tracking_code`, `status`, and `department_id`.
-   * Creation and update timestamps utilize callable UTC lambdas.
-4. **Relational Bridges:**
-   * `department`: Relationship targeting `"Department"` with bidirectional synchronization (`back_populates="tickets"`).
-5. **Programmatic Verification:**
-   * Importing `Ticket` from `app.models.ticket` in an isolated terminal session succeeds cleanly.
-   * Inspecting `Ticket.__table__.columns.keys()` verifies that all 14 columns are present in the table schema without errors.
+### What This File Is Responsible For
+This Python module (`backend/app/models/ticket.py`) is responsible for **defining the core grievance ticket database entity** (`Ticket` model). It represents the single most important transactional record in the platform, tracking a complaint's entire journey from student intake to resolution.
+
+### What It Should Perform
+When tickets are created, updated, or audited, this model performs the following operations:
+1. **Comprehensive Attribute Storage:** Stores unique tracking codes (`TICK-XXXX`), student title and narrative description, incident location, urgency priority tier (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`), and ticket status (`SUBMITTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`).
+2. **Multi-Entity Foreign Keys:** Maintains relational foreign keys linking the ticket to its assigned department, assigned technician team, and student author.
+3. **Audit History & Resolution Notes:** Persists an immutable text column (`resolution_notes`) that stores algorithmic triage explanations and timestamped supervisor override justification logs.
+
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/`** and submit a new complaint (e.g. Title: `Broken window latch`, Description: `Wind rattling glass in room 302`).
+2. Copy the generated tracking code (e.g. `TICK-1002`).
+3. Navigate to **`http://localhost:5173/track`**, enter the tracking code, and click **Track Status**.
+4. **Observe Ticket Model Live:**
+   * The live status card retrieves and displays the exact title, description, priority badge, department, and submission timestamp stored in the `Ticket` table.
+   * Open SQLite or execute `GET /api/v1/tickets/{tracking_code}` in `http://localhost:8000/docs` to verify that all database attributes match what is rendered on screen.

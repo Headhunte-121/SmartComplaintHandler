@@ -178,3 +178,37 @@ To maintain engineering consistency across the team, every blueprint in Module M
 * **Section 4: Flexibility & Modification Guide**: Strict demarcations between 🟢 *Safe to Modify & Customize* elements and 🔴 *Strict Non-Negotiables*.
 * **Section 5: Advanced Concepts Explained**: Deep first-principles explanations of computer science, operating systems, and web architectural concepts (such as SQLite WAL concurrency, Axios interceptor pipelines, and HTML5 History pushState).
 * **Section 6: Definition of Done & Verification Protocol**: Observable checklists, automated terminal commands, and complete troubleshooting matrices with root causes and exact resolution procedures.
+
+---
+
+# 6. Definition of Done & Live Website Verification Walkthrough
+
+### What This Module Is Responsible For
+Module M1 (Data Layer, Core Models & Application Shell) is responsible for **establishing the foundational infrastructure for the entire Smart Complaint Handler platform**. It provides the database engine, SQLAlchemy relational models, database seeding fixtures, request-scoped sessions, the Vite build engine, Tailwind CSS design tokens, the persistent application shell, and client-side routing.
+
+### What It Should Perform
+When operational across the full stack, Module M1 provides four foundational capabilities:
+1. **Relational Schema Governance:** Defines and binds SQLite models for `Department`, `Team`, `MaintenanceTeam`, and `Ticket` with automated timestamps and foreign-key integrity.
+2. **Database Seeding & Session Injection:** Initializes campus departments and baseline maintenance teams with zero duplicate errors, injecting thread-safe sessions via `get_db`.
+3. **Optimized Frontend Toolchain:** Compiles modern React 18 JSX with sub-second HMR, proxies `/api` to FastAPI port 8000, and provides standardized Tailwind tokens.
+4. **Application Shell & Routing:** Renders persistent navigation headers, responsive drawers, and instantaneous client-side route transitions (`/`, `/submit`, `/track`, `/admin`).
+
+### How to See It Performing Its Job on the Live Website
+1. Launch local dev servers:
+   * Backend: `uvicorn app.main:app --port 8000 --reload`
+   * Frontend: `npm run dev` in `frontend/`
+2. Open **`http://localhost:5173/`** in your browser:
+   * Observe the branded application shell, blue university header, and navigation links.
+   * Click between **Submit Complaint**, **Track Ticket**, and **Admin Operations**: notice instantaneous page transitions without browser page reloads.
+3. Open **`http://localhost:8000/docs`**:
+   * Inspect the OpenAPI interactive documentation: verify `PROJECT_NAME`, `/api/v1` namespace, and all registered schemas for Departments, Teams, and Tickets.
+
+---
+
+# 7. Additional Changes & Development Modifications (Implementation Audit)
+
+### [2026-09-29] - Teammate Model & Seed Compatibility Reconciliation
+* **Files Modified:** `backend/app/db/seed.py`, `backend/app/models/__init__.py`
+* **What Was Changed:** Reconciled upstream commit `91406fe` by supporting dual seed functions (`seed_database(db)` and `seed_data()`) and dual model aliases (`Team` and `MaintenanceTeam`).
+* **Why It Was Changed:** Preserved complete backward compatibility with teammate modules (M1, M4) while preventing merge conflict regressions.
+* **Verification Proof:** `37/37 pytest passed in 0.97s`.

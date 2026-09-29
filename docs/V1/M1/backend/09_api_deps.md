@@ -123,19 +123,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/api/deps.py`.
-2. **Generator Definition:**
-   * `get_db()` is declared with the return type annotation `Generator[Session, None, None]`.
-   * A fresh session is instantiated from `SessionLocal()`.
-   * The session is yielded inside a `try:` block.
-   * `db.close()` is unconditionally executed inside a `finally:` block.
-3. **Programmatic Verification:**
-   * In an isolated terminal session, stepping through the generator:
-     * Calling `gen = get_db()` produces a valid Python generator object.
-     * Calling `db = next(gen)` produces an active, open SQLAlchemy `Session` instance.
-     * Calling `next(gen, None)` advances the generator, triggering `finally: db.close()` without raising exceptions.
+### What This File Is Responsible For
+This Python module (`backend/app/api/deps.py`) is responsible for **providing request-scoped FastAPI dependency injection providers, primarily the database session generator (`get_db`)**. It ensures that every incoming HTTP request receives an isolated, managed database transaction.
+
+### What It Should Perform
+When an API route declares `db: Session = Depends(get_db)`, this module performs the following operations:
+1. **On-Demand Session Allocation:** Instantiates a new SQLAlchemy database session from `SessionLocal()` upon HTTP request arrival.
+2. **Automatic Resource Cleanup:** Utilizes Python's `try...finally` generator pattern to guarantee that `db.close()` is unconditionally called when the request finishes, preventing database connection leaks.
+3. **Transaction Isolation:** Ensures that errors in one user's request do not poison or rollback concurrent transactions executed by other users.
+
+### How to See It Performing Its Job on the Live Website
+1. Start the backend: `uvicorn app.main:app --port 8000 --reload`.
+2. Open **`http://localhost:5173/`** and submit several complaints in rapid succession, or refresh the ticket list 10 times quickly.
+3. **Observe Dependency Lifecycle Live:**
+   * Notice that every request completes with HTTP 200/201 in the terminal.
+   * Observe zero "Too many open files" or "Database connection limit exceeded" errors, certifying that `get_db` cleans up sessions immediately after each response is dispatched.

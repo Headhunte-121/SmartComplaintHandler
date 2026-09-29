@@ -113,17 +113,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The file exists precisely at `backend/app/models/__init__.py`.
-2. **Re-Export Declarations:**
-   * `Department` is imported from `.department` (or `app.models.department`).
-   * `Team` is imported from `.team` (or `app.models.team`).
-   * `Ticket` is imported from `.ticket` (or `app.models.ticket`).
-3. **Export Manifest:**
-   * `__all__` is defined as a list containing exactly `["Department", "Team", "Ticket"]`.
-4. **Programmatic Verification:**
-   * Executing an inline terminal command `python -c "from app.models import Department, Team, Ticket; from app.db.base import Base; print(sorted(Base.metadata.tables.keys()))"` prints `['departments', 'teams', 'tickets']` without throwing import errors.
+### What This File Is Responsible For
+This Python module (`backend/app/models/__init__.py`) is responsible for **centralizing the export of all SQLAlchemy database models and preventing circular import dependencies**. It ensures that Alembic migrations, database seeding scripts, and API routers can import all entities cleanly from a single package namespace.
+
+### What It Should Perform
+When imported across the backend, this module performs the following operations:
+1. **Unified Namespace Aggregation:** Exports `Base`, `Department`, `Team`, `MaintenanceTeam`, and `Ticket` in `__all__`.
+2. **Backward-Compatibility Aliasing:** Exposes both `Team` and `MaintenanceTeam` to prevent merge conflicts between parallel student modules.
+3. **Metadata Registration:** Ensures all database tables are registered with SQLAlchemy's metadata before `Base.metadata.create_all()` is executed.
+
+### How to See It Performing Its Job on the Live Website
+1. Open your terminal and start the backend: `uvicorn app.main:app --port 8000 --reload`.
+2. **Observe Zero Import Errors:**
+   * Verify the server starts in $<1$ second with zero `ImportError`, `AttributeError`, or `CircularDependencyError` messages.
+3. Open **`http://localhost:8000/docs`**:
+   * Verify that all model schemas (Departments, Teams, Tickets) are fully rendered under the "Schemas" section at the bottom of the page, certifying that the central registry successfully exposed all models to OpenAPI.
