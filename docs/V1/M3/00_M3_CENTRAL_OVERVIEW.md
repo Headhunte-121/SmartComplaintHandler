@@ -279,3 +279,58 @@ npm run dev
 5. Refresh the tracking page at **`http://localhost:5173/track`**.
 6. **Observe:** Priority badge has updated to **`LOW`**, and the immutable supervisor audit log appears in the resolution notes.
 
+---
+
+# 8. Additional Changes & Development Modifications (Implementation Audit)
+
+### [2026-09-29] - Teammate Model & Seed Reconciliation (`origin/develop` Merge)
+* **Files Modified:**
+  - `backend/app/db/seed.py`
+  - `backend/app/models/__init__.py`
+* **What Was Changed:**
+  Reconciled upstream changes introduced by teammate Srishti Mandavi (commit `91406fe`). Supported dual seed interfaces (`seed_database(db)` and legacy `seed_data()`) and exported both `Team` and `MaintenanceTeam` model aliases.
+* **Why It Was Changed:**
+  Prevented breaking existing test suites and teammate modules while pulling latest developments from the shared `develop` branch.
+* **Cross-Module Impact:**
+  Zero breaking changes to Module M1, M2, or M4.
+* **Verification Proof:**
+  Ran full test suite: `37 passed in 1.69s`.
+
+### [2026-09-29] - Pre-Flight Request Throttling & Minimum Length Guard
+* **Files Modified:**
+  - `frontend/src/api/triage.js`
+  - `frontend/src/components/LiveTriageCard.jsx`
+* **What Was Changed:**
+  Added client-side length checks in JavaScript before dispatching network calls ($<5$ characters for title or $<10$ characters for description).
+* **Why It Was Changed:**
+  Eliminates unnecessary HTTP requests on early keystrokes, prevents backend HTTP 422 Unprocessable Entity responses, and reduces backend load during rapid typing.
+* **Cross-Module Impact:**
+  Internal to frontend triage integration.
+* **Verification Proof:**
+  Browser network tab inspection: 0 network calls until user completes 5-character word and pauses for 500ms.
+
+### [2026-09-29] - Immutable Supervisor Audit Log Appending in Resolution Notes
+* **Files Modified:**
+  - `backend/app/services/ticket_service.py`
+* **What Was Changed:**
+  Upgraded `update_ticket_priority()` so that rather than overwriting `ticket.resolution_notes`, it cleanly appends:
+  `[OVERRIDE YYYY-MM-DD HH:MM:SS UTC by Supervisor]: <reason>`.
+* **Why It Was Changed:**
+  Preserves complete audit history, ensuring that the original algorithmic triage justification and any previous notes remain permanently recorded for compliance and institutional review.
+* **Cross-Module Impact:**
+  Benefits M4 (Technician Queue) and M5 (Analytics) by preserving resolution history.
+* **Verification Proof:**
+  Backend unit tests in `test_priority_override.py` verify string concatenation and preservation.
+
+### [2026-09-29] - WCAG Animated Radar Pulse & SLA Tooltips on Priority Badges
+* **Files Modified:**
+  - `frontend/src/components/PriorityBadge.jsx`
+* **What Was Changed:**
+  Integrated Tailwind's `animate-ping` radar dot on `CRITICAL` badges and added hoverable SLA target resolution times (`2h`, `6h`, `24h`, `48h`).
+* **Why It Was Changed:**
+  Significantly improves UX by drawing immediate operator attention to dangerous life-safety grievances and communicating service level agreement deadlines directly to users.
+* **Cross-Module Impact:**
+  All modules utilizing `PriorityBadge` across student and admin dashboards benefit from enhanced visibility.
+* **Verification Proof:**
+  Visual verification in React Vite application (`http://localhost:5173/`).
+
