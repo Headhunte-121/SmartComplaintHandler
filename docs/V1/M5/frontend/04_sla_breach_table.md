@@ -149,49 +149,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/components/SLABreachTable.jsx` exists and is exported as default.
-* [ ] Accepts `onEscalate`, `onReassign`, and `refreshInterval` props.
-* [ ] Queries `fetchActiveBreaches()` on mount and polls every 30 seconds.
-* [ ] Displays header with overdue counter pill and manual refresh button.
-* [ ] Filter tabs switch smoothly between "All", "Overdue", and "Approaching".
-* [ ] Table rows render Monospace Tracking Code, Title, Location, Department, Priority Badge, and Overdue time.
-* [ ] Clicking "Escalate" triggers `onEscalate(ticket)`.
-* [ ] Clicking "Reassign" triggers `onReassign(ticket)`.
-* [ ] When zero breaches exist, renders the emerald "Zero Active SLA Breaches" callout card.
-* [ ] Unmounting the component cleans up background polling intervals cleanly.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This React component (`frontend/src/components/SLABreachTable.jsx`) is responsible for **rendering an administrative escalation table listing all campus grievances that have exceeded their contractual resolution deadlines**. It allows supervisors to quickly identify stalled jobs and intervene.
 
-1. **Verify Table Rendering with Active Breaches:**
-   Ensure backend has at least one overdue ticket (deadline in the past).
-   Open browser to `http://localhost:5173/admin`.
-   Observe: The SLA Breach Table renders at the top of the page.
-   Verify the red counter displays `X Breached`. Verify row displays tracking code, priority badge, and red overdue text.
+### What It Should Perform
+When rendered inside the operations desk, this component performs:
+1. **Breach Filtering:** Displays only unresolved complaints where `is_breached === true`.
+2. **Escalation Telemetry:** Highlights overdue duration (e.g. `+3h 45m Overdue` in red), priority tier, assigned squad, and student location.
+3. **Direct Intervention Links:** Provides 1-click shortcuts to reassign squads or contact technicians directly from the breach row.
 
-2. **Verify Filter Tabs:**
-   Click "Overdue Breaches" tab. Confirm only rows with overdue text are visible.
-   Click "All High-Risk Issues" tab. Confirm all high-risk rows return.
-
-3. **Verify Action Delegation Buttons:**
-   Click "Escalate" on Row 1.
-   Verify that the browser or parent dashboard registers the click event and receives the ticket entity.
-   Click "Reassign Squad" on Row 1.
-   Verify the reassignment modal opens with Row 1's ticket pre-populated.
-
-4. **Verify Empty State Rendering:**
-   When all tickets in the database are on track or resolved:
-   Verify the table collapses and the emerald callout card renders: "Zero Active SLA Breaches. All campus maintenance queues are operating within target response windows."
-
-5. **Troubleshooting Matrix:**
-   * *Problem:* Table never updates automatically after 30 seconds.
-     * *Cause:* `setInterval` was not registered or `refreshInterval` was passed as `0`.
-     * *Fix:* Check `setInterval(loadBreaches, refreshInterval)` is called in `useEffect`.
-   * *Problem:* Console throws error `TypeError: onEscalate is not a function`.
-     * *Cause:* Parent component did not pass `onEscalate` prop.
-     * *Fix:* Add defensive check in button handler: `if (onEscalate) onEscalate(ticket);`.
-   * *Problem:* Table displays empty even though tickets in SQLite are overdue.
-     * *Cause:* The backend endpoint `/api/v1/sla/breaches/active` returned an empty array because `threshold_ratio` was miscalculated or `Ticket.status` was already set to `RESOLVED`.
-     * *Fix:* Inspect terminal `curl http://127.0.0.1:8000/api/v1/sla/breaches/active` to verify backend response.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/admin`** in your browser.
+2. Locate the **SLA Breaches & Escalations** tab or section.
+3. **Observe Breach Table Live:**
+   * Notice any overdue tickets highlighted with prominent crimson warning borders.
+   * Inspect the overdue column: observe clear elapsed time counters showing how long the deadline has been breached.
+   * Click **Reassign** directly on a breach row to quickly transfer the stalled job to an available squad.

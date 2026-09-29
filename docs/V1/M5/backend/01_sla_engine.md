@@ -137,40 +137,27 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `backend/app/services/sla_engine.py` exists and defines `SLA_POLICY` mapping `CRITICAL` (4), `HIGH` (12), `MEDIUM` (24), and `LOW` (72).
-* [ ] `calculate_sla_deadline` adds the exact hourly duration to `created_at` in UTC.
-* [ ] `calculate_time_remaining` correctly computes positive remaining seconds for future deadlines and negative seconds for past deadlines.
-* [ ] `calculate_time_remaining` formats strings accurately (e.g. `"2h 15m remaining"` vs `"Breached by 0h 45m"`).
-* [ ] `compute_sla_breach_status` returns `"ON_TRACK"`, `"APPROACHING_BREACH"`, `"BREACHED"`, `"RESOLVED_MET"`, or `"RESOLVED_BREACHED"`.
-* [ ] Unrecognized priority strings safely fall back to the default 24-hour SLA.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This Python module (`backend/app/services/sla_engine.py`) is responsible for **calculating deterministic Service Level Agreement (SLA) target resolution dates and evaluating operational deadline breaches**. It turns institutional facilities policy into precise UTC timestamps and monitors whether grievances are resolved on time.
 
-1. **Verify SLA Deadline Calculation via Python CLI:**
-   Run in backend directory:
-   `python -c "from app.services.sla_engine import calculate_sla_deadline; from datetime import datetime, timezone; now = datetime.now(timezone.utc); print('CRITICAL:', calculate_sla_deadline(now, 'CRITICAL')); print('LOW:', calculate_sla_deadline(now, 'LOW'))"`
-   Expected output: `CRITICAL` deadline is exactly 4 hours ahead; `LOW` deadline is exactly 72 hours ahead.
+### What It Should Perform
+When evaluating ticket timeliness, this module performs the following operations:
+1. **Target SLA Calculation:** Computes `target_resolution_date` based on priority:
+   * **`CRITICAL`:** `created_at + 2 Hours` (or 4 Hours max).
+   * **`HIGH`:** `created_at + 6 Hours` (or 12 Hours max).
+   * **`MEDIUM`:** `created_at + 24 Hours`.
+   * **`LOW`:** `created_at + 48 Hours` (or 72 Hours max).
+2. **Breach Determination:** Evaluates `datetime.utcnow() > target_resolution_date` for unresolved tickets, calculating exact overdue seconds.
+3. **SLA Recalculation on Override:** Recalculates the target resolution deadline when a supervisor modifies ticket priority, preserving fair countdown clocks.
 
-2. **Verify Breach Detection Math:**
-   Run in backend directory:
-   `python -c "from app.services.sla_engine import calculate_time_remaining; from datetime import datetime, timezone, timedelta; past = datetime.now(timezone.utc) - timedelta(minutes=90); res = calculate_time_remaining(past); print('Is breached:', res['is_breached'], '| Text:', res['formatted_string'])"`
-   Expected output: `Is breached: True | Text: Breached by 1h 30m`.
-
-3. **Verify Warning Threshold (<20% Remaining):**
-   Run in backend directory:
-   `python -c "from app.services.sla_engine import compute_sla_breach_status; from datetime import datetime, timezone, timedelta; deadline = datetime.now(timezone.utc) + timedelta(minutes=30); print('Status:', compute_sla_breach_status(deadline, 'IN_PROGRESS'))"`
-   Expected output: `Status: APPROACHING_BREACH`.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* `TypeError: can't subtract offset-naive and offset-aware datetimes`.
-     * *Cause:* One datetime object has timezone information while the other does not.
-     * *Fix:* Ensure all datetime instances are converted using `.replace(tzinfo=timezone.utc)` or use naive UTC consistently across the service.
-   * *Problem:* A `CRITICAL` ticket is assigned a 24-hour deadline instead of 4 hours.
-     * *Cause:* Priority string was passed with trailing whitespace or lowercase characters (`"critical "`), causing dictionary lookup failure.
-     * *Fix:* Verify that `priority.strip().upper()` is applied before querying `SLA_POLICY`.
-   * *Problem:* `calculate_time_remaining` displays negative hours (e.g. `Breached by -2h -15m`).
-     * *Cause:* `abs()` was not applied to `total_seconds` before integer division.
-     * *Fix:* Apply `abs(total_seconds)` when extracting hours and minutes for formatting.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/track`** and enter a tracking code for a newly submitted ticket.
+2. **Observe SLA Engine Live:**
+   * Notice the **Resolution Deadline** displayed on the tracking card (e.g. `Target: Today at 4:30 PM (in 2 hours)`).
+   * Notice the live SLA countdown timer ticking down the remaining time.
+3. Open `http://localhost:8000/docs` and execute `GET /api/v1/tickets/breaches`:
+   * Observe the JSON list of tickets that have exceeded their target resolution timestamp.

@@ -130,44 +130,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Complete Verification Commands & Troubleshooting Matrix
+---
 
-### Verification Execution Commands
+## Section 6: Definition of Done & Live Website Verification
 
-1. **Execute Checkpoint 1: Deterministic SLA Math:**
-   Run in backend directory:
-   `python -c "from app.services.sla_engine import calculate_sla_deadline, calculate_time_remaining; from datetime import datetime, timezone, timedelta; now = datetime.now(timezone.utc); c_dl = calculate_sla_deadline(now, 'CRITICAL'); assert (c_dl - now).total_seconds() == 14400; l_dl = calculate_sla_deadline(now, 'LOW'); assert (l_dl - now).total_seconds() == 259200; rem = calculate_time_remaining(now + timedelta(minutes=90)); assert rem['is_breached'] == False; overdue = calculate_time_remaining(now - timedelta(minutes=45)); assert overdue['is_breached'] == True; print('Checkpoint 1 PASS: SLA Math 100% Correct')"`
-   Expected output: `Checkpoint 1 PASS: SLA Math 100% Correct`.
+### What This File Is Responsible For
+This specification is responsible for **governing the automated test suite and milestone certification for Module M5's SLA engine, lifecycle state machine, and resolution workflows**. It ensures that timers, transition validations, and breach alerts function with mathematical precision.
 
-2. **Execute Checkpoints 2 & 3: Lifecycle State Machine & Guards:**
-   Run in backend directory:
-   `python -c "from app.services.lifecycle import validate_transition, InvalidStateTransitionError, MissingResolutionNotesError; assert validate_transition('SUBMITTED', 'IN_PROGRESS') == True; assert validate_transition('IN_PROGRESS', 'RESOLVED', 'Replaced faulty valve') == True; try: validate_transition('SUBMITTED', 'RESOLVED'); assert False, 'Failed to block illegal jump'; except InvalidStateTransitionError: pass; try: validate_transition('IN_PROGRESS', 'RESOLVED', 'short'); assert False, 'Failed to block short notes'; except MissingResolutionNotesError: pass; print('Checkpoints 2 & 3 PASS: FSM Guards 100% Correct')"`
-   Expected output: `Checkpoints 2 & 3 PASS: FSM Guards 100% Correct`.
+### What It Should Perform
+When executed, this test suite validates:
+1. **Temporal Math Accuracy:** Asserts that deadline calculations correctly reflect priority tier hours in UTC.
+2. **State Machine Integrity:** Verifies that legal state transitions succeed and illegal jumps are strictly blocked.
+3. **Resolution Constraint Enforcement:** Confirms that tickets cannot be resolved without $\ge 10$ characters of documentation.
 
-3. **Execute Checkpoint 4: Service Layer Database Integration:**
-   Run in backend directory:
-   `python -c "from app.db.session import SessionLocal; from app.services.ticket_service import create_ticket, update_ticket_status, resolve_ticket; from app.schemas.ticket import TicketCreate; db = SessionLocal(); t = create_ticket(db, TicketCreate(title='Broken Window Latch', description='Window latch broken in Room 301', location='Hostel C 301')); assert t.sla_deadline is not None; assert t.status == 'SUBMITTED'; t = update_ticket_status(db, t.id, 'IN_PROGRESS', 'Technician assigned', 'Admin'); assert t.status == 'IN_PROGRESS'; assert 'SUBMITTED -> IN_PROGRESS' in t.resolution_notes; t = resolve_ticket(db, t.id, 'Repaired window latch and lubricated hinges'); assert t.status == 'RESOLVED'; assert t.resolved_at is not None; print('Checkpoint 4 PASS: Service Layer Integration 100% Correct'); db.close()"`
-   Expected output: `Checkpoint 4 PASS: Service Layer Integration 100% Correct`.
-
-4. **Execute Checkpoint 5: Live REST API Execution (Terminal Sweep):**
-   Start backend server: `uvicorn app.main:app --reload --port 8000`
-   In a separate terminal, execute:
-   - Status Update:
-     `curl -s -X PATCH http://127.0.0.1:8000/api/v1/tickets/1/status -H "Content-Type: application/json" -d "{\"status\": \"IN_PROGRESS\"}" | grep -o "\"status\":\"IN_PROGRESS\""`
-   - Illegal Transition Rejection:
-     `curl -s -X PATCH http://127.0.0.1:8000/api/v1/tickets/2/status -H "Content-Type: application/json" -d "{\"status\": \"RESOLVED\"}" | grep -o "Illegal state transition"`
-   - Ticket Resolution:
-     `curl -s -X POST http://127.0.0.1:8000/api/v1/tickets/1/resolve -H "Content-Type: application/json" -d "{\"resolution_notes\": \"Completed physical repairs and verified operations\"}" | grep -o "\"status\":\"RESOLVED\""`
-   - Active Breaches Query:
-     `curl -s http://127.0.0.1:8000/api/v1/sla/breaches/active | grep -o "\["`
-   Expected output: All grep assertions return matching strings.
-
-### Complete Troubleshooting Matrix
-
-| Symptom / Failure | Root Cause | Exact Resolution Procedure |
-| :--- | :--- | :--- |
-| Checkpoint 1 fails with `AssertionError: (c_dl - now).total_seconds() == 14400`. | `SLA_POLICY` has an incorrect hourly value for `CRITICAL` (e.g. 24 instead of 4). | Check `backend/app/services/sla_engine.py` and verify `"CRITICAL": 4`. |
-| Checkpoint 2 fails with `AssertionError: Failed to block illegal jump`. | `TRANSITION_RULES` mistakenly includes `"RESOLVED"` in the destination set for `"SUBMITTED"`. | Remove `"RESOLVED"` from the `"SUBMITTED"` set in `backend/app/services/lifecycle.py`. |
-| Checkpoint 4 fails with `AttributeError: 'Ticket' object has no attribute 'sla_deadline'`. | The SQLite table was created before `sla_deadline` was added to the ORM model, and migrations were not run. | Delete `smart_complaints.db` and re-run `python -c "from app.db.base import Base; from app.db.session import engine; from app.models import *; Base.metadata.create_all(bind=engine)"` followed by seed runner. |
-| Live API returns `HTTP 422 Unprocessable Entity` on `POST /resolve`. | `resolution_notes` passed in JSON has fewer than 10 characters or is missing. | Ensure the test payload contains `resolution_notes` with at least 10 non-whitespace characters. |
-| Live API returns `HTTP 404 Not Found` on `GET /sla/breaches/active`. | Router was not included in `backend/app/api/v1/router.py`. | Verify `api_router.include_router(sla.router, tags=["sla", "tickets"])` is present in `router.py`. |
+### How to See It Performing Its Job on the Live Website
+1. Run the test suite in your terminal:
+   `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
+2. **Observe 100% Pass Rate:**
+   * All SLA and lifecycle tests pass with 0 failures in $<2$ seconds.
+3. On `http://localhost:5173/admin`, verify that tickets transition cleanly and timers update in real time.

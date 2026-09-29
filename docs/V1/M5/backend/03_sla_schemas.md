@@ -150,41 +150,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `backend/app/schemas/sla.py` exists, defining `TicketStatusEnum` with all 7 lifecycle states.
-* [ ] `StatusUpdateRequest` validates `status` against `TicketStatusEnum` and strips `notes`.
-* [ ] `TicketResolveRequest` enforces minimum 10 characters and maximum 1000 characters on `resolution_notes`.
-* [ ] `EscalationRequest` enforces minimum 5 characters on `escalation_reason`.
-* [ ] `SLABreachResponse` serializes `ticket_id`, `tracking_code`, `sla_deadline`, and `overdue_seconds`.
-* [ ] `TicketLifecycleResponse` includes `model_config = ConfigDict(from_attributes=True)` and serializes `sla_status`.
-* [ ] Passing invalid statuses or short resolution notes throws automated Pydantic validation errors.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This Python module (`backend/app/schemas/sla.py`) is responsible for **enforcing Pydantic V2 validation contracts on ticket status transitions, resolution documentation, and SLA breach reporting**. It ensures complete audit accountability before tickets can be marked complete.
 
-1. **Verify Schema Validation via Python CLI:**
-   Run in backend directory:
-   `python -c "from app.schemas.sla import TicketResolveRequest; req = TicketResolveRequest(resolution_notes='Replaced broken fan motor'); print('Validated notes:', req.resolution_notes)"`
-   Expected output: `Validated notes: Replaced broken fan motor`.
+### What It Should Perform
+When processing lifecycle requests, this module validates:
+1. **Mandatory Resolution Documentation:** In `ResolveTicketRequest`, strictly enforces `min_length=10` on `resolution_notes`, ensuring technicians document concrete repairs (e.g. *"Replaced blown 15A fuse and re-seated wall socket"*).
+2. **Status Transition Validation:** Validates that `new_status` is a valid member of the `TicketStatus` enum.
+3. **Breach Telemetry Serialization:** Formats `SLABreachResponse` objects with overdue duration strings and team accountability details.
 
-2. **Verify Short Notes Rejection (<10 Chars):**
-   Run in backend directory:
-   `python -c "from app.schemas.sla import TicketResolveRequest; TicketResolveRequest(resolution_notes='Fixed it')"`
-   Expected output: Terminal displays `ValidationError: String should have at least 10 characters`.
-
-3. **Verify Invalid Status Enum Rejection:**
-   Run in backend directory:
-   `python -c "from app.schemas.sla import StatusUpdateRequest; StatusUpdateRequest(status='DONE')"`
-   Expected output: Terminal displays `ValidationError: Input should be 'SUBMITTED', 'IN_PROGRESS'...`.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* `TypeError: cannot inherit from both str and Enum`.
-     * *Cause:* Incorrect import of `Enum` or class inheritance order.
-     * *Fix:* Ensure `from enum import Enum` is imported and declare `class TicketStatusEnum(str, Enum):`.
-   * *Problem:* Serializing an ORM model throws `PydanticSerializationError: Unable to serialize arbitrary type`.
-     * *Cause:* Missing `from_attributes=True` in model configuration.
-     * *Fix:* Add `model_config = ConfigDict(from_attributes=True)` inside `TicketLifecycleResponse`.
-   * *Problem:* Empty string `""` passes resolution notes validation.
-     * *Cause:* Whitespace stripping was omitted or validator executed after length check.
-     * *Fix:* Ensure `@field_validator("resolution_notes")` trims whitespace before checking length.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:8000/docs`**.
+2. Locate `POST /api/v1/tickets/{ticket_id}/resolve` and click **Try it out**.
+3. Attempt to resolve a ticket with a trivial 3-character note:
+   `{"resolution_notes": "fix"}`
+4. Click **Execute**:
+   * Observe the server reject the request with **HTTP 422 Unprocessable Entity**, highlighting that resolution notes must be at least 10 characters long.
+5. On the live website at `http://localhost:5173/admin`, click "Resolve Ticket": observe the modal submit button remains strictly disabled until 10 characters are typed.

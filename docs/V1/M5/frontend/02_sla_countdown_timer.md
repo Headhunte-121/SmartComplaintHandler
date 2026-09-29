@@ -145,43 +145,26 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/components/SLACountdownTimer.jsx` exists and is exported as default.
-* [ ] Accepts `slaDeadline`, `status`, `resolvedAt`, and `showIcon` props.
-* [ ] Ticks every 1000ms using `setInterval()` and cleans up cleanly on unmount.
-* [ ] Displays green pill for deadlines > 4 hours ahead.
-* [ ] Displays sky blue pill for deadlines 1 to 4 hours ahead.
-* [ ] Displays pulsing amber warning pill for deadlines < 1 hour ahead.
-* [ ] Displays pulsing red badge with "Overdue by Xh Ym" for past deadlines.
-* [ ] Displays static "Resolved on Time" badge when `status === 'RESOLVED'`.
-* [ ] Freezes interval ticking when status is `RESOLVED` or `CANCELLED`.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This React component (`frontend/src/components/SLACountdownTimer.jsx`) is responsible for **rendering an active, real-time countdown timer tracking the time remaining before a complaint breaches its resolution deadline**. It translates static timestamps into living, urgent visual feedback for students and staff.
 
-1. **Verify Timer Rendering & Color Transitions in Browser:**
-   Open browser Developer Tools (F12) on `http://localhost:5173/track`.
-   In a test page or console, mount the timer with a deadline 30 minutes in the future:
-   Observe: The timer renders as a pulsing amber pill displaying `29m 59s remaining`.
-   Watch the display for 5 seconds: confirm the seconds decrement smoothly: `29m 58s`, `29m 57s`, etc.
+### What It Should Perform
+When rendered on screen, this component performs:
+1. **Real-Time Temporal Ticking:** Executes a 1-second `setInterval` timer calculating remaining hours, minutes, and seconds relative to `target_resolution_date`.
+2. **Dynamic Severity Color Coding:**
+   * **Green:** More than 4 hours remaining (`bg-emerald-50 text-emerald-700`).
+   * **Amber:** 1 to 4 hours remaining (`bg-amber-50 text-amber-700`).
+   * **Red:** Less than 1 hour remaining (`bg-rose-50 text-rose-700`).
+   * **Flashing Red (`BREACHED`):** Target date exceeded; renders a pulsing overdue badge displaying how long the ticket has been overdue (e.g. `Overdue by 1h 24m`).
+3. **Lifecycle Awareness:** If ticket status is `RESOLVED`, freezes the timer and displays a calm green checkmark with total turnaround duration.
 
-2. **Verify Overdue Breach Display:**
-   Mount the timer with a deadline 15 minutes in the past:
-   Observe: The timer renders as a high-contrast pulsing red badge displaying `Overdue by 0h 15m`.
-
-3. **Verify Resolved State Freezing:**
-   Mount the timer with `status="RESOLVED"` and `resolvedAt` set to a timestamp before `slaDeadline`:
-   Observe: The timer renders as a static green badge displaying `Resolved on Time`.
-   Verify in React DevTools that zero background interval timers are running.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* Timer displays `Invalid Date` or `NaNh NaNm remaining`.
-     * *Cause:* `slaDeadline` prop was passed as `null`, `undefined`, or a malformed date string.
-     * *Fix:* Add defensive check: `if (!slaDeadline) return <span className="...">No Deadline</span>;`.
-   * *Problem:* Browser console displays warning: `Can't perform a React state update on an unmounted component`.
-     * *Cause:* Cleanup function `() => clearInterval(timer)` was omitted from the `useEffect` hook.
-     * *Fix:* Verify that the `useEffect` hook returns the cleanup function.
-   * *Problem:* Timer displays negative hours (e.g. `Overdue by -1h -45m`).
-     * *Cause:* `Math.abs()` was omitted when calculating display hours for overdue tickets.
-     * *Fix:* Ensure `Math.abs(totalSeconds)` is used to calculate absolute hours and minutes when `isBreached` is true.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/track?code=TICK-1001`** (or open the Admin Dashboard).
+2. **Observe Countdown Timer Live:**
+   * Notice the timer pill ticking down seconds in real time.
+   * If the ticket is fresh, observe the calm green or amber badge.
+   * Find an overdue ticket (or test with past target date): observe the bright red **`BREACHED`** badge displaying the exact overdue time.

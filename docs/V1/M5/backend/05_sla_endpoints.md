@@ -147,48 +147,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `backend/app/api/v1/endpoints/sla.py` exists and defines the 4 core endpoints.
-* [ ] `PATCH /tickets/{id}/status` updates ticket status and returns `TicketLifecycleResponse`.
-* [ ] Attempting an illegal status transition returns `HTTP 400 Bad Request` with an explanatory error message.
-* [ ] `POST /tickets/{id}/resolve` validates resolution notes and returns `TicketLifecycleResponse`.
-* [ ] Attempting to resolve with notes shorter than 10 characters returns `HTTP 422` or `HTTP 400`.
-* [ ] `POST /tickets/{id}/escalate` updates status to `ESCALATED` and records the justification.
-* [ ] `GET /sla/breaches/active` returns a JSON array of overdue and high-risk tickets.
-* [ ] Passing a non-existent `ticket_id` returns `HTTP 404 Not Found`.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This Python module (`backend/app/api/v1/endpoints/sla.py`) is responsible for **exposing REST API endpoints for lifecycle status transitions, ticket resolution, and SLA breach auditing**. It serves as the API controller for facility staff and monitoring dashboards.
 
-1. **Verify Legal Status Update via Curl:**
-   Run in terminal with backend active:
-   `curl -X PATCH http://127.0.0.1:8000/api/v1/tickets/1/status -H "Content-Type: application/json" -d "{\"status\": \"IN_PROGRESS\", \"notes\": \"Technician arrived on site\"}"`
-   Expected response: `HTTP 200 OK` with JSON displaying `"status": "IN_PROGRESS"` and updated notes.
+### What It Should Perform
+This controller provides the following endpoints:
+1. **`PATCH /api/v1/tickets/{id}/status`:** Validates and executes authorized lifecycle transitions (**HTTP 200 OK**).
+2. **`POST /api/v1/tickets/{id}/resolve`:** Marks a ticket as `RESOLVED`, requiring $\ge 10$ characters of repair documentation (**HTTP 200 OK**).
+3. **`GET /api/v1/tickets/breaches`:** Returns all active tickets currently exceeding their SLA deadline (**HTTP 200 OK**).
 
-2. **Verify Illegal Shortcut Rejection via Curl:**
-   Run in terminal:
-   `curl -X PATCH http://127.0.0.1:8000/api/v1/tickets/2/status -H "Content-Type: application/json" -d "{\"status\": \"RESOLVED\"}"`
-   (Assuming ticket 2 is currently in `SUBMITTED` state).
-   Expected response: `HTTP 400 Bad Request` with `{"detail": "Illegal state transition from 'SUBMITTED' to 'RESOLVED'..."}`.
-
-3. **Verify Ticket Resolution Endpoint via Curl:**
-   Run in terminal:
-   `curl -X POST http://127.0.0.1:8000/api/v1/tickets/1/resolve -H "Content-Type: application/json" -d "{\"resolution_notes\": \"Replaced 2-inch PVC valve under washroom sink\", \"parts_replaced\": \"PVC Valve 2in\", \"technician_name\": \"Dave\"}"`
-   Expected response: `HTTP 200 OK` with `"status": "RESOLVED"`, populated `"resolved_at"`, and closure report in notes.
-
-4. **Verify Active Breaches Query via Curl:**
-   Run in terminal:
-   `curl http://127.0.0.1:8000/api/v1/sla/breaches/active`
-   Expected response: `HTTP 200 OK` with JSON array `[...]`.
-
-5. **Troubleshooting Matrix:**
-   * *Problem:* Endpoints return `404 Not Found` for URL paths like `/api/v1/tickets/1/status`.
-     * *Cause:* Router was not mounted in `backend/app/api/v1/router.py`.
-     * *Fix:* Verify that `router.include_router(sla.router, tags=["sla", "tickets"])` is added in `router.py`.
-   * *Problem:* Resolving a ticket returns `HTTP 500 Internal Server Error`.
-     * *Cause:* A domain exception was unhandled in the endpoint or database session failed to commit.
-     * *Fix:* Ensure `try/except (InvalidStateTransitionError, MissingResolutionNotesError)` blocks wrap service calls.
-   * *Problem:* `GET /sla/breaches/active` returns an empty array even when tickets are past deadline.
-     * *Cause:* Open tickets have `sla_deadline = None` or status is already `RESOLVED`.
-     * *Fix:* Check database rows to confirm open tickets have non-null `sla_deadline` timestamps.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. Locate `GET /api/v1/tickets/breaches` -> Click **Try it out** -> Click **Execute**:
+   * Observe the JSON response listing overdue complaints with breach durations.
+3. Locate `POST /api/v1/tickets/{id}/resolve`:
+   * Provide an ID and valid repair notes: `{"resolution_notes": "Replaced cracked drain trap and verified no leaks"}`.
+   * Click **Execute**: observe HTTP 200 confirming ticket resolution.

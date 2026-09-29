@@ -105,34 +105,21 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `backend/app/api/v1/router.py` imports `sla` from `app.api.v1.endpoints`.
-* [ ] `api_router.include_router(sla.router, tags=["sla", "tickets"])` is executed.
-* [ ] Starting FastAPI server prints no routing errors or duplicate route warnings.
-* [ ] Navigating to `http://127.0.0.1:8000/docs` in browser renders all 4 SLA endpoints under the Swagger UI.
-* [ ] Executing `GET /api/v1/openapi.json` returns valid JSON containing path definitions for `/tickets/{ticket_id}/status`, `/tickets/{ticket_id}/resolve`, `/tickets/{ticket_id}/escalate`, and `/sla/breaches/active`.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This configuration module updates `backend/app/api/v1/router.py` to **register and mount Module M5's SLA and lifecycle controllers into the central FastAPI router**. It configures OpenAPI documentation tags and URL routing for SLA features.
 
-1. **Verify Router Compilation via Python CLI:**
-   Run in backend directory:
-   `python -c "from app.api.v1.router import api_router; routes = [r.path for r in api_router.routes]; print('Mounted routes:', [r for r in routes if 'status' in r or 'resolve' in r or 'breaches' in r])"`
-   Expected output: `Mounted routes: ['/tickets/{ticket_id}/status', '/tickets/{ticket_id}/resolve', '/tickets/{ticket_id}/escalate', '/sla/breaches/active']`.
+### What It Should Perform
+When mounted during server startup, this router performs:
+1. **Endpoint Aggregation:** Mounts `sla.router` under `/tickets` with the documentation tag `["SLA & Lifecycle Management"]`.
+2. **Swagger Grouping:** Groups status change, resolution, and breach monitoring operations under a unified section.
+3. **Clean Route Formatting:** Ensures uniform API paths (`/api/v1/tickets/{id}/status`, `/api/v1/tickets/breaches`).
 
-2. **Verify OpenAPI Schema Generation:**
-   Run in backend directory with server active:
-   `curl http://127.0.0.1:8000/openapi.json | grep -o "tickets/{ticket_id}/status"`
-   Expected output: `tickets/{ticket_id}/status`.
-
-3. **Troubleshooting Matrix:**
-   * *Problem:* Terminal shows `ImportError: cannot import name 'sla' from 'app.api.v1.endpoints'`.
-     * *Cause:* `backend/app/api/v1/endpoints/sla.py` was not created or contains a fatal syntax error.
-     * *Fix:* Verify that `sla.py` exists in the endpoints folder and can be imported without errors.
-   * *Problem:* Calling SLA endpoints returns `404 Not Found`.
-     * *Cause:* `router.py` was saved but the backend Uvicorn development server was not restarted.
-     * *Fix:* Restart Uvicorn or ensure `--reload` flag is active in the development terminal.
-   * *Problem:* Interactive docs at `/docs` do not group SLA endpoints together.
-     * *Cause:* `tags` parameter was omitted from `include_router()`.
-     * *Fix:* Verify `tags=["sla", "tickets"]` is included in `api_router.include_router(sla.router, ...)`.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. **Observe Router Organization Live:**
+   * Locate the section titled **"SLA & Lifecycle Management"**.
+   * Confirm that all status transition, resolution, and breach endpoints are fully accessible with interactive Swagger controls.

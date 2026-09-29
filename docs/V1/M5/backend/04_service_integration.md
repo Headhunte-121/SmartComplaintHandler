@@ -150,40 +150,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `ticket_service.py` is upgraded to calculate and stamp `sla_deadline` during `create_ticket()`.
-* [ ] `update_ticket_status()` validates transitions via `lifecycle.py` and appends audit logs.
-* [ ] `resolve_ticket()` validates resolution notes, sets status to `RESOLVED`, stamps `resolved_at`, and appends closure report.
-* [ ] `escalate_ticket()` transitions tickets to `ESCALATED` with documented reasons.
-* [ ] `get_active_sla_breaches()` filters and returns tickets that are overdue or approaching breach.
-* [ ] Illegal state transitions raise exceptions and execute database rollbacks with zero partial updates.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This integration layer connects SLA calculations and lifecycle state machines into `backend/app/services/ticket_service.py`. It guarantees that temporal deadlines and state transitions are atomically committed to SQLite.
 
-1. **Verify Automatic SLA Deadline Stamping on Ingestion:**
-   Run in backend directory:
-   `python -c "from app.db.session import SessionLocal; from app.services.ticket_service import create_ticket; from app.schemas.ticket import TicketCreate; db = SessionLocal(); t = create_ticket(db, TicketCreate(title='Power Failure in Lab 4', description='Complete electrical outage in computer lab 4', location='Block 2, Lab 4')); print('Created ticket:', t.tracking_code, '| Deadline:', t.sla_deadline, '| Status:', t.status); db.close()"`
-   Expected output: `Created ticket: TICK-XXXX | Deadline: <valid future timestamp> | Status: SUBMITTED`.
+### What It Should Perform
+During ticket lifecycle operations, this service performs:
+1. **Target Date Initialization:** Sets `target_resolution_date` during complaint creation via `sla_engine.calculate_deadline()`.
+2. **Priority Override Deadline Adjustment:** Recalculates `target_resolution_date` whenever priority is updated by a supervisor.
+3. **Resolution Stamping:** When a ticket is marked `RESOLVED`, sets `resolved_at = datetime.utcnow()` and appends the mandatory technician repair explanation into `resolution_notes`.
 
-2. **Verify Legal Status Transition & Audit Log:**
-   Run in backend directory:
-   `python -c "from app.db.session import SessionLocal; from app.services.ticket_service import update_ticket_status; db = SessionLocal(); t = update_ticket_status(db, 1, 'IN_PROGRESS', 'Squad arriving on site', 'Staff-1'); print('New Status:', t.status, '| Notes:', t.resolution_notes); db.close()"`
-   Expected output: `New Status: IN_PROGRESS | Notes: [STATUS_CHANGE: ... | SUBMITTED -> IN_PROGRESS | Actor: Staff-1] Reason/Notes: Squad arriving on site`.
-
-3. **Verify Verified Ticket Resolution:**
-   Run in backend directory:
-   `python -c "from app.db.session import SessionLocal; from app.services.ticket_service import resolve_ticket; db = SessionLocal(); t = resolve_ticket(db, 1, 'Replaced faulty circuit breaker in main distribution box', 'Circuit Breaker 32A', 'Tech Alex'); print('Status:', t.status, '| Resolved At:', t.resolved_at); db.close()"`
-   Expected output: `Status: RESOLVED | Resolved At: <valid UTC timestamp>`.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* Newly created tickets have `sla_deadline = None` in the database.
-     * *Cause:* `create_ticket()` was not updated to call `calculate_sla_deadline()` or failed to assign the value to `db_ticket.sla_deadline`.
-     * *Fix:* Ensure `calculate_sla_deadline()` is imported and assigned before `db.add(db_ticket)`.
-   * *Problem:* Calling `resolve_ticket` leaves `resolved_at` as `None`.
-     * *Cause:* `ticket.resolved_at = datetime.utcnow()` was omitted or placed after `db.commit()`.
-     * *Fix:* Verify that `ticket.resolved_at` is populated before `db.commit()`.
-   * *Problem:* Status updates succeed even when illegal transitions are requested.
-     * *Cause:* `validate_transition()` call was bypassed or caught internally without raising an error.
-     * *Fix:* Ensure `validate_transition()` is invoked directly and allowed to raise custom exceptions.
+### How to See It Performing Its Job on the Live Website
+1. Submit a complaint at **`http://localhost:5173/submit`**.
+2. Open **`http://localhost:5173/track`**:
+   * Observe the initial target resolution deadline displayed.
+3. On **`http://localhost:5173/admin`**, open the priority override modal and upgrade the ticket to `CRITICAL`:
+   * Return to `/track` and refresh: observe the deadline has automatically tightened to reflect the 2-hour critical SLA.
+4. Mark the ticket resolved with repair notes:
+   * Notice the timeline advances to **`RESOLVED`** and displays the exact completion timestamp.

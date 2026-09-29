@@ -150,42 +150,28 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `backend/app/services/lifecycle.py` exists, defining all 7 state constants and `TRANSITION_RULES`.
-* [ ] `TERMINAL_STATES` contains `CLOSED` and `CANCELLED`.
-* [ ] Custom exceptions `InvalidStateTransitionError` and `MissingResolutionNotesError` are defined.
-* [ ] `validate_transition` permits `SUBMITTED` -> `IN_PROGRESS` and `IN_PROGRESS` -> `RESOLVED`.
-* [ ] `validate_transition` raises `InvalidStateTransitionError` on illegal transitions (e.g. `SUBMITTED` -> `RESOLVED`).
-* [ ] `validate_transition` raises `MissingResolutionNotesError` when transitioning to `RESOLVED` with empty or short notes (<10 chars).
-* [ ] Modifying a ticket in `CLOSED` or `CANCELLED` state raises `TerminalStateModificationError`.
-* [ ] `format_audit_log_entry` generates formatted audit strings containing UTC timestamps and actor identifiers.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This Python module (`backend/app/services/lifecycle.py`) is responsible for **enforcing the formal Finite State Automata (FSA) governing ticket lifecycle progression**. It prevents corrupt data states by guaranteeing that tickets transition strictly through authorized stages.
 
-1. **Verify Legal State Transitions via Python CLI:**
-   Run in backend directory:
-   `python -c "from app.services.lifecycle import validate_transition; print('Legal 1:', validate_transition('SUBMITTED', 'IN_PROGRESS')); print('Legal 2:', validate_transition('IN_PROGRESS', 'RESOLVED', 'Replaced damaged copper wire in ceiling'))"`
-   Expected output: `Legal 1: True | Legal 2: True`.
+### What It Should Perform
+When tickets undergo status changes, this module enforces:
+1. **Authorized Transition Pathways:**
+   * `SUBMITTED` ➔ `ASSIGNED` or `CANCELLED`
+   * `ASSIGNED` ➔ `IN_PROGRESS` or `SUBMITTED`
+   * `IN_PROGRESS` ➔ `RESOLVED` or `ASSIGNED`
+   * `RESOLVED` ➔ `CLOSED` or `REOPENED`
+2. **Illegal Jump Prevention:** Strictly raises `HTTP 400 Bad Request` if an invalid jump is attempted (e.g. attempting to jump directly from `SUBMITTED` to `RESOLVED` without technician assignment).
+3. **Terminal State Lockdown:** Prevents further modifications once a ticket reaches a final terminal state without formal administrative reopening.
 
-2. **Verify Illegal Shortcut Rejection:**
-   Run in backend directory:
-   `python -c "from app.services.lifecycle import validate_transition; validate_transition('SUBMITTED', 'RESOLVED', 'Tried to close immediately')"`
-   Expected output: Terminal displays `InvalidStateTransitionError: Illegal state transition from 'SUBMITTED' to 'RESOLVED'`.
-
-3. **Verify Resolution Notes Validation Guard:**
-   Run in backend directory:
-   `python -c "from app.services.lifecycle import validate_transition; validate_transition('IN_PROGRESS', 'RESOLVED', 'Short')"`
-   Expected output: Terminal displays `MissingResolutionNotesError: Transition to RESOLVED requires detailed resolution_notes containing at least 10 characters`.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* `validate_transition` rejects a valid transition with `Illegal state transition from 'SUBMITTED' to 'in_progress'`.
-     * *Cause:* Target status was passed in lowercase without uppercase normalization.
-     * *Fix:* Ensure `target_status.strip().upper()` is called at the top of `validate_transition`.
-   * *Problem:* Transition to `RESOLVED` passes even with empty notes.
-     * *Cause:* Notes validation checked `if notes:` instead of `if len(notes.strip()) >= 10`.
-     * *Fix:* Verify that `len((notes or '').strip()) >= 10` is enforced.
-   * *Problem:* Cancelled tickets can be reopened by changing status to `IN_PROGRESS`.
-     * *Cause:* `TERMINAL_STATES` check was bypassed or not evaluated before `TRANSITION_RULES`.
-     * *Fix:* Ensure the check `if current_status in TERMINAL_STATES:` is executed before any transition lookup.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. Locate `PATCH /api/v1/tickets/{ticket_id}/status` and click **Try it out**.
+3. Pick a ticket currently in `SUBMITTED` status and attempt to force it directly to `RESOLVED`:
+   `{"new_status": "RESOLVED"}`
+4. Click **Execute**:
+   * Observe the server reject the transition with **HTTP 400 Bad Request**, displaying the error: *"Invalid state transition from SUBMITTED to RESOLVED"*.
+5. Now advance it to `ASSIGNED`: observe the transition succeeds cleanly with HTTP 200.

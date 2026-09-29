@@ -242,3 +242,51 @@ To maintain engineering consistency across the team, every blueprint in Module M
 * **Section 4: Flexibility & Modification Guide**: Strict demarcations between 🟢 *Safe to Modify & Customize* elements and 🔴 *Strict Non-Negotiables*.
 * **Section 5: Advanced Concepts Explained**: Deep first-principles explanations of computer science, state automata theory, and web architecture (such as Finite State Automata, temporal math in UTC, and React interval hooks).
 * **Section 6: Definition of Done & Verification Protocol**: Observable checklists, automated terminal commands, and complete troubleshooting matrices with root causes and exact resolution procedures.
+
+---
+
+# 8. Definition of Done & Live Website Verification Walkthrough
+
+### What This Module Is Responsible For
+Module M5 (SLA Timers & Lifecycle Automata) is responsible for **enforcing Service Level Agreement deadlines, managing ticket state progression, and capturing verified repair documentation**. It ensures that grievances move through accountable stages and that university facility performance is auditable.
+
+### What It Should Perform
+When operational across the full stack, Module M5 delivers four unified capabilities:
+1. **Deterministic SLA Deadline Engine:** Automatically calculates target completion timestamps based on urgency tiers (`CRITICAL` -> 2h/4h, `HIGH` -> 6h/12h, `MEDIUM` -> 24h, `LOW` -> 48h/72h).
+2. **Finite State Lifecycle Automata:** Strictly enforces valid status transitions (`SUBMITTED` ➔ `ASSIGNED` ➔ `IN_PROGRESS` ➔ `RESOLVED`) while blocking illegal jumps.
+3. **Mandatory Repair Proof Gate:** Requires technicians to submit at least 10 characters of repair documentation before a ticket can be resolved.
+4. **Live Visual Telemetry:** Powers real-time ticking countdown timers and administrative SLA breach escalation panels.
+
+### How to See It Performing Its Job on the Live Website
+Anyone can verify Module M5 on the live application in under 3 minutes:
+
+#### Step 1: Observe Real-Time Countdown Timer
+1. Open **`http://localhost:5173/track`** and look up any active ticket.
+2. Observe the **SLA Countdown Timer**:
+   * Watch the seconds count down live in real time.
+   * Note the color coding: Green ($>4	ext{h}$), Amber ($1-4	ext{h}$), Red ($<1	ext{h}$), or flashing Red if breached.
+
+#### Step 2: Test Lifecycle Advancement & Resolution Gate
+1. Open **`http://localhost:5173/admin`**.
+2. Locate a ticket in `ASSIGNED` status and click **Start Work** -> notice status updates to `IN_PROGRESS`.
+3. Click **Resolve Ticket**:
+   * Modal opens prompting for resolution notes.
+   * Type `done` (only 4 chars): confirm the submit button is **disabled**.
+   * Type `Replaced damaged light bulb and verified electrical ballast`: confirm button turns active green.
+4. Click **Mark Resolved**:
+   * Notice the status updates to **`RESOLVED`**.
+   * Return to `/track`: notice the countdown timer freezes with a completion checkmark.
+
+#### Step 3: Inspect Breaches in Swagger API
+1. Open **`http://localhost:8000/docs`**.
+2. Execute `GET /api/v1/tickets/breaches` to view all currently breached campus tickets.
+
+---
+
+# 9. Additional Changes & Development Modifications (Implementation Audit)
+
+### [2026-09-29] - Dynamic SLA Recalculation on Supervisory Priority Override
+* **Files Modified:** `backend/app/services/ticket_service.py`, `backend/app/services/sla_engine.py`
+* **What Was Changed:** When a supervisor overrides ticket priority (Module M3), the SLA engine automatically recalculates `target_resolution_date` based on the new urgency tier.
+* **Why It Was Changed:** Ensures that escalated tickets immediately receive urgent SLA countdown deadlines without administrative manual calculation.
+* **Verification Proof:** `37/37 pytest passed in 0.97s`.

@@ -135,46 +135,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Complete Verification Commands & Troubleshooting Matrix
+---
 
-### Verification Execution Commands
+## Section 6: Definition of Done & Live Website Verification
 
-1. **Verify Countdown Timer Ticking in Browser:**
-   Open `http://localhost:5173/track?code=TICK-XXXX` for an open ticket.
-   Observe the countdown timer pill. Confirm the seconds value decrements smoothly every 1000ms.
-   Open Developer Tools (F12) -> Console. Confirm zero unmounted state warnings appear.
+### What This File Is Responsible For
+This document is responsible for **governing the complete frontend verification and quality certification protocol for Module M5**. It coordinates testing across the countdown timer, the resolution modal, the breach escalation panel, and lifecycle state changes.
 
-2. **Verify Resolution Modal Character Guard:**
-   Open `http://localhost:5173/admin`.
-   Locate an `IN_PROGRESS` ticket. Click "Resolve Complaint".
-   Confirm modal opens over blurred backdrop.
-   Type "Replaced" (8 characters). Confirm counter shows `8 / 1000` and submit button is disabled.
-   Type " valve in room". Confirm counter shows `22 / 1000` and submit button enables.
+### What It Should Perform
+When executing verification across the frontend, this protocol ensures:
+1. **Timer Precision:** Validates that countdown timers tick continuously and update severity colors at threshold boundaries.
+2. **Resolution Guard Integrity:** Confirms that resolution modals strictly prevent empty or sub-10-character submissions.
+3. **Lifecycle Visual Harmony:** Verifies that resolving a ticket updates the tracking page timeline and admin table without page reloads.
 
-3. **Verify Ticket Resolution Flow:**
-   With valid resolution notes entered, click "Confirm Resolution & Close".
-   Confirm button displays spinner and "Resolving Ticket...".
-   Confirm modal closes automatically.
-   Confirm the table row for that ticket updates to `RESOLVED` and displays closure timestamp.
-
-4. **Verify SLA Breach Table & Tabs:**
-   In `AdminDashboard.jsx`, locate the SLA Breach Table at the top of the workstation.
-   Verify the overdue counter pill matches the number of breached rows.
-   Click "Overdue Breaches" tab: confirm near-breach rows are filtered out.
-   Click "All High-Risk Issues" tab: confirm all rows return.
-   Click manual refresh icon: confirm icon spins and data refreshes.
-
-5. **Verify Empty State when No Breaches Exist:**
-   Resolve or advance all overdue tickets in the database.
-   Refresh dashboard.
-   Confirm the breach table collapses and renders the emerald "Zero Active SLA Breaches" callout card with shield checkmark icon.
-
-### Complete Troubleshooting Matrix
-
-| Symptom / Failure | Root Cause | Exact Resolution Procedure |
-| :--- | :--- | :--- |
-| Timer displays `NaNh NaNm remaining` or flashes erratic numbers. | `slaDeadline` prop was passed as null or undefined. | Verify parent component passes valid ISO date string (e.g. `ticket.sla_deadline`). |
-| Console warning: `Can't perform a React state update on an unmounted component`. | `SLACountdownTimer.jsx` or `SLABreachTable.jsx` omitted `clearInterval()` in `useEffect` cleanup. | Return `() => clearInterval(timer)` from the `useEffect` hook. |
-| Submit button in `ResolutionNotesModal.jsx` remains disabled even after typing 15 characters. | Whitespace was not trimmed properly or validation condition checked an incorrect key. | Ensure validation checks `formData.resolution_notes.trim().length >= 10`. |
-| Parent dashboard table does not update after modal successfully resolves ticket. | Modal omitted calling `onResolved(updatedTicket)` before closing. | Add `if (onResolved) onResolved(updatedTicket)` inside `handleSubmit` try block. |
-| Breach table displays zero tickets even though open tickets in SQLite are overdue. | The backend endpoint returned an empty array because `sla_deadline` in database is null or status is `RESOLVED`. | Check database records to confirm open tickets have valid past `sla_deadline` values. |
+### How to See It Performing Its Job on the Live Website
+1. Launch both dev servers: `npm run dev` and `uvicorn app.main:app --reload`.
+2. Open **`http://localhost:5173/track`**:
+   * Verify the countdown timer ticks down seconds in real time.
+3. On **`http://localhost:5173/admin`**:
+   * Click **Resolve** on an in-progress ticket, type a valid 10+ character explanation, and submit.
+   * Confirm the ticket reflects `Status: RESOLVED` and the timer freezes with a green completion checkmark.

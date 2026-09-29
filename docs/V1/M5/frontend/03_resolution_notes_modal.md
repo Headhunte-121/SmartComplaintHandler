@@ -143,44 +143,28 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/components/ResolutionNotesModal.jsx` exists and is exported as default.
-* [ ] Renders Resolution Notes (textarea), Parts Replaced (input), and Technician Name (input).
-* [ ] Displays live character counter for resolution notes (`X / 1000 characters`).
-* [ ] Submit button is disabled when resolution notes contain fewer than 10 non-whitespace characters.
-* [ ] Submitting valid notes calls `resolveTicket()` from `src/api/sla.js`.
-* [ ] Displays loading spinner and disables buttons while submission is in flight.
-* [ ] Invokes `onResolved(updatedTicket)` and closes modal upon receiving HTTP 200 response.
-* [ ] Pressing Escape key or clicking backdrop closes the modal without submitting.
-* [ ] Clicks inside the form do NOT close the modal.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This React component (`frontend/src/components/ResolutionNotesModal.jsx`) is responsible for **capturing required technician repair documentation before a complaint can be formally closed**. It serves as the physical proof gate preventing staff from resolving grievances without explanation.
 
-1. **Verify Modal Launch & Character Counter:**
-   In browser on `http://localhost:5173/admin`, trigger the resolution modal on an `IN_PROGRESS` ticket.
-   Observe: Modal opens with blurred backdrop. Type "Fixed valve".
-   Confirm counter displays `11 / 1000 characters`. Confirm submit button enables.
+### What It Should Perform
+When activated by a technician or supervisor, this modal performs:
+1. **Context Display:** Opens over a dimmed backdrop displaying the complaint title, tracking code, and assigned team.
+2. **Mandatory Length Guard:** Disables the "Mark Resolved" button until at least 10 non-whitespace characters are typed into the repair notes box.
+3. **Reactive Character Counter:** Warns in amber when under 10 characters (`X/10 characters required`) and turns green once the threshold is met.
+4. **Optimistic UI Callback:** Dispatches `resolveTicket()`, displays a loading spinner, dismisses cleanly, and notifies the parent view to update the ticket status badge to `RESOLVED`.
 
-2. **Verify Short Notes Guard:**
-   Backspace text to "Fixed".
-   Confirm counter displays `5 / 1000 characters`. Confirm submit button disables with red helper text.
-
-3. **Verify Successful Resolution Flow:**
-   Type "Replaced broken 2-inch PVC valve under sink and tested water flow".
-   Enter Parts: "PVC Valve 2in". Enter Technician: "Dave M.".
-   Click "Confirm Resolution & Close".
-   Confirm button shows spinner and "Resolving Ticket...".
-   Confirm modal closes and parent dashboard table updates ticket status to `RESOLVED`.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* Clicking the textarea immediately closes the modal.
-     * *Cause:* `event.stopPropagation()` was omitted from the modal card container.
-     * *Fix:* Ensure `onClick={e => e.stopPropagation()}` is placed on the inner modal card element.
-   * *Problem:* Form submit triggers full page reload.
-     * *Cause:* `event.preventDefault()` was omitted from `handleSubmit`.
-     * *Fix:* Add `e.preventDefault()` on the first line of the form submission handler.
-   * *Problem:* Parent dashboard does not reflect the resolved status after modal closes.
-     * *Cause:* `onResolved` prop callback was not invoked with the server response.
-     * *Fix:* Verify `if (onResolved) onResolved(updatedTicket);` is called inside the `try` block before `onClose()`.
+### How to See It Performing Its Job on the Live Website
+1. On **`http://localhost:5173/admin`**, click **Resolve** on any ticket in `IN_PROGRESS` status.
+2. **Observe Resolution Modal Live:**
+   * Modal dialog appears smoothly.
+   * Notice the **Mark Resolved** button is disabled.
+3. Type `fixed` (only 5 chars):
+   * Notice the counter warns: `5/10 characters required (min 10)`.
+4. Type `Replaced broken faucet washer and tested flow`:
+   * Notice the counter turns green and the button turns active emerald.
+5. Click **Mark Resolved**:
+   * Observe the brief spinner, modal dismissal, and the ticket status instantly update to **`RESOLVED`**.

@@ -131,46 +131,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/api/sla.js` exists, exporting `updateTicketStatus`, `resolveTicket`, `escalateTicket`, and `fetchActiveBreaches`.
-* [ ] `updateTicketStatus` normalizes status to uppercase and calls `apiClient.patch()`.
-* [ ] `resolveTicket` blocks notes shorter than 10 characters before making a network call.
-* [ ] `resolveTicket` dispatches `POST /tickets/{id}/resolve` with resolution notes, parts, and technician name.
-* [ ] `escalateTicket` dispatches `POST /tickets/{id}/escalate` with mandatory escalation reason.
-* [ ] `fetchActiveBreaches` queries `GET /sla/breaches/active` and returns an array of breach records.
-* [ ] All methods propagate normalized error messages cleanly to caller components.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This JavaScript module (`frontend/src/api/sla.js`) is responsible for **managing network communication between React lifecycle components and backend SLA endpoints**. It encapsulates API calls for updating statuses, resolving complaints, and querying breach alerts.
 
-1. **Verify Client-Side Pre-Validation in Browser Console:**
-   Open browser Developer Tools (F12) on `http://localhost:5173/`. Paste into console:
-   `import('./src/api/sla.js').then(m => m.resolveTicket(1, 'Short').catch(e => console.log('Caught Pre-Validation Error:', e.message)));`
-   Expected console output: `Caught Pre-Validation Error: Resolution notes must contain at least 10 characters...` (Notice zero network requests were made in the Network tab).
+### What It Should Perform
+When invoked by UI components, this client provides:
+1. **`updateTicketStatus(ticketId, newStatus)`:** Dispatches `PATCH /api/v1/tickets/{id}/status` and returns the updated ticket.
+2. **`resolveTicket(ticketId, resolutionNotes)`:** Dispatches `POST /api/v1/tickets/{id}/resolve` with repair documentation.
+3. **`fetchSLABreaches()`:** Calls `GET /api/v1/tickets/breaches` to populate administrative escalation views.
 
-2. **Verify Live Status Update via Client:**
-   Paste into console:
-   `import('./src/api/sla.js').then(m => m.updateTicketStatus(1, 'IN_PROGRESS', 'Arrived at site').then(t => console.log('Updated Ticket:', t)));`
-   Expected console output: `Updated Ticket: { id: 1, status: 'IN_PROGRESS', ... }`.
-
-3. **Verify Valid Ticket Resolution via Client:**
-   Paste into console:
-   `import('./src/api/sla.js').then(m => m.resolveTicket(1, 'Replaced damaged copper wiring in distribution panel', 'Copper Wire 2.5mm', 'Tech Sam').then(t => console.log('Resolved Ticket:', t)));`
-   Expected console output: `Resolved Ticket: { id: 1, status: 'RESOLVED', resolved_at: '...', ... }`.
-
-4. **Verify Active Breaches Query via Client:**
-   Paste into console:
-   `import('./src/api/sla.js').then(m => m.fetchActiveBreaches(0.20).then(b => console.log('Active Breaches:', b)));`
-   Expected console output: `Active Breaches: [...]`.
-
-5. **Troubleshooting Matrix:**
-   * *Problem:* `TypeError: Cannot read properties of undefined (reading 'patch')`.
-     * *Cause:* `apiClient` was not properly exported from `src/api/client.js` or import path is incorrect.
-     * *Fix:* Check `import { apiClient } from './client'` in `src/api/sla.js`.
-   * *Problem:* `resolveTicket` throws `Illegal state transition from 'SUBMITTED' to 'RESOLVED'`.
-     * *Cause:* The ticket was never moved to `IN_PROGRESS` before attempting resolution.
-     * *Fix:* Ensure the ticket status is updated to `IN_PROGRESS` before calling `resolveTicket`.
-   * *Problem:* `fetchActiveBreaches` returns an empty array when breaches exist.
-     * *Cause:* `threshold_ratio` was passed as an invalid string or backend query did not find open tickets.
-     * *Fix:* Verify that `threshold_ratio` is a float (e.g. `0.20`) and confirm open tickets have past deadlines in database.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/admin`** and open the Developer Tools Console (`F12`).
+2. In the console, execute:
+   `import('/src/api/sla.js').then(api => api.fetchSLABreaches()).then(console.log)`
+3. **Observe Client Live:**
+   * The console prints the list of overdue complaints fetched from the backend.
+4. On the Network tab, resolve a ticket and observe the clean `POST /resolve` request dispatched by this client.
