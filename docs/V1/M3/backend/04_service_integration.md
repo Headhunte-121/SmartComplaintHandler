@@ -196,57 +196,21 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Live Website Testing Procedure
+# 6. Functional Role & System Responsibilities: What This File Does & How to See It Working
 
-### Component Functionality & Expected Behavior (What It Should Do)
-`ticket_service.py` acts as the master domain orchestrator:
-1. **Dynamic Priority Stamping:** When a ticket is created via `create_ticket()`, it automatically invokes `calculate_priority()` and saves the computed urgency tier (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) into the SQLite database.
-2. **Audited Supervisor Override:** `override_ticket_priority()` updates the priority, recalculates SLA deadlines, and irreversibly records an audit trail entry into `resolution_notes` (e.g. `[OVERRIDE 2026-09-25] Changed from CRITICAL to LOW. Reason: Verified false alarm`).
-3. **Multi-Criteria Queries:** `list_tickets()` provides filtered queries by priority and department for the admin operations desk.
+### What This File Is Responsible For
+This service is solely responsible for **orchestrating business logic, persisting tickets into the SQLite database, and managing supervisor audits**. It connects priority calculations directly into real database rows so complaints are permanently saved with their urgency tiers and audit trails.
 
----
+### What It Should Perform
+When complaints are created or modified, this service performs three core responsibilities:
+1. **Dynamic Priority Stamping:** When `create_ticket()` executes, it calculates the complaint's urgency tier and permanently saves the `priority` column (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) into the SQLite `tickets` table.
+2. **Supervisor Priority Overrides:** When `override_ticket_priority()` is called, it verifies that the ticket exists, changes the priority in the database, recalculates the SLA deadline, and permanently appends a timestamped audit note to `resolution_notes` (e.g. `[OVERRIDE] Priority changed from CRITICAL to LOW. Reason: Verified false alarm`).
+3. **Priority-Filtered Inquiries:** `list_tickets()` provides high-speed queries filtered by priority or department so staff operations desks can pull high-urgency queues instantly.
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/`** and submit a complaint about `Exposed sparking wires in seminar hall`.
+2. Copy the generated tracking code (e.g. `TICK-XXXX`).
+3. **See Database Stamping Perform Its Job:** Navigate to **`http://localhost:5173/track`**, enter `TICK-XXXX`, and click Track. You will see that this service permanently stored the ticket with **`Priority: CRITICAL`** in SQLite.
+4. **See Audit Overrides Perform Their Job:** Use Swagger (`http://localhost:8000/docs`) to PATCH this ticket to `LOW` with reason `Main breaker isolated`. Refresh the tracking page: you will see the priority badge shift to **`LOW`**, and this service's permanent audit trail appear directly in the staff notes section.
 
-#### Test Case 1: End-to-End Submission & Persistence
-1. Navigate to **`http://localhost:5173/`**.
-2. Submit a complaint:
-   * **Title:** `Exposed electrical wiring in seminar hall`
-   * **Description:** `Bare live copper wires hanging near doorway. Sparks visible.`
-   * **Location:** `Seminar Hall 2`
-3. Click **Submit Complaint**.
-4. A popup modal appears confirming submission and displaying your tracking code (e.g. **`TICK-9A4B`**). Click **Copy Code**.
-
-#### Test Case 2: Verify Dynamic Priority Stamped in Database via Tracking Portal
-1. Navigate to the self-service portal at **`http://localhost:5173/track`**.
-2. Paste your tracking code (`TICK-9A4B`) and click **Track Status**.
-3. **Expected Result on Screen:**
-   * Ticket displays with **Priority: `CRITICAL`** (red badge).
-   * Department displays as **`Electrical`**.
-   * Status stepper shows **`SUBMITTED`**.
-
-#### Test Case 3: Priority Override & Audit Trail Verification
-1. Open **`http://localhost:8000/docs`** -> `PATCH /api/v1/tickets/{ticket_id}/priority`.
-2. Enter the ticket's numeric ID (found in track response) with payload:
-   ```json
-   {
-     "new_priority": "LOW",
-     "override_reason": "Electrician checked and main circuit breaker was already disconnected"
-   }
-   ```
-3. Click **Execute** -> Returns HTTP `200 OK`.
-4. Return to **`http://localhost:5173/track`** and click **Refresh / Re-track**.
-5. **Expected Result on Screen:**
-   * Priority badge has dynamically shifted to **`LOW`** (slate).
-   * Staff Resolution & Audit Notes section displays:  
-     `[OVERRIDE] Priority changed from CRITICAL to LOW. Reason: Electrician checked and main circuit breaker was already disconnected`.
-
----
-
-### Implementation Checklist
-- [ ] `create_ticket()` invokes `calculate_priority()` and stamps `priority`.
-- [ ] `override_ticket_priority()` updates priority and appends audit log.
-- [ ] `list_tickets()` supports priority and department filters.
-- [ ] Terminal check passes:
-  `python -c "from app.services.ticket_service import list_tickets; from app.db.session import SessionLocal; print('Found tickets:', len(list_tickets(SessionLocal())))"`
 

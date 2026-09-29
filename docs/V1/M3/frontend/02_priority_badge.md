@@ -156,45 +156,28 @@ This specification operates strictly as an **implementation and integration blue
 
 # 6. Definition of Done & Live Website Testing Procedure
 
-### Component Functionality & Expected Behavior (What It Should Do)
-`PriorityBadge.jsx` is the universal, atomic visual status indicator used across the platform:
-1. **WCAG 2.1 High-Contrast Color Tiers:**
-   * **`CRITICAL`:** High-urgency red pill (`bg-red-50 text-red-700 border-red-300`) with a living, animated pulsing ping ring (`animate-ping`).
-   * **`HIGH`:** High-priority amber pill (`bg-amber-50 text-amber-800 border-amber-300`).
+### What This File Is Responsible For
+This React component is responsible for **visually communicating the urgency and severity tier of any complaint at a single glance**. It acts as the universal, atomic visual status indicator rendered everywhere in the application—from student-facing preview cards to administrative ticket queues and detail modals.
+
+### What It Should Perform
+When rendered on screen, this component performs the following visual behaviors:
+1. **WCAG-Compliant Color & Contrast Coding:** Automatically renders high-contrast, colored status pills based on urgency level:
+   * **`CRITICAL`:** High-urgency red pill (`bg-red-50 text-red-700 border-red-300`) with an animated pulsing ping ring (`animate-ping`) that immediately alerts dispatchers.
+   * **`HIGH`:** Urgent amber pill (`bg-amber-50 text-amber-800 border-amber-300`).
    * **`MEDIUM`:** Standard blue pill (`bg-blue-50 text-blue-700 border-blue-300`).
    * **`LOW`:** Routine slate/grey pill (`bg-slate-50 text-slate-700 border-slate-300`).
-2. **Case Normalization:** Safely converts strings like `"critical"` or `"High"` to uppercase.
-3. **Interactive SLA Tooltip:** Hovering over the badge displays the maximum resolution deadline (`SLA: 2 Hours` for Critical, `6h` for High, `24h` for Medium, `48h` for Low).
-4. **Accessibility:** Renders with `role="status"` and accessible `aria-label`.
+2. **Case Normalization & Robust Fallbacks:** Safely normalizes input strings (handling lowercase `"critical"` or mixed-case `"High"`), falling back to `LOW` if unrecognized or unassigned.
+3. **Interactive SLA Resolution Tooltips:** When `showSlaTooltip` is enabled, hovering over the badge reveals the target resolution time (`SLA: 2 Hours` for Critical, `6h` for High, `24h` for Medium, `48h` for Low).
+4. **Accessible Screen Reader Support:** Renders with `role="status"` and accessible `aria-label="Priority: <TIER>"` for assistive technology.
 
----
-
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
-
-#### Test Case 1: Visual Inspection on Live Intake Form
-1. Open **`http://localhost:5173/`** in your browser.
-2. Enter Title: `Fire in laboratory`
-3. **Expected Result on Screen:**
-   * The **`CRITICAL`** priority badge appears inside the Live Triage Card.
-   * Notice the active **pulsing red dot** inside the badge that animates continuously to grab visual attention.
-   * Move your mouse cursor over the badge: a tooltip appears reading **`Resolution Target: 2 Hours`**.
-
-#### Test Case 2: Dynamic Tier Shift Check
-1. Change the Title to `Water pipe leak` -> Badge shifts to **`HIGH`** (amber).
-2. Change the Title to `Chair broken` -> Badge shifts to **`MEDIUM`** (blue).
-3. Change the Title to `Desk paint scratched` -> Badge shifts to **`LOW`** (slate).
-
-#### Test Case 3: Accessibility & HTML Inspection
-1. Right-click any rendered badge on `http://localhost:5173/` and click **Inspect**.
-2. Verify the DOM element contains:
-   * `role="status"`
-   * `aria-label="Priority: CRITICAL"` (or matching tier).
-
----
-
-### Implementation Checklist
-- [ ] File exists at `frontend/src/components/PriorityBadge.jsx`.
-- [ ] Supports `priority`, `size`, `showIcon`, and `showSlaTooltip` props.
-- [ ] Renders `animate-ping` radar dot on `CRITICAL` badges.
-- [ ] Normalizes lowercase/mixed-case inputs.
+### How to See It Performing Its Job on the Live Website
+1. Open the application at **`http://localhost:5173/`**.
+2. In the complaint submission form, enter Title: `Fire in laboratory` and Description: `Gas cylinder sparking`.
+3. **See the badge perform live:**
+   * Look at the live preview card: notice the bright red **`CRITICAL`** badge.
+   * Notice the active **pulsing red radar dot** inside the badge that animates continuously to draw immediate human attention.
+   * Move your mouse cursor over the badge: notice the hover tooltip appear reading **`Resolution Target: 2 Hours`**.
+4. Change the Title to `Water pipe broken`:
+   * Notice the badge immediately re-renders as an amber **`HIGH`** pill with a `6 Hours` SLA target.
+5. In the supervisor dashboard or ticket list, inspect the table rows: each ticket prominently displays its respective colored priority badge matching its database severity.
 

@@ -180,50 +180,35 @@ This specification operates strictly as an **implementation and integration blue
 
 # 6. Definition of Done & Live Website Verification Walkthrough
 
-### Complete Interactive Website Testing Procedure (How to Verify on the Live App)
+### What This File Is Responsible For
+This document is responsible for **governing the complete end-to-end quality assurance and live browser verification of Module 3's frontend user interface**. It defines the precise operational checkpoints required to certify that all UI components—the API transport client, the dynamic priority badges, the real-time triage card, and the supervisor override modal—work together seamlessly with the live FastAPI backend without UI stutter or data corruption.
 
-Ensure both development servers are running (`http://localhost:5173` and `http://localhost:8000`).
+### What It Should Perform
+When carrying out full verification on the running application, the frontend test suite guarantees that:
+1. **Network Layer Integrity:** `fetchTriagePreview()` and `overrideTicketPriority()` successfully exchange JSON payloads with the backend running at `http://localhost:8000/api/v1` with zero CORS violations.
+2. **Visual Urgency Rendering:** `PriorityBadge.jsx` accurately reflects all four priority tiers (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) with WCAG-compliant color contrasts, accessible aria tags, and an active pulse radar dot on critical tickets.
+3. **Debounced Real-Time Feedback:** `LiveTriageCard.jsx` debounces keyboard typing (500ms), shows shimmering skeleton loaders during network transit, and immediately surfaces the bold red safety alert when emergency hazards are detected.
+4. **Administrative Governance Guarding:** `PriorityOverrideModal.jsx` strictly blocks submission until both conditions are met: a different priority is chosen and at least 5 characters of explanation are typed.
+5. **Full Lifecycle Synchronization:** A complaint submitted on the intake form reflects its calculated priority in the admin dashboard, and an override immediately updates the priority badge on the screen without requiring a page refresh.
 
-#### Step 1: Open the Frontend Application
-Navigate to **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
+### How to See It Performing Its Job on the Live Website
+Ensure both servers are running (`npm run dev` at `http://localhost:5173/` and `uvicorn app.main:app --reload` at `http://localhost:8000/`).
 
-#### Step 2: Test Real-Time Triage Debounce & Hazard Detection
-1. Click into the **Title** input and type: `Fire sparks from power socket`
-2. Click into the **Description** input and type: `Visible flames and sparks coming from wall outlet in lab 2`
-3. Pause for half a second (500ms).
-4. **Observable Verification:**
-   * Shimmering pulse skeleton appears briefly.
-   * Prominent **Red Hazard Banner** appears: `⚠️ Physical Safety Hazard Detected`.
-   * Priority badge displays **`CRITICAL`** with a living pulse animation.
-   * Category shows **`Electrical`** with a high-confidence bar.
-   * Matched keywords `fire`, `sparks`, `socket` appear as chips.
-
-#### Step 3: Test Dynamic Tier Transitions
-1. Clear the inputs and type Title: `Air conditioner water leakage` -> Badge transitions to amber **`HIGH`** (SLA: 6 hours).
-2. Clear and type Title: `Classroom desk bench loose` -> Badge transitions to blue **`MEDIUM`** (SLA: 24 hours).
-3. Clear and type Title: `Desk surface paint scratched` -> Badge transitions to slate **`LOW`** (SLA: 48 hours).
-
-#### Step 4: Test Supervisor Priority Override Modal
-1. On `http://localhost:5173/`, scroll down to the **Priority Override Modal Demo** section (or open the modal from the Admin Operations Desk).
-2. Click **Open Priority Override Modal**.
-3. Change the priority dropdown from `CRITICAL` to `HIGH`.
-4. Try clicking **Confirm Override** without typing a reason -> Confirm it is **disabled**.
-5. Type `Fix` (only 3 characters) -> Confirm character counter displays in amber: `3/5 characters required (min 5)` and button remains **disabled**.
-6. Type `Site inspection verified controlled drill; urgent follow-up scheduled`.
-7. Counter turns green (`61/500 characters`) and **Confirm Override** button turns bright blue.
-8. Click **Confirm Override**:
-   * Spinner displays briefly.
-   * Modal closes cleanly.
-   * Priority badge on the page dynamically updates to **`HIGH`** (amber) with zero page reloads.
-
----
-
-### Operational Sign-Off Checklist
-- [ ] Checkpoint 1 passes: API client methods fetch triage previews and submit priority overrides with zero uncaught errors.
-- [ ] Checkpoint 2 passes: Priority badges render with distinct colors, icons, and pulsing animation for `CRITICAL`.
-- [ ] Checkpoint 3 passes: Live triage card debounces keystrokes (500ms) and displays flashing red hazard alert on danger terms.
-- [ ] Checkpoint 4 passes: Priority override modal enforces 5-character reason validation and updates table rows smoothly.
-- [ ] Checkpoint 5 passes: Complete full-stack complaint flow verified from student preview to supervisor override in SQLite.
+1. **Verify Real-Time Triage & Hazard Alerting:**
+   * Open `http://localhost:5173/` in your browser.
+   * Type Title: `Fire sparks from power socket` and Description: `Visible flames and sparks coming from wall outlet in lab 2`.
+   * Pause typing for half a second: observe the shimmering skeleton loader briefly appear, followed immediately by the bright **Red Hazard Banner** (`⚠️ Physical Safety Hazard Detected`) and the pulsing red **`CRITICAL`** priority badge with matched keywords (`fire`, `sparks`, `socket`).
+2. **Verify Dynamic Urgency Tier Transitions:**
+   * Clear and type Title: `Air conditioner water leakage` -> Badge transitions to amber **`HIGH`** (SLA: 6 hours).
+   * Clear and type Title: `Classroom desk bench loose` -> Badge transitions to blue **`MEDIUM`** (SLA: 24 hours).
+   * Clear and type Title: `Desk surface paint scratched` -> Badge transitions to slate **`LOW`** (SLA: 48 hours).
+3. **Verify Supervisor Override Governance Modal:**
+   * Scroll down to the **Priority Override Modal Demo** section (or click "Override Priority" on any ticket row).
+   * Click **Open Priority Override Modal**.
+   * Switch the dropdown from `CRITICAL` to `HIGH`. Notice the **Confirm Override** button remains grayed out and disabled.
+   * Type `Fix` in the reason box: notice the character counter warning in amber (`3/5 characters required (min 5)`).
+   * Type a full justification: `Site inspection verified controlled drill; urgent follow-up scheduled`. Notice the counter turns green (`61/500 characters`) and the button activates.
+   * Click **Confirm Override**: observe the brief loading spinner, modal dismissal, and the priority badge on screen instantly changing to **`HIGH`** without a page reload.
 
 ---
 

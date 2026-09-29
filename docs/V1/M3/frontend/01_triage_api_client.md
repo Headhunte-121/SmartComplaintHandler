@@ -146,48 +146,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Live Website Testing Procedure
+# 6. Functional Role & System Responsibilities: What This File Does & How to See It Working
 
-### Component Functionality & Expected Behavior (What It Should Do)
-`frontend/src/api/triage.js` acts as the frontend network bridge:
-1. **Pre-Flight Validation Guards:** `fetchTriagePreview(title, description)` performs client-side length checks (title $\ge 5$, description $\ge 10$) before making network requests, preventing network spam when the user has only typed a few characters.
-2. **Unified Data Unwrapping:** Normalizes API responses so frontend components always receive consistent camelCase/snakeCase objects and human-readable error messages.
-3. **Supervisor Override Transport:** `overrideTicketPriority(ticketId, newPriority, overrideReason)` sends structured PATCH mutations with error handling.
+### What This File Is Responsible For
+This JavaScript module is solely responsible for **managing network communication between the React web browser components and the backend triage endpoints**. It acts as the dedicated network transport bridge that serializes parameters, handles errors, and isolates React components from raw `fetch` or Axios boilerplate.
 
----
+### What It Should Perform
+When invoked by UI components, this client module performs three core responsibilities:
+1. **Pre-Flight Validation Throttling:** In `fetchTriagePreview(title, description)`, it checks character lengths in JavaScript before touching the network. If the title is $<5$ characters or description $<10$, it silently resolves early without dispatching an unnecessary HTTP request, saving network bandwidth.
+2. **Standardized Response Unwrapping:** Parses JSON response bodies, unwrapping the triage prediction (`priority`, `category`, `confidence`, `matched_keywords`) and passing clean JavaScript objects directly to UI components.
+3. **Supervisor Mutation Handling:** In `overrideTicketPriority(ticketId, newPriority, overrideReason)`, it constructs the JSON `PATCH` body, checks HTTP status codes, and extracts friendly error messages if the server rejects the override.
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+### How to See It Performing Its Job on the Live Website
+1. Open the complaint form at **`http://localhost:5173/`**.
+2. Press `F12` and switch to the **Console** tab.
+3. Paste the following snippet and press Enter:
+   `import('/src/api/triage.js').then(api => api.fetchTriagePreview('Water pipe leak', 'Flooding in hostel floor')).then(console.log)`
+4. You will see this client module perform its job immediately, returning `{priority: "HIGH", category: "Plumbing", confidence: 0.85}` directly in the browser console.
+5. In the **Network** tab, observe how typing in the complaint form dispatches clean, throttled HTTP `POST` requests handled by this module.
 
-#### Test Case 1: Browser Console Verification
-1. Navigate to **`http://localhost:5173/`** in your browser.
-2. Press `F12` to open Developer Tools and click the **Console** tab.
-3. Paste the following snippet into the console and press Enter:
-   ```javascript
-   fetch('/api/v1/tickets/triage-preview', {
-     method: 'POST',
-     headers: { 'Content-Type': 'application/json' },
-     body: JSON.stringify({
-       title: 'Sparking wire in physics lab',
-       description: 'Switchboard is smoking and sparking near door'
-     })
-   })
-   .then(res => res.json())
-   .then(data => console.log('Triage Client Result:', data));
-   ```
-4. **Expected Result in Console:**
-   * Logs a clean JSON object containing:
-     `{ priority: "CRITICAL", category: "Electrical", hazard_detected: true, confidence: 1 }`.
-
-#### Test Case 2: Network Tab Verification on Live Form
-1. On **`http://localhost:5173/`**, switch Developer Tools to the **Network** tab.
-2. Type in the complaint form: `Water pipe burst in washroom`
-3. Observe that only **one single** network request is sent to `triage-preview` after you pause typing (500ms debounce), returning status `200 OK`.
-
----
-
-### Implementation Checklist
-- [ ] Exports `fetchTriagePreview(title, description)`.
-- [ ] Exports `overrideTicketPriority(ticketId, newPriority, overrideReason)`.
-- [ ] Intercepts and extracts error detail strings on failed requests.
-- [ ] Contains zero UI components or React hooks.
 

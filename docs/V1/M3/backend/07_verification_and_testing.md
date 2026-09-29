@@ -181,62 +181,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Live Web Application Verification Flow
+# 6. Functional Role & System Responsibilities: What This Verification Gate Does & How to See It Working
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
-In addition to automated terminal scripts, you can verify the entire Module M3 subsystem directly in the browser:
+### What This Verification Suite Is Responsible For
+This verification suite is solely responsible for **certifying that all 6 backend components operate together reliably without data loss or classification crashes**. It acts as an automated quality gate that prevents broken classification rules or schema bugs from leaking into production.
 
-#### Step 1: Start the Local Development Environment
-Ensure both servers are running:
-* **Backend:** `http://localhost:8000` (FastAPI / Swagger)
-* **Frontend:** `http://localhost:5173` (React / Vite)
+### What It Should Perform
+When executed, this verification suite performs four core responsibilities:
+1. **Engine Math Verification:** Proves that dangerous keywords short-circuit to `CRITICAL` in $<2\text{ms}$ and title weights outscore secondary descriptions.
+2. **Contract Enforcements:** Exercises boundary checks, trimming, and HTTP 422 rejections.
+3. **Database State Verification:** Proves that SQLite permanently persists dynamic priorities and records immutable audit notes on override.
+4. **End-to-End Route Certification:** Dispatches HTTP requests through FastAPI, verifying that status codes 200, 201, and 404 work accurately.
 
-#### Step 2: Test Live Triage Classification in Browser UI
-1. Navigate to **`http://localhost:5173/`**.
-2. Type in **Title:** `Fire sparks flying from electrical socket in lab`
-3. Type in **Description:** `Burning smell and continuous visible sparks`
-4. **Observable Verification:**
-   * Within 500ms, the **Live Triage Card** updates.
-   * Red Hazard Banner flashes: `⚠️ Physical Safety Hazard Detected`.
-   * Category shows `Electrical` with high confidence.
-   * Priority badge displays `CRITICAL` with red pulsing glow.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/`** and submit a complaint about a sparking socket in a lab.
+2. Watch the live triage card detect `CRITICAL` priority in real time as you finish typing.
+3. Submit the ticket, copy its tracking code, and navigate to **`http://localhost:5173/track`**.
+4. You will see the entire backend pipeline confirmed on your screen: the ticket is retrieved from SQLite with `Priority: CRITICAL`, department `Electrical`, and an active 2-hour SLA deadline.
+5. In Swagger (`http://localhost:8000/docs`), execute `PATCH /api/v1/tickets/{id}/priority` to change the priority to `LOW` with an audit reason. Refresh the tracking page: observe the badge change to `LOW` and the permanent supervisor audit log appear in the staff notes.
 
-#### Step 3: Test Dynamic Persistence via Tracking Portal
-1. Complete and submit the complaint form on `http://localhost:5173/`.
-2. Copy the resulting `TICK-XXXX` tracking code from the confirmation popup.
-3. Open **`http://localhost:5173/track`**, enter the tracking code, and click **Track Status**.
-4. **Observable Verification:**
-   * Ticket is retrieved from SQLite with `Priority: CRITICAL` and `Department: Electrical`.
-   * SLA countdown calculates based on 2-hour critical deadline.
-
-#### Step 4: Test Supervisor Override and Audit Trail
-1. Open **`http://localhost:8000/docs`** -> `PATCH /api/v1/tickets/{ticket_id}/priority`.
-2. Input the numeric ticket ID with a downgraded priority (`LOW`) and audit reason (`False alarm confirmed by lab incharge`).
-3. Click **Execute** (HTTP 200).
-4. Refresh `http://localhost:5173/track`.
-5. **Observable Verification:**
-   * Priority badge reflects `LOW` (slate).
-   * Staff notes display the irreversible audit log entry with timestamp and supervisor rationale.
-
----
-
-### Operational Sign-Off Checklist
-- [ ] Checkpoint 1 passes: Classification and priority unit engines produce correct outputs with zero assertion errors.
-- [ ] Checkpoint 2 passes: Pydantic schemas enforce string lengths, trimming, enums, and normalized confidence bounds.
-- [ ] Checkpoint 3 passes: Service layer creates tickets with dynamic priorities and executes auditable administrative overrides in SQLite.
-- [ ] Checkpoint 4 passes: In-memory HTTP tests confirm status codes `200`, `201`, `404`, and `422`.
-- [ ] Checkpoint 5 passes: Live Uvicorn server serves `/triage-preview` requests and displays the `"priority"` tag in Swagger UI at `/docs`.
-
----
-
-### Terminal Troubleshooting Matrix
-
-| Error Message Observed in Terminal | Root Cause of Failure | Concrete Immediate Fix |
-| :--- | :--- | :--- |
-| `ImportError: cannot import name 'calculate_priority'` | `priority_engine.py` is missing, misnamed, or has a syntax error. | Verify that `backend/app/services/priority_engine.py` exists and defines `def calculate_priority(...)`. |
-| `AssertionError: assert 'MEDIUM' == 'CRITICAL'` | Upgraded `create_ticket()` still has hardcoded `priority="MEDIUM"`. | In `backend/app/services/ticket_service.py`, ensure `db_ticket = Ticket(..., priority=priority_result["priority"])`. |
-| `ValidationError: 1 validation error for TriagePreviewRequest` | Input text passed to the test was shorter than 5 characters for title or 10 characters for description. | Use longer, realistic complaint strings (e.g. title: 15 chars, description: 40 chars). |
-| `sqlite3.OperationalError: no such column: tickets.priority` | SQLite database schema is out of date or missing columns from Module M1. | Verify that the `tickets` table has a `priority` column; check `backend/app/models/ticket.py`. |
-| `HTTPException 404: Ticket with ID 99999 not found` | Normal and expected behavior when testing non-existent ticket overrides. | Confirm that the test successfully catches this 404 response as proof of proper error handling. |
-| `uvicorn: command not found` | The Python virtual environment is not activated in the current terminal window. | Activate your virtual environment in PowerShell: `..\venv\Scripts\Activate.ps1`. |
 

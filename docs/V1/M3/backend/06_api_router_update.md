@@ -141,33 +141,19 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Live Website Testing Procedure
+# 6. Functional Role & System Responsibilities: What This File Does & How to See It Working
 
-### Component Functionality & Expected Behavior (What It Should Do)
-`backend/app/api/v1/router.py` unifies all modular endpoint routers into the centralized `/api/v1` namespace, making the triage preview and priority override endpoints discoverable by Swagger UI and frontend clients.
+### What This File Is Responsible For
+This file is solely responsible for **aggregating and organizing all backend sub-routers into the master `/api/v1` namespace**. It acts as the central traffic switchboard that ensures requests sent to `/api/v1/tickets/...` are directed to the correct priority and complaint controllers.
 
----
+### What It Should Perform
+When the FastAPI web server initializes, this router update performs two core responsibilities:
+1. **Sub-Router Inclusion:** Connects `priority.router` alongside `complaints.router`, `assignment.router`, and `sla.router` under the unified `/tickets` path prefix.
+2. **OpenAPI Tagging & Discovery:** Tags priority endpoints with OpenAPI metadata (`tags=["priority"]`) so they are grouped into a clean, dedicated category in the interactive Swagger UI and SDK clients.
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+### How to See It Performing Its Job on the Live Website
+1. Open the interactive API documentation at **`http://localhost:8000/docs`**.
+2. Look at the API group sections: you will see this router's work directly, with a dedicated **`priority`** group listing `POST /api/v1/tickets/triage-preview` and `PATCH /api/v1/tickets/{ticket_id}/priority`.
+3. Open `http://localhost:5173/` and type a complaint. Because this router mounts the endpoints properly, Vite's frontend reverse proxy forwards the requests smoothly from `:5173/api/v1/...` to `:8000/api/v1/...` without 404 routing errors.
 
-#### Test Case 1: Visual Verification on Swagger Documentation
-1. Navigate to **`http://localhost:8000/docs`**.
-2. Scroll to the **`priority`** group heading.
-3. Verify that both routes are mounted and accessible:
-   * `POST /api/v1/tickets/triage-preview`
-   * `PATCH /api/v1/tickets/{ticket_id}/priority`
-4. Confirm that the OpenAPI specification schema at **`http://localhost:8000/openapi.json`** loads valid JSON containing these paths.
-
-#### Test Case 2: Frontend Reverse Proxy Bridge Check
-1. In your browser or PowerShell, send a request to the Vite development server proxy URL:
-   `Invoke-RestMethod -Uri "http://localhost:5173/api/v1/tickets/triage-preview" -Method Post -ContentType "application/json" -Body '{"title": "Test proxy bridge", "description": "Verifying router mounting through Vite dev server"}'`
-2. **Expected Result:** HTTP 200 with JSON payload, confirming the router is mounted and successfully receiving traffic forwarded from port 5173 to port 8000.
-
----
-
-### Implementation Checklist
-- [ ] Mounts `priority.router` under prefix `/tickets` with tag `priority`.
-- [ ] Registered within master `api_router` in `backend/app/api/v1/router.py`.
-- [ ] Terminal check passes:
-  `python -c "from app.main import app; print([r.path for r in app.routes if 'triage' in r.path])"`
 

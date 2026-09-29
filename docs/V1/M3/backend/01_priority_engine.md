@@ -168,77 +168,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Live Website Testing Procedure
+# 6. Functional Role & System Responsibilities: What This File Does & How to See It Working
 
-### Component Functionality & Expected Behavior (What It Should Do)
-The Priority Engine analyzes natural language grievances and deterministically assigns an urgency tier without human bias:
-1. **Safety Hazard Short-Circuit:** If dangerous keywords (`sparking`, `gas leak`, `fire`, `exposed live wire`, `collapsed ceiling`, etc.) are detected anywhere in the title or description using word-boundary regex (`\b`), the engine **immediately overrides** the ticket to `CRITICAL` priority with `hazard_detected = true`.
-2. **Deterministic Tiers:** Non-hazardous issues are scored and categorized into `HIGH` (widespread outages, pipe bursts, campus-wide blackouts), `MEDIUM` (routine functional repairs like stopped fans, slow drainage), or `LOW` (cosmetic flaws like peeling paint, scuffed chairs).
-3. **Transparent Explanations:** The engine returns an exact explanation string explaining which keyword triggered the priority.
+### What This File Is Responsible For
+This service is solely responsible for determining **how dangerously urgent a complaint is** based on the student's text. It acts as an automated campus safety watchdog that eliminates human triage delays and ensures dangerous hazards (like fires or gas leaks) are never left sitting in an unread queue.
 
----
+### What It Should Perform
+When complaint text is evaluated, this engine performs three core responsibilities:
+1. **Immediate Hazard Short-Circuiting:** It scans the title and description using word-boundary regular expressions (`\b`) for critical safety terms (`fire`, `sparking`, `gas leak`, `smoke`, `exposed wire`, `collapsed ceiling`). If any hazard word is present, it immediately short-circuits, locks the ticket into `CRITICAL` priority, and sets `hazard_detected = true`.
+2. **Deterministic Urgency Tiers:** When no physical hazards exist, it categorizes issues into:
+   * **`HIGH`:** Major campus outages, burst pipes, total blackouts, or structural security issues (target: 6 hours).
+   * **`MEDIUM`:** Daily routine repairs such as stopped ceiling fans, loose door hinges, or slow drains (target: 24 hours).
+   * **`LOW`:** Purely cosmetic imperfections like scratched table varnish or scuffed wall paint (target: 48 hours).
+3. **Transparent Decision Explanations:** It produces an explainable reason string (e.g. `Physical safety hazard detected: sparking`) so students and supervisors can see why the priority was assigned.
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+### How to See It Performing Its Job on the Live Website
+1. Open the student complaint form at **`http://localhost:5173/`**.
+2. **See Hazard Interception Perform Its Job:** Type `Sparking switchboard in lab` in Title and `Smelling burning plastic near socket` in Description. Within 500ms of pausing typing, you will see this engine's output: the card turns bright red, displays `⚠️ Physical Safety Hazard Detected`, and renders a flashing red `CRITICAL` badge.
+3. **See Routine Priority Scoring Perform Its Job:** Clear the form and type `Small paint scratch on desk`. You will immediately see the engine assign `LOW` priority in slate gray with a 48-hour resolution target.
+4. **See It in Swagger API Docs:** Open **`http://localhost:8000/docs`**, expand `POST /api/v1/tickets/triage-preview`, click **Try it out**, and submit any complaint. You will see this engine execute in $<5\text{ms}$ with zero database queries, returning the exact priority and hazard flag.
 
-Ensure both frontend and backend development servers are running (`http://localhost:5173` and `http://localhost:8000`).
-
-#### Test Case 1: Physical Safety Hazard Short-Circuit (`CRITICAL`)
-1. Open your browser and navigate to the Student Complaint Intake form: **`http://localhost:5173/`**.
-2. In the **Title** field, type: `Sparking switchboard in lab`
-3. In the **Description** field, type: `I smell burning plastic and sparks are flying from the socket`
-4. **Expected Result on Screen:**
-   * Within 500ms of pausing typing, the **Live Triage Card** below the form turns **vibrant red**.
-   * A flashing hazard alert banner appears: `⚠️ Physical Safety Hazard Detected — Automatic CRITICAL Priority Escalation`.
-   * A high-contrast red **`CRITICAL`** badge displays with an active pulsing heartbeat animation.
-   * Matched keywords `sparking`, `socket` appear as highlight chips.
-
-#### Test Case 2: Major Infrastructure Outage (`HIGH`)
-1. On **`http://localhost:5173/`**, clear the fields and enter:
-   * **Title:** `Main water pipe burst in block B`
-   * **Description:** `Water is flooding the hallway floor rapidly`
-2. **Expected Result on Screen:**
-   * The Live Triage Card displays an amber/orange **`HIGH`** badge.
-   * Target SLA tooltip indicates resolution expected within **6 hours**.
-   * No emergency hazard warning banner is displayed.
-
-#### Test Case 3: Routine Daily Repair (`MEDIUM`)
-1. On **`http://localhost:5173/`**, enter:
-   * **Title:** `Ceiling fan stopped working`
-   * **Description:** `The fan in room 204 does not turn on with the switch`
-2. **Expected Result on Screen:**
-   * The Live Triage Card displays a blue **`MEDIUM`** badge with SLA target of **24 hours**.
-
-#### Test Case 4: Minor Cosmetic Flaw (`LOW`)
-1. On **`http://localhost:5173/`**, enter:
-   * **Title:** `Paint chipped on study desk`
-   * **Description:** `Small cosmetic scratch on wooden table corner`
-2. **Expected Result on Screen:**
-   * The Live Triage Card displays a slate/grey **`LOW`** badge with SLA target of **48 hours**.
-
-#### Test Case 5: Interactive Swagger API Inspection
-1. Open **`http://localhost:8000/docs`** in your browser.
-2. Expand `POST /api/v1/tickets/triage-preview`, click **Try it out**, and paste:
-   ```json
-   {
-     "title": "Gas leak smell in hostel kitchen",
-     "description": "Strong gas smell coming from cylinder area"
-   }
-   ```
-3. Click **Execute** and observe HTTP `200 OK` with:
-   ```json
-   {
-     "priority": "CRITICAL",
-     "hazard_detected": true,
-     "matched_keywords": ["gas leak"]
-   }
-   ```
-
----
-
-### Implementation Checklist
-- [ ] File exists at `backend/app/services/priority_engine.py`.
-- [ ] `PRIORITY_CRITICAL`, `PRIORITY_HIGH`, `PRIORITY_MEDIUM`, and `PRIORITY_LOW` are defined.
-- [ ] `CRITICAL_KEYWORDS`, `HIGH_KEYWORDS`, and `LOW_KEYWORDS` are populated with regex word boundaries.
-- [ ] Programmatic verification succeeds:
-  `python -c "from app.services.priority_engine import calculate_priority, PRIORITY_CRITICAL, PRIORITY_HIGH, PRIORITY_MEDIUM, PRIORITY_LOW; assert calculate_priority('Fire in lab', 'smoke coming from outlet')['priority'] == PRIORITY_CRITICAL; print('Priority Engine OK: Verified')"`
 

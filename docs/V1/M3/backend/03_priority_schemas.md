@@ -169,51 +169,21 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+# 6. Functional Role & System Responsibilities: What This File Does & How to See It Working
 
-### Component Functionality & Expected Behavior (What It Should Do)
-Pydantic V2 schemas define the authoritative data contracts:
-1. **Input Trimming & Guards:** `TriagePreviewRequest` auto-strips leading/trailing whitespace and rejects titles under 5 chars or descriptions under 10 chars.
-2. **Deterministic Response Structure:** `TriageResult` guarantees that every triage preview returns `priority`, `category`, `hazard_detected`, `confidence` ($0.0 \le c \le 1.0$), `reason`, and `matched_keywords`.
-3. **Mandatory Audit Reason:** `PriorityOverrideRequest` strictly requires `new_priority` to be one of `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` and `override_reason` to contain at least 5 non-empty characters for accountability.
+### What This File Is Responsible For
+This file is solely responsible for **enforcing strict data contracts and validation boundaries** between the browser interface and the backend Python server. It protects the database and classification services from malformed payloads, empty submissions, or illegal priority strings.
 
----
+### What It Should Perform
+When data enters or leaves the priority system, these schemas perform three core responsibilities:
+1. **Input Cleansing & Length Guards:** `TriagePreviewRequest` auto-trims leading/trailing whitespace and rejects any title under 5 characters or description under 10 characters, stopping short nonsense text before it reaches the backend.
+2. **Standardized Response Formatting:** `TriageResult` guarantees that every classification returns a uniform, structured JSON response (`priority`, `category`, `hazard_detected`, `confidence`, `reason`, `matched_keywords`) with confidence mathematically bounded between `0.0` and `1.0`.
+3. **Audit Reason Enforcement:** `PriorityOverrideRequest` strictly requires that any supervisor override includes a non-empty explanation of at least 5 characters (`min_length=5`) and an exact enum priority (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`).
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
-
-#### Test Case 1: Live Form Minimum Character Validation
+### How to See It Performing Its Job on the Live Website
 1. Open **`http://localhost:5173/`** in your browser.
-2. Click into the **Title** box and type: `Fix` (only 3 characters).
-3. Click into the **Description** box and type: `Broken` (only 6 characters).
-4. **Expected Result on Screen:**
-   * Red warning text appears under the fields: `"Title must be at least 5 characters"` and `"Description must be at least 10 characters"`.
-   * The **Submit Complaint** button remains grayed out / disabled, preventing invalid payload transmission.
+2. **See Input Length Guards Perform Their Job:** Type only 2 letters in Title: `Hi`. The schema boundary rules cause the form to display `"Title must be at least 5 characters"` in red, keeping the Submit button disabled.
+3. **See Override Guards Perform Their Job:** In the Supervisor Override Modal, type only `bad` (3 characters) in the reason box. Notice the Save button stays disabled until you type at least 5 characters.
+4. **See Schema Rejections in Swagger:** Open **`http://localhost:8000/docs`**, execute `POST /api/v1/tickets/triage-preview` with `{"title": "x", "description": "y"}`, and observe the schema trigger an HTTP `422 Unprocessable Entity` with explicit field violation errors.
 
-#### Test Case 2: Supervisor Priority Override Validation Modal
-1. On the web app, navigate to the Supervisor Priority Override dialog (demo section or via ticket detail).
-2. Attempt to submit with an empty reason or type only `no` (2 characters).
-3. **Expected Result on Screen:**
-   * The character counter alerts: `2/5 characters required (minimum 5)`.
-   * The "Confirm Override" button remains completely disabled until 5 valid characters are entered.
-
-#### Test Case 3: Swagger 422 Unprocessable Entity Rejection
-1. Open **`http://localhost:8000/docs`** -> `POST /api/v1/tickets/triage-preview`.
-2. Click **Try it out** and test an invalid short payload:
-   ```json
-   {
-     "title": "Bad",
-     "description": "Short"
-   }
-   ```
-3. Click **Execute** and observe HTTP `422 Unprocessable Entity` with detailed field violation errors in the response body.
-
----
-
-### Implementation Checklist
-- [ ] Defines `PriorityEnum(str, Enum)` with `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`.
-- [ ] Defines `TriagePreviewRequest` with whitespace trimming.
-- [ ] Defines `TriageResult` with normalized confidence bounds ($0.0 \le c \le 1.0$).
-- [ ] Defines `PriorityOverrideRequest` requiring $\ge 5$ character reason.
-- [ ] Terminal check passes:
-  `python -c "from app.schemas.priority import PriorityEnum, TriageResult; print('Schemas OK')"`
 

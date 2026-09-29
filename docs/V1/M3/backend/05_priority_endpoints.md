@@ -180,73 +180,19 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Live Website Testing Procedure
+# 6. Functional Role & System Responsibilities: What This File Does & How to See It Working
 
-### Component Functionality & Expected Behavior (What It Should Do)
-The REST presentation endpoints expose the triage engine to frontend clients:
-1. **Stateless Preview (`POST /api/v1/tickets/triage-preview`):** Executes in $<10\text{ms}$ with **zero database queries**. Used by the live frontend intake form for instant debounced typing feedback.
-2. **Stateful Priority Override (`PATCH /api/v1/tickets/{ticket_id}/priority`):** Validates the supervisor request, updates priority, recalculates SLA expiration, appends audit trail to `resolution_notes`, and returns `200 OK` (or `404 Not Found` if the ticket ID is missing).
+### What This File Is Responsible For
+This file is solely responsible for **providing the web-accessible HTTP API gateways** that connect the browser directly to the triage engine and supervisor override system. It transforms raw incoming JSON network packets into Python method calls and serializes return values back to the web browser.
 
----
+### What It Should Perform
+When HTTP traffic arrives, these endpoints perform two core responsibilities:
+1. **Ultra-Fast Stateless Triage Previews (`POST /triage-preview`):** Receives draft complaint text from the frontend as the student types, runs the classification and priority engines, and returns diagnostics in under 10ms with zero database queries. This keeps the web UI responsive without loading the database engine.
+2. **Stateful Priority Overrides (`PATCH /{ticket_id}/priority`):** Injects the database session, routes the override request to the service layer, catches non-existent tickets with clean `HTTP 404 Not Found` errors, and returns the updated ticket entity with its fresh priority and SLA deadline.
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+### How to See It Performing Its Job on the Live Website
+1. **See Real-Time Typing Requests Perform Their Job:** Open `http://localhost:5173/`, press `F12` to open Developer Tools, and switch to the **Network** tab (filtered by Fetch/XHR). Type a complaint into the form: after you pause typing for 500ms, you will see a clean `POST /api/v1/tickets/triage-preview` request appear in the list, returning HTTP 200 with the calculated priority.
+2. **See the Interactive API in Swagger:** Open **`http://localhost:8000/docs`**, expand `POST /api/v1/tickets/triage-preview`, click **Try it out**, and submit `{"title": "Gas leak in kitchen", "description": "Smelling cylinder gas"}`. You will see this endpoint return the exact triage diagnostics instantly.
+3. **See Error Handling Perform Its Job:** In Swagger, try patching ticket ID `999999`. You will see this endpoint return a structured `HTTP 404 Not Found` response with message `"Ticket with ID 999999 not found"`.
 
-#### Test Case 1: Testing Stateless Triage via Swagger UI
-1. Navigate to the interactive API docs at **`http://localhost:8000/docs`**.
-2. Locate the **`priority`** tag and click to expand **`POST /api/v1/tickets/triage-preview`**.
-3. Click the **Try it out** button.
-4. Replace the Request Body with:
-   ```json
-   {
-     "title": "Severe gas leak detected",
-     "description": "Strong smell of LPG gas near cafeteria cylinder manifold"
-   }
-   ```
-5. Click the large blue **Execute** button.
-6. **Expected Result on Screen:**
-   * Response Code: **`200 OK`**.
-   * Response Body returns:
-     ```json
-     {
-       "priority": "CRITICAL",
-       "category": "Plumbing",
-       "hazard_detected": true,
-       "confidence": 1.0,
-       "matched_keywords": ["gas leak"]
-     }
-     ```
-
-#### Test Case 2: Testing 404 Guard via Swagger UI
-1. In Swagger UI, expand **`PATCH /api/v1/tickets/{ticket_id}/priority`**.
-2. Click **Try it out**.
-3. Set `ticket_id` to `999999` (non-existent).
-4. Set Request Body:
-   ```json
-   {
-     "new_priority": "LOW",
-     "override_reason": "Testing non-existent ticket guard"
-   }
-   ```
-5. Click **Execute** -> Observe HTTP **`404 Not Found`** with body:
-   ```json
-   {
-     "detail": "Ticket with ID 999999 not found"
-   }
-   ```
-
-#### Test Case 3: Live Browser Network Tab Inspection
-1. Open **`http://localhost:5173/`** in Chrome or Edge.
-2. Press `F12` to open Developer Tools and select the **Network** tab (filter by `Fetch/XHR`).
-3. Type in the Title: `Water leaking from lab ceiling`
-4. Observe a single `POST` request to `triage-preview` fired after you finish typing.
-5. Inspect the response payload: confirm it returns `category: "Plumbing"` and `priority: "HIGH"`.
-
----
-
-### Implementation Checklist
-- [ ] Exposes `POST /triage-preview` (zero DB queries).
-- [ ] Exposes `PATCH /{ticket_id}/priority` (404 and 422 guards).
-- [ ] Routes registered under prefix `/tickets` and tag `priority`.
-- [ ] Terminal check passes:
-  `python -c "from app.api.v1.endpoints.priority import router; print('Routes:', [r.path for r in router.routes])"`
 

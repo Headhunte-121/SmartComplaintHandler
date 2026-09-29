@@ -222,11 +222,23 @@ The engineering patterns established in this V1 specification ensure that pluggi
 
 ---
 
-# 7. Interactive Website Verification Guide (How Anyone Can Test on the Live Web Application)
+# 7. Definition of Done & Live Website Verification Walkthrough
 
-Any student, team member, or evaluator can test and verify all functionality of Module M3 directly on the running application in under 3 minutes:
+### What This Module Is Responsible For
+Module M3 (Intelligent Priority & Triage Engine) is responsible for **automating campus grievance classification, safety hazard escalation, SLA calculation, and human-in-the-loop priority governance**. It sits between raw student complaint input and departmental dispatching, eliminating manual triage delays, preventing safety catastrophes, and providing transparent explainability across both the student portal and administrative desks.
 
-### Prerequisites: Start the System
+### What It Should Perform
+When operational across the full stack, Module M3 performs five unified capabilities:
+1. **Safety Hazard Interceptor Watchdog:** Scans incoming complaint text for danger terms (`fire`, `gas leak`, `spark`, `collapse`, `flood`) and unconditionally forces the complaint into `CRITICAL` priority with a strict 2-hour SLA deadline, bypassing all routine rules.
+2. **Deterministic Keyword Router & Weighted Scoring:** Tokenizes complaint text, applies double-weighting ($2.0\times$) to title tokens, matches against six domain dictionaries, and assigns tickets to the highest-scoring campus department with normalized confidence.
+3. **Stateless Keystroke Triage Preview:** Exposes a zero-database, $<10\text{ms}$ preview endpoint (`POST /api/v1/tickets/triage-preview`) that powers real-time feedback in the student's browser as they type.
+4. **Administrative Human-in-the-Loop Governance:** Provides a secured stateful override endpoint (`PATCH /api/v1/tickets/{ticket_id}/priority`) and frontend modal (`PriorityOverrideModal.jsx`) that enforces mandatory audit justifications ($\ge 5$ characters) and records immutable supervisor audit logs in SQLite without overwriting original AI explanations.
+5. **Universal Visual Communication:** Renders WCAG-compliant priority badge pills across all screens, featuring an active animated radar pulse on critical items and hoverable SLA target countdowns.
+
+### How to See It Performing Its Job on the Live Website
+Anyone can verify all features of Module M3 directly on the running application in under 3 minutes:
+
+#### Prerequisites: Launch Local Dev Servers
 ```powershell
 # Terminal 1 — Backend:
 cd backend
@@ -238,29 +250,28 @@ cd frontend
 npm run dev
 ```
 
-### Live Test Scenario 1: Real-Time Typing Debounce & Hazard Detection
+#### Step 1: Observe Real-Time Typing Debounce & Safety Hazard Interception
 1. Open your browser to **`http://localhost:5173/`**.
-2. In the grievance intake form, type Title: `Fire sparks from socket in lab`
-3. Type Description: `Burning smell and continuous visible sparks from switchboard`
-4. **Observe on Screen:**
-   * After a **500ms typing pause**, the **Live Triage Card** updates.
-   * A flashing red banner appears: `⚠️ Physical Safety Hazard Detected — Automatic CRITICAL Priority Escalation`.
-   * The priority badge pulses red with an active radar animation (**`CRITICAL`**).
-   * Category identifies as **`Electrical`** with high confidence.
+2. In the grievance intake form, type Title: `Fire sparks from socket in lab` and Description: `Burning smell and continuous visible sparks from switchboard`.
+3. Pause typing for 500 milliseconds:
+   * Notice the shimmering pulse skeleton flash briefly.
+   * A prominent red banner appears: `⚠️ Physical Safety Hazard Detected — Automatic CRITICAL Priority Escalation`.
+   * The priority badge pulses red with an active radar dot (**`CRITICAL`**).
+   * The category identifies as **`Electrical`** with high confidence.
    * Matched keywords appear as highlight chips: `fire`, `sparks`, `socket`.
 
-### Live Test Scenario 2: Dynamic Priority Tier Transitions
+#### Step 2: Observe Dynamic Priority Tier Transitions
 1. Clear the form and type: `Water pipe burst in corridor` -> Priority shifts to amber **`HIGH`** (SLA: 6 hours).
 2. Clear and type: `Ceiling fan stopped spinning` -> Priority shifts to blue **`MEDIUM`** (SLA: 24 hours).
 3. Clear and type: `Minor desk paint peeling` -> Priority shifts to slate **`LOW`** (SLA: 48 hours).
 
-### Live Test Scenario 3: Closed-Loop Submission & Persistence
+#### Step 3: Observe End-to-End Ticket Submission & Persistence
 1. Submit the `Fire sparks from socket` complaint.
 2. Note the generated tracking code (e.g. `TICK-XXXX`).
 3. Navigate to **`http://localhost:5173/track`**, enter `TICK-XXXX`, and click **Track Status**.
 4. **Observe:** The complaint is retrieved directly from SQLite showing `Priority: CRITICAL` and `Department: Electrical`.
 
-### Live Test Scenario 4: Supervisory Priority Override & Audit Trail
+#### Step 4: Observe Supervisory Priority Override & Audit Trail
 1. Open the interactive API docs at **`http://localhost:8000/docs`**.
 2. Locate `PATCH /api/v1/tickets/{ticket_id}/priority` and click **Try it out**.
 3. Enter the ticket ID, select `new_priority = "LOW"`, and set `override_reason = "False alarm: power isolated by staff"`.

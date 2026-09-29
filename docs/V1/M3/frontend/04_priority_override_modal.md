@@ -185,51 +185,30 @@ This specification operates strictly as an **implementation and integration blue
 
 # 6. Definition of Done & Live Website Testing Procedure
 
-### Component Functionality & Expected Behavior (What It Should Do)
-`PriorityOverrideModal.jsx` provides supervisory human-in-the-loop governance:
+### What This File Is Responsible For
+This React component is responsible for **providing an administrative human-in-the-loop governance interface to safely override AI-assigned priority levels**. It renders a focused modal dialog that forces campus supervisors to document a clear, auditable justification before altering any ticket's urgency tier.
+
+### What It Should Perform
+When activated by a supervisor, this modal component performs the following operational safeguards:
 1. **Context Awareness:** Opens in an accessible dialog window over a dimmed backdrop, displaying the current ticket tracking code, complaint title, and existing priority badge.
-2. **Double Validation Guard:** The "Save Changes" button remains strictly disabled if:
-   * The selected priority is identical to the current priority (prevents duplicate mutations).
-   * The audit reason contains fewer than 5 non-whitespace characters (enforces audit logging).
-3. **Live Character Counter:** Displays a reactive counter (e.g. `3/5 characters required (min 5)` in amber, shifting to `Green` when $\ge 5$ characters).
-4. **Optimistic Parent Callback:** Closes cleanly and invokes `onPriorityUpdated(ticket)` so the parent dashboard immediately reflects the new priority badge without requiring a manual page refresh.
+2. **Double Validation Guarding:**
+   * Strictly keeps the "Confirm Override" button disabled if the newly selected priority is identical to the current priority (preventing redundant database updates).
+   * Strictly keeps the button disabled if the audit reason contains fewer than 5 non-whitespace characters (enforcing institutional audit accountability).
+3. **Reactive Character Counting:** Features a live character counter that warns in amber when fewer than 5 characters have been typed (`X/5 characters required (min 5)`), dynamically turning green once the minimum requirement is met.
+4. **Asynchronous State Feedback:** Shows an inline spinning loading indicator and disables inputs while the backend network request is in-flight.
+5. **Clean Optimistic Parent Notification:** Upon HTTP 200 confirmation, cleanly closes itself and calls `onPriorityUpdated(updatedTicket)` so the parent dashboard immediately reflects the new priority badge without requiring a manual page refresh.
 
----
-
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
-
-#### Test Case 1: Modal Trigger & Initial Guard State
-1. Navigate to **`http://localhost:5173/`** and locate the **"Supervisor Priority Override Modal Demo"** section (or open the override action from the Admin Dashboard).
+### How to See It Performing Its Job on the Live Website
+1. Navigate to **`http://localhost:5173/`** and locate the **"Supervisor Priority Override Modal Demo"** section (or click "Override Priority" on any ticket row in the supervisor dashboard).
 2. Click **"Open Priority Override Modal"**.
-3. **Expected Result on Screen:**
-   * Modal dialog appears smoothly with a blurred, dimmed background overlay.
-   * Displays the ticket code (e.g. `TICK-3829`) and current priority badge.
-   * The **"Confirm Override"** button is **disabled** (grayed out) by default because priority has not been changed.
-
-#### Test Case 2: Validation Guard Enforcement
-1. In the **New Priority** dropdown, change the selection from `CRITICAL` to **`HIGH`**.
-2. Notice the button remains disabled because the audit reason is empty.
-3. In the **Override Reason** textarea, type: `ok` (only 2 characters).
-4. **Expected Result on Screen:**
-   * Character counter alerts in amber: `"2/5 characters required (minimum 5)"`.
-   * The button remains disabled.
-
-#### Test Case 3: Successful Override Execution
-1. Type a valid explanation: `False alarm confirmed by site supervisor inspection`.
-2. Notice the character counter turns green: `"52/500 characters"`, and the **Confirm Override** button becomes active (blue).
-3. Click **Confirm Override**.
-4. **Expected Result on Screen:**
-   * Button briefly displays a loading spinner with text `"Saving..."`.
-   * Modal closes cleanly.
-   * Success notification appears: `"Priority successfully updated to HIGH"`.
-   * The priority badge on screen dynamically updates to **`HIGH`** (amber).
-
----
-
-### Implementation Checklist
-- [ ] File exists at `frontend/src/components/PriorityOverrideModal.jsx`.
-- [ ] Renders accessible modal dialog over dimmed backdrop.
-- [ ] Enforces $\ge 5$ character validation for audit reasons.
-- [ ] Disables submission when new priority matches current priority.
-- [ ] Invokes `onPriorityUpdated` callback on successful submission.
+3. **Observe Initial Guard State:**
+   * Modal opens over a dimmed backdrop showing ticket information and the current badge.
+   * Notice the **"Confirm Override"** button is completely disabled and grayed out.
+4. **Observe Validation Guarding:**
+   * Change the priority dropdown from `CRITICAL` to `HIGH`. Notice the button remains disabled.
+   * Type `ok` (only 2 characters) in the reason field: observe the character counter warn in amber (`2/5 characters required (min 5)`) with the button still disabled.
+5. **Execute Override and Observe Instant UI Update:**
+   * Finish typing a complete justification: `False alarm confirmed by site supervisor inspection`.
+   * Watch the counter turn green and the **Confirm Override** button turn active blue.
+   * Click **Confirm Override**: observe the brief loading spinner, modal auto-dismissal, and the dashboard priority badge immediately updating to **`HIGH`** without a page reload.
 

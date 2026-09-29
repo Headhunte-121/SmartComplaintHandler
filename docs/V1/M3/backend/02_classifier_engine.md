@@ -166,70 +166,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Live Website Testing Procedure
+# 6. Functional Role & System Responsibilities: What This File Does & How to See It Working
 
-### Component Functionality & Expected Behavior (What It Should Do)
-The Classifier Engine maps student complaint narratives to one of the 6 institutional departments:
-1. **6-Domain Taxonomy:** Evaluates keywords for `Electrical`, `Plumbing`, `Sanitation`, `Carpentry`, `IT Support`, and `General Administration`.
-2. **Title Weight Multiplier ($2.0\times$):** Keywords in the subject/title count twice as heavily as words in the description body, preventing passing mentions in the description from misrouting the ticket.
-3. **Normalized Confidence Metric ($0.0 \le \text{confidence} \le 1.0$):** Computes a mathematical ratio of matched category terms against total detected keywords. Unmatched complaints safely default to `General Administration` with `confidence = 0.0`.
+### What This File Is Responsible For
+This service is solely responsible for determining **which campus department should fix the problem** based on the vocabulary in the student's complaint. It acts as an automated directory dispatcher that routes grievances to `Electrical`, `Plumbing`, `IT Support`, `Carpentry`, `Sanitation`, or `General Administration`.
 
----
+### What It Should Perform
+When complaint text is evaluated, this classifier performs three core responsibilities:
+1. **Multi-Domain Taxonomy Matching:** Scans words across 6 campus facility dictionaries, tallying matched keyword points for each department.
+2. **Title Weight Domination ($2.0\times$ Multiplier):** Keywords found in the Title are multiplied by $2.0\times$ while words in the description count for $1.0\times$. This guarantees that the primary issue stated in the title always overrules minor passing details in the description (e.g. "Water pipe leak near light switch" correctly routes to Plumbing, not Electrical).
+3. **Normalized Confidence Scoring:** Calculates a normalized percentage score ($0.0 \le \text{confidence} \le 1.0$) based on how strongly the keywords favor the winning category. If no facility keywords match at all, it safely falls back to `General Administration` with `confidence = 0.0`.
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+### How to See It Performing Its Job on the Live Website
+1. Open the complaint intake form at **`http://localhost:5173/`**.
+2. **See Department Routing Perform Its Job:** Type `Wi-Fi router down in hostel` in the Title. Look at the live triage card below: you will immediately see the Category pill display **`IT Support`** with a green high-confidence meter and keyword chips `router`, `wifi`.
+3. **See Title Weighting Perform Its Job:** Type Title: `Water pipe burst near generator`, Description: `Need electrician to inspect electrical switchboard`. Despite "electrician" and "switchboard" appearing in the description, you will see the Title's water pipe keywords win by $2.0\times$, routing the ticket to **`Plumbing`**.
+4. **See Fallback Routing Perform Its Job:** Type Title: `Lost student ID card near canteen`. You will see the engine safely route to **`General Administration`** with a **`0%`** confidence bar.
+5. **See It in Swagger API Docs:** Open **`http://localhost:8000/docs`** -> `POST /api/v1/tickets/triage-preview`, enter `{"title": "Broken chair leg", "description": "Desk bench loose"}`, and observe this engine return `category: "Carpentry"` with `confidence: 1.0`.
 
-Ensure both frontend and backend development servers are running (`http://localhost:5173` and `http://localhost:8000`).
-
-#### Test Case 1: IT & Network Department Classification
-1. Navigate to **`http://localhost:5173/`**.
-2. In the **Title** field, type: `Campus Wi-Fi down in library`
-3. In the **Description** field, type: `Cannot connect to student network or access router portal`
-4. **Expected Result on Screen:**
-   * The **Live Triage Card** updates with Category: **`IT Support`**.
-   * The visual Confidence Bar displays a high confidence percentage (e.g. `85% - 100%`) filled with green/indigo.
-   * Matched keyword tags display: `router`, `network`, `wifi`.
-
-#### Test Case 2: Title-Weight Domination ($2.0\times$ Multiplier Test)
-1. On **`http://localhost:5173/`**, enter:
-   * **Title:** `Severe water pipe leak in hallway` (Plumbing keywords)
-   * **Description:** `Water is dripping near the electrical light switch and power outlet` (Electrical keywords)
-2. **Expected Result on Screen:**
-   * Because `water pipe leak` is in the title ($2.0\times$ multiplier), the system routes to **`Plumbing`**, NOT Electrical.
-   * Proves that the primary issue in the title correctly outscores secondary descriptions.
-
-#### Test Case 3: General Administration Fallback ($0.0$ Confidence)
-1. On **`http://localhost:5173/`**, enter:
-   * **Title:** `Lost my notebook in canteen`
-   * **Description:** `I forgot a spiral notebook on the cafeteria table`
-2. **Expected Result on Screen:**
-   * Category routes to **`General Administration`**.
-   * Confidence displays **`0%`** (safe institutional fallback).
-   * No keyword chips appear.
-
-#### Test Case 4: Swagger API Inspection
-1. Open **`http://localhost:8000/docs`** -> `POST /api/v1/tickets/triage-preview`.
-2. Test payload:
-   ```json
-   {
-     "title": "Broken wooden chair leg",
-     "description": "Desk bench loose in classroom 101"
-   }
-   ```
-3. Observe HTTP `200 OK` response:
-   ```json
-   {
-     "category": "Carpentry",
-     "confidence": 1.0,
-     "matched_keywords": ["chair", "desk", "bench", "wooden"]
-   }
-   ```
-
----
-
-### Implementation Checklist
-- [ ] File exists at `backend/app/services/classifier.py`.
-- [ ] `DEPARTMENTS_TAXONOMY` defines all 6 departments.
-- [ ] `TITLE_WEIGHT = 2.0` and `DESCRIPTION_WEIGHT = 1.0`.
-- [ ] Programmatic verification succeeds:
-  `python -c "from app.services.classifier import classify_ticket; res = classify_ticket('Ceiling fan broken', 'fan stopped'); assert res['department_id'] == 1; print('Classifier OK')"`
 

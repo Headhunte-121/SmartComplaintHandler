@@ -185,46 +185,30 @@ This specification operates strictly as an **implementation and integration blue
 
 # 6. Definition of Done & Live Website Testing Procedure
 
-### Component Functionality & Expected Behavior (What It Should Do)
-`LiveTriageCard.jsx` provides real-time intelligent feedback to students as they compose grievances:
-1. **500ms Debouncing:** Waits 500ms after the user stops typing before sending a network request, completely eliminating server request spam.
-2. **Smooth Skeleton Loading State:** Shows an animated shimmering pulse skeleton while awaiting backend response.
-3. **Emergency Red Hazard Alert:** Instantly displays a flashing safety hazard banner (`⚠️ Physical Safety Hazard Detected`) if hazardous words are found.
-4. **Diagnostic Metrics:** Displays the auto-assigned Department pill, PriorityBadge, normalized confidence meter, and matched keyword tag chips.
+### What This File Is Responsible For
+This React component is responsible for **providing instant, real-time visual feedback to students as they compose their grievance**. It sits directly beneath or beside the complaint intake form, continuously analyzing the student's text input and displaying the predicted department, urgency level, confidence meter, and safety warnings before the ticket is ever submitted.
 
----
+### What It Should Perform
+When interacting with the complaint form, this component performs the following behaviors:
+1. **500ms Keystroke Debouncing:** Holds off network requests while the user is actively typing, waiting for a 500-millisecond pause before contacting the backend. This completely prevents keystroke request spam and server congestion.
+2. **Interactive Idle Guidance:** When the title is $<5$ characters or description $<10$ characters, renders an unobtrusive dashed card offering helpful hints (`Type a title and description to see live AI priority triage`).
+3. **Animated Shimmering Skeleton Loader:** While the network fetch is in-flight, renders smooth pulsating placeholder bars so the user knows analysis is running without UI stutter.
+4. **Emergency Red Hazard Alert Banner:** If hazardous keywords are present (e.g. fire, electric spark, gas leak), immediately flashes a bold crimson hazard banner (`⚠️ Physical Safety Hazard Detected — Automatic CRITICAL Priority Escalation`).
+5. **Multi-Metric Triage Telemetry:** Displays the resolved department badge, priority pill with animated pulse ring, percentage-based confidence meter bar, and clickable matched keyword tag chips.
+6. **Non-Blocking Resilience:** If the network request fails, silently hides or degrades without ever blocking or disabling the student's final submission button.
 
-### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
-
-#### Test Case 1: Idle Placeholder Guidance
-1. Open **`http://localhost:5173/`** in your browser.
-2. Leave the form fields empty.
-3. **Expected Result on Screen:**
-   * Below the form, the Live Triage Card renders in an idle state with a subtle dashed border.
-   * Displays helpful guidance: `"Type a title (min 5 characters) and description to see live AI priority triage"`.
-
-#### Test Case 2: Debounced Skeleton Loading & Hazard Detection
-1. Click into **Title** and type: `Gas leak near hostel mess`
-2. Click into **Description** and type: `LPG cylinder smell is very strong near kitchen`
-3. Notice that as you type rapidly, no request is sent.
-4. Stop typing: after **500 milliseconds**, an animated gray shimmering skeleton briefly appears, then transitions into:
-   * **Prominent Red Banner:** `⚠️ Physical Safety Hazard Detected — Automatic CRITICAL Priority Escalation`.
-   * **Category Pill:** `Plumbing` (or Campus Facilities).
-   * **Priority Badge:** Pulsing red `CRITICAL`.
-   * **Keyword Chips:** `gas leak`, `cylinder`.
-
-#### Test Case 3: Network Tab Verification
-1. Press `F12` -> Network tab.
-2. Type 20 characters quickly without pausing.
-3. Observe that zero network calls are sent during active typing.
-4. Pause for half a second: observe that exactly **1 single HTTP POST request** is dispatched to `/api/v1/tickets/triage-preview`.
-
----
-
-### Implementation Checklist
-- [ ] File exists at `frontend/src/components/LiveTriageCard.jsx`.
-- [ ] Implements 500ms debounce with `clearTimeout` cleanup.
-- [ ] Displays placeholder guidance when text length $< 5$ chars.
-- [ ] Renders emergency red banner when `hazard_detected === true`.
-- [ ] Displays category, confidence bar, priority badge, and keyword tags.
+### How to See It Performing Its Job on the Live Website
+1. Open the complaint submission page at **`http://localhost:5173/`**.
+2. **Observe Idle State:** Before typing anything, observe the subtle gray dashed card beneath the form guiding you to enter at least 5 characters.
+3. **Observe Debounce and Shimmer:**
+   * Rapidly type Title: `Gas leak near hostel mess` and Description: `LPG cylinder smell is very strong near kitchen`.
+   * Notice that while your fingers are actively typing, no network calls are dispatched.
+   * Pause typing for half a second (500ms): observe the gray shimmering pulse skeleton flash for ~100ms, immediately replaced by the live triage prediction.
+4. **Observe Safety Hazard Escalation:**
+   * See the bright crimson banner appear: `⚠️ Physical Safety Hazard Detected`.
+   * Verify the Priority Badge flashes as **`CRITICAL`** with a living pulse dot.
+   * Verify the matched keyword tags show `gas leak`, `cylinder`.
+5. **Observe Dynamic Department Re-classification:**
+   * Clear the form and type Title: `WiFi not connecting in library` and Description: `Internet signal drops constantly on laptop`.
+   * Watch the card instantly shift from critical safety hazard to a calm blue **`Network`** category with **`MEDIUM`** priority.
 
