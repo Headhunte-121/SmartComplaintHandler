@@ -141,26 +141,33 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+# 6. Definition of Done & Live Website Testing Procedure
 
-Before considering the `backend/app/api/v1/router.py` update complete, verify each of the following operational checkpoints:
+### Component Functionality & Expected Behavior (What It Should Do)
+`backend/app/api/v1/router.py` unifies all modular endpoint routers into the centralized `/api/v1` namespace, making the triage preview and priority override endpoints discoverable by Swagger UI and frontend clients.
+
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+#### Test Case 1: Visual Verification on Swagger Documentation
+1. Navigate to **`http://localhost:8000/docs`**.
+2. Scroll to the **`priority`** group heading.
+3. Verify that both routes are mounted and accessible:
+   * `POST /api/v1/tickets/triage-preview`
+   * `PATCH /api/v1/tickets/{ticket_id}/priority`
+4. Confirm that the OpenAPI specification schema at **`http://localhost:8000/openapi.json`** loads valid JSON containing these paths.
+
+#### Test Case 2: Frontend Reverse Proxy Bridge Check
+1. In your browser or PowerShell, send a request to the Vite development server proxy URL:
+   `Invoke-RestMethod -Uri "http://localhost:5173/api/v1/tickets/triage-preview" -Method Post -ContentType "application/json" -Body '{"title": "Test proxy bridge", "description": "Verifying router mounting through Vite dev server"}'`
+2. **Expected Result:** HTTP 200 with JSON payload, confirming the router is mounted and successfully receiving traffic forwarded from port 5173 to port 8000.
+
+---
 
 ### Implementation Checklist
-- [ ] File exists at `backend/app/api/v1/router.py`.
-- [ ] Imports both `tickets` and `priority` from `app.api.v1.endpoints`.
-- [ ] Instantiates `api_router = APIRouter()`.
-- [ ] Mounts `tickets.router` under `prefix="/tickets"` with `tags=["tickets"]`.
-- [ ] Mounts `priority.router` under `prefix="/tickets"` with `tags=["priority"]`.
-- [ ] Exports `api_router` cleanly.
-- [ ] Contains zero database connections, session calls, or business logic.
+- [ ] Mounts `priority.router` under prefix `/tickets` with tag `priority`.
+- [ ] Registered within master `api_router` in `backend/app/api/v1/router.py`.
+- [ ] Terminal check passes:
+  `python -c "from app.main import app; print([r.path for r in app.routes if 'triage' in r.path])"`
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
-
-1. **Verify Router Import & Aggregated Route List:**
-   `python -c "from app.api.v1.router import api_router; paths = [r.path for r in api_router.routes]; assert '/tickets/triage-preview' in paths; assert '/tickets/{ticket_id}/priority' in paths; assert '/tickets/' in paths; print('All v1 routes aggregated successfully:', paths)"`
-
-2. **Verify Global App Route Mounting via `main.py`:**
-   `python -c "from app.main import app; all_routes = [r.path for r in app.routes]; assert '/api/v1/tickets/triage-preview' in all_routes; assert '/api/v1/tickets/{ticket_id}/priority' in all_routes; print('Global application routes verified:', [r for r in all_routes if 'tickets' in r])"`
-
-3. **Verify OpenAPI Documentation Generation:**
-   `python -c "from app.main import app; schema = app.openapi(); assert '/api/v1/tickets/triage-preview' in schema['paths']; assert '/api/v1/tickets/{ticket_id}/priority' in schema['paths']; print('OpenAPI schema includes priority endpoints! Tags found:', [t['name'] for t in schema.get('tags', [])])"`

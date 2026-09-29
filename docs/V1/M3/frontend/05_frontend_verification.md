@@ -178,9 +178,45 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Troubleshooting Matrix
+# 6. Definition of Done & Live Website Verification Walkthrough
 
-Before considering Module M3 Frontend fully signed off, all 5 verification checkpoints must pass without a single failure.
+### Complete Interactive Website Testing Procedure (How to Verify on the Live App)
+
+Ensure both development servers are running (`http://localhost:5173` and `http://localhost:8000`).
+
+#### Step 1: Open the Frontend Application
+Navigate to **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
+
+#### Step 2: Test Real-Time Triage Debounce & Hazard Detection
+1. Click into the **Title** input and type: `Fire sparks from power socket`
+2. Click into the **Description** input and type: `Visible flames and sparks coming from wall outlet in lab 2`
+3. Pause for half a second (500ms).
+4. **Observable Verification:**
+   * Shimmering pulse skeleton appears briefly.
+   * Prominent **Red Hazard Banner** appears: `⚠️ Physical Safety Hazard Detected`.
+   * Priority badge displays **`CRITICAL`** with a living pulse animation.
+   * Category shows **`Electrical`** with a high-confidence bar.
+   * Matched keywords `fire`, `sparks`, `socket` appear as chips.
+
+#### Step 3: Test Dynamic Tier Transitions
+1. Clear the inputs and type Title: `Air conditioner water leakage` -> Badge transitions to amber **`HIGH`** (SLA: 6 hours).
+2. Clear and type Title: `Classroom desk bench loose` -> Badge transitions to blue **`MEDIUM`** (SLA: 24 hours).
+3. Clear and type Title: `Desk surface paint scratched` -> Badge transitions to slate **`LOW`** (SLA: 48 hours).
+
+#### Step 4: Test Supervisor Priority Override Modal
+1. On `http://localhost:5173/`, scroll down to the **Priority Override Modal Demo** section (or open the modal from the Admin Operations Desk).
+2. Click **Open Priority Override Modal**.
+3. Change the priority dropdown from `CRITICAL` to `HIGH`.
+4. Try clicking **Confirm Override** without typing a reason -> Confirm it is **disabled**.
+5. Type `Fix` (only 3 characters) -> Confirm character counter displays in amber: `3/5 characters required (min 5)` and button remains **disabled**.
+6. Type `Site inspection verified controlled drill; urgent follow-up scheduled`.
+7. Counter turns green (`61/500 characters`) and **Confirm Override** button turns bright blue.
+8. Click **Confirm Override**:
+   * Spinner displays briefly.
+   * Modal closes cleanly.
+   * Priority badge on the page dynamically updates to **`HIGH`** (amber) with zero page reloads.
+
+---
 
 ### Operational Sign-Off Checklist
 - [ ] Checkpoint 1 passes: API client methods fetch triage previews and submit priority overrides with zero uncaught errors.
@@ -200,3 +236,4 @@ Before considering Module M3 Frontend fully signed off, all 5 verification check
 | `Preview card does not update after typing` | Text did not meet minimum length thresholds (5 chars for title, 10 for description). | Type longer, realistic complaint text (e.g. 15+ characters). |
 | `Hazard warning banner does not appear` | Complaint narrative did not contain an exact keyword from `CRITICAL_KEYWORDS`. | Include terms like `"spark"`, `"fire"`, `"smoke"`, or `"gas leak"`. |
 | `Modal does not close after submitting override` | `onClose()` callback was not invoked inside the submission promise resolution block. | In `PriorityOverrideModal.jsx`, ensure `onClose()` is called after `onPriorityUpdated(data)`. |
+

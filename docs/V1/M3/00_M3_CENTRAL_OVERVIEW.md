@@ -217,5 +217,54 @@ The engineering patterns established in this V1 specification ensure that pluggi
                         │ • Facility Admin Dashboard      │
                         │ • `PATCH /{ticket_id}/priority` │
                         │ • Supervisor Override & Audit   │
-                        └─────────────────────────────────┘
+                        │└────────────────────────────────┘
 ```
+
+---
+
+# 7. Interactive Website Verification Guide (How Anyone Can Test on the Live Web Application)
+
+Any student, team member, or evaluator can test and verify all functionality of Module M3 directly on the running application in under 3 minutes:
+
+### Prerequisites: Start the System
+```powershell
+# Terminal 1 — Backend:
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn app.main:app --port 8000 --reload
+
+# Terminal 2 — Frontend:
+cd frontend
+npm run dev
+```
+
+### Live Test Scenario 1: Real-Time Typing Debounce & Hazard Detection
+1. Open your browser to **`http://localhost:5173/`**.
+2. In the grievance intake form, type Title: `Fire sparks from socket in lab`
+3. Type Description: `Burning smell and continuous visible sparks from switchboard`
+4. **Observe on Screen:**
+   * After a **500ms typing pause**, the **Live Triage Card** updates.
+   * A flashing red banner appears: `⚠️ Physical Safety Hazard Detected — Automatic CRITICAL Priority Escalation`.
+   * The priority badge pulses red with an active radar animation (**`CRITICAL`**).
+   * Category identifies as **`Electrical`** with high confidence.
+   * Matched keywords appear as highlight chips: `fire`, `sparks`, `socket`.
+
+### Live Test Scenario 2: Dynamic Priority Tier Transitions
+1. Clear the form and type: `Water pipe burst in corridor` -> Priority shifts to amber **`HIGH`** (SLA: 6 hours).
+2. Clear and type: `Ceiling fan stopped spinning` -> Priority shifts to blue **`MEDIUM`** (SLA: 24 hours).
+3. Clear and type: `Minor desk paint peeling` -> Priority shifts to slate **`LOW`** (SLA: 48 hours).
+
+### Live Test Scenario 3: Closed-Loop Submission & Persistence
+1. Submit the `Fire sparks from socket` complaint.
+2. Note the generated tracking code (e.g. `TICK-XXXX`).
+3. Navigate to **`http://localhost:5173/track`**, enter `TICK-XXXX`, and click **Track Status**.
+4. **Observe:** The complaint is retrieved directly from SQLite showing `Priority: CRITICAL` and `Department: Electrical`.
+
+### Live Test Scenario 4: Supervisory Priority Override & Audit Trail
+1. Open the interactive API docs at **`http://localhost:8000/docs`**.
+2. Locate `PATCH /api/v1/tickets/{ticket_id}/priority` and click **Try it out**.
+3. Enter the ticket ID, select `new_priority = "LOW"`, and set `override_reason = "False alarm: power isolated by staff"`.
+4. Click **Execute** (returns HTTP 200).
+5. Refresh the tracking page at **`http://localhost:5173/track`**.
+6. **Observe:** Priority badge has updated to **`LOW`**, and the immutable supervisor audit log appears in the resolution notes.
+

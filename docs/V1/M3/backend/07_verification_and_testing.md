@@ -181,9 +181,44 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Troubleshooting Matrix
+# 6. Definition of Done & Live Web Application Verification Flow
 
-Before considering Module M3 fully signed off and ready for Module M4 (Workload Dispatch), all 5 verification checkpoints must pass without a single failure.
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+In addition to automated terminal scripts, you can verify the entire Module M3 subsystem directly in the browser:
+
+#### Step 1: Start the Local Development Environment
+Ensure both servers are running:
+* **Backend:** `http://localhost:8000` (FastAPI / Swagger)
+* **Frontend:** `http://localhost:5173` (React / Vite)
+
+#### Step 2: Test Live Triage Classification in Browser UI
+1. Navigate to **`http://localhost:5173/`**.
+2. Type in **Title:** `Fire sparks flying from electrical socket in lab`
+3. Type in **Description:** `Burning smell and continuous visible sparks`
+4. **Observable Verification:**
+   * Within 500ms, the **Live Triage Card** updates.
+   * Red Hazard Banner flashes: `⚠️ Physical Safety Hazard Detected`.
+   * Category shows `Electrical` with high confidence.
+   * Priority badge displays `CRITICAL` with red pulsing glow.
+
+#### Step 3: Test Dynamic Persistence via Tracking Portal
+1. Complete and submit the complaint form on `http://localhost:5173/`.
+2. Copy the resulting `TICK-XXXX` tracking code from the confirmation popup.
+3. Open **`http://localhost:5173/track`**, enter the tracking code, and click **Track Status**.
+4. **Observable Verification:**
+   * Ticket is retrieved from SQLite with `Priority: CRITICAL` and `Department: Electrical`.
+   * SLA countdown calculates based on 2-hour critical deadline.
+
+#### Step 4: Test Supervisor Override and Audit Trail
+1. Open **`http://localhost:8000/docs`** -> `PATCH /api/v1/tickets/{ticket_id}/priority`.
+2. Input the numeric ticket ID with a downgraded priority (`LOW`) and audit reason (`False alarm confirmed by lab incharge`).
+3. Click **Execute** (HTTP 200).
+4. Refresh `http://localhost:5173/track`.
+5. **Observable Verification:**
+   * Priority badge reflects `LOW` (slate).
+   * Staff notes display the irreversible audit log entry with timestamp and supervisor rationale.
+
+---
 
 ### Operational Sign-Off Checklist
 - [ ] Checkpoint 1 passes: Classification and priority unit engines produce correct outputs with zero assertion errors.
@@ -204,3 +239,4 @@ Before considering Module M3 fully signed off and ready for Module M4 (Workload 
 | `sqlite3.OperationalError: no such column: tickets.priority` | SQLite database schema is out of date or missing columns from Module M1. | Verify that the `tickets` table has a `priority` column; check `backend/app/models/ticket.py`. |
 | `HTTPException 404: Ticket with ID 99999 not found` | Normal and expected behavior when testing non-existent ticket overrides. | Confirm that the test successfully catches this 404 response as proof of proper error handling. |
 | `uvicorn: command not found` | The Python virtual environment is not activated in the current terminal window. | Activate your virtual environment in PowerShell: `..\venv\Scripts\Activate.ps1`. |
+

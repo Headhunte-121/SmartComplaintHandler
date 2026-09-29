@@ -146,24 +146,48 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+# 6. Definition of Done & Live Website Testing Procedure
 
-Before considering `frontend/src/api/triage.js` complete, verify each of the following operational checkpoints:
+### Component Functionality & Expected Behavior (What It Should Do)
+`frontend/src/api/triage.js` acts as the frontend network bridge:
+1. **Pre-Flight Validation Guards:** `fetchTriagePreview(title, description)` performs client-side length checks (title $\ge 5$, description $\ge 10$) before making network requests, preventing network spam when the user has only typed a few characters.
+2. **Unified Data Unwrapping:** Normalizes API responses so frontend components always receive consistent camelCase/snakeCase objects and human-readable error messages.
+3. **Supervisor Override Transport:** `overrideTicketPriority(ticketId, newPriority, overrideReason)` sends structured PATCH mutations with error handling.
+
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+#### Test Case 1: Browser Console Verification
+1. Navigate to **`http://localhost:5173/`** in your browser.
+2. Press `F12` to open Developer Tools and click the **Console** tab.
+3. Paste the following snippet into the console and press Enter:
+   ```javascript
+   fetch('/api/v1/tickets/triage-preview', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({
+       title: 'Sparking wire in physics lab',
+       description: 'Switchboard is smoking and sparking near door'
+     })
+   })
+   .then(res => res.json())
+   .then(data => console.log('Triage Client Result:', data));
+   ```
+4. **Expected Result in Console:**
+   * Logs a clean JSON object containing:
+     `{ priority: "CRITICAL", category: "Electrical", hazard_detected: true, confidence: 1 }`.
+
+#### Test Case 2: Network Tab Verification on Live Form
+1. On **`http://localhost:5173/`**, switch Developer Tools to the **Network** tab.
+2. Type in the complaint form: `Water pipe burst in washroom`
+3. Observe that only **one single** network request is sent to `triage-preview` after you pause typing (500ms debounce), returning status `200 OK`.
+
+---
 
 ### Implementation Checklist
-- [ ] File exists at `frontend/src/api/triage.js`.
-- [ ] Configures base URL using `import.meta.env.VITE_API_URL || '/api/v1'`.
 - [ ] Exports `fetchTriagePreview(title, description)`.
-- [ ] Pre-validates string lengths before sending network requests in `fetchTriagePreview`.
 - [ ] Exports `overrideTicketPriority(ticketId, newPriority, overrideReason)`.
-- [ ] Inspects `response.ok` on all calls and extracts `data.detail` on errors.
-- [ ] Contains zero React hooks (`useState`, `useEffect`).
-- [ ] Contains zero triple-backtick code blocks.
+- [ ] Intercepts and extracts error detail strings on failed requests.
+- [ ] Contains zero UI components or React hooks.
 
-### Verification Procedure (Run in Web Browser Console or Node.js)
-
-1. **Verify Module Exports & Network Call in Browser Developer Tools Console:**
-   * Open `http://localhost:8000/docs` or your Vite development server at `http://localhost:5173`.
-   * Open the Browser Developer Console (F12) and run:
-     `fetch('/api/v1/tickets/triage-preview', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title: 'Sparking wire in lab', description: 'Switchboard smoking and sparking' }) }).then(r => r.json()).then(data => console.log('Triage API check:', data.priority, data.category))`
-   * Observable Output: The console logs `Triage API check: CRITICAL Electrical`.

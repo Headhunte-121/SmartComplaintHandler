@@ -171,31 +171,49 @@ This specification operates strictly as an **implementation and integration blue
 
 # 6. Definition of Done: Observable Verification Checklist
 
-Before considering `backend/app/schemas/priority.py` complete, verify each of the following operational checkpoints:
+### Component Functionality & Expected Behavior (What It Should Do)
+Pydantic V2 schemas define the authoritative data contracts:
+1. **Input Trimming & Guards:** `TriagePreviewRequest` auto-strips leading/trailing whitespace and rejects titles under 5 chars or descriptions under 10 chars.
+2. **Deterministic Response Structure:** `TriageResult` guarantees that every triage preview returns `priority`, `category`, `hazard_detected`, `confidence` ($0.0 \le c \le 1.0$), `reason`, and `matched_keywords`.
+3. **Mandatory Audit Reason:** `PriorityOverrideRequest` strictly requires `new_priority` to be one of `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` and `override_reason` to contain at least 5 non-empty characters for accountability.
+
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+#### Test Case 1: Live Form Minimum Character Validation
+1. Open **`http://localhost:5173/`** in your browser.
+2. Click into the **Title** box and type: `Fix` (only 3 characters).
+3. Click into the **Description** box and type: `Broken` (only 6 characters).
+4. **Expected Result on Screen:**
+   * Red warning text appears under the fields: `"Title must be at least 5 characters"` and `"Description must be at least 10 characters"`.
+   * The **Submit Complaint** button remains grayed out / disabled, preventing invalid payload transmission.
+
+#### Test Case 2: Supervisor Priority Override Validation Modal
+1. On the web app, navigate to the Supervisor Priority Override dialog (demo section or via ticket detail).
+2. Attempt to submit with an empty reason or type only `no` (2 characters).
+3. **Expected Result on Screen:**
+   * The character counter alerts: `2/5 characters required (minimum 5)`.
+   * The "Confirm Override" button remains completely disabled until 5 valid characters are entered.
+
+#### Test Case 3: Swagger 422 Unprocessable Entity Rejection
+1. Open **`http://localhost:8000/docs`** -> `POST /api/v1/tickets/triage-preview`.
+2. Click **Try it out** and test an invalid short payload:
+   ```json
+   {
+     "title": "Bad",
+     "description": "Short"
+   }
+   ```
+3. Click **Execute** and observe HTTP `422 Unprocessable Entity` with detailed field violation errors in the response body.
+
+---
 
 ### Implementation Checklist
-- [ ] File exists at `backend/app/schemas/priority.py`.
-- [ ] Imports `Enum` from standard library `enum`.
-- [ ] Imports `BaseModel`, `Field`, and `ConfigDict` from `pydantic`.
-- [ ] Defines `PriorityEnum(str, Enum)` with exact uppercase members: `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`.
-- [ ] Defines `TriagePreviewRequest` with `title` (length 5-200) and `description` (length 10-2000), configured with whitespace trimming.
-- [ ] Defines `TriageResult` containing `priority`, `category`, `hazard_detected`, `confidence`, `reason`, and `matched_keywords` with appropriate type constraints.
-- [ ] Defines `PriorityOverrideRequest` with `new_priority` typed as `PriorityEnum` and `override_reason` requiring 5 to 500 characters.
-- [ ] File contains zero database imports or SQLAlchemy dependencies.
+- [ ] Defines `PriorityEnum(str, Enum)` with `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`.
+- [ ] Defines `TriagePreviewRequest` with whitespace trimming.
+- [ ] Defines `TriageResult` with normalized confidence bounds ($0.0 \le c \le 1.0$).
+- [ ] Defines `PriorityOverrideRequest` requiring $\ge 5$ character reason.
+- [ ] Terminal check passes:
+  `python -c "from app.schemas.priority import PriorityEnum, TriageResult; print('Schemas OK')"`
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
-
-1. **Verify Python Syntax & Enum Serialization:**
-   `python -c "from app.schemas.priority import PriorityEnum; assert PriorityEnum.CRITICAL == 'CRITICAL'; assert isinstance(PriorityEnum.CRITICAL, str); print('PriorityEnum verified successfully!')"`
-
-2. **Verify `TriagePreviewRequest` Validation & Rejections:**
-   `python -c "from app.schemas.priority import TriagePreviewRequest; req = TriagePreviewRequest(title='  Water pipe broken  ', description='Major water leak flooding floor 2'); assert req.title == 'Water pipe broken'; print('TriagePreviewRequest valid!')"`
-
-3. **Verify Boundary Violation Detection (Must Catch Validation Error):**
-   `python -c "from app.schemas.priority import TriagePreviewRequest, ValidationError; (lambda: [exec('try:\n TriagePreviewRequest(title=\"shrt\", description=\"too short\")\nexcept Exception as e:\n print(\"Validation caught successfully:\", type(e).__name__)') ])()"`
-
-4. **Verify `TriageResult` Construction & Normalized Confidence:**
-   `python -c "from app.schemas.priority import TriageResult, PriorityEnum; res = TriageResult(priority=PriorityEnum.CRITICAL, category='Electrical', hazard_detected=True, confidence=0.95, reason='Fire hazard keyword', matched_keywords=['spark', 'smoke']); assert res.confidence == 0.95; print('TriageResult schema verified!')"`
-
-5. **Verify `PriorityOverrideRequest` Schema & Constraints:**
-   `python -c "from app.schemas.priority import PriorityOverrideRequest, PriorityEnum; req = PriorityOverrideRequest(new_priority=PriorityEnum.HIGH, override_reason='Verified water pressure failure affecting floor'); assert req.new_priority == PriorityEnum.HIGH; print('PriorityOverrideRequest verified!')"`

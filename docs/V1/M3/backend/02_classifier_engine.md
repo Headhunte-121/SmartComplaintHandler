@@ -166,20 +166,70 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+# 6. Definition of Done & Live Website Testing Procedure
 
-This component is 100% complete and verified when:
+### Component Functionality & Expected Behavior (What It Should Do)
+The Classifier Engine maps student complaint narratives to one of the 6 institutional departments:
+1. **6-Domain Taxonomy:** Evaluates keywords for `Electrical`, `Plumbing`, `Sanitation`, `Carpentry`, `IT Support`, and `General Administration`.
+2. **Title Weight Multiplier ($2.0\times$):** Keywords in the subject/title count twice as heavily as words in the description body, preventing passing mentions in the description from misrouting the ticket.
+3. **Normalized Confidence Metric ($0.0 \le \text{confidence} \le 1.0$):** Computes a mathematical ratio of matched category terms against total detected keywords. Unmatched complaints safely default to `General Administration` with `confidence = 0.0`.
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/services/classifier.py`.
-2. **Taxonomy & Weight Definitions:**
-   * `DEPARTMENTS_TAXONOMY` defines all 6 departments with non-empty keyword pools for departments 1 through 5.
-   * `TITLE_WEIGHT` is set to `2.0` and `DESCRIPTION_WEIGHT` to `1.0`.
-3. **Scoring & Weighting Verification:**
-   * A title match outweighs a competing body match.
-   * Confidence scores evaluate between `0.0` and `1.0`.
-   * Unmatched complaints return Department ID 6 with `confidence = 0.0`.
-4. **Programmatic Verification:**
-   * Executing the following inline terminal command from `backend/`:
-     `python -c "from app.services.classifier import classify_ticket; res1 = classify_ticket('Ceiling fan broken', 'fan stopped'); assert res1['department_id'] == 1; assert res1['confidence'] > 0.7; res2 = classify_ticket('Pipe leak', 'water on floor'); assert res2['department_id'] == 2; res3 = classify_ticket('Lost watch', 'left in library'); assert res3['department_id'] == 6; assert res3['confidence'] == 0.0; print('Classifier Engine OK: Title Weighting and Multi-Category Routing Verified')"`
-     succeeds cleanly, printing `Classifier Engine OK: Title Weighting and Multi-Category Routing Verified`.
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+Ensure both frontend and backend development servers are running (`http://localhost:5173` and `http://localhost:8000`).
+
+#### Test Case 1: IT & Network Department Classification
+1. Navigate to **`http://localhost:5173/`**.
+2. In the **Title** field, type: `Campus Wi-Fi down in library`
+3. In the **Description** field, type: `Cannot connect to student network or access router portal`
+4. **Expected Result on Screen:**
+   * The **Live Triage Card** updates with Category: **`IT Support`**.
+   * The visual Confidence Bar displays a high confidence percentage (e.g. `85% - 100%`) filled with green/indigo.
+   * Matched keyword tags display: `router`, `network`, `wifi`.
+
+#### Test Case 2: Title-Weight Domination ($2.0\times$ Multiplier Test)
+1. On **`http://localhost:5173/`**, enter:
+   * **Title:** `Severe water pipe leak in hallway` (Plumbing keywords)
+   * **Description:** `Water is dripping near the electrical light switch and power outlet` (Electrical keywords)
+2. **Expected Result on Screen:**
+   * Because `water pipe leak` is in the title ($2.0\times$ multiplier), the system routes to **`Plumbing`**, NOT Electrical.
+   * Proves that the primary issue in the title correctly outscores secondary descriptions.
+
+#### Test Case 3: General Administration Fallback ($0.0$ Confidence)
+1. On **`http://localhost:5173/`**, enter:
+   * **Title:** `Lost my notebook in canteen`
+   * **Description:** `I forgot a spiral notebook on the cafeteria table`
+2. **Expected Result on Screen:**
+   * Category routes to **`General Administration`**.
+   * Confidence displays **`0%`** (safe institutional fallback).
+   * No keyword chips appear.
+
+#### Test Case 4: Swagger API Inspection
+1. Open **`http://localhost:8000/docs`** -> `POST /api/v1/tickets/triage-preview`.
+2. Test payload:
+   ```json
+   {
+     "title": "Broken wooden chair leg",
+     "description": "Desk bench loose in classroom 101"
+   }
+   ```
+3. Observe HTTP `200 OK` response:
+   ```json
+   {
+     "category": "Carpentry",
+     "confidence": 1.0,
+     "matched_keywords": ["chair", "desk", "bench", "wooden"]
+   }
+   ```
+
+---
+
+### Implementation Checklist
+- [ ] File exists at `backend/app/services/classifier.py`.
+- [ ] `DEPARTMENTS_TAXONOMY` defines all 6 departments.
+- [ ] `TITLE_WEIGHT = 2.0` and `DESCRIPTION_WEIGHT = 1.0`.
+- [ ] Programmatic verification succeeds:
+  `python -c "from app.services.classifier import classify_ticket; res = classify_ticket('Ceiling fan broken', 'fan stopped'); assert res['department_id'] == 1; print('Classifier OK')"`
+

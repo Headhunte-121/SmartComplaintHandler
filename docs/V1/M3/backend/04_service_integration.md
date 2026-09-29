@@ -196,29 +196,57 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+# 6. Definition of Done & Live Website Testing Procedure
 
-Before considering the `backend/app/services/ticket_service.py` upgrade complete, verify each of the following operational checkpoints:
+### Component Functionality & Expected Behavior (What It Should Do)
+`ticket_service.py` acts as the master domain orchestrator:
+1. **Dynamic Priority Stamping:** When a ticket is created via `create_ticket()`, it automatically invokes `calculate_priority()` and saves the computed urgency tier (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) into the SQLite database.
+2. **Audited Supervisor Override:** `override_ticket_priority()` updates the priority, recalculates SLA deadlines, and irreversibly records an audit trail entry into `resolution_notes` (e.g. `[OVERRIDE 2026-09-25] Changed from CRITICAL to LOW. Reason: Verified false alarm`).
+3. **Multi-Criteria Queries:** `list_tickets()` provides filtered queries by priority and department for the admin operations desk.
+
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+#### Test Case 1: End-to-End Submission & Persistence
+1. Navigate to **`http://localhost:5173/`**.
+2. Submit a complaint:
+   * **Title:** `Exposed electrical wiring in seminar hall`
+   * **Description:** `Bare live copper wires hanging near doorway. Sparks visible.`
+   * **Location:** `Seminar Hall 2`
+3. Click **Submit Complaint**.
+4. A popup modal appears confirming submission and displaying your tracking code (e.g. **`TICK-9A4B`**). Click **Copy Code**.
+
+#### Test Case 2: Verify Dynamic Priority Stamped in Database via Tracking Portal
+1. Navigate to the self-service portal at **`http://localhost:5173/track`**.
+2. Paste your tracking code (`TICK-9A4B`) and click **Track Status**.
+3. **Expected Result on Screen:**
+   * Ticket displays with **Priority: `CRITICAL`** (red badge).
+   * Department displays as **`Electrical`**.
+   * Status stepper shows **`SUBMITTED`**.
+
+#### Test Case 3: Priority Override & Audit Trail Verification
+1. Open **`http://localhost:8000/docs`** -> `PATCH /api/v1/tickets/{ticket_id}/priority`.
+2. Enter the ticket's numeric ID (found in track response) with payload:
+   ```json
+   {
+     "new_priority": "LOW",
+     "override_reason": "Electrician checked and main circuit breaker was already disconnected"
+   }
+   ```
+3. Click **Execute** -> Returns HTTP `200 OK`.
+4. Return to **`http://localhost:5173/track`** and click **Refresh / Re-track**.
+5. **Expected Result on Screen:**
+   * Priority badge has dynamically shifted to **`LOW`** (slate).
+   * Staff Resolution & Audit Notes section displays:  
+     `[OVERRIDE] Priority changed from CRITICAL to LOW. Reason: Electrician checked and main circuit breaker was already disconnected`.
+
+---
 
 ### Implementation Checklist
-- [ ] Imports `calculate_priority` from `app.services.priority_engine`.
-- [ ] `create_ticket()` invokes `calculate_priority(ticket_in.title, ticket_in.description)` and assigns the computed priority to `db_ticket.priority`.
-- [ ] `override_ticket_priority()` implemented with signature `(db: Session, ticket_id: int, override_data: PriorityOverrideRequest) -> Ticket | None`.
-- [ ] `override_ticket_priority()` checks for ticket existence, records old priority, updates priority, appends formatted audit note to `resolution_notes`, and commits to SQLite.
-- [ ] `list_tickets()` supports optional `priority: Optional[str] = None` and `department_id: Optional[int] = None` filtering.
-- [ ] File contains proper exception handling with `db.rollback()` on commit failures.
-- [ ] Zero FastAPI HTTP-specific imports (`HTTPException`, `Request`) inside `ticket_service.py`.
+- [ ] `create_ticket()` invokes `calculate_priority()` and stamps `priority`.
+- [ ] `override_ticket_priority()` updates priority and appends audit log.
+- [ ] `list_tickets()` supports priority and department filters.
+- [ ] Terminal check passes:
+  `python -c "from app.services.ticket_service import list_tickets; from app.db.session import SessionLocal; print('Found tickets:', len(list_tickets(SessionLocal())))"`
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
-
-1. **Verify Dynamic Priority Assignment on Ticket Creation:**
-   `python -c "from app.db.session import SessionLocal; from app.schemas.ticket import TicketCreate; from app.services.ticket_service import create_ticket; db = SessionLocal(); t = create_ticket(db, TicketCreate(title='Sparking wire in lab', description='Main switch is smoking and sparking', location='Lab 101')); assert t.priority == 'CRITICAL'; print('Ticket created with dynamic priority:', t.priority, t.tracking_code); db.close()"`
-
-2. **Verify Non-Hazard Ticket Receives Medium Priority:**
-   `python -c "from app.db.session import SessionLocal; from app.schemas.ticket import TicketCreate; from app.services.ticket_service import create_ticket; db = SessionLocal(); t = create_ticket(db, TicketCreate(title='Broken chair wheel', description='Desk chair wheel is stuck in seminar hall', location='Hall A')); assert t.priority in ['MEDIUM', 'LOW']; print('Routine ticket created with priority:', t.priority); db.close()"`
-
-3. **Verify Administrative Priority Override Execution:**
-   `python -c "from app.db.session import SessionLocal; from app.schemas.priority import PriorityOverrideRequest, PriorityEnum; from app.services.ticket_service import override_ticket_priority, list_tickets; db = SessionLocal(); tickets = list_tickets(db, limit=1); assert len(tickets) > 0; t = tickets[0]; updated = override_ticket_priority(db, t.id, PriorityOverrideRequest(new_priority=PriorityEnum.LOW, override_reason='Verified false alarm by staff inspection')); assert updated.priority == 'LOW'; assert 'Verified false alarm' in updated.resolution_notes; print('Priority override verified successfully on ticket:', updated.tracking_code); db.close()"`
-
-4. **Verify Priority-Filtered List Query:**
-   `python -c "from app.db.session import SessionLocal; from app.services.ticket_service import list_tickets; db = SessionLocal(); criticals = list_tickets(db, priority='CRITICAL'); print('Found critical tickets:', len(criticals)); db.close()"`

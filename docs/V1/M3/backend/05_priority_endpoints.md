@@ -180,33 +180,73 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+# 6. Definition of Done & Live Website Testing Procedure
 
-Before considering `backend/app/api/v1/endpoints/priority.py` complete, verify each of the following operational checkpoints:
+### Component Functionality & Expected Behavior (What It Should Do)
+The REST presentation endpoints expose the triage engine to frontend clients:
+1. **Stateless Preview (`POST /api/v1/tickets/triage-preview`):** Executes in $<10\text{ms}$ with **zero database queries**. Used by the live frontend intake form for instant debounced typing feedback.
+2. **Stateful Priority Override (`PATCH /api/v1/tickets/{ticket_id}/priority`):** Validates the supervisor request, updates priority, recalculates SLA expiration, appends audit trail to `resolution_notes`, and returns `200 OK` (or `404 Not Found` if the ticket ID is missing).
+
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+#### Test Case 1: Testing Stateless Triage via Swagger UI
+1. Navigate to the interactive API docs at **`http://localhost:8000/docs`**.
+2. Locate the **`priority`** tag and click to expand **`POST /api/v1/tickets/triage-preview`**.
+3. Click the **Try it out** button.
+4. Replace the Request Body with:
+   ```json
+   {
+     "title": "Severe gas leak detected",
+     "description": "Strong smell of LPG gas near cafeteria cylinder manifold"
+   }
+   ```
+5. Click the large blue **Execute** button.
+6. **Expected Result on Screen:**
+   * Response Code: **`200 OK`**.
+   * Response Body returns:
+     ```json
+     {
+       "priority": "CRITICAL",
+       "category": "Plumbing",
+       "hazard_detected": true,
+       "confidence": 1.0,
+       "matched_keywords": ["gas leak"]
+     }
+     ```
+
+#### Test Case 2: Testing 404 Guard via Swagger UI
+1. In Swagger UI, expand **`PATCH /api/v1/tickets/{ticket_id}/priority`**.
+2. Click **Try it out**.
+3. Set `ticket_id` to `999999` (non-existent).
+4. Set Request Body:
+   ```json
+   {
+     "new_priority": "LOW",
+     "override_reason": "Testing non-existent ticket guard"
+   }
+   ```
+5. Click **Execute** -> Observe HTTP **`404 Not Found`** with body:
+   ```json
+   {
+     "detail": "Ticket with ID 999999 not found"
+   }
+   ```
+
+#### Test Case 3: Live Browser Network Tab Inspection
+1. Open **`http://localhost:5173/`** in Chrome or Edge.
+2. Press `F12` to open Developer Tools and select the **Network** tab (filter by `Fetch/XHR`).
+3. Type in the Title: `Water leaking from lab ceiling`
+4. Observe a single `POST` request to `triage-preview` fired after you finish typing.
+5. Inspect the response payload: confirm it returns `category: "Plumbing"` and `priority: "HIGH"`.
+
+---
 
 ### Implementation Checklist
-- [ ] File exists at `backend/app/api/v1/endpoints/priority.py`.
-- [ ] Defines `router = APIRouter()`.
-- [ ] Exposes `POST /triage-preview` accepting `TriagePreviewRequest` and returning `TriageResult`.
-- [ ] `/triage-preview` calls both `calculate_priority()` and `classify_complaint()` and contains zero database session dependencies.
-- [ ] Exposes `PATCH /{ticket_id}/priority` accepting integer `ticket_id` and `PriorityOverrideRequest`, returning `TicketResponse`.
-- [ ] `PATCH /{ticket_id}/priority` injects `db: Session = Depends(get_db)` and delegates to `ticket_service.override_ticket_priority()`.
-- [ ] Raises `HTTPException(status_code=404)` if the requested `ticket_id` does not exist.
-- [ ] All routes include explicit `response_model` declarations for contract enforcement and OpenAPI documentation.
+- [ ] Exposes `POST /triage-preview` (zero DB queries).
+- [ ] Exposes `PATCH /{ticket_id}/priority` (404 and 422 guards).
+- [ ] Routes registered under prefix `/tickets` and tag `priority`.
+- [ ] Terminal check passes:
+  `python -c "from app.api.v1.endpoints.priority import router; print('Routes:', [r.path for r in router.routes])"`
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
-
-1. **Verify Route Function Imports & Router Export:**
-   `python -c "from app.api.v1.endpoints.priority import router; routes = [r.path for r in router.routes]; assert '/triage-preview' in routes; assert '/{ticket_id}/priority' in routes; print('Priority router endpoints verified:', routes)"`
-
-2. **Verify Stateless `/triage-preview` Execution via FastAPI TestClient:**
-   `python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); res = client.post('/api/v1/tickets/triage-preview', json={'title': 'Electric switchboard spark', 'description': 'Loud buzzing and visible fire sparks in room 302'}); assert res.status_code == 200; data = res.json(); assert data['priority'] == 'CRITICAL'; assert data['hazard_detected'] == True; print('Triage preview response verified:', data)"`
-
-3. **Verify Routine Ticket Preview Output:**
-   `python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); res = client.post('/api/v1/tickets/triage-preview', json={'title': 'Faded paint on wall', 'description': 'The wall paint behind the seminar board is peeling and scratched'}); assert res.status_code == 200; data = res.json(); assert data['priority'] == 'LOW'; print('Routine preview verified:', data['priority'], data['category'])"`
-
-4. **Verify Administrative Priority Override on Existing Ticket:**
-   `python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); res = client.post('/api/v1/tickets/', json={'title': 'Leaking sink tap', 'description': 'Water leaking from tap in bathroom 2', 'location': 'Hostel 3'}); assert res.status_code == 201; t_id = res.json()['id']; patch_res = client.patch(f'/api/v1/tickets/{t_id}/priority', json={'new_priority': 'HIGH', 'override_reason': 'Leak has escalated to flooding the hallway'}); assert patch_res.status_code == 200; updated = patch_res.json(); assert updated['priority'] == 'HIGH'; print('Priority override endpoint verified on ticket ID:', t_id)"`
-
-5. **Verify 404 Handling on Non-Existent Ticket Override:**
-   `python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); res = client.patch('/api/v1/tickets/99999/priority', json={'new_priority': 'LOW', 'override_reason': 'Non-existent ticket test'}); assert res.status_code == 404; print('404 error response verified:', res.json())"`

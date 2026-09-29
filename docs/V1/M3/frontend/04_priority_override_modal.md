@@ -183,33 +183,53 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+# 6. Definition of Done & Live Website Testing Procedure
 
-Before considering `frontend/src/components/PriorityOverrideModal.jsx` complete, verify each of the following operational checkpoints:
+### Component Functionality & Expected Behavior (What It Should Do)
+`PriorityOverrideModal.jsx` provides supervisory human-in-the-loop governance:
+1. **Context Awareness:** Opens in an accessible dialog window over a dimmed backdrop, displaying the current ticket tracking code, complaint title, and existing priority badge.
+2. **Double Validation Guard:** The "Save Changes" button remains strictly disabled if:
+   * The selected priority is identical to the current priority (prevents duplicate mutations).
+   * The audit reason contains fewer than 5 non-whitespace characters (enforces audit logging).
+3. **Live Character Counter:** Displays a reactive counter (e.g. `3/5 characters required (min 5)` in amber, shifting to `Green` when $\ge 5$ characters).
+4. **Optimistic Parent Callback:** Closes cleanly and invokes `onPriorityUpdated(ticket)` so the parent dashboard immediately reflects the new priority badge without requiring a manual page refresh.
+
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+#### Test Case 1: Modal Trigger & Initial Guard State
+1. Navigate to **`http://localhost:5173/`** and locate the **"Supervisor Priority Override Modal Demo"** section (or open the override action from the Admin Dashboard).
+2. Click **"Open Priority Override Modal"**.
+3. **Expected Result on Screen:**
+   * Modal dialog appears smoothly with a blurred, dimmed background overlay.
+   * Displays the ticket code (e.g. `TICK-3829`) and current priority badge.
+   * The **"Confirm Override"** button is **disabled** (grayed out) by default because priority has not been changed.
+
+#### Test Case 2: Validation Guard Enforcement
+1. In the **New Priority** dropdown, change the selection from `CRITICAL` to **`HIGH`**.
+2. Notice the button remains disabled because the audit reason is empty.
+3. In the **Override Reason** textarea, type: `ok` (only 2 characters).
+4. **Expected Result on Screen:**
+   * Character counter alerts in amber: `"2/5 characters required (minimum 5)"`.
+   * The button remains disabled.
+
+#### Test Case 3: Successful Override Execution
+1. Type a valid explanation: `False alarm confirmed by site supervisor inspection`.
+2. Notice the character counter turns green: `"52/500 characters"`, and the **Confirm Override** button becomes active (blue).
+3. Click **Confirm Override**.
+4. **Expected Result on Screen:**
+   * Button briefly displays a loading spinner with text `"Saving..."`.
+   * Modal closes cleanly.
+   * Success notification appears: `"Priority successfully updated to HIGH"`.
+   * The priority badge on screen dynamically updates to **`HIGH`** (amber).
+
+---
 
 ### Implementation Checklist
 - [ ] File exists at `frontend/src/components/PriorityOverrideModal.jsx`.
-- [ ] Accepts props: `ticket`, `isOpen`, `onClose`, and `onPriorityUpdated`.
-- [ ] Renders modal overlay with dimmed, blurred backdrop.
-- [ ] Displays complaint metadata: tracking code, title, and current priority badge.
-- [ ] Renders target priority dropdown listing `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`.
-- [ ] Includes controlled textarea for `overrideReason` with dynamic character counter.
-- [ ] Disables submit button if `overrideReason.trim().length < 5` or `newPriority === ticket.priority`.
-- [ ] Calls `overrideTicketPriority()` on submit and displays error alerts if the backend rejects the request.
-- [ ] Invokes `onPriorityUpdated()` and closes modal on success.
-- [ ] Contains zero triple-backtick code blocks.
+- [ ] Renders accessible modal dialog over dimmed backdrop.
+- [ ] Enforces $\ge 5$ character validation for audit reasons.
+- [ ] Disables submission when new priority matches current priority.
+- [ ] Invokes `onPriorityUpdated` callback on successful submission.
 
-### Browser Verification Procedure
-
-1. **Verify Modal Launch & Context Display:**
-   * Open `http://localhost:5173/admin` and click "Adjust Priority" on ticket `TICK-XXXX`.
-   * Observe that the modal opens cleanly, displaying the ticket tracking code and current priority badge.
-2. **Verify Disabled Submit Button:**
-   * Notice that the submit button is initially disabled because `newPriority` matches current priority and the reason is empty.
-   * Select a new priority (e.g. change `CRITICAL` to `HIGH`). Observe button remains disabled pending reason.
-3. **Verify Character Counter & Validation:**
-   * Type `"abc"` (3 characters) into the textarea. Notice counter says `"3 / 500 characters (minimum 5 required)"` and button remains disabled.
-   * Type `"Site inspection confirmed steam valve wear, no fire danger"` (58 characters). Observe button becomes active.
-4. **Verify Successful Priority Update:**
-   * Click "Save Priority Change".
-   * Observe button displays a spinner, the modal closes, and the dashboard row updates with the new priority badge immediately.

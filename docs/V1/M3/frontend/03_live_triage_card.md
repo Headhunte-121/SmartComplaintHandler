@@ -183,34 +183,48 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+# 6. Definition of Done & Live Website Testing Procedure
 
-Before considering `frontend/src/components/LiveTriageCard.jsx` complete, verify each of the following operational checkpoints:
+### Component Functionality & Expected Behavior (What It Should Do)
+`LiveTriageCard.jsx` provides real-time intelligent feedback to students as they compose grievances:
+1. **500ms Debouncing:** Waits 500ms after the user stops typing before sending a network request, completely eliminating server request spam.
+2. **Smooth Skeleton Loading State:** Shows an animated shimmering pulse skeleton while awaiting backend response.
+3. **Emergency Red Hazard Alert:** Instantly displays a flashing safety hazard banner (`⚠️ Physical Safety Hazard Detected`) if hazardous words are found.
+4. **Diagnostic Metrics:** Displays the auto-assigned Department pill, PriorityBadge, normalized confidence meter, and matched keyword tag chips.
+
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+#### Test Case 1: Idle Placeholder Guidance
+1. Open **`http://localhost:5173/`** in your browser.
+2. Leave the form fields empty.
+3. **Expected Result on Screen:**
+   * Below the form, the Live Triage Card renders in an idle state with a subtle dashed border.
+   * Displays helpful guidance: `"Type a title (min 5 characters) and description to see live AI priority triage"`.
+
+#### Test Case 2: Debounced Skeleton Loading & Hazard Detection
+1. Click into **Title** and type: `Gas leak near hostel mess`
+2. Click into **Description** and type: `LPG cylinder smell is very strong near kitchen`
+3. Notice that as you type rapidly, no request is sent.
+4. Stop typing: after **500 milliseconds**, an animated gray shimmering skeleton briefly appears, then transitions into:
+   * **Prominent Red Banner:** `⚠️ Physical Safety Hazard Detected — Automatic CRITICAL Priority Escalation`.
+   * **Category Pill:** `Plumbing` (or Campus Facilities).
+   * **Priority Badge:** Pulsing red `CRITICAL`.
+   * **Keyword Chips:** `gas leak`, `cylinder`.
+
+#### Test Case 3: Network Tab Verification
+1. Press `F12` -> Network tab.
+2. Type 20 characters quickly without pausing.
+3. Observe that zero network calls are sent during active typing.
+4. Pause for half a second: observe that exactly **1 single HTTP POST request** is dispatched to `/api/v1/tickets/triage-preview`.
+
+---
 
 ### Implementation Checklist
 - [ ] File exists at `frontend/src/components/LiveTriageCard.jsx`.
-- [ ] Accepts props: `title` and `description`.
 - [ ] Implements 500ms debounce with `clearTimeout` cleanup.
-- [ ] Displays placeholder guidance when text is shorter than 5 chars for title or 10 for description.
-- [ ] Displays animated skeleton loader while the network request is pending.
-- [ ] Renders flashing red hazard warning banner when `hazard_detected === true`.
-- [ ] Renders department category pill, priority badge, and normalized confidence bar.
-- [ ] Displays human-readable reason text and individual matched keyword pill tags.
-- [ ] Contains zero triple-backtick code blocks.
+- [ ] Displays placeholder guidance when text length $< 5$ chars.
+- [ ] Renders emergency red banner when `hazard_detected === true`.
+- [ ] Displays category, confidence bar, priority badge, and keyword tags.
 
-### Browser Verification Procedure
-
-1. **Verify Idle State:**
-   * Open `http://localhost:5173/submit`.
-   * Observe that the live preview card displays the guidance placeholder: `"Type at least 5 characters in Title..."`.
-2. **Verify Debounced Network Request:**
-   * Type Title: `"Ceiling fan sparking"` and Description: `"Fan motor is smoking and emitting loud sparks"`.
-   * Pause typing for 500ms.
-   * Check Browser Network Tab: Observe a single `POST /api/v1/tickets/triage-preview` request.
-3. **Verify Triage Card Rendering:**
-   * Observe that the card renders:
-     * Red flashing emergency hazard alert banner.
-     * Category pill: `"Electrical"`.
-     * Priority badge: Pulsing red `CRITICAL`.
-     * Confidence bar: High percentage (e.g. 85-95%).
-     * Matched keywords pills: `["spark", "wire", "smoking"]`.

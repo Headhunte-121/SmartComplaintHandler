@@ -154,26 +154,47 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+# 6. Definition of Done & Live Website Testing Procedure
 
-Before considering `frontend/src/components/PriorityBadge.jsx` complete, verify each of the following operational checkpoints:
+### Component Functionality & Expected Behavior (What It Should Do)
+`PriorityBadge.jsx` is the universal, atomic visual status indicator used across the platform:
+1. **WCAG 2.1 High-Contrast Color Tiers:**
+   * **`CRITICAL`:** High-urgency red pill (`bg-red-50 text-red-700 border-red-300`) with a living, animated pulsing ping ring (`animate-ping`).
+   * **`HIGH`:** High-priority amber pill (`bg-amber-50 text-amber-800 border-amber-300`).
+   * **`MEDIUM`:** Standard blue pill (`bg-blue-50 text-blue-700 border-blue-300`).
+   * **`LOW`:** Routine slate/grey pill (`bg-slate-50 text-slate-700 border-slate-300`).
+2. **Case Normalization:** Safely converts strings like `"critical"` or `"High"` to uppercase.
+3. **Interactive SLA Tooltip:** Hovering over the badge displays the maximum resolution deadline (`SLA: 2 Hours` for Critical, `6h` for High, `24h` for Medium, `48h` for Low).
+4. **Accessibility:** Renders with `role="status"` and accessible `aria-label`.
+
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+#### Test Case 1: Visual Inspection on Live Intake Form
+1. Open **`http://localhost:5173/`** in your browser.
+2. Enter Title: `Fire in laboratory`
+3. **Expected Result on Screen:**
+   * The **`CRITICAL`** priority badge appears inside the Live Triage Card.
+   * Notice the active **pulsing red dot** inside the badge that animates continuously to grab visual attention.
+   * Move your mouse cursor over the badge: a tooltip appears reading **`Resolution Target: 2 Hours`**.
+
+#### Test Case 2: Dynamic Tier Shift Check
+1. Change the Title to `Water pipe leak` -> Badge shifts to **`HIGH`** (amber).
+2. Change the Title to `Chair broken` -> Badge shifts to **`MEDIUM`** (blue).
+3. Change the Title to `Desk paint scratched` -> Badge shifts to **`LOW`** (slate).
+
+#### Test Case 3: Accessibility & HTML Inspection
+1. Right-click any rendered badge on `http://localhost:5173/` and click **Inspect**.
+2. Verify the DOM element contains:
+   * `role="status"`
+   * `aria-label="Priority: CRITICAL"` (or matching tier).
+
+---
 
 ### Implementation Checklist
 - [ ] File exists at `frontend/src/components/PriorityBadge.jsx`.
-- [ ] Accepts props: `priority`, `size`, `showIcon`, and `showSlaTooltip`.
-- [ ] Defines `PRIORITY_STYLES` for `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`.
-- [ ] Normalizes input strings via `.toUpperCase()`.
-- [ ] `CRITICAL` badge renders with red styling and an active pulse animation.
-- [ ] Embeds accessible `aria-label` attribute.
-- [ ] Includes fallback styling for unrecognized priority strings.
-- [ ] Contains zero triple-backtick code blocks.
+- [ ] Supports `priority`, `size`, `showIcon`, and `showSlaTooltip` props.
+- [ ] Renders `animate-ping` radar dot on `CRITICAL` badges.
+- [ ] Normalizes lowercase/mixed-case inputs.
 
-### Browser Verification Procedure
-
-1. **Verify Badge Rendering in Isolation or Storybook:**
-   * Render `<PriorityBadge priority="CRITICAL" />` and `<PriorityBadge priority="MEDIUM" />`.
-   * Observe that `CRITICAL` renders in red with an active pulse animation.
-   * Observe that `MEDIUM` renders in clean blue.
-2. **Verify Case Insensitivity:**
-   * Render `<PriorityBadge priority="high" />` (lowercase).
-   * Observe that it normalizes to uppercase and renders in amber with the high-urgency icon.

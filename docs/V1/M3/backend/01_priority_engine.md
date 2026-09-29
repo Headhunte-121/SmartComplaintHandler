@@ -168,21 +168,77 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+# 6. Definition of Done & Live Website Testing Procedure
 
-This component is 100% complete and verified when:
+### Component Functionality & Expected Behavior (What It Should Do)
+The Priority Engine analyzes natural language grievances and deterministically assigns an urgency tier without human bias:
+1. **Safety Hazard Short-Circuit:** If dangerous keywords (`sparking`, `gas leak`, `fire`, `exposed live wire`, `collapsed ceiling`, etc.) are detected anywhere in the title or description using word-boundary regex (`\b`), the engine **immediately overrides** the ticket to `CRITICAL` priority with `hazard_detected = true`.
+2. **Deterministic Tiers:** Non-hazardous issues are scored and categorized into `HIGH` (widespread outages, pipe bursts, campus-wide blackouts), `MEDIUM` (routine functional repairs like stopped fans, slow drainage), or `LOW` (cosmetic flaws like peeling paint, scuffed chairs).
+3. **Transparent Explanations:** The engine returns an exact explanation string explaining which keyword triggered the priority.
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/services/priority_engine.py`.
-2. **Constant & Keyword Declarations:**
-   * `PRIORITY_CRITICAL`, `PRIORITY_HIGH`, `PRIORITY_MEDIUM`, and `PRIORITY_LOW` are defined.
-   * `CRITICAL_KEYWORDS`, `HIGH_KEYWORDS`, and `LOW_KEYWORDS` are populated.
-3. **Four-Tier Verification:**
-   * Testing hazard terms ("fire", "spark") returns `CRITICAL` with `hazard_detected = True`.
-   * Testing major outages ("burst", "blackout") returns `HIGH`.
-   * Testing routine repairs ("fan stopped") returns `MEDIUM`.
-   * Testing cosmetic defects ("paint scratched") returns `LOW`.
-4. **Programmatic Verification:**
-   * Executing the following inline terminal command from `backend/`:
-     `python -c "from app.services.priority_engine import calculate_priority, PRIORITY_CRITICAL, PRIORITY_HIGH, PRIORITY_MEDIUM, PRIORITY_LOW; assert calculate_priority('Fire in lab', 'smoke coming from outlet')['priority'] == PRIORITY_CRITICAL; assert calculate_priority('Pipe burst', 'water everywhere')['priority'] == PRIORITY_HIGH; assert calculate_priority('Fan not working', 'stopped spinning')['priority'] == PRIORITY_MEDIUM; assert calculate_priority('Desk paint peeling', 'cosmetic mark on table')['priority'] == PRIORITY_LOW; print('Priority Engine OK: All 4 Priority Tiers Verified')"`
-     succeeds cleanly, printing `Priority Engine OK: All 4 Priority Tiers Verified`.
+---
+
+### Interactive Website & UI Testing Procedure (How to Verify on the Live App)
+
+Ensure both frontend and backend development servers are running (`http://localhost:5173` and `http://localhost:8000`).
+
+#### Test Case 1: Physical Safety Hazard Short-Circuit (`CRITICAL`)
+1. Open your browser and navigate to the Student Complaint Intake form: **`http://localhost:5173/`**.
+2. In the **Title** field, type: `Sparking switchboard in lab`
+3. In the **Description** field, type: `I smell burning plastic and sparks are flying from the socket`
+4. **Expected Result on Screen:**
+   * Within 500ms of pausing typing, the **Live Triage Card** below the form turns **vibrant red**.
+   * A flashing hazard alert banner appears: `⚠️ Physical Safety Hazard Detected — Automatic CRITICAL Priority Escalation`.
+   * A high-contrast red **`CRITICAL`** badge displays with an active pulsing heartbeat animation.
+   * Matched keywords `sparking`, `socket` appear as highlight chips.
+
+#### Test Case 2: Major Infrastructure Outage (`HIGH`)
+1. On **`http://localhost:5173/`**, clear the fields and enter:
+   * **Title:** `Main water pipe burst in block B`
+   * **Description:** `Water is flooding the hallway floor rapidly`
+2. **Expected Result on Screen:**
+   * The Live Triage Card displays an amber/orange **`HIGH`** badge.
+   * Target SLA tooltip indicates resolution expected within **6 hours**.
+   * No emergency hazard warning banner is displayed.
+
+#### Test Case 3: Routine Daily Repair (`MEDIUM`)
+1. On **`http://localhost:5173/`**, enter:
+   * **Title:** `Ceiling fan stopped working`
+   * **Description:** `The fan in room 204 does not turn on with the switch`
+2. **Expected Result on Screen:**
+   * The Live Triage Card displays a blue **`MEDIUM`** badge with SLA target of **24 hours**.
+
+#### Test Case 4: Minor Cosmetic Flaw (`LOW`)
+1. On **`http://localhost:5173/`**, enter:
+   * **Title:** `Paint chipped on study desk`
+   * **Description:** `Small cosmetic scratch on wooden table corner`
+2. **Expected Result on Screen:**
+   * The Live Triage Card displays a slate/grey **`LOW`** badge with SLA target of **48 hours**.
+
+#### Test Case 5: Interactive Swagger API Inspection
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. Expand `POST /api/v1/tickets/triage-preview`, click **Try it out**, and paste:
+   ```json
+   {
+     "title": "Gas leak smell in hostel kitchen",
+     "description": "Strong gas smell coming from cylinder area"
+   }
+   ```
+3. Click **Execute** and observe HTTP `200 OK` with:
+   ```json
+   {
+     "priority": "CRITICAL",
+     "hazard_detected": true,
+     "matched_keywords": ["gas leak"]
+   }
+   ```
+
+---
+
+### Implementation Checklist
+- [ ] File exists at `backend/app/services/priority_engine.py`.
+- [ ] `PRIORITY_CRITICAL`, `PRIORITY_HIGH`, `PRIORITY_MEDIUM`, and `PRIORITY_LOW` are defined.
+- [ ] `CRITICAL_KEYWORDS`, `HIGH_KEYWORDS`, and `LOW_KEYWORDS` are populated with regex word boundaries.
+- [ ] Programmatic verification succeeds:
+  `python -c "from app.services.priority_engine import calculate_priority, PRIORITY_CRITICAL, PRIORITY_HIGH, PRIORITY_MEDIUM, PRIORITY_LOW; assert calculate_priority('Fire in lab', 'smoke coming from outlet')['priority'] == PRIORITY_CRITICAL; print('Priority Engine OK: Verified')"`
+
