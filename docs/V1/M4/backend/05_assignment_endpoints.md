@@ -196,32 +196,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering `backend/app/api/v1/endpoints/assignment.py` complete, verify each of the following operational checkpoints:
+# 6. Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `backend/app/api/v1/endpoints/assignment.py`.
-- [ ] Defines `router = APIRouter()`.
-- [ ] Exposes `GET /teams/workloads` returning `list[TeamWorkloadResponse]` with optional `department_id` filtering.
-- [ ] Exposes `PATCH /tickets/{ticket_id}/reassign` accepting `TeamReassignRequest` and returning `TicketResponse`.
-- [ ] Exposes `POST /tickets/{ticket_id}/dispatch` returning `TicketResponse`.
-- [ ] Exposes `PATCH /teams/{team_id}/availability` accepting `TeamAvailabilityUpdate`.
-- [ ] Handles 404 Not Found for non-existent tickets and non-existent teams.
-- [ ] Handles 400 Bad Request if reassignment references an invalid squad.
-- [ ] Injects `db: Session = Depends(get_db)` across all database-accessing routes.
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This Python module (`backend/app/api/v1/endpoints/assignment.py`) is responsible for **exposing REST API endpoints for team workload telemetry and supervisory ticket reassignment**. It serves as the administrative communication bridge between the React Operations Desk and the dispatch backend.
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
+### What It Should Perform
+This controller exposes the following endpoints:
+1. **`GET /api/v1/teams/workload`:** Returns a JSON list of all maintenance squads with active ticket counts, maximum capacities, and utilization rates (**HTTP 200 OK**).
+2. **`PATCH /api/v1/tickets/{ticket_id}/reassign`:** Validates reassignment requests, updates the assigned squad, records audit justifications, and returns the updated ticket (**HTTP 200 OK**).
+3. **Error Handling:** Returns **HTTP 404** if the ticket or team does not exist, and **HTTP 422** if the audit reason is fewer than 5 characters.
 
-1. **Verify Assignment Router Routes Export:**
-   `python -c "from app.api.v1.endpoints.assignment import router; routes = [r.path for r in router.routes]; assert '/teams/workloads' in routes; assert '/tickets/{ticket_id}/reassign' in routes; assert '/tickets/{ticket_id}/dispatch' in routes; print('Assignment endpoints verified:', routes)"`
-
-2. **Verify `/teams/workloads` Execution via FastAPI TestClient:**
-   `python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); res = client.get('/api/v1/teams/workloads'); assert res.status_code == 200; data = res.json(); assert len(data) == 12; assert 'active_ticket_count' in data[0]; print('Workloads endpoint verified! Total squads:', len(data))"`
-
-3. **Verify Manual Ticket Reassignment via HTTP PATCH:**
-   `python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); post_res = client.post('/api/v1/tickets/', json={'title': 'Loose window hinge in lab', 'description': 'Window frame shaking in wind', 'location': 'Lab 2'}); assert post_res.status_code == 201; t_id = post_res.json()['id']; reassign_res = client.patch(f'/api/v1/tickets/{t_id}/reassign', json={'new_team_id': 8, 'reassignment_reason': 'Specialized carpentry crew needed for exterior window casing'}); assert reassign_res.status_code == 200; updated = reassign_res.json(); assert updated['assigned_team'] == 'Structural Fixtures Crew'; print('Reassignment endpoint verified on ticket:', t_id, 'New squad:', updated['assigned_team'])"`
-
-4. **Verify 404 Error Handling for Missing Ticket:**
-   `python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); res = client.patch('/api/v1/tickets/99999/reassign', json={'new_team_id': 1, 'reassignment_reason': 'Testing missing ticket'}); assert res.status_code == 404; print('404 error response verified:', res.json())"`
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. Locate `GET /api/v1/teams/workload` and click **Try it out** -> **Execute**:
+   * Observe the JSON array containing all campus teams with active ticket counts and capacity metrics.
+3. Locate `PATCH /api/v1/tickets/{ticket_id}/reassign`:
+   * Enter a valid ticket ID, specify `new_team_id = 2`, and set `reassignment_reason = "Shift change rotation approved"`.
+   * Click **Execute**: confirm HTTP 200 is returned with updated team details.

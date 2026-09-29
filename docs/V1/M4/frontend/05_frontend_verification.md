@@ -174,25 +174,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Troubleshooting Matrix
-
-Before considering Module M4 Frontend fully signed off, all 5 verification checkpoints must pass without a single failure.
-
-### Operational Sign-Off Checklist
-- [ ] Checkpoint 1 passes: API client methods fetch squad workloads and submit reassignments with zero uncaught errors.
-- [ ] Checkpoint 2 passes: Squad workload panel renders 12 cards with progress bars and interactive shift availability toggles.
-- [ ] Checkpoint 3 passes: Multi-tier filter bar slices complaint queues by department, priority, and text search.
-- [ ] Checkpoint 4 passes: Reassignment modal enforces 5-character reason validation and updates table rows smoothly.
-- [ ] Checkpoint 5 passes: Complete full-stack complaint flow verified from student submission to automated squad dispatch.
-
 ---
 
-### Frontend Troubleshooting Matrix
+## Section 6: Definition of Done & Live Website Verification
 
-| Issue Observed in Browser | Root Cause of Failure | Concrete Immediate Fix |
-| :--- | :--- | :--- |
-| `Failed to fetch / NetworkError` | FastAPI backend is not running or running on an unexpected port. | Boot the backend server: `uvicorn app.main:app --reload --port 8000`. |
-| `CORS error: No 'Access-Control-Allow-Origin' header` | Vite frontend port is not registered in backend CORS origins. | In `backend/app/main.py`, verify `allow_origins` includes `"http://localhost:5173"`. |
-| `TypeError: Cannot read properties of undefined (reading 'length')` | Telemetry or ticket state was initialized as `undefined` instead of `[]`. | Ensure `useState([])` is initialized with an empty array in `AdminDashboard.jsx`. |
-| `Modal does not close after submitting reassignment` | `onClose()` callback was not invoked inside the submission promise resolution block. | In `ReassignTeamModal.jsx`, ensure `onClose()` is called after `onReassigned(data)`. |
-| `Table row squad badge shows 'Unassigned'` | Target complaint was submitted when all squads were toggled off-duty. | Toggle the squad back to on-duty and click "Dispatch Now" on the row. |
+### What This File Is Responsible For
+This document is responsible for **governing the complete frontend verification and quality certification protocol for Module M4**. It coordinates testing across the Admin Operations Desk, the team workload panel, and the supervisory reassignment modal.
+
+### What It Should Perform
+When executing verification across the frontend, this protocol ensures:
+1. **Live Queue Synchronization:** Verifies that tickets and team workload bars update in real time following assignments and reassignments.
+2. **Audit Guard Integrity:** Validates that client-side forms strictly prevent empty or sub-5-character reassignment submissions.
+3. **Smooth Modal Interactions:** Confirms that modal overlays open, submit, and dismiss cleanly without layout shifts or console errors.
+
+### How to See It Performing Its Job on the Live Website
+1. Launch both dev servers: `npm run dev` and `uvicorn app.main:app --reload`.
+2. Open **`http://localhost:5173/admin`**:
+   * Confirm the dashboard renders the ticket queue and team workload panel without errors.
+   * Click **Reassign** on a ticket, select a new team, provide a valid reason, and submit.
+   * Verify that the ticket row assigned team updates immediately and the corresponding team workload bar increments.

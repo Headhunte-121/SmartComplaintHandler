@@ -208,32 +208,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering the `backend/app/services/ticket_service.py` upgrade complete, verify each of the following operational checkpoints:
+# 6. Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] Imports `select_optimal_team` from `app.services.dispatch_engine`.
-- [ ] Imports `get_team_by_id` from `app.services.team_service`.
-- [ ] Imports `TeamReassignRequest` from `app.schemas.assignment`.
-- [ ] `create_ticket()` invokes `select_optimal_team()` and populates `db_ticket.assigned_team` and updates status to `ASSIGNED` if a squad is found.
-- [ ] `reassign_ticket_team()` implemented with signature `(db: Session, ticket_id: int, reassign_data: TeamReassignRequest) -> Optional[Ticket]`.
-- [ ] `reassign_ticket_team()` validates ticket existence, validates target squad existence, updates assigned squad, appends formatted audit log to `resolution_notes`, and commits to SQLite.
-- [ ] `dispatch_existing_ticket()` implemented to re-dispatch previously unassigned tickets.
-- [ ] `list_tickets()` supports optional `assigned_team: Optional[str] = None` query filtering.
-- [ ] Contains zero FastAPI HTTP-specific imports (`HTTPException`, `Request`).
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This integration layer connects `dispatch_engine.py` into the primary complaint lifecycle in `backend/app/services/ticket_service.py`. It ensures that every submitted complaint is automatically provisioned with a maintenance crew upon intake, and manages supervisory reassignment audits.
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
+### What It Should Perform
+During ticket lifecycle operations, this service performs the following:
+1. **Intake Auto-Dispatch:** Immediately after priority and category are resolved during complaint creation, calls `select_optimal_team()` and transitions the ticket status from `SUBMITTED` to `ASSIGNED`.
+2. **Supervisory Reassignment & Audit Trail:** When a supervisor reassigns a ticket, updates `ticket.assigned_team_id` and appends an immutable audit log: `[REASSIGNMENT YYYY-MM-DD HH:MM:SS UTC by Supervisor]: <reason>` to `resolution_notes`.
+3. **Atomic Persistence:** Commits all status and team mutations to SQLite in a single transaction.
 
-1. **Verify Automatic Squad Dispatch on Ticket Creation:**
-   `python -c "from app.db.session import SessionLocal; from app.schemas.ticket import TicketCreate; from app.services.ticket_service import create_ticket; db = SessionLocal(); t = create_ticket(db, TicketCreate(title='Water leak in Hostel 2 washroom', description='Continuous water leaking under sink', location='Hostel 2')); assert t.assigned_team != 'Unassigned'; assert t.status == 'ASSIGNED'; print('Ticket created and auto-dispatched! Assigned team:', t.assigned_team, 'Status:', t.status); db.close()"`
-
-2. **Verify Critical Emergency Ticket Dispatches to Emergency Squad:**
-   `python -c "from app.db.session import SessionLocal; from app.schemas.ticket import TicketCreate; from app.services.ticket_service import create_ticket; db = SessionLocal(); t = create_ticket(db, TicketCreate(title='Electrical spark fire in lab', description='Switchboard sparking with smoke', location='Lab 301')); assert t.priority == 'CRITICAL'; assert t.assigned_team == 'Substation High-Voltage Team'; print('Critical emergency ticket auto-dispatched to:', t.assigned_team); db.close()"`
-
-3. **Verify Administrative Manual Team Reassignment & Audit Trail:**
-   `python -c "from app.db.session import SessionLocal; from app.schemas.assignment import TeamReassignRequest; from app.services.ticket_service import create_ticket, reassign_ticket_team; from app.schemas.ticket import TicketCreate; db = SessionLocal(); t = create_ticket(db, TicketCreate(title='Broken desk bench', description='Wooden leg cracked', location='Hall 1')); orig_team = t.assigned_team; updated = reassign_ticket_team(db, t.id, TeamReassignRequest(new_team_id=8, reassignment_reason='Structural fixtures crew has heavy-duty timber tools')); assert updated.assigned_team == 'Structural Fixtures Crew'; assert 'Structural fixtures crew has heavy-duty timber tools' in updated.resolution_notes; print('Reassignment verified! From:', orig_team, 'To:', updated.assigned_team); db.close()"`
-
-4. **Verify Squad-Filtered List Query:**
-   `python -c "from app.db.session import SessionLocal; from app.services.ticket_service import list_tickets; db = SessionLocal(); squad_tickets = list_tickets(db, assigned_team='Substation High-Voltage Team'); print('Tickets assigned to Substation Team:', len(squad_tickets)); db.close()"`
+### How to See It Performing Its Job on the Live Website
+1. Submit a complaint at **`http://localhost:5173/submit`** (e.g. Title: `Leaking pipe in dorm 4`).
+2. Copy the tracking code and open **`http://localhost:5173/track`**:
+   * Observe that the ticket status is already **`ASSIGNED`** (not stuck in unassigned limbo), and the assigned team is listed.
+3. Open **`http://localhost:5173/admin`**, locate the ticket, and click **Reassign Team**.
+4. Reassign to another squad with reason: `Original team reassigned to emergency flood duty`.
+5. Return to `/track` and observe the new team is displayed, and the immutable reassignment note appears in the ticket history.

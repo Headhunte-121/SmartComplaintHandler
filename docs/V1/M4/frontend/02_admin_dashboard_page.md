@@ -189,29 +189,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering `frontend/src/pages/AdminDashboard.jsx` complete, verify each of the following operational checkpoints:
+## Section 6: Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `frontend/src/pages/AdminDashboard.jsx`.
-- [ ] Fetches tickets on mount using `useEffect` and displays a loading indicator while pending.
-- [ ] Embeds `<TeamWorkloadView />` to display squad workload cards.
-- [ ] Implements multi-tier filter bar with department, priority, status, and search inputs.
-- [ ] Displays complaint table with columns for Code, Title, Location, Department, Priority, Assigned Squad, Status, and Actions.
-- [ ] Applies high-contrast styling to priority badges (`CRITICAL` has visible red styling).
-- [ ] Each row includes a "Reassign" button that launches `ReassignTeamModal`.
-- [ ] Unassigned tickets display a "Dispatch Now" button that calls `triggerTicketDispatch`.
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This React page component (`frontend/src/pages/AdminDashboard.jsx`) is responsible for **rendering the university central operations desk for campus facility supervisors**. It provides an operational overview of all active grievances, department queues, team workloads, and triage controls.
 
-### Browser Verification Procedure
+### What It Should Perform
+When rendered on screen, this dashboard performs the following functions:
+1. **Live Ticket Queue Table:** Displays complaints in an interactive table with tracking code, title, student location, assigned department, PriorityBadge, assigned team, and status.
+2. **Interactive Filtering:** Allows filtering by department, priority tier, or lifecycle status.
+3. **Supervisory Action Triggers:** Provides action buttons on each ticket row to trigger `PriorityOverrideModal.jsx` or `ReassignTeamModal.jsx`.
+4. **Side-by-Side Workload Telemetry:** Embeds `TeamWorkloadView.jsx` to give supervisors instant situational awareness of technician capacity.
 
-1. **Verify Dashboard Rendering & Queue Display:**
-   * Open the frontend application in your browser: `http://localhost:5173/admin`.
-   * Observe that the complaints table renders with ticket tracking codes, department pills, and priority badges.
-2. **Verify Priority Filtering:**
-   * Select `"CRITICAL"` in the priority filter dropdown.
-   * Observe that only critical emergency complaints remain visible in the table.
-3. **Verify Reassignment Modal Launch:**
-   * Click the "Reassign" button on any complaint row.
-   * Observe that the `ReassignTeamModal` dialog opens smoothly over the dashboard, populated with the selected ticket's details.
+### How to See It Performing Its Job on the Live Website
+1. Navigate to **`http://localhost:5173/admin`** in your browser.
+2. **Observe Operations Desk Live:**
+   * Notice the comprehensive table listing campus tickets with color-coded priority pills and status badges.
+   * Click the **Filter by Priority** dropdown and select `CRITICAL`: observe the table filter instantly to show only critical life-safety tickets.
+   * Notice the right-hand panel displaying live maintenance team workloads.
+3. Click the **Reassign** button on any row: observe the reassignment dialog open smoothly.

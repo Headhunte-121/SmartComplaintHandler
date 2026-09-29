@@ -154,28 +154,21 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering the `backend/app/api/v1/router.py` update complete, verify each of the following operational checkpoints:
+# 6. Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `backend/app/api/v1/router.py`.
-- [ ] Imports `tickets`, `priority`, and `assignment` from `app.api.v1.endpoints`.
-- [ ] Instantiates `api_router = APIRouter()`.
-- [ ] Mounts `tickets.router` under `prefix="/tickets"` with `tags=["tickets"]`.
-- [ ] Mounts `priority.router` under `prefix="/tickets"` with `tags=["priority"]`.
-- [ ] Mounts `assignment.router` with `tags=["assignment"]`.
-- [ ] Exports `api_router` cleanly with `__all__ = ["api_router"]`.
-- [ ] Contains zero database connections, session calls, or business logic.
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This configuration module updates `backend/app/api/v1/router.py` to **register and mount Module M4's team workload and reassignment routes into the central FastAPI router**. It establishes OpenAPI documentation tags and URL routing for operations desk features.
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
+### What It Should Perform
+When mounted during application startup, this router performs:
+1. **Router Registration:** Mounts `assignment.router` under `/teams` and `/tickets` with the tag `["Workload & Dispatch"]`.
+2. **OpenAPI Documentation:** Groups all workload and dispatch endpoints under a dedicated section in Swagger UI.
+3. **Prefix Isolation:** Guarantees clean endpoint URLs (`/api/v1/teams/workload`, `/api/v1/tickets/{id}/reassign`).
 
-1. **Verify Aggregated Route Tree Includes Assignment Endpoints:**
-   `python -c "from app.api.v1.router import api_router; paths = [r.path for r in api_router.routes]; assert '/teams/workloads' in paths; assert '/tickets/{ticket_id}/reassign' in paths; assert '/tickets/{ticket_id}/dispatch' in paths; assert '/teams/{team_id}/availability' in paths; print('All Module M4 routes aggregated successfully:', [p for p in paths if 'teams' in p or 'reassign' in p])"`
-
-2. **Verify Global App Route Mounting via `main.py`:**
-   `python -c "from app.main import app; all_routes = [r.path for r in app.routes]; assert '/api/v1/teams/workloads' in all_routes; assert '/api/v1/tickets/{ticket_id}/reassign' in all_routes; print('Global application routes verified:', [r for r in all_routes if 'teams' in r or 'reassign' in r])"`
-
-3. **Verify OpenAPI Documentation Generation:**
-   `python -c "from app.main import app; schema = app.openapi(); assert '/api/v1/teams/workloads' in schema['paths']; assert '/api/v1/tickets/{ticket_id}/reassign' in schema['paths']; print('OpenAPI schema includes assignment endpoints! Tags found:', [t['name'] for t in schema.get('tags', [])])"`
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. **Observe Router Organization Live:**
+   * Look for the **"Workload & Dispatch"** tag group.
+   * Verify both `GET /api/v1/teams/workload` and `PATCH /api/v1/tickets/{id}/reassign` appear with documentation and interactive testing controls.

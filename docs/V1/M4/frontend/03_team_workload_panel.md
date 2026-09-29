@@ -182,28 +182,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering `frontend/src/components/TeamWorkloadView.jsx` complete, verify each of the following operational checkpoints:
+## Section 6: Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `frontend/src/components/TeamWorkloadView.jsx`.
-- [ ] Fetches squad workloads on mount using `fetchSquadWorkloads`.
-- [ ] Renders a responsive grid of squad cards with names, departments, and active counts.
-- [ ] Displays color-coded progress bars matching `workload_status` (`LOW`, `NORMAL`, `HIGH`, `AT_CAPACITY`).
-- [ ] Each card includes an interactive toggle switch for shift availability.
-- [ ] Shift toggles execute optimistic updates with error rollback handling.
-- [ ] Off-duty squads render with distinct muted styling and an "Off-Duty" badge.
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This React component (`frontend/src/components/TeamWorkloadView.jsx`) is responsible for **visualizing technician team capacity, active ticket queues, and squad availability metrics**. It translates raw workload numbers into clear, color-coded capacity meters.
 
-### Browser Verification Procedure
+### What It Should Perform
+When rendered inside the dashboard, this component performs:
+1. **Dynamic Capacity Bars:** Renders visual progress bars indicating team queue saturation (green for $<60\%$, amber for $60-85\%$, red for $>85\%$).
+2. **Status Pill Indicators:** Displays squad availability pills (`Available`, `Busy`, `At Capacity`).
+3. **Real-Time Telemetry:** Updates reactively when tickets are assigned or reassigned without requiring a full page refresh.
 
-1. **Verify Workload Grid Rendering:**
-   * Open `http://localhost:5173/admin`.
-   * Observe that 12 squad cards appear in a clean grid at the top of the dashboard.
-2. **Verify Progress Bar Colors:**
-   * Verify that squads with 0-2 tickets display emerald green bars, and squads with higher loads display blue, yellow, or red bars.
-3. **Verify Shift Toggle Interaction:**
-   * Click the "On-Duty" switch on "Hostel Wiring Squad".
-   * Observe that the card immediately dims to an off-duty appearance, and the toggle flips to "Off-Duty".
-   * Check the Browser Network Tab: Verify that a `PATCH /api/v1/teams/1/availability` request was sent with `{"is_active": false}` returning HTTP 200.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/admin`** in your browser.
+2. Locate the **Team Workload Overview** card on the right-hand side.
+3. **Observe Workload Panel Live:**
+   * Review the team cards: notice each crew displays its name, parent department badge, and a visual workload progress bar.
+   * Observe how crews with 0 active tickets display green "Available" badges, while crews with heavier queues display higher percentage fills.

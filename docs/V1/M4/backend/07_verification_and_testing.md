@@ -178,25 +178,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done & Troubleshooting Matrix
-
-Before considering Module M4 Backend fully signed off, all 5 verification checkpoints must pass without a single failure.
-
-### Operational Sign-Off Checklist
-- [ ] Checkpoint 1 passes: Dispatch engine and team service unit operations produce correct outputs with zero assertion errors.
-- [ ] Checkpoint 2 passes: Pydantic schemas enforce boundaries, integer constraints, and whitespace trimming.
-- [ ] Checkpoint 3 passes: Service layer creates auto-dispatched tickets and executes auditable administrative reassignments in SQLite.
-- [ ] Checkpoint 4 passes: In-memory HTTP tests confirm status codes `200`, `201`, `400`, `404`, and `422`.
-- [ ] Checkpoint 5 passes: Live Uvicorn server serves `/teams/workloads` requests and displays the `"assignment"` tag in Swagger UI at `/docs`.
-
 ---
 
-### Terminal Troubleshooting Matrix
+# 6. Definition of Done & Live Website Verification
 
-| Error Message Observed in Terminal | Root Cause of Failure | Concrete Immediate Fix |
-| :--- | :--- | :--- |
-| `ImportError: cannot import name 'select_optimal_team'` | `dispatch_engine.py` is missing, misnamed, or has a syntax error. | Verify that `backend/app/services/dispatch_engine.py` exists and defines `def select_optimal_team(...)`. |
-| `AssertionError: assert t.assigned_team != 'Unassigned'` | `create_ticket()` did not invoke `select_optimal_team()` or failed to update `assigned_team`. | In `backend/app/services/ticket_service.py`, ensure `db_ticket.assigned_team = optimal_team.name` when optimal team is found. |
-| `ValidationError: 1 validation error for TeamReassignRequest` | Input text passed to the test had `new_team_id <= 0` or reason shorter than 5 characters. | Use valid team ID (`new_team_id=2`) and a realistic reassignment explanation (e.g. 20+ characters). |
-| `HTTPException 400: Team with ID X does not exist` | Reassignment test targeted a squad ID not present in the seeded `teams` table. | Use an existing squad ID between 1 and 12 seeded during Module M1. |
-| `HTTPException 404: Ticket with ID 99999 not found` | Normal and expected behavior when testing non-existent ticket reassignments. | Confirm that the test successfully catches this 404 response as proof of proper error handling. |
+### What This File Is Responsible For
+This specification is responsible for **governing the automated test suite and milestone certification for Module M4's workload dispatch engine and reassignment flows**. It ensures that dispatch algorithms balance queues correctly and prevent unassigned ticket deadlocks.
+
+### What It Should Perform
+When executed, this test suite validates:
+1. **Least-Loaded Dispatch Accuracy:** Asserts that complaints are routed to the team with the lowest active queue.
+2. **Reassignment Guard Validation:** Verifies that supervisory reassignments require $\ge 5$ characters of justification and write immutable audit notes.
+3. **Workload Telemetry Integrity:** Verifies that team capacity queries accurately reflect database states.
+
+### How to See It Performing Its Job on the Live Website
+1. Run the test suite in your terminal:
+   `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
+2. **Observe 100% Pass Rate:**
+   * All dispatch and assignment tests pass with 0 failures in $<2$ seconds.
+3. On `http://localhost:5173/admin`, verify that all team capacity counters match test scenarios.

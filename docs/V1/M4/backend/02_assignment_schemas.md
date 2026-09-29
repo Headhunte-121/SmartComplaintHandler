@@ -162,35 +162,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering `backend/app/schemas/assignment.py` complete, verify each of the following operational checkpoints:
+# 6. Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `backend/app/schemas/assignment.py`.
-- [ ] Imports `BaseModel`, `Field`, and `ConfigDict` from `pydantic`.
-- [ ] Defines `TeamReassignRequest` requiring `new_team_id` (`gt=0`) and `reassignment_reason` (length 5-500).
-- [ ] Defines `TeamWorkloadResponse` with `from_attributes=True` and non-negative `active_ticket_count`.
-- [ ] Defines `DispatchResult` containing `ticket_id`, `assigned_team`, `team_id`, `algorithm_used`, `queue_depth_at_assignment`, and `explanation`.
-- [ ] Defines `TeamAvailabilityUpdate` with `is_active: bool`.
-- [ ] File contains zero database imports or SQLAlchemy dependencies.
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This Python module (`backend/app/schemas/assignment.py`) is responsible for **enforcing Pydantic V2 validation contracts on technician assignment requests, supervisor reassignments, and team workload telemetry**. It guards data transfer boundaries for all Module M4 operations.
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
+### What It Should Perform
+When processing assignment payloads, this module validates:
+1. **Mandatory Audit Justification:** In `ReassignTeamRequest`, enforces `min_length=5` on `reassignment_reason`, strictly preventing unreasoned supervisory team reassignments.
+2. **Entity ID Validation:** Ensures `new_team_id` is a valid positive integer referencing an active maintenance team.
+3. **Workload Telemetry Serialization:** Serializes team metrics (`active_tickets`, `max_capacity`, `utilization_rate`) into `TeamWorkloadResponse` for frontend dashboard rendering.
 
-1. **Verify Valid `TeamReassignRequest` Instantiation:**
-   `python -c "from app.schemas.assignment import TeamReassignRequest; req = TeamReassignRequest(new_team_id=2, reassignment_reason='Specialized high voltage equipment needed'); assert req.new_team_id == 2; print('TeamReassignRequest verified!')"`
-
-2. **Verify Boundary Violation Detection (Must Catch Validation Error):**
-   `python -c "from app.schemas.assignment import TeamReassignRequest; from pydantic import ValidationError; has_err = False;
-try:
-    TeamReassignRequest(new_team_id=0, reassignment_reason='Bad')
-except ValidationError:
-    has_err = True
-assert has_err; print('TeamReassignRequest successfully caught boundary violations!')"`
-
-3. **Verify `TeamWorkloadResponse` Construction & Constraints:**
-   `python -c "from app.schemas.assignment import TeamWorkloadResponse; res = TeamWorkloadResponse(team_id=1, team_name='Hostel Wiring Squad', department_id=1, department_name='Electrical', is_active=True, active_ticket_count=3, workload_status='NORMAL'); assert res.active_ticket_count == 3; print('TeamWorkloadResponse verified!')"`
-
-4. **Verify `DispatchResult` Construction:**
-   `python -c "from app.schemas.assignment import DispatchResult; d = DispatchResult(ticket_id=10, assigned_team='Academic Electrical Crew', team_id=2, algorithm_used='LEAST_LOADED', queue_depth_at_assignment=1, explanation='Selected least-loaded active squad'); assert d.algorithm_used == 'LEAST_LOADED'; print('DispatchResult verified!')"`
+### How to See It Performing Its Job on the Live Website
+1. Open the interactive API documentation at **`http://localhost:8000/docs`**.
+2. Locate `PATCH /api/v1/tickets/{ticket_id}/reassign` and click **Try it out**.
+3. Enter a ticket ID, select a new team ID, and enter an invalid short reason:
+   `{"new_team_id": 2, "reassignment_reason": "ok"}`
+4. Click **Execute**:
+   * Observe the server reject the request with **HTTP 422 Unprocessable Entity**, highlighting that the reassignment reason must contain at least 5 characters.
+5. On the live website at `http://localhost:5173/admin`, click "Reassign Team" and type `Fix`: observe the modal submit button remains strictly disabled.

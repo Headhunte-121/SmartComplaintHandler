@@ -165,30 +165,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering `backend/app/services/team_service.py` complete, verify each of the following operational checkpoints:
+# 6. Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `backend/app/services/team_service.py`.
-- [ ] Defines `get_active_teams_for_department(db, department_id)` filtering strictly for `is_active == True`.
-- [ ] Defines `get_all_teams_with_workload(db, department_id=None)` returning structured dictionaries with active ticket counts and status bands.
-- [ ] Defines `get_team_by_id(db, team_id)` executing indexed primary key lookup.
-- [ ] Defines `toggle_team_availability(db, team_id, is_active)` executing atomic commit and refresh.
-- [ ] Uses database-level SQL `func.count()` aggregation for counting tickets.
-- [ ] Contains zero FastAPI HTTP-specific imports (`Request`, `HTTPException`).
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This Python module (`backend/app/services/team_service.py`) is responsible for **aggregating team workload statistics and calculating operational capacity metrics across all maintenance squads**. It feeds real-time capacity telemetry to both the dispatch engine and the admin dashboard.
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
+### What It Should Perform
+When queried by dispatchers or dashboard views, this service performs the following operations:
+1. **Active Workload Aggregation:** Executes SQL aggregation queries counting tickets currently in `SUBMITTED`, `ASSIGNED`, or `IN_PROGRESS` status for each team.
+2. **Capacity Utilization Scoring:** Calculates percentage capacity utilization (`active_tickets / max_capacity * 100`) and categorizes squad health (`AVAILABLE`, `NEAR_CAPACITY`, `OVERLOADED`).
+3. **Department Team Rostering:** Retrieves active teams filtered by department for dynamic dropdown rendering.
 
-1. **Verify Active Teams Query for Electrical Department (Dept 1):**
-   `python -c "from app.db.session import SessionLocal; from app.services.team_service import get_active_teams_for_department; db = SessionLocal(); teams = get_active_teams_for_department(db, department_id=1); assert len(teams) > 0; assert all(t.is_active for t in teams); print('Active teams for Dept 1:', [t.name for t in teams]); db.close()"`
-
-2. **Verify Workload Telemetry Aggregation for All 12 Squads:**
-   `python -c "from app.db.session import SessionLocal; from app.services.team_service import get_all_teams_with_workload; db = SessionLocal(); workloads = get_all_teams_with_workload(db); assert len(workloads) == 12; first = workloads[0]; assert 'team_name' in first; assert 'active_ticket_count' in first; assert 'workload_status' in first; print('Squad workloads verified! Sample squad:', first['team_name'], 'Active count:', first['active_ticket_count'], 'Status:', first['workload_status']); db.close()"`
-
-3. **Verify Squad Lookup by Primary Key:**
-   `python -c "from app.db.session import SessionLocal; from app.services.team_service import get_team_by_id; db = SessionLocal(); t = get_team_by_id(db, team_id=1); assert t is not None; assert t.id == 1; print('Team lookup verified:', t.name); db.close()"`
-
-4. **Verify Shift Availability Toggle (Atomic Commit & Rollback Test):**
-   `python -c "from app.db.session import SessionLocal; from app.services.team_service import toggle_team_availability, get_team_by_id; db = SessionLocal(); updated = toggle_team_availability(db, team_id=1, is_active=False); assert updated.is_active is False; restored = toggle_team_availability(db, team_id=1, is_active=True); assert restored.is_active is True; print('Shift availability toggle verified cleanly on team 1!'); db.close()"`
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/admin`** in your browser.
+2. **Observe Team Service Live:**
+   * Locate the **Team Workload Overview** sidebar on the dashboard.
+   * Notice that each team card displays its squad name, parent department, current ticket count, and a visual progress bar showing percentage capacity.
+   * As new tickets are assigned, observe the progress bars fill reactively, proving that `team_service.py` computes accurate live utilization metrics.

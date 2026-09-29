@@ -188,33 +188,29 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering `frontend/src/components/ReassignTeamModal.jsx` complete, verify each of the following operational checkpoints:
+## Section 6: Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `frontend/src/components/ReassignTeamModal.jsx`.
-- [ ] Accepts props: `ticket`, `isOpen`, `onClose`, and `onReassigned`.
-- [ ] Renders modal overlay with dimmed, blurred backdrop.
-- [ ] Displays complaint metadata: tracking code, title, priority, and current squad.
-- [ ] Renders target squad dropdown listing candidate squads for the complaint's department.
-- [ ] Includes controlled textarea for `reason` with dynamic character counter.
-- [ ] Disables "Confirm Reassignment" button if `reason.trim().length < 5` or no squad is selected.
-- [ ] Calls `reassignTicketTeam()` on submit and displays error alerts if the backend rejects the request.
-- [ ] Invokes `onReassigned()` and closes modal on success.
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This React component (`frontend/src/components/ReassignTeamModal.jsx`) is responsible for **providing an administrative interface to transfer tickets between maintenance teams**. It enforces institutional accountability by requiring supervisors to record an audit reason before moving any ticket.
 
-### Browser Verification Procedure
+### What It Should Perform
+When activated by a supervisor, this modal performs:
+1. **Context Display:** Opens over a dimmed backdrop showing ticket tracking code, complaint title, and currently assigned team.
+2. **Double Validation Guard:** Strictly disables the "Confirm Reassignment" button if the selected team is unchanged or if the reason contains fewer than 5 non-whitespace characters.
+3. **Reactive Character Counter:** Warns in amber when fewer than 5 characters are typed and shifts to green once the minimum requirement is satisfied.
+4. **Optimistic Parent Callback:** Closes cleanly and invokes `onReassigned(updatedTicket)` so the table row updates immediately with zero page reloads.
 
-1. **Verify Modal Launch & Context Display:**
-   * Open `http://localhost:5173/admin` and click "Reassign" on ticket `TICK-XXXX`.
-   * Observe that the modal opens cleanly, displaying the ticket tracking code and current squad.
-2. **Verify Disabled Submit Button:**
-   * Notice that the "Confirm Reassignment" button is initially disabled.
-   * Select a target squad from the dropdown; verify the button remains disabled because the reason is empty.
-3. **Verify Character Counter & Validation:**
-   * Type `"abc"` (3 characters) into the textarea. Notice the counter says `"3 / 500 characters (minimum 5 required)"` and button remains disabled.
-   * Type `"Transferred for urgent equipment check"` (37 characters). Observe that the button becomes active.
-4. **Verify Successful Reassignment Submission:**
-   * Click "Confirm Reassignment".
-   * Observe button displays a spinner, the modal closes, and the dashboard row updates with the new squad name.
+### How to See It Performing Its Job on the Live Website
+1. On **`http://localhost:5173/admin`**, click **Reassign** on any ticket in the table.
+2. **Observe Reassign Modal Live:**
+   * Modal opens displaying the ticket code and current team.
+   * Notice the **Confirm Reassignment** button is disabled by default.
+3. Select a different team from the dropdown. Notice the button remains disabled.
+4. In the reason textarea, type `busy` (only 4 chars):
+   * Notice the character counter alerts: `4/5 characters required (min 5)`.
+5. Finish typing: `Team Alpha busy on emergency power outage`.
+   * Notice the counter turns green and the button turns active blue.
+6. Click **Confirm Reassignment**:
+   * Observe the brief spinner, modal dismissal, and the ticket row assigned team immediately update to the new team.

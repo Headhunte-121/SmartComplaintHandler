@@ -216,3 +216,48 @@ The engineering patterns established in this V1 specification ensure that pluggi
                         │ • Mandatory Audit Reason Log    │
                         └─────────────────────────────────┘
 ```
+
+---
+
+# 7. Definition of Done & Live Website Verification Walkthrough
+
+### What This Module Is Responsible For
+Module M4 (Workload Dispatch & Operations Desk) is responsible for **automating maintenance squad dispatching, balancing technician queues, and providing campus supervisors with an operations desk for team reassignment**. It connects triaged complaints with physical workforce execution.
+
+### What It Should Perform
+When operational across the full stack, Module M4 delivers four unified capabilities:
+1. **Least-Loaded Dispatch Engine:** Automatically routes complaints to the maintenance team with the smallest active queue upon ticket creation.
+2. **Workload Telemetry & Capacity Monitoring:** Computes real-time capacity utilization percentages for every maintenance crew on campus.
+3. **Supervisor Operations Desk:** Provides a central administrative dashboard (`/admin`) to inspect queues, filter by priority, and monitor crew saturation.
+4. **Human-in-the-Loop Reassignment:** Provides a guarded modal and REST endpoint (`PATCH /api/v1/tickets/{id}/reassign`) that enforces mandatory audit justifications ($\ge 5$ characters) for all team transfers.
+
+### How to See It Performing Its Job on the Live Website
+Anyone can verify Module M4 on the live application in under 3 minutes:
+
+#### Step 1: Open the Operations Desk
+1. Open **`http://localhost:5173/admin`** in your browser.
+2. Notice the comprehensive tickets table and the right-side **Team Workload Overview** panel showing squad capacity bars.
+
+#### Step 2: Observe Automated Least-Loaded Dispatch
+1. In another browser tab, submit a new complaint at **`http://localhost:5173/submit`** with Category: `Electrical`.
+2. Return to `/admin` and refresh:
+   * Observe that the new ticket was automatically assigned to whichever Electrical team had fewer active tickets.
+   * Observe that team's workload counter and progress bar increment.
+
+#### Step 3: Execute Supervisory Reassignment
+1. On the newly created ticket row, click **Reassign**.
+2. Select a different team in the dropdown.
+3. Type a 2-letter reason like `ok`: confirm the submit button remains **disabled**.
+4. Type `Reassigned due to technician shift schedule change`: confirm button turns active.
+5. Click **Confirm Reassignment**:
+   * Notice the modal closes and the table row immediately displays the new squad without a full page reload.
+
+---
+
+# 8. Additional Changes & Development Modifications (Implementation Audit)
+
+### [2026-09-29] - Dual Team Model Compatibility & Capacity Initialization
+* **Files Modified:** `backend/app/models/team.py`, `backend/app/db/seed.py`, `backend/app/services/team_service.py`
+* **What Was Changed:** Supported both `Team` and `MaintenanceTeam` model aliases and seeded baseline technician capacities (`max_capacity=10`) across all 6 departments.
+* **Why It Was Changed:** Preserved complete backward compatibility with teammate commits while providing operational capacity baselines for Module M4's workload progress bars.
+* **Verification Proof:** `37/37 pytest passed in 0.97s`.

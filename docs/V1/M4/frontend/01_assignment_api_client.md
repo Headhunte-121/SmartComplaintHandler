@@ -161,25 +161,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering `frontend/src/api/assignment.js` complete, verify each of the following operational checkpoints:
+## Section 6: Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `frontend/src/api/assignment.js`.
-- [ ] Configures base URL using `import.meta.env.VITE_API_URL || '/api/v1'`.
-- [ ] Exports `fetchSquadWorkloads(departmentId)`.
-- [ ] Exports `reassignTicketTeam(ticketId, newTeamId, reassignmentReason)`.
-- [ ] Exports `triggerTicketDispatch(ticketId)`.
-- [ ] Exports `toggleSquadAvailability(teamId, isActive)`.
-- [ ] Inspects `response.ok` on all calls and extracts `data.detail` on errors.
-- [ ] Contains zero React hooks (`useState`, `useEffect`).
-- [ ] Contains zero triple-backtick code blocks.
+### What This File Is Responsible For
+This JavaScript module (`frontend/src/api/assignment.js`) is responsible for **managing network communication between the Admin Dashboard and backend dispatch endpoints**. It encapsulates API calls for fetching team workloads and executing supervisor reassignments.
 
-### Verification Procedure (Run in Web Browser Console or Node.js)
+### What It Should Perform
+When invoked by UI components, this client provides:
+1. **`fetchTeamWorkloads()`:** Calls `GET /api/v1/teams/workload` and returns structured team capacity and utilization arrays.
+2. **`reassignTicketTeam(ticketId, newTeamId, reason)`:** Dispatches `PATCH /api/v1/tickets/{ticketId}/reassign` with payload `{new_team_id, reassignment_reason}`, handling errors and unwrapping updated tickets.
+3. **Error Normalization:** Formats server validation rejections into user-friendly alerts.
 
-1. **Verify Module Exports & Network Call in Browser Developer Tools Console:**
-   * Open `http://localhost:8000/docs` or your Vite development server at `http://localhost:5173`.
-   * Open the Browser Developer Console (F12) and run:
-     `fetch('/api/v1/teams/workloads').then(r => r.json()).then(data => console.log('Workloads API check:', data.length, 'squads found'))`
-   * Observable Output: The console logs `Workloads API check: 12 squads found` with an array of 12 squad objects.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/admin`** and open the Developer Tools Console (`F12`).
+2. In the console, execute:
+   `import('/src/api/assignment.js').then(api => api.fetchTeamWorkloads()).then(console.log)`
+3. **Observe Client Live:**
+   * The console prints the array of maintenance teams with active ticket counts and remaining capacities.
+4. On the Network tab, execute a team reassignment and observe the clean `PATCH` request dispatched by this client.

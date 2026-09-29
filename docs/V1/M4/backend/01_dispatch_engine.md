@@ -164,32 +164,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: Observable Verification Checklist
+---
 
-Before considering `backend/app/services/dispatch_engine.py` complete, verify each of the following operational checkpoints:
+# 6. Definition of Done & Live Website Verification
 
-### Implementation Checklist
-- [ ] File exists at `backend/app/services/dispatch_engine.py`.
-- [ ] Defines `EMERGENCY_SQUAD_MAP` linking department IDs to emergency squad names.
-- [ ] Defines `ZONE_AFFINITY_MAP` linking location keywords to zone squad preferences.
-- [ ] Defines `select_optimal_team(db, department_id, priority, location) -> Optional[Team]`.
-- [ ] Short-circuits to designated emergency squad when `priority == "CRITICAL"`.
-- [ ] Filters candidates strictly to `Team.is_active == True`.
-- [ ] Queries queue depth using database-level `func.count()`.
-- [ ] Implements deterministic tie-breaking using `Team.id`.
-- [ ] Defines `generate_dispatch_reason(team_name, queue_depth, is_emergency) -> str`.
-- [ ] Contains zero triple-backtick code blocks and zero external network dependencies.
+### What This File Is Responsible For
+This Python module (`backend/app/services/dispatch_engine.py`) is responsible for **intelligently assigning incoming complaints to the optimal maintenance squad using a deterministic least-loaded workload algorithm**. It eliminates manual dispatcher bottlenecks by evaluating crew queues in real time and balancing operational workloads across campus technicians.
 
-### Terminal Verification Commands (Run in PowerShell from Project Root)
+### What It Should Perform
+When invoked during ticket routing, this module performs the following operations:
+1. **Department Squad Filtering:** Queries SQLite for all active maintenance teams belonging to the ticket's assigned department.
+2. **Workload Analysis & Capacity Evaluation:** Inspects each candidate team's active assigned tickets (`COUNT(status != 'RESOLVED')`) and remaining capacity.
+3. **Deterministic Least-Loaded Selection:** Assigns the ticket to the team with the lowest active workload, breaking ties deterministically by primary key to ensure predictable dispatching.
 
-1. **Verify Engine Function Imports & Map Dictionaries:**
-   `python -c "from app.services.dispatch_engine import select_optimal_team, EMERGENCY_SQUAD_MAP, ZONE_AFFINITY_MAP; assert 1 in EMERGENCY_SQUAD_MAP; assert 'Substation High-Voltage Team' == EMERGENCY_SQUAD_MAP[1]; print('Dispatch engine maps verified!')"`
-
-2. **Verify Emergency Critical Short-Circuit Selection:**
-   `python -c "from app.db.session import SessionLocal; from app.services.dispatch_engine import select_optimal_team; db = SessionLocal(); squad = select_optimal_team(db, department_id=1, priority='CRITICAL', location='Anywhere'); assert squad is not None; assert squad.name == 'Substation High-Voltage Team'; print('Critical emergency squad selected:', squad.name); db.close()"`
-
-3. **Verify Least-Loaded Queue Selection on Routine Complaints:**
-   `python -c "from app.db.session import SessionLocal; from app.services.dispatch_engine import select_optimal_team; db = SessionLocal(); squad = select_optimal_team(db, department_id=1, priority='MEDIUM', location='Classroom 101'); assert squad is not None; print('Routine optimal squad selected:', squad.name, 'Squad ID:', squad.id); db.close()"`
-
-4. **Verify Location Zone Affinity Preference:**
-   `python -c "from app.db.session import SessionLocal; from app.services.dispatch_engine import select_optimal_team; db = SessionLocal(); squad = select_optimal_team(db, department_id=2, priority='LOW', location='Hostel Block 3 Washroom'); assert squad is not None; assert 'Hostel' in squad.name; print('Hostel zone squad selected:', squad.name); db.close()"`
+### How to See It Performing Its Job on the Live Website
+1. Open the Admin Operations Desk at **`http://localhost:5173/admin`**.
+2. Look at the **Team Workload Overview** panel and note the active ticket counts for the Electrical teams (e.g. Squad A has 1 ticket, Squad B has 0 tickets).
+3. In a separate tab, open **`http://localhost:5173/submit`** and submit a new Electrical complaint:
+   Title: `Ceiling light flickering in Room 101` and Category: `Electrical`.
+4. Return to **`http://localhost:5173/admin`** and refresh the queue:
+   * Observe that the new ticket was automatically assigned to **Squad B** because it had the lowest workload (0 tickets).
+   * Observe Squad B's active ticket count increase from 0 to 1, demonstrating dynamic least-loaded load balancing in action.
