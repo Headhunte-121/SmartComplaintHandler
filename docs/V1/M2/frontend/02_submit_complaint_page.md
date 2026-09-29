@@ -158,47 +158,26 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/pages/SubmitComplaint.jsx` exists and is exported as default.
-* [ ] Renders Title, Description, Location inputs, Department Hint dropdown, and Submit button.
-* [ ] Controlled state binds all input values and updates smoothly on keystrokes.
-* [ ] Description field displays live character counter (`X / 1000 characters`).
-* [ ] Submitting empty fields highlights invalid inputs in red and renders inline error messages.
-* [ ] Submitting a valid form transitions button to loading state with spinner and text "Submitting Complaint...".
-* [ ] Submitting a valid form calls `submitComplaint()` and launches `<SubmissionSuccessModal />` with the returned tracking code.
-* [ ] Successful submission resets form fields to blank.
-* [ ] Network failures render a red dismissible alert banner without wiping out student-entered text.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This React page component (`frontend/src/pages/SubmitComplaint.jsx`) is responsible for **rendering the student grievance submission form and managing the intake user experience**. It captures complaint details, provides live validation, and coordinates with the live triage card.
 
-1. **Verify Live Form Validation in Browser:**
-   Navigate to `http://localhost:5173/`.
-   Click "Submit Complaint" immediately without entering data.
-   Verify that red borders appear on Title, Description, and Location fields, and inline error text appears under each.
+### What It Should Perform
+When rendered on screen, this page performs the following behaviors:
+1. **Controlled Input Management:** Manages state for complaint title, detailed description, department selector, and physical campus location.
+2. **Live Character Counters:** Displays dynamic character counters (e.g. `Title: 45/100`, `Description: 120/1000`) that warn if text is under the minimum length.
+3. **Integrated Triage Telemetry:** Embeds `LiveTriageCard.jsx` beneath form inputs, displaying real-time AI category and priority predictions as the student types.
+4. **Submission Feedback:** Disables the submit button and displays a spinning indicator while the network request is in-flight, opening `SubmissionSuccessModal.jsx` upon success.
 
-2. **Verify Character Counter:**
-   Click the Description textarea. Type "Short text".
-   Verify the counter displays "10 / 1000 characters". Type more text; verify counter increments.
-
-3. **Verify Successful Submission & Modal Trigger:**
-   Fill out:
-   - Title: "Broken Classroom Chair"
-   - Description: "The wooden chair in Seminar Hall 3 has a broken leg."
-   - Location: "Academic Block 1, Seminar Hall 3"
-   - Department: "Carpentry & Furniture"
-   Click "Submit Complaint".
-   Verify the button shows "Submitting Complaint..." spinner, followed by the appearance of the Success Modal displaying `TICK-XXXX`.
-   Verify the underlying form fields have reset to blank.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* Form submissions fail with HTTP 422 `field required` for `location`.
-     * *Cause:* Input name attribute is mismatched (e.g. `name="place"` instead of `name="location"`).
-     * *Fix:* Verify that the input element has `name="location"` and updates `formData.location`.
-   * *Problem:* Typing into inputs does not update the text on screen.
-     * *Cause:* `onChange` handler is missing or does not call `setFormData({ ...formData, [name]: value })`.
-     * *Fix:* Ensure the controlled `handleChange` function correctly spreads existing state and updates the named key.
-   * *Problem:* Modal does not open upon successful submission.
-     * *Cause:* `isSuccessModalOpen` state was not toggled to `true` in `handleSubmit` or modal component prop is named incorrectly.
-     * *Fix:* Check `setIsSuccessModalOpen(true)` is called inside the `try` block and verify `<SubmissionSuccessModal isOpen={isSuccessModalOpen} ... />`.
+### How to See It Performing Its Job on the Live Website
+1. Navigate to **`http://localhost:5173/submit`** (or click "Submit Complaint" in the navigation bar).
+2. **Observe Intake Page Live:**
+   * Type Title: `Broken staircase railing in Block A` and Description: `Metal handrail is detached and wobbling dangerously`.
+   * Notice character counters update reactively with every keystroke.
+   * Notice the Live Triage Card beneath the form updates to show category `Carpentry` or `Civil`.
+3. Click **Submit Complaint**:
+   * Observe the button briefly show `"Submitting..."` with a spinner.
+   * Observe the submission success modal appear immediately displaying the assigned tracking code.

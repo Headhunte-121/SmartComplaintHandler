@@ -208,13 +208,22 @@ If an error occurs during any verification checkpoint, inspect the bottom line o
 
 ---
 
-# 6. Milestone Sign-Off
+---
 
-Module M2 is 100% complete, hardened, and certified when all five checkpoints pass cleanly in sequence:
-1. Unit services (`code_generator` and `keyword_router`) pass isolated assertions.
-2. Pydantic schemas enforce boundaries and trim whitespace.
-3. The service layer executes atomic complaint creation, lookup, and status updates.
-4. Uvicorn boots cleanly with `/health` and `/docs` accessible in the browser.
-5. Live HTTP submissions auto-route to Electrical, Plumbing, and General Administration, while invalid payloads are rejected with HTTP 422.
+# 6. Definition of Done & Live Website Verification
 
-The backend ingestion and API transport layer is now officially certified and ready for Module M6 & M7 (React Frontend Portals).
+### What This File Is Responsible For
+This specification is responsible for **governing the automated test suite and milestone certification for Module M2's complaint ingestion pipeline**. It verifies that ticket creation, tracking code uniqueness, validation constraints, and retrieval routes function flawlessly.
+
+### What It Should Perform
+When executed, this test suite validates:
+1. **Ingestion & Code Generation:** Asserts that complaints submit successfully and receive unique tracking codes.
+2. **Tracking Lookup Integrity:** Asserts that tickets are retrievable by tracking code, returning accurate statuses and departments.
+3. **Validation & Error Handling:** Asserts that invalid payloads return HTTP 422 and non-existent codes return HTTP 404.
+
+### How to See It Performing Its Job on the Live Website
+1. Run the test suite in your terminal:
+   `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
+2. **Observe 100% Pass Rate:**
+   * All tests pass cleanly in $<2$ seconds.
+3. Open **`http://localhost:5173/`** and complete a live test: submit a complaint, verify tracking code in SQLite, and retrieve it on `/track`.

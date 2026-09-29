@@ -124,16 +124,22 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/api/v1/router.py`.
-2. **Router Aggregation:**
-   * `api_router = APIRouter()` is instantiated and exported.
-   * `tickets.router` is included with `prefix="/tickets"` and `tags=["tickets"]`.
-3. **Programmatic Verification:**
-   * Executing the following inline terminal command:
-     `python -c "from app.api.v1.router import api_router; paths = [r.path for r in api_router.routes]; assert any('/tickets' in p for p in paths); print('API Router Aggregator OK: Routes successfully mounted under /tickets')"`
-     succeeds cleanly, printing `API Router Aggregator OK: Routes successfully mounted under /tickets`.
+### What This File Is Responsible For
+This Python module (`backend/app/api/v1/router.py`) is responsible for **registering and mounting Module M2's ticket endpoints into the central FastAPI router hierarchy**. It establishes the route grouping, URL prefixing, and OpenAPI tags for the entire complaints API.
+
+### What It Should Perform
+When assembled during application boot, this router performs the following operations:
+1. **Route Aggregation:** Binds `complaints.router` under the path prefix `/tickets` with the tag `["Tickets & Complaints"]`.
+2. **Namespace Isolation:** Ensures all complaint endpoints reside consistently under `/api/v1/tickets` without interfering with other module endpoints.
+3. **Documentation Metadata:** Supplies descriptions and tag metadata to the automated OpenAPI/Swagger documentation.
+
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. **Observe Router Organization Live:**
+   * Notice the distinct section labeled **"Tickets & Complaints"**.
+   * Verify all Module M2 operations (`POST /api/v1/tickets`, `GET /api/v1/tickets/{tracking_code}`) are grouped under this single, organized header.
+   * Notice all URLs follow the uniform `/api/v1/tickets` pattern.

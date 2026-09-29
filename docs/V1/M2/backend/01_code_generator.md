@@ -139,18 +139,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The module exists precisely at `backend/app/services/code_generator.py`.
-2. **Alphabet Verification:**
-   * `ALPHABET` is defined as a string of exactly 32 characters, with `0`, `1`, `I`, and `O` excluded.
-3. **Function Signatures:**
-   * `generate_tracking_code(prefix="TICK-", length=4) -> str` is exported.
-   * `generate_unique_tracking_code(db: Session, prefix="TICK-", length=4, max_attempts=10) -> str` is exported.
-4. **Programmatic Verification:**
-   * Executing the inline terminal command:
-     `python -c "from app.services.code_generator import generate_tracking_code, ALPHABET; code = generate_tracking_code(); assert code.startswith('TICK-'); assert len(code) == 9; assert all(c in ALPHABET for c in code[5:]); print('Code Generator OK:', code)"`
-     succeeds cleanly, printing a valid tracking code (e.g. `Code Generator OK: TICK-8F2D`).
+### What This File Is Responsible For
+This Python module (`backend/app/utils/code_generator.py`) is responsible for **generating unique, human-readable, collision-resistant tracking codes for campus complaints**. It transforms raw database IDs into memorable strings formatted as `TICK-XXXX` (e.g. `TICK-8492`), allowing students and administrators to track grievances without exposing internal database keys.
+
+### What It Should Perform
+When invoked during ticket creation, this module performs the following operations:
+1. **CSPRNG Random Token Synthesis:** Generates high-entropy alphanumeric or numeric tokens using Python's `secrets` / `random` module to prevent sequential enumeration attacks.
+2. **Format Enforcement:** Formats the tracking code with a standardized prefix (`TICK-`) and uppercase characters.
+3. **Collision Checking:** Provides helper functions to query SQLite and verify uniqueness before the code is assigned to a new complaint record.
+
+### How to See It Performing Its Job on the Live Website
+1. Open the complaint form at **`http://localhost:5173/submit`**.
+2. Enter a Title: `Broken study table leg` and Description: `Wood cracked on table 14 in central reading room`.
+3. Click **Submit Complaint**:
+   * Observe the confirmation modal pop up displaying a unique tracking code (e.g. **`TICK-5921`**).
+4. Submit a second complaint immediately:
+   * Observe the modal display a completely different tracking code (e.g. **`TICK-7314`**), certifying that every ticket receives a distinct identifier.
+5. Search for either code at `http://localhost:5173/track` to confirm immediate database lookup.

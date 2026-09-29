@@ -149,43 +149,26 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/components/SubmissionSuccessModal.jsx` exists and is exported as default.
-* [ ] Returns `null` when `isOpen` is `false`.
-* [ ] When `isOpen` is `true`, renders blurred backdrop overlay and centered modal card.
-* [ ] Monospace tracking code (`TICK-XXXX`) renders prominently in the center of the dialog.
-* [ ] Clicking "Copy Tracking Code" copies the code to the OS clipboard and displays green checkmark icon with text "Copied to Clipboard!".
-* [ ] After 2.5 seconds, the copy button reverts to its original neutral state.
-* [ ] Clicking "Track Complaint Now" closes the modal and navigates to `/track?code=TICK-XXXX`.
-* [ ] Clicking the backdrop or pressing the keyboard `Escape` key closes the modal.
-* [ ] Clicking inside the modal card does NOT close the modal.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This React component (`frontend/src/components/SubmissionSuccessModal.jsx`) is responsible for **providing clear post-submission confirmation to students and presenting their assigned tracking code**. It ensures students retain their tracking code and understand how to follow up on their grievance.
 
-1. **Verify Modal Rendering via Submit Form:**
-   Navigate to `http://localhost:5173/`. Submit a valid complaint form.
-   Observe the modal appearance: verify backdrop blurs background content, green checkmark icon displays, and `TICK-XXXX` displays in large monospace font.
+### What It Should Perform
+When triggered after complaint submission, this modal performs the following visual behaviors:
+1. **Tracking Code Presentation:** Displays the assigned `TICK-XXXX` tracking code in a prominent, high-contrast monospace banner.
+2. **One-Click Clipboard Copy:** Features a "Copy Code" button that copies the tracking code to the user's clipboard and displays an instant "Copied!" confirmation badge.
+3. **Direct Navigation Shortcuts:** Provides a "Track This Complaint Now" button that routes directly to `/track?code=TICK-XXXX` and a "Submit Another" button to reset the form.
 
-2. **Verify Clipboard Copy Functionality:**
-   Click "Copy Tracking Code".
-   Verify the button turns green and displays "Copied to Clipboard!".
-   Open a text editor (Notepad) or browser address bar; press Ctrl+V (Paste).
-   Verify that the exact tracking code (`TICK-XXXX`) is pasted cleanly.
-
-3. **Verify Deep Link Navigation:**
-   Click "Track Complaint Now".
-   Verify the modal disappears and the browser URL changes to `http://localhost:5173/track?code=TICK-XXXX`.
-   Verify the tracking view loads the ticket details automatically.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* Clicking the copy button immediately closes the modal.
-     * *Cause:* `event.stopPropagation()` is missing from the modal card or copy button container.
-     * *Fix:* Ensure the inner modal card element has `onClick={e => e.stopPropagation()}`.
-   * *Problem:* Console throws error `TypeError: Cannot read properties of null (reading 'tracking_code')`.
-     * *Cause:* The modal rendered while `ticket` prop was null.
-     * *Fix:* Add a defensive guard at the top of the component: `if (!isOpen || !ticket) return null;`.
-   * *Problem:* Copying fails with `DOMException: Document is not focused`.
-     * *Cause:* Browser security restriction when window loses focus during automated tests.
-     * *Fix:* Ensure the fallback `execCommand('copy')` branch is implemented for non-HTTPS or headless contexts.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/submit`**, enter complaint details, and click **Submit Complaint**.
+2. **Observe Success Modal Live:**
+   * The modal animates smoothly into view over a dimmed background.
+   * Prominently displays the tracking code (e.g. `TICK-4829`).
+3. Click the **Copy Code** button:
+   * Observe the button text change to `"Copied!"` with a green checkmark icon.
+   * Open Notepad or any text box and press `Ctrl+V` to verify the code was copied accurately.
+4. Click **Track Complaint**:
+   * Observe the modal closes and the browser navigates to `http://localhost:5173/track?code=TICK-4829`, automatically displaying the ticket status.

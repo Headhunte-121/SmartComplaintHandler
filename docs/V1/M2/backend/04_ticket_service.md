@@ -169,18 +169,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/services/ticket_service.py`.
-2. **Function Exports:**
-   * All 4 core service functions (`create_ticket`, `get_ticket_by_code`, `list_tickets`, `update_ticket_status`) are defined and exported.
-3. **Integration & Transaction Integrity:**
-   * `create_ticket` properly combines code generation, keyword classification, and database persistence.
-   * `update_ticket_status` automatically sets `resolved_at` when status is updated to `"RESOLVED"`.
-4. **Programmatic Verification:**
-   * In an isolated terminal session, creating and querying a ticket through the service:
-     `python -c "from app.core.database import SessionLocal; from app.schemas.ticket import TicketCreate; from app.services.ticket_service import create_ticket, get_ticket_by_code; db = SessionLocal(); t = create_ticket(db, TicketCreate(title='Ceiling fan broken', description='Sparking wires in room 302', location='Room 302')); assert t.department_id == 1; found = get_ticket_by_code(db, t.tracking_code); assert found.id == t.id; db.delete(found); db.commit(); db.close(); print('Ticket Service OK: Create, Auto-Route, and Lookup Verified')"`
-     succeeds cleanly, printing `Ticket Service OK: Create, Auto-Route, and Lookup Verified`.
+### What This File Is Responsible For
+This Python module (`backend/app/services/ticket_service.py`) is responsible for **orchestrating the full grievance ticket lifecycle across database persistence, code generation, and triage integration**. It acts as the core business logic engine for creating, retrieving, and updating complaint tickets.
+
+### What It Should Perform
+When invoked by API controllers, this service performs the following operations:
+1. **End-to-End Ticket Ingestion:** Generates a unique tracking code, calls the routing engine to determine department, evaluates initial priority and SLA target dates, and commits the ticket to SQLite.
+2. **Tracking Code Lookup:** Retrieves ticket records by tracking code with joined department and team relationships, returning clean domain objects or `None` if not found.
+3. **Safe State Transitions:** Updates ticket statuses and appends immutable audit records into `resolution_notes`.
+
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/submit`** and submit a complaint: Title: `Projector screen torn in hall B`.
+2. Notice the tracking code received in the modal.
+3. Navigate to **`http://localhost:5173/track`**, enter the code, and click **Track Status**:
+   * Observe that the ticket is retrieved instantly from the database showing `Status: SUBMITTED` and the calculated priority.
+4. Now enter a fake tracking code like `TICK-0000`:
+   * Observe the system cleanly handles the lookup and displays a *"Ticket Not Found"* notification without crashing.

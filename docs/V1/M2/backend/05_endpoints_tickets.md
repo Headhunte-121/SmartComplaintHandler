@@ -183,21 +183,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/api/v1/endpoints/tickets.py`.
-2. **Endpoint Implementations:**
-   * `router = APIRouter()` is exported.
-   * `POST ""` is implemented with `status_code=201` and `response_model=TicketResponse`.
-   * `GET "/{tracking_code}"` is implemented with `response_model=TicketResponse` and 404 error handling.
-   * `GET ""` is implemented with `response_model=list[TicketResponse]`.
-   * `PATCH "/{ticket_id}/status"` is implemented with `response_model=TicketResponse` and 404 error handling.
-3. **Dependency Injection:**
-   * All four endpoints declare `db: Session = Depends(get_db)`.
-4. **Programmatic Verification:**
-   * Executing the following inline terminal command:
-     `python -c "from app.api.v1.endpoints.tickets import router; routes = [r.path for r in router.routes]; assert '' in routes or '/' in routes; assert '/{tracking_code}' in routes; assert '/{ticket_id}/status' in routes; print('Ticket Endpoints OK: All 4 Route Handlers Registered')"`
-     succeeds cleanly, printing `Ticket Endpoints OK: All 4 Route Handlers Registered`.
+### What This File Is Responsible For
+This Python module (`backend/app/api/v1/endpoints/complaints.py` / `endpoints/tickets.py`) is responsible for **exposing public HTTP REST endpoints for complaint creation and ticket status queries**. It receives JSON payloads from frontend clients and returns standardized responses with proper HTTP status codes.
+
+### What It Should Perform
+This controller provides the following endpoints:
+1. **`POST /api/v1/tickets`:** Ingests new complaints, validates request bodies against `TicketCreate`, calls the service layer, and returns the created ticket with **HTTP 201 Created**.
+2. **`GET /api/v1/tickets/{tracking_code}`:** Fetches real-time status and timeline for a given tracking code, returning **HTTP 200 OK** on success or **HTTP 404 Not Found** if the code does not exist.
+3. **`GET /api/v1/tickets`:** Lists complaints with optional filtering by department or status.
+
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. Locate `POST /api/v1/tickets` -> Click **Try it out** -> Click **Execute** with valid sample data.
+   * Observe the server return **HTTP 201 Created** with the assigned tracking code and timestamps.
+3. Locate `GET /api/v1/tickets/{tracking_code}` -> Paste the tracking code -> Click **Execute**.
+   * Observe the server return **HTTP 200 OK** with the complete ticket lifecycle status.
+4. On `http://localhost:5173/`, observe that the Submit and Track pages communicate directly through these endpoints.

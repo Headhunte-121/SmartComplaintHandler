@@ -168,45 +168,26 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/pages/TrackTicket.jsx` exists and is exported as default.
-* [ ] Search input binds to `searchCode` state and forces uppercase formatting.
-* [ ] Searching a valid tracking code displays the 3-step visual progress stepper and ticket overview card.
-* [ ] When ticket status is `SUBMITTED`, Node 1 is active, connecting bar is at 0%, and assigned team shows "Pending Squad Dispatch".
-* [ ] When ticket status is `IN_PROGRESS`, Node 2 is active with pulsing ring, connecting bar is at 50%, and assigned squad name is displayed.
-* [ ] When ticket status is `RESOLVED`, all 3 nodes display green checkmarks, connecting bar is at 100%, and Official Resolution Report card renders staff notes.
-* [ ] Searching an invalid code renders the amber "Complaint Not Found" card without crashing.
-* [ ] Navigating to `http://localhost:5173/track?code=TICK-XXXX` automatically executes the lookup on initial page load.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This React page component (`frontend/src/pages/TrackTicket.jsx`) is responsible for **allowing students and staff to look up real-time complaint status and view lifecycle progress**. It transforms raw ticket data into a transparent, visual progress timeline.
 
-1. **Verify Empty State Rendering:**
-   Navigate browser to `http://localhost:5173/track`.
-   Verify search bar renders and empty state card displays: "Track Your Campus Complaint".
+### What It Should Perform
+When rendered on screen, this page performs the following operations:
+1. **Search Input & URL Parameter Sync:** Allows users to type a tracking code or automatically reads `?code=TICK-XXXX` from the browser URL bar on page load.
+2. **Visual Lifecycle Step Indicator:** Renders a 4-stage horizontal progress bar (`Submitted` ➔ `Assigned` ➔ `In Progress` ➔ `Resolved`), highlighting completed stages in green/blue.
+3. **Comprehensive Ticket Telemetry:** Displays the complaint title, description, assigned department, PriorityBadge, submission date, and resolution notes.
+4. **Friendly Error States:** Displays an illustrative "Ticket Not Found" alert if an invalid code is searched.
 
-2. **Verify Ticket Lookup & Progress Stepper:**
-   Enter a known tracking code (e.g. generated from Submit Complaint page). Click "Track Status".
-   Verify the URL updates to `?code=TICK-XXXX`.
-   Verify the 3-step stepper displays with correct step highlighted.
-   Verify Complaint Title, Location, Priority Badge, and Timestamps are populated.
-
-3. **Verify Deep Linking via Address Bar:**
-   Open a new browser tab. Paste `http://localhost:5173/track?code=TICK-XXXX` directly into address bar. Press Enter.
-   Verify the page loads, automatically fills the input field, and renders the ticket details without requiring any clicks.
-
-4. **Verify Invalid Code Error Handling:**
-   Type `TICK-0000` into the search input. Click "Track Status".
-   Verify the amber alert card renders: "Complaint Not Found... We could not find any complaint matching code 'TICK-0000'".
-
-5. **Troubleshooting Matrix:**
-   * *Problem:* Deep link `?code=TICK-XXXX` does not trigger automatic lookup on page load.
-     * *Cause:* `useEffect` hook listening to `searchParams` is missing or lacks proper dependency array.
-     * *Fix:* Ensure `useEffect(() => { const code = searchParams.get('code'); if (code) executeLookup(code); }, [searchParams])` is implemented.
-   * *Problem:* Progress stepper stays stuck at Step 1 even when database status is `IN_PROGRESS`.
-     * *Cause:* Case-sensitivity mismatch (e.g. comparing `ticket.status === 'in_progress'` instead of `'IN_PROGRESS'`).
-     * *Fix:* Verify that status comparisons use exact uppercase strings matching database constants: `'SUBMITTED'`, `'IN_PROGRESS'`, `'RESOLVED'`.
-   * *Problem:* Timestamps display as `Invalid Date` or `NaN`.
-     * *Cause:* The ISO date string from FastAPI is undefined or malformed.
-     * *Fix:* Wrap date parsing in a helper function: `timestamp ? new Date(timestamp).toLocaleDateString(...) : 'N/A'`.
+### How to See It Performing Its Job on the Live Website
+1. Navigate to **`http://localhost:5173/track`** in your browser.
+2. Type a valid tracking code (e.g. `TICK-1001`) into the search bar and click **Track Status**:
+   * Observe the status card appear displaying the ticket title, department, priority badge, and current lifecycle step.
+3. Notice that the browser URL updates to `http://localhost:5173/track?code=TICK-1001`.
+4. Refresh the browser page (`F5`):
+   * Observe the page automatically re-fetches and displays the ticket from the URL parameter without requiring you to re-type the code.
+5. Type `TICK-INVALID`:
+   * Observe a clean alert stating *"No ticket found with tracking code TICK-INVALID"*.

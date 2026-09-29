@@ -160,20 +160,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/main.py`.
-2. **Server Boot Verification:**
-   * Running `uvicorn app.main:app --port 8000` starts cleanly without syntax or import errors.
-3. **CORS Configuration:**
-   * `CORSMiddleware` is registered with `allow_origins` including `http://localhost:5173`.
-4. **Router & Lifespan Integration:**
-   * `api_router` is mounted under `settings.API_V1_STR`.
-   * Lifespan executes `Base.metadata.create_all(bind=engine)`.
-5. **Programmatic Verification:**
-   * Executing the following inline terminal command:
-     `python -c "from app.main import app; routes = [r.path for r in app.routes]; assert '/health' in routes; assert any('/api/v1' in r for r in routes); print('Main App OK: FastAPI Application and Routers Loaded Successfully')"`
-     succeeds cleanly, printing `Main App OK: FastAPI Application and Routers Loaded Successfully`.
+### What This File Is Responsible For
+This Python module (`backend/app/main.py`) is responsible for **instantiating the core FastAPI application instance, configuring CORS origins, mounting routers, and managing the startup/shutdown lifecycle**. It is the central nervous system of the backend server.
+
+### What It Should Perform
+During application execution, this module performs the following operations:
+1. **CORS Security Middleware:** Configures `CORSMiddleware` to allow cross-origin requests from the React frontend (`http://localhost:5173`) with allowed methods, headers, and credentials.
+2. **Router Integration:** Mounts the centralized API router at the `/api/v1` prefix.
+3. **Database Bootstrap:** Triggers database table creation (`Base.metadata.create_all`) and automatic seeding upon server startup.
+4. **Health Check Route:** Exposes `GET /` returning system status.
+
+### How to See It Performing Its Job on the Live Website
+1. Start the server: `uvicorn app.main:app --port 8000 --reload`.
+2. Open **`http://localhost:8000/`** in your browser:
+   * Observe the JSON response: `{"message": "Smart Campus Complaint System API", "status": "online"}`.
+3. Open **`http://localhost:5173/`** in your browser and submit a complaint:
+   * Open DevTools Console (`F12`): confirm zero CORS cross-origin errors appear, proving `CORSMiddleware` is functioning properly.

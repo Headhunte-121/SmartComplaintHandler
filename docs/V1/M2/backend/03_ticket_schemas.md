@@ -173,19 +173,24 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/schemas/ticket.py`.
-2. **Schema Class Declarations:**
-   * `TicketBase`, `TicketCreate`, `TicketUpdate`, and `TicketResponse` are defined and exported.
-   * `TicketResponse` includes `model_config = ConfigDict(from_attributes=True)`.
-3. **Boundary & Validation Enforcement:**
-   * Creating a `TicketCreate` with a 4-character title raises a validation error.
-   * Creating a `TicketCreate` with trailing spaces automatically strips the whitespace.
-4. **Programmatic Verification:**
-   * Executing the following inline terminal verification command:
-     `python -c "from app.schemas.ticket import TicketCreate, TicketResponse; t = TicketCreate(title='  Valid Title  ', description='Valid description with enough characters', location='Room 101'); assert t.title == 'Valid Title'; print('Ticket Schemas OK: Validation and Trimming Verified')"`
-     succeeds cleanly, printing `Ticket Schemas OK: Validation and Trimming Verified`.
+### What This File Is Responsible For
+This Python module (`backend/app/schemas/ticket.py`, `schemas/complaint.py`) is responsible for **enforcing strict Pydantic V2 data validation contracts on all incoming complaint submissions and outgoing ticket responses**. It guards the API boundary against invalid data, missing fields, and injection attacks.
+
+### What It Should Perform
+When processing request payloads, this module performs the following validations:
+1. **String Boundary Validation:** Enforces minimum and maximum character limits (Title: 5–100 characters; Description: 10–1000 characters; Location: 2–100 characters).
+2. **Whitespace Stripping & Sanitization:** Trims leading and trailing whitespace to prevent empty strings from passing validation.
+3. **Structured Response Serialization:** Serializes database models into `TicketResponse` and `TicketStatusResponse` DTOs, including tracking code, status, priority, and timestamps.
+
+### How to See It Performing Its Job on the Live Website
+1. Open the interactive API documentation at **`http://localhost:8000/docs`**.
+2. Locate `POST /api/v1/tickets` and click **Try it out**.
+3. In the request body, enter an invalid title that is too short:
+   `{"title": "No", "description": "Too short", "location": "Room 1"}`
+4. Click **Execute**:
+   * Observe the server reject the payload with **HTTP 422 Unprocessable Entity**, highlighting that title must be at least 5 characters.
+5. On the live website at **`http://localhost:5173/submit`**, attempt to submit with 2 characters: observe the form display an immediate red validation warning preventing submission.

@@ -157,18 +157,25 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-# 6. Definition of Done: How to Verify This File Is Complete
+---
 
-This component is 100% complete and verified when:
+# 6. Definition of Done & Live Website Verification
 
-1. **File Existence:**
-   * The Python module exists precisely at `backend/app/services/keyword_router.py`.
-2. **Catalog Integrity:**
-   * `DEPARTMENT_KEYWORDS` contains valid keyword lists for department IDs 1 through 5.
-   * `DEFAULT_DEPARTMENT_ID` is defined as `6`.
-3. **Word-Boundary Matching:**
-   * The engine correctly classifies whole words and ignores partial substring collisions (e.g. ignores `"ac"` inside `"practice"`).
-4. **Programmatic Verification:**
-   * Executing the following inline terminal verification command:
-     `python -c "from app.services.keyword_router import classify_complaint; assert classify_complaint('Ceiling fan sparking', 'wire is loose')['department_id'] == 1; assert classify_complaint('Water pipe leak', 'tap broken')['department_id'] == 2; assert classify_complaint('Lost umbrella', 'left in cafeteria')['department_id'] == 6; print('Keyword Router OK: All 3 Tests Passed')"`
-     succeeds cleanly, printing `Keyword Router OK: All 3 Tests Passed`.
+### What This File Is Responsible For
+This Python module (`backend/app/services/keyword_router.py`) is responsible for **analyzing complaint narrative text and routing it to the appropriate campus department**. It scans title and description strings for facility-specific terms and determines the target maintenance crew when the student does not explicitly choose a department.
+
+### What It Should Perform
+When routing a complaint, this module performs the following operations:
+1. **Dictionary Token Matching:** Compares complaint tokens against departmental keyword catalogs (`Electrical`, `Plumbing`, `IT Support`, `Carpentry`, `Civil`).
+2. **Deterministic Fallback Routing:** If no domain-specific keywords are matched, safely defaults to the `Other` department to prevent unassigned or lost tickets.
+3. **Department ID Resolution:** Resolves the matched category name into an active database department foreign key.
+
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/submit`** in your browser.
+2. Enter Title: `Water overflowing from washroom sink` and Description: `Pipe joint broken and flooding floor`.
+3. In the Department selector, choose **"Auto-Detect"** (or leave it unselected).
+4. Click **Submit Complaint**:
+   * Copy the tracking code and open **`http://localhost:5173/track`**.
+   * Observe that the ticket is automatically assigned to **`Plumbing`**.
+5. Repeat with Title: `Ethernet cable socket dead in lab 3`:
+   * Observe the ticket is automatically routed to **`IT Support`**.

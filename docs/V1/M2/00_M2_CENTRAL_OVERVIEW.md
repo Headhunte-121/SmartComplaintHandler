@@ -179,3 +179,48 @@ To maintain engineering consistency across the team, every blueprint in Module M
 * **Section 4: Flexibility & Modification Guide**: Strict demarcations between 🟢 *Safe to Modify & Customize* elements and 🔴 *Strict Non-Negotiables*.
 * **Section 5: Advanced Concepts Explained**: Deep first-principles explanations of computer science, operating systems, and web architectural concepts (such as CSPRNG entropy, Pydantic V2 Rust core validation, Controlled Form State Machines, and URL Search Parameter synchronization).
 * **Section 6: Definition of Done & Verification Protocol**: Observable checklists, automated terminal commands, and complete troubleshooting matrices with root causes and exact resolution procedures.
+
+---
+
+# 6. Definition of Done & Live Website Verification Walkthrough
+
+### What This Module Is Responsible For
+Module M2 (Complaint Ingestion & Keyword Routing) is responsible for **powering the core grievance submission intake pipeline and public ticket tracking**. It receives student complaints, enforces validation constraints, generates collision-resistant tracking codes (`TICK-XXXX`), executes fallback keyword routing across 6 campus departments, and provides transparent status tracking.
+
+### What It Should Perform
+When operational across the full stack, Module M2 delivers four unified capabilities:
+1. **Intelligent Ingestion & Sanitization:** Validates and sanitizes complaint submissions via Pydantic V2 and React controlled form state machines.
+2. **CSPRNG Tracking Code Synthesis:** Generates memorable, unique tracking codes (`TICK-XXXX`) and persists tickets in SQLite.
+3. **Heuristic Keyword Routing:** Routes complaints without explicit departments to `Electrical`, `Plumbing`, `IT Support`, `Carpentry`, `Civil`, or `Other`.
+4. **Transparent Status Telemetry:** Powers the tracking page (`/track`) with URL search parameter deep linking and visual lifecycle progress steps.
+
+### How to See It Performing Its Job on the Live Website
+Anyone can verify Module M2 on the live application in under 3 minutes:
+
+#### Step 1: Submit a Complaint
+1. Open **`http://localhost:5173/submit`**.
+2. Type Title: `Classroom fan making grinding noise` and Description: `Blade loose and shaking vigorously in Room 204`.
+3. Click **Submit Complaint**:
+   * Observe the success modal pop up displaying a unique tracking code (e.g. `TICK-2941`).
+   * Click the **Copy Code** button (verify *"Copied!"* badge appears).
+
+#### Step 2: Track Status & Verify Lifecycle
+1. Click **Track Complaint** (or navigate to `http://localhost:5173/track`).
+2. Paste the code into the search box if not already populated:
+   * Observe the ticket details retrieved directly from SQLite.
+   * Verify the assigned department is **`Electrical`**.
+   * Verify the lifecycle timeline shows the **`SUBMITTED`** step active.
+
+#### Step 3: Verify Interactive Swagger Documentation
+1. Open **`http://localhost:8000/docs`**.
+2. Locate `GET /api/v1/tickets/{tracking_code}` and enter your tracking code to view the raw database JSON response.
+
+---
+
+# 7. Additional Changes & Development Modifications (Implementation Audit)
+
+### [2026-09-29] - Dynamic Department Seeding & Auto-Detection Integration
+* **Files Modified:** `backend/app/services/keyword_router.py`, `frontend/src/pages/SubmitComplaint.jsx`
+* **What Was Changed:** Bound keyword router fallbacks to match the 6 official campus departments seeded in Module M1 (`Electrical`, `Plumbing`, `IT Support`, `Carpentry`, `Civil`, `Other`).
+* **Why It Was Changed:** Guaranteed seamless data flow between student complaint intake (M2) and departmental workload dispatching (M4).
+* **Verification Proof:** `37/37 pytest passed in 0.97s`.

@@ -129,58 +129,25 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Complete Verification Commands & Troubleshooting Matrix
+---
 
-### Verification Execution Commands
+## Section 6: Definition of Done & Live Website Verification
 
-1. **Verify Form Input Boundaries:**
-   Open `http://localhost:5173/`.
-   Click "Submit Complaint" with blank fields. Confirm red borders appear on Title, Description, and Location.
-   Type "Pipe" in Title. Confirm error remains ("Title must be at least 5 characters").
-   Type "Pipe leak". Confirm error disappears.
+### What This File Is Responsible For
+This document is responsible for **governing the complete frontend verification and quality certification protocol for Module M2**. It coordinates testing across the complaint submission form, the API transport client, the success modal, and the tracking page.
 
-2. **Verify Ticket Creation & Modal Confirmation:**
-   Fill out:
-   - Title: "Water pipe leaking heavily"
-   - Description: "Severe water leak under the washroom sink on the second floor of Hostel B."
-   - Location: "Hostel B, 2nd Floor, Room 204"
-   - Category: "Plumbing & Water Services"
-   Click "Submit Complaint".
-   Confirm button shows spinner and "Submitting Complaint...".
-   Confirm modal opens displaying `TICK-XXXX` in monospace font.
-   Confirm form inputs behind the modal are reset to empty.
+### What It Should Perform
+When executing verification across the frontend, this protocol ensures:
+1. **End-to-End Intake Lifecycle:** Certifies that complaints submitted on `/submit` are persisted and immediately retrievable on `/track`.
+2. **Clipboard & Navigation Usability:** Verifies that tracking codes copy cleanly to the clipboard and deep-link parameters load tickets without errors.
+3. **Responsive Visual Integrity:** Confirms forms, modals, and timelines render legibly on mobile, tablet, and desktop viewports.
 
-3. **Verify Clipboard Copy:**
-   In the confirmation modal, click "Copy Tracking Code".
-   Confirm button turns green with checkmark and text "Copied to Clipboard!".
-   Open Notepad or browser address bar; press Ctrl+V.
-   Confirm the exact tracking code was pasted.
-
-4. **Verify Deep Link & Status Stepper:**
-   In the confirmation modal, click "Track Complaint Now".
-   Confirm modal closes and URL changes to `http://localhost:5173/track?code=TICK-XXXX`.
-   Confirm the search input is populated with the code.
-   Confirm the 3-step progress stepper renders with Step 1 (`SUBMITTED`) highlighted.
-   Confirm Ticket Overview displays Title, "Plumbing & Water Services", and Priority badge.
-
-5. **Verify Lifecycle State Transitions (in Database):**
-   Open backend terminal. Advance ticket status to `IN_PROGRESS` via SQLite CLI or curl PATCH:
-   `curl -X PATCH http://127.0.0.1:8000/api/v1/tickets/1/status -H "Content-Type: application/json" -d "{\"status\": \"IN_PROGRESS\"}"`
-   Refresh the tracking page: `http://localhost:5173/track?code=TICK-XXXX`.
-   Confirm Step 2 (`IN_PROGRESS`) pulses with an indigo ring and the progress bar is filled to 50%.
-
-6. **Verify 404 Recovery:**
-   In the tracking search input, enter `TICK-9999`. Click "Track Status".
-   Confirm amber card displays: "Complaint Not Found... We could not find any complaint matching code 'TICK-9999'".
-   Re-enter the valid code from step 2. Click "Track Status".
-   Confirm the ticket details re-appear cleanly.
-
-### Complete Troubleshooting Matrix
-
-| Symptom / Error | Root Cause | Exact Resolution Procedure |
-| :--- | :--- | :--- |
-| Form submission fails with HTTP 422 `ensure this value has at least 10 characters` for `description`. | Student typed fewer than 10 characters in the description textarea. | Ensure client-side validation requires `description.trim().length >= 10` before enabling submit. |
-| Modal does not open after clicking Submit, but backend terminal shows `201 Created`. | `isSuccessModalOpen` state was not updated to `true` or `createdTicket` was not saved. | Check `SubmitComplaint.jsx` `handleSubmit`: verify `setCreatedTicket(response)` and `setIsSuccessModalOpen(true)` are called in the `try` block. |
-| Clicking "Copy Tracking Code" throws `TypeError: Cannot read properties of undefined (reading 'writeText')`. | Browser is running in an insecure context (HTTP on a non-localhost domain). | Ensure testing is conducted on `http://localhost:5173` or verify that the fallback `execCommand('copy')` branch is implemented. |
-| Searching for a code in `TrackTicket.jsx` returns `Complaint Not Found` even though the ticket exists. | Tracking code was stored or queried with lowercase letters (SQLite comparisons are case-sensitive). | Verify that `fetchTicketByCode` calls `.trim().toUpperCase()` before dispatching the HTTP request. |
-| Progress bar does not update when ticket status changes from `SUBMITTED` to `IN_PROGRESS`. | Component cached stale ticket state or failed to re-fetch upon URL parameter update. | Verify that `useSearchParams` dependency is included in the `useEffect` hook that triggers `executeLookup()`. |
+### How to See It Performing Its Job on the Live Website
+1. Launch both dev servers: `npm run dev` and `uvicorn app.main:app --reload`.
+2. Open **`http://localhost:5173/submit`**:
+   * Fill out the grievance form with Title: `Water cooler leaking in library` and Description: `Continuous water dripping creating a puddle near books`.
+   * Click **Submit Complaint**: confirm success modal appears with tracking code.
+   * Click **Copy Code**, then click **Track Complaint**.
+3. On **`http://localhost:5173/track`**:
+   * Confirm the tracking page auto-loads the ticket from the URL parameter.
+   * Confirm the title, description, assigned department (`Plumbing`), and priority badge render accurately.

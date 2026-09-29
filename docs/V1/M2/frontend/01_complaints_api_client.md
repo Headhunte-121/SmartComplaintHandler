@@ -125,40 +125,23 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
-## Section 6: Definition of Done & Verification Protocol
+---
 
-### Observable Verification Checklist
-* [ ] `src/api/complaints.js` exists and exports `submitComplaint`, `fetchTicketByCode`, and `fetchRecentTickets`.
-* [ ] `submitComplaint` validates inputs, strips whitespace, and calls `apiClient.post('/tickets', payload)`.
-* [ ] `fetchTicketByCode` trims whitespace, converts code to uppercase, applies `encodeURIComponent()`, and forwards `options.signal`.
-* [ ] `fetchTicketByCode` normalizes 404 responses into structured error objects with `isNotFound = true`.
-* [ ] `fetchRecentTickets` supports optional query parameters (`department_id`, `status`, `limit`).
-* [ ] Submitting a valid ticket through this client returns a 201 response with a populated `tracking_code`.
+## Section 6: Definition of Done & Live Website Verification
 
-### Verification Commands & Troubleshooting Matrix
+### What This File Is Responsible For
+This JavaScript module (`frontend/src/api/complaints.js`) is responsible for **managing network communication between React complaint forms and the backend ticket endpoints**. It serializes form data, invokes the base HTTP client, and unwraps response objects for UI consumption.
 
-1. **Verify Complaint Submission in Browser Console:**
-   Open browser Developer Tools (F12) on `http://localhost:5173/`. Paste into console:
-   `import('./src/api/complaints.js').then(m => m.submitComplaint({ title: 'Broken Water Pipe', description: 'Major water leakage in Hostel A bathroom', location: 'Hostel A Room 102' }).then(t => console.log('Created Ticket:', t)));`
-   Expected console output: `Created Ticket: { id: ..., tracking_code: 'TICK-XXXX', status: 'SUBMITTED', ... }`.
+### What It Should Perform
+When invoked by UI components, this client provides the following methods:
+1. **`submitComplaint(formData)`:** Dispatches `POST /api/v1/tickets` with title, description, department, and location, returning the created ticket object.
+2. **`fetchTicketStatus(trackingCode)`:** Dispatches `GET /api/v1/tickets/{trackingCode}`, returning ticket telemetry and handling 404 errors gracefully.
+3. **Error Normalization:** Converts network exceptions and backend validation errors into clear, actionable error messages for display in form banners.
 
-2. **Verify Tracking Code Lookup (with Lowercase Input):**
-   Using the code generated from step 1, paste into console:
-   `import('./src/api/complaints.js').then(m => m.fetchTicketByCode('tick-xxxx').then(t => console.log('Fetched Ticket:', t)));`
-   Expected console output: `Fetched Ticket: { tracking_code: 'TICK-XXXX', ... }` (confirms uppercase auto-normalization).
-
-3. **Verify 404 Not Found Normalization:**
-   Paste into console:
-   `import('./src/api/complaints.js').then(m => m.fetchTicketByCode('TICK-0000').catch(e => console.log('Not Found Caught:', e.message, e.isNotFound)));`
-   Expected console output: `Not Found Caught: Complaint with tracking code TICK-0000 was not found... true`.
-
-4. **Troubleshooting Matrix:**
-   * *Problem:* `submitComplaint` fails with `TypeError: Cannot read properties of undefined (reading 'post')`.
-     * *Cause:* `apiClient` was not properly exported from `src/api/client.js` or import path is incorrect.
-     * *Fix:* Check `src/api/client.js` exports `apiClient` and verify import statement `import { apiClient } from './client'`.
-   * *Problem:* Submitting a ticket returns HTTP 422 with `title: ensure this value has at least 5 characters`.
-     * *Cause:* Title passed to `submitComplaint` has fewer than 5 non-whitespace characters.
-     * *Fix:* Ensure the form requires at least 5 characters in the title field before enabling the submit button.
-   * *Problem:* Searching for a ticket throws `DOMException: The user aborted a request`.
-     * *Cause:* An `AbortController` was aborted intentionally, but the caller component did not catch and ignore `name === 'AbortError'`.
-     * *Fix:* In the caller component's catch block, add `if (error.name === 'AbortError') return;`.
+### How to See It Performing Its Job on the Live Website
+1. Open **`http://localhost:5173/`** and press `F12` to open the Console tab.
+2. In the console, execute:
+   `import('/src/api/complaints.js').then(api => api.fetchTicketStatus('TICK-1001')).then(console.log)`
+3. **Observe Client Live:**
+   * The console prints the ticket object directly with its tracking code, title, and current status.
+4. In the Network tab, submit a new complaint and observe the clean HTTP `POST /api/v1/tickets` payload dispatched by this client.
