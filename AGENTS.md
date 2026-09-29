@@ -51,23 +51,202 @@ Every file's testing/verification section (Section 6 or Section 7) **MUST** stri
 
 ---
 
-## 3. Strict Git & Repository Collaboration Rules
+## 3. Module-Isolated Git Milestone Sync Protocol (Pull, Stage, Verify & Push)
 
-### 🔴 STRICT NON-NEGOTIABLE: DO NOT PUSH TO GITHUB UNLESS EXPLICITLY DIRECTED
-* **NEVER run `git push`** (`git push origin develop`, `git push origin main`, etc.) unless the user explicitly gives you the command in chat (e.g., *"push to develop"* or *"push our changes"*).
-* Keep all commits, branches, and merges strictly **local** on the developer's workstation.
-* When instructed to commit, use clean conventional commits:
-  ```bash
-  git add <specific-files>
-  git commit -m "feat(M3): add debounced live triage preview card"
-  ```
+To prevent team merge disasters, cross-contamination, and accidental overwrites in multi-developer environments, agents and developers must adhere to this strict git synchronization protocol whenever a **major milestone** is reached (e.g. multiple related files in a module are completed).
 
-### 🟢 Merging Teammate Changes & Conflict Resolution
-* When syncing with remote updates from teammates, use non-rebase merges:
-  ```powershell
-  git pull --no-rebase origin develop
-  ```
-* **Preserve Teammate Code via Backward Compatibility:** If a teammate's commit modifies function names, model names, or seed functions (e.g., `seed_database(db)` vs `seed_data()`, or `Team` vs `MaintenanceTeam`), **do not overwrite or delete their code**. Provide an alias or support both signatures so both modules continue running smoothly.
+---
+
+### The Golden Rule: Module Isolation
+> [!IMPORTANT]
+> **NEVER run `git add .` or `git add -A`.**  
+> Blind staging picks up other teammates' in-progress work, local database files (`smart_complaints.db`), temporary scratch files, and files belonging to other modules.  
+> **You must ONLY stage and push the specific files assigned to your module.**
+
+---
+
+### Step-by-Step Multi-File Milestone Sync Workflow
+
+```
+[ DEVELOPER COMPLETES MULTIPLE FILES IN ASSIGNED MODULE ]
+                          │
+                          ▼
+            STEP 1: Run Local Tests
+            .\backend\venv\Scripts\python.exe -m pytest backend/tests -v
+            npm run build (in frontend/)
+                          │
+                          ▼
+            STEP 2: Pull Latest Team Code (Safe Merge)
+            git pull --no-rebase origin develop
+                          │
+                          ▼
+            STEP 3: Reconcile Conflicts with Compatibility Aliases
+            (Never delete or break teammate functions/models)
+                          │
+                          ▼
+            STEP 4: Selectively Stage ONLY Your Assigned Module Files
+            git add docs/V1/M<N>/ backend/app/... frontend/src/...
+                          │
+                          ▼
+            STEP 5: Commit with Conventional Message
+            git commit -m "feat(M<N>): <milestone summary>"
+                          │
+                          ▼
+            STEP 6: Re-Verify Test Suite (Quality Gate)
+            .\backend\venv\Scripts\python.exe -m pytest backend/tests -v
+                          │
+                          ▼
+            STEP 7: Push Assigned Module to GitHub
+            git push origin develop
+```
+
+---
+
+### Per-Module File Ownership & Exact Staging Commands
+
+Whenever multiple files in a module are finished, copy and run the exact isolated command for that module:
+
+#### 🔷 Module M1: Data Layer, Core Models & Application Shell
+```powershell
+# 1. Pull latest
+git pull origin develop --no-rebase
+
+# 2. Stage ONLY M1 files (docs, backend models/core, frontend shell)
+git add docs/V1/M1/ `
+        backend/app/core/config.py `
+        backend/app/core/database.py `
+        backend/app/db/base.py `
+        backend/app/db/seed.py `
+        backend/app/models/base.py `
+        backend/app/models/department.py `
+        backend/app/models/team.py `
+        backend/app/models/ticket.py `
+        backend/app/models/__init__.py `
+        backend/app/api/deps.py `
+        frontend/vite.config.js `
+        frontend/tailwind.config.js `
+        frontend/src/api/client.js `
+        frontend/src/components/Layout.jsx `
+        frontend/src/components/Navbar.jsx `
+        frontend/src/components/Footer.jsx `
+        frontend/src/router/AppRouter.jsx
+
+# 3. Commit, re-test, and push
+git commit -m "feat(M1): complete core data models and application shell"
+.\backend\venv\Scripts\python.exe -m pytest backend/tests -q
+git push origin develop
+```
+
+#### 🔷 Module M2: Complaint Ingestion & Keyword Routing
+```powershell
+# 1. Pull latest
+git pull origin develop --no-rebase
+
+# 2. Stage ONLY M2 files (docs, code generator, intake schemas/routes, submission UI)
+git add docs/V1/M2/ `
+        backend/app/utils/code_generator.py `
+        backend/app/services/keyword_router.py `
+        backend/app/schemas/ticket.py `
+        backend/app/schemas/complaint.py `
+        backend/app/services/ticket_service.py `
+        backend/app/api/v1/endpoints/complaints.py `
+        backend/app/api/v1/router.py `
+        frontend/src/api/complaints.js `
+        frontend/src/pages/SubmitComplaint.jsx `
+        frontend/src/components/SubmissionSuccessModal.jsx `
+        frontend/src/pages/TrackTicket.jsx
+
+# 3. Commit, re-test, and push
+git commit -m "feat(M2): complete complaint ingestion and keyword routing"
+.\backend\venv\Scripts\python.exe -m pytest backend/tests -q
+git push origin develop
+```
+
+#### 🔷 Module M3: Priority Triage, Classifier Engine & Safety Watchdog
+```powershell
+# 1. Pull latest
+git pull origin develop --no-rebase
+
+# 2. Stage ONLY M3 files (docs, triage engines, priority schemas/endpoints, triage UI)
+git add docs/V1/M3/ `
+        backend/app/services/priority_engine.py `
+        backend/app/services/classifier.py `
+        backend/app/schemas/priority.py `
+        backend/app/api/v1/endpoints/priority.py `
+        backend/app/services/ticket_service.py `
+        backend/app/api/v1/router.py `
+        backend/tests/test_m3_triage.py `
+        frontend/src/api/triage.js `
+        frontend/src/components/PriorityBadge.jsx `
+        frontend/src/components/LiveTriageCard.jsx `
+        frontend/src/components/PriorityOverrideModal.jsx
+
+# 3. Commit, re-test, and push
+git commit -m "feat(M3): complete priority triage engine and supervisor override"
+.\backend\venv\Scripts\python.exe -m pytest backend/tests -q
+git push origin develop
+```
+
+#### 🔷 Module M4: Workload Dispatch & Operations Desk
+```powershell
+# 1. Pull latest
+git pull origin develop --no-rebase
+
+# 2. Stage ONLY M4 files (docs, dispatch engine, assignment schemas/endpoints, queue UI)
+git add docs/V1/M4/ `
+        backend/app/services/dispatch_engine.py `
+        backend/app/schemas/assignment.py `
+        backend/app/services/team_service.py `
+        backend/app/services/ticket_service.py `
+        backend/app/api/v1/endpoints/assignment.py `
+        backend/app/api/v1/router.py `
+        backend/tests/test_m4_dispatch_engine.py `
+        frontend/src/api/assignment.js `
+        frontend/src/pages/AdminDashboard.jsx `
+        frontend/src/components/TeamWorkloadView.jsx `
+        frontend/src/components/ReassignTeamModal.jsx
+
+# 3. Commit, re-test, and push
+git commit -m "feat(M4): complete workload dispatch engine and admin operations desk"
+.\backend\venv\Scripts\python.exe -m pytest backend/tests -q
+git push origin develop
+```
+
+#### 🔷 Module M5: SLA Timers & Lifecycle Automata
+```powershell
+# 1. Pull latest
+git pull origin develop --no-rebase
+
+# 2. Stage ONLY M5 files (docs, SLA engine, lifecycle automata, analytics UI)
+git add docs/V1/M5/ `
+        backend/app/services/sla_engine.py `
+        backend/app/services/lifecycle.py `
+        backend/app/schemas/sla.py `
+        backend/app/services/ticket_service.py `
+        backend/app/api/v1/endpoints/sla.py `
+        backend/app/api/v1/router.py `
+        backend/tests/test_m5_api.py `
+        backend/tests/test_m5_lifecycle.py `
+        backend/tests/test_m5_sla_engine.py `
+        frontend/src/api/sla.js `
+        frontend/src/components/SLACountdownTimer.jsx `
+        frontend/src/components/ResolutionNotesModal.jsx `
+        frontend/src/components/SLABreachTable.jsx
+
+# 3. Commit, re-test, and push
+git commit -m "feat(M5): complete SLA engine and lifecycle countdown timers"
+.\backend\venv\Scripts\python.exe -m pytest backend/tests -q
+git push origin develop
+```
+
+---
+
+### Files That Must NEVER Be Committed or Pushed
+* `smart_complaints.db` (local SQLite database)
+* `backend/venv/` or any virtual environment files
+* `frontend/node_modules/` or `frontend/dist/`
+* Temporary scratch scripts or test logs
+* Incomplete or work-in-progress files belonging to another person's module
 
 ---
 

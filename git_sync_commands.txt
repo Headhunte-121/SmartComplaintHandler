@@ -1,0 +1,50 @@
+================================================================================
+SMART COMPLAINT HANDLER — MODULE-BY-MODULE GIT SYNC ONE-LINERS (M1 - M5)
+================================================================================
+
+HOW THESE COMMANDS WORK:
+1. Stages ONLY the specific files belonging to your module (ignoring any other files).
+2. Commits your module with standard conventional commit messages.
+3. Pulls latest team updates from origin/develop using standard merge (NO REBASE CONFLICTS).
+4. Pushes your module safely to GitHub.
+
+--------------------------------------------------------------------------------
+MODULE M1: Data Layer, Core Models & Application Shell
+--------------------------------------------------------------------------------
+git add docs/V1/M1/ backend/app/core/config.py backend/app/core/database.py backend/app/db/base.py backend/app/db/seed.py backend/app/models/base.py backend/app/models/department.py backend/app/models/team.py backend/app/models/ticket.py backend/app/models/__init__.py backend/app/api/deps.py frontend/vite.config.js frontend/tailwind.config.js frontend/src/api/client.js frontend/src/components/Layout.jsx frontend/src/components/Navbar.jsx frontend/src/components/Footer.jsx frontend/src/router/AppRouter.jsx && git commit -m "feat(M1): implement core data models and app shell" && git pull origin develop --no-rebase && git push origin develop
+
+--------------------------------------------------------------------------------
+MODULE M2: Complaint Ingestion & Keyword Routing
+--------------------------------------------------------------------------------
+git add docs/V1/M2/ backend/app/utils/code_generator.py backend/app/services/keyword_router.py backend/app/schemas/ticket.py backend/app/schemas/complaint.py backend/app/services/ticket_service.py backend/app/api/v1/endpoints/complaints.py backend/app/api/v1/router.py frontend/src/api/complaints.js frontend/src/pages/SubmitComplaint.jsx frontend/src/components/SubmissionSuccessModal.jsx frontend/src/pages/TrackTicket.jsx && git commit -m "feat(M2): implement complaint intake and keyword routing" && git pull origin develop --no-rebase && git push origin develop
+
+--------------------------------------------------------------------------------
+MODULE M3: Deterministic Classification & Priority Engine
+--------------------------------------------------------------------------------
+git add docs/V1/M3/ backend/app/services/priority_engine.py backend/app/services/classifier.py backend/app/schemas/priority.py backend/app/api/v1/endpoints/priority.py backend/app/services/ticket_service.py backend/app/api/v1/router.py backend/tests/test_m3_triage.py frontend/src/api/triage.js frontend/src/components/PriorityBadge.jsx frontend/src/components/LiveTriageCard.jsx frontend/src/components/PriorityOverrideModal.jsx && git commit -m "feat(M3): implement priority triage engine" && git pull origin develop --no-rebase && git push origin develop
+
+--------------------------------------------------------------------------------
+MODULE M4: Workload Dispatch & Operations Desk
+--------------------------------------------------------------------------------
+git add docs/V1/M4/ backend/app/services/dispatch_engine.py backend/app/schemas/assignment.py backend/app/services/team_service.py backend/app/services/ticket_service.py backend/app/api/v1/endpoints/assignment.py backend/app/api/v1/router.py backend/tests/test_m4_dispatch_engine.py frontend/src/api/assignment.js frontend/src/pages/AdminDashboard.jsx frontend/src/components/TeamWorkloadView.jsx frontend/src/components/ReassignTeamModal.jsx && git commit -m "feat(M4): implement workload dispatch engine and admin desk" && git pull origin develop --no-rebase && git push origin develop
+
+--------------------------------------------------------------------------------
+MODULE M5: SLA Timers & Lifecycle Automata
+--------------------------------------------------------------------------------
+git add docs/V1/M5/ backend/app/services/sla_engine.py backend/app/services/lifecycle.py backend/app/schemas/sla.py backend/app/services/ticket_service.py backend/app/api/v1/endpoints/sla.py backend/app/api/v1/router.py backend/tests/test_m5_api.py backend/tests/test_m5_lifecycle.py backend/tests/test_m5_sla_engine.py frontend/src/api/sla.js frontend/src/components/SLACountdownTimer.jsx frontend/src/components/ResolutionNotesModal.jsx frontend/src/components/SLABreachTable.jsx && git commit -m "feat(M5): implement SLA engine and lifecycle timers" && git pull origin develop --no-rebase && git push origin develop
+
+================================================================================
+QUICK EMERGENCY HELPER COMMANDS
+================================================================================
+Check modified files:
+git status
+
+View last 5 commits:
+git log --oneline -n 5
+
+Discard accidental edits on a single file:
+git restore <path/to/file>
+
+Safely sync incoming team commits if Git blocks you:
+git stash && git pull origin develop --no-rebase && git stash pop
+================================================================================
