@@ -131,6 +131,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -143,11 +145,20 @@ When executing verification across the frontend, this protocol ensures:
 3. **Responsive Visual Integrity:** Confirms forms, modals, and timelines render legibly on mobile, tablet, and desktop viewports.
 
 ### How to See It Performing Its Job on the Live Website
-1. Launch both dev servers: `npm run dev` and `uvicorn app.main:app --reload`.
-2. Open **`http://localhost:5173/submit`**:
-   * Fill out the grievance form with Title: `Water cooler leaking in library` and Description: `Continuous water dripping creating a puddle near books`.
-   * Click **Submit Complaint**: confirm success modal appears with tracking code.
-   * Click **Copy Code**, then click **Track Complaint**.
-3. On **`http://localhost:5173/track`**:
-   * Confirm the tracking page auto-loads the ticket from the URL parameter.
-   * Confirm the title, description, assigned department (`Plumbing`), and priority badge render accurately.
+Follow this complete step-by-step verification walkthrough on your machine:
+
+1. **Step 1: Execute Production Build Verification:**
+   * Open terminal in `frontend/` and run: `npm run build`
+   * Confirm build completes with 0 errors in $<15$ seconds.
+
+2. **Step 2: Test Live Form Intake:**
+   * Open `http://localhost:5173/submit`.
+   * Fill out Title, Description, and Location.
+   * Verify character counters, debounced live triage card, and submit button spinner.
+
+3. **Step 3: Test Success Modal & Clipboard:**
+   * On modal popup, click "Copy Code", paste in address bar to verify.
+   * Click "Track Complaint" to navigate to `/track`.
+
+4. **Step 4: Verify Tracking & Lifecycle Progression:**
+   * Confirm tracking card renders title, department, priority badge, and lifecycle steps cleanly.

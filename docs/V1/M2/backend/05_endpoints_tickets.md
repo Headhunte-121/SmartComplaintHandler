@@ -185,6 +185,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -197,9 +199,30 @@ This controller provides the following endpoints:
 3. **`GET /api/v1/tickets`:** Lists complaints with optional filtering by department or status.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:8000/docs`** in your browser.
-2. Locate `POST /api/v1/tickets` -> Click **Try it out** -> Click **Execute** with valid sample data.
-   * Observe the server return **HTTP 201 Created** with the assigned tracking code and timestamps.
-3. Locate `GET /api/v1/tickets/{tracking_code}` -> Paste the tracking code -> Click **Execute**.
-   * Observe the server return **HTTP 200 OK** with the complete ticket lifecycle status.
-4. On `http://localhost:5173/`, observe that the Submit and Track pages communicate directly through these endpoints.
+Follow these detailed steps to verify API endpoints in Swagger and the browser:
+
+1. **Test `POST /api/v1/tickets` in Swagger Docs:**
+   * Open **`http://localhost:8000/docs`**.
+   * Expand `POST /api/v1/tickets` -> click **Try it out**.
+   * Enter request body:
+     ```json
+     {
+       "title": "Broken bench in sports pavilion",
+       "description": "Wooden bench plank cracked and splintered near tennis courts.",
+       "location": "Sports Pavilion",
+       "department_id": 4
+     }
+     ```
+   * Click **Execute**:
+     * Verify server returns **`HTTP 201 Created`**.
+     * Copy the generated `tracking_code` from the response body.
+
+2. **Test `GET /api/v1/tickets/{tracking_code}`:**
+   * Expand `GET /api/v1/tickets/{tracking_code}` -> click **Try it out**.
+   * Paste the tracking code copied above -> click **Execute**:
+     * Verify server returns **`HTTP 200 OK`**.
+     * Confirm response body contains complete ticket fields and formatted `created_at` timestamp.
+
+3. **Test Structured 404 Error Response:**
+   * Execute `GET /api/v1/tickets/TICK-NONEXISTENT`.
+   * Verify server returns **`HTTP 404 Not Found`** with JSON: `{"detail": "Ticket not found"}`.

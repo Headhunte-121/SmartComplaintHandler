@@ -127,6 +127,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -139,9 +141,33 @@ When invoked by UI components, this client provides the following methods:
 3. **Error Normalization:** Converts network exceptions and backend validation errors into clear, actionable error messages for display in form banners.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/`** and press `F12` to open the Console tab.
-2. In the console, execute:
-   `import('/src/api/complaints.js').then(api => api.fetchTicketStatus('TICK-1001')).then(console.log)`
-3. **Observe Client Live:**
-   * The console prints the ticket object directly with its tracking code, title, and current status.
-4. In the Network tab, submit a new complaint and observe the clean HTTP `POST /api/v1/tickets` payload dispatched by this client.
+Follow these detailed steps to test the complaints API transport client:
+
+1. **Test `fetchTicketStatus` in Browser Console:**
+   * Open **`http://localhost:5173/`** and press `F12` to open the **Console**.
+   * Paste and execute:
+     ```javascript
+     import('/src/api/complaints.js').then(api => api.fetchTicketStatus('TICK-1001')).then(ticket => {
+       console.log('✅ Ticket Received:', ticket.title, '| Status:', ticket.status);
+       console.table(ticket);
+     });
+     ```
+   * Confirm the console prints the ticket details table with zero exceptions.
+
+2. **Test Direct Submission via Console:**
+   * Paste and execute:
+     ```javascript
+     import('/src/api/complaints.js').then(api => api.submitComplaint({
+       title: 'Console Test Grievance',
+       description: 'Submitted directly from DevTools console for testing transport client.',
+       location: 'Server Room',
+       department_id: 3
+     })).then(res => {
+       console.log('✅ Created Ticket with Code:', res.tracking_code);
+     });
+     ```
+   * Confirm created ticket code is returned and logged.
+
+3. **Verify Network Payloads in DevTools:**
+   * Switch to the **Network** tab, submit a form on `/submit`:
+   * Confirm `POST /api/v1/tickets` is sent with correct JSON headers and parsed cleanly.

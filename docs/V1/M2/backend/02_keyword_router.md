@@ -159,6 +159,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -171,11 +173,33 @@ When routing a complaint, this module performs the following operations:
 3. **Department ID Resolution:** Resolves the matched category name into an active database department foreign key.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/submit`** in your browser.
-2. Enter Title: `Water overflowing from washroom sink` and Description: `Pipe joint broken and flooding floor`.
-3. In the Department selector, choose **"Auto-Detect"** (or leave it unselected).
-4. Click **Submit Complaint**:
-   * Copy the tracking code and open **`http://localhost:5173/track`**.
-   * Observe that the ticket is automatically assigned to **`Plumbing`**.
-5. Repeat with Title: `Ethernet cable socket dead in lab 3`:
-   * Observe the ticket is automatically routed to **`IT Support`**.
+Follow these detailed steps to test automated department routing on the live website:
+
+1. **Test Automated Plumbing Routing:**
+   * Open **`http://localhost:5173/submit`**.
+   * Enter Title: `Water pipe leakage under sink`.
+   * Enter Description: `Continuous stream of water pooling on bathroom floor; pipe joint is loose.`
+   * Leave the Department dropdown on **"Auto-Detect"** (or unselected).
+   * Submit complaint, copy tracking code, and open **`http://localhost:5173/track`**.
+   * Confirm assigned department displays: **`Plumbing`** with matching water droplet icon.
+
+2. **Test Automated Electrical Routing:**
+   * Open **`http://localhost:5173/submit`**.
+   * Enter Title: `Power socket sparking in computer lab`.
+   * Enter Description: `Wall outlet making buzzing sound and visible sparks when plug is inserted.`
+   * Submit complaint and look up on `/track`:
+   * Confirm assigned department displays: **`Electrical`** with matching lightning icon.
+
+3. **Test Automated IT Support Routing:**
+   * Open **`http://localhost:5173/submit`**.
+   * Enter Title: `Hostel WiFi network disconnected`.
+   * Enter Description: `Internet signal dropped completely in Block B; router lights are off.`
+   * Submit complaint and look up on `/track`:
+   * Confirm assigned department displays: **`IT Support`**.
+
+4. **Test Safe Fallback to "Other" on Non-Standard Complaints:**
+   * Open **`http://localhost:5173/submit`**.
+   * Enter Title: `General inquiry regarding campus timings`.
+   * Enter Description: `Requesting information about weekend opening hours for the sports complex.`
+   * Submit complaint and look up on `/track`:
+   * Confirm assigned department defaults safely to: **`Other`** (never crashing or leaving the ticket unassigned).

@@ -162,6 +162,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -175,8 +177,19 @@ During application execution, this module performs the following operations:
 4. **Health Check Route:** Exposes `GET /` returning system status.
 
 ### How to See It Performing Its Job on the Live Website
-1. Start the server: `uvicorn app.main:app --port 8000 --reload`.
-2. Open **`http://localhost:8000/`** in your browser:
-   * Observe the JSON response: `{"message": "Smart Campus Complaint System API", "status": "online"}`.
-3. Open **`http://localhost:5173/`** in your browser and submit a complaint:
-   * Open DevTools Console (`F12`): confirm zero CORS cross-origin errors appear, proving `CORSMiddleware` is functioning properly.
+Follow these detailed steps to test the application entrypoint and CORS middleware:
+
+1. **Verify Root Health Check Endpoint:**
+   * Open **`http://localhost:8000/`** in your browser.
+   * Confirm response: `{"message": "Smart Campus Complaint System API", "status": "online"}`.
+
+2. **Verify Zero CORS Errors in Browser Console:**
+   * Open **`http://localhost:5173/`** in Chrome/Edge.
+   * Press `F12` and switch to the **Console** tab.
+   * Submit a complaint on `/submit`:
+     * Confirm the request succeeds with HTTP 201.
+     * Confirm zero `Access to fetch at ... from origin 'http://localhost:5173' has been blocked by CORS policy` errors appear.
+
+3. **Verify Automatic Database Startup Bootstrap:**
+   * Restart backend terminal: observe terminal log `Application startup complete`.
+   * Verify SQLite tables and seed fixtures are checked and initialized automatically.

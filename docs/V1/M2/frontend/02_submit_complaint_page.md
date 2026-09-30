@@ -160,6 +160,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -173,11 +175,24 @@ When rendered on screen, this page performs the following behaviors:
 4. **Submission Feedback:** Disables the submit button and displays a spinning indicator while the network request is in-flight, opening `SubmissionSuccessModal.jsx` upon success.
 
 ### How to See It Performing Its Job on the Live Website
-1. Navigate to **`http://localhost:5173/submit`** (or click "Submit Complaint" in the navigation bar).
-2. **Observe Intake Page Live:**
-   * Type Title: `Broken staircase railing in Block A` and Description: `Metal handrail is detached and wobbling dangerously`.
-   * Notice character counters update reactively with every keystroke.
-   * Notice the Live Triage Card beneath the form updates to show category `Carpentry` or `Civil`.
-3. Click **Submit Complaint**:
-   * Observe the button briefly show `"Submitting..."` with a spinner.
-   * Observe the submission success modal appear immediately displaying the assigned tracking code.
+Follow these detailed steps to test the complaint intake page:
+
+1. **Verify Reactive Character Counters:**
+   * Navigate to **`http://localhost:5173/submit`**.
+   * Click into **Title** and type: `Fire` (only 4 chars):
+     * Observe the counter alerts: `4/100 (min 5 characters)` in amber/red.
+     * Add ` in lab`: observe the counter shifts to neutral `11/100`.
+   * Click into **Description** and type 8 characters:
+     * Observe counter alerts: `8/1000 (min 10 characters)`.
+
+2. **Observe Integrated Live Triage Telemetry:**
+   * Type Description: `Sparks and burning smell coming from wall outlet`.
+   * Pause typing for 500ms:
+     * Observe the **Live Triage Card** beneath the form animate into view.
+     * Verify it shows category `Electrical`, priority `CRITICAL`, and the red hazard alert banner.
+
+3. **Verify Submission Lifecycle:**
+   * Enter Location: `Chemistry Lab 2`.
+   * Click **Submit Complaint**:
+     * Observe the submit button disable and display a spinner with `"Submitting..."`.
+     * Observe the modal pop up displaying the assigned tracking code.

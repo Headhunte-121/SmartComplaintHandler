@@ -171,6 +171,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -183,9 +185,22 @@ When invoked by API controllers, this service performs the following operations:
 3. **Safe State Transitions:** Updates ticket statuses and appends immutable audit records into `resolution_notes`.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/submit`** and submit a complaint: Title: `Projector screen torn in hall B`.
-2. Notice the tracking code received in the modal.
-3. Navigate to **`http://localhost:5173/track`**, enter the code, and click **Track Status**:
-   * Observe that the ticket is retrieved instantly from the database showing `Status: SUBMITTED` and the calculated priority.
-4. Now enter a fake tracking code like `TICK-0000`:
-   * Observe the system cleanly handles the lookup and displays a *"Ticket Not Found"* notification without crashing.
+Follow these detailed steps to verify service orchestration on the live platform:
+
+1. **Verify End-to-End Ingestion via Form Submission:**
+   * Open **`http://localhost:5173/submit`**.
+   * Submit Title: `Projector screen torn in Hall B`, Description: `Fabric detached from top roller and hanging down`, Location: `Lecture Hall B`.
+   * Note the tracking code received in the modal.
+
+2. **Verify Relational Joins on Ticket Retrieval:**
+   * Open **`http://localhost:5173/track`** and look up the tracking code.
+   * Confirm the service joined and populated:
+     * Ticket title, description, and location
+     * Assigned department name (`Carpentry` or `Civil`)
+     * Assigned maintenance team squad
+     * Calculated priority badge (`MEDIUM`)
+     * Current status step (`SUBMITTED` or `ASSIGNED`)
+
+3. **Verify Clean 404 Handling on Non-Existent Code:**
+   * In the tracking input, enter `TICK-0000` -> click **Track Status**.
+   * Confirm the system displays a clear `"Ticket Not Found"` banner without crashing or throwing unhandled React exceptions.

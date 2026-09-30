@@ -126,6 +126,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -138,8 +140,16 @@ When assembled during application boot, this router performs the following opera
 3. **Documentation Metadata:** Supplies descriptions and tag metadata to the automated OpenAPI/Swagger documentation.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:8000/docs`** in your browser.
-2. **Observe Router Organization Live:**
-   * Notice the distinct section labeled **"Tickets & Complaints"**.
-   * Verify all Module M2 operations (`POST /api/v1/tickets`, `GET /api/v1/tickets/{tracking_code}`) are grouped under this single, organized header.
-   * Notice all URLs follow the uniform `/api/v1/tickets` pattern.
+Follow these detailed steps to verify router registration in Swagger:
+
+1. **Inspect Tagged Route Grouping:**
+   * Open **`http://localhost:8000/docs`** in your browser.
+   * Look at the table of contents: locate the section header labeled **"Tickets & Complaints"**.
+   * Verify all Module M2 operations are grouped neatly under this section:
+     * `POST /api/v1/tickets` (Create Ticket)
+     * `GET /api/v1/tickets` (List Tickets)
+     * `GET /api/v1/tickets/{tracking_code}` (Get Ticket Status)
+
+2. **Verify URL Namespace Uniformity:**
+   * Confirm every endpoint URL strictly follows the `/api/v1/tickets` prefix.
+   * Verify no endpoints are mounted directly on the root without versioning (e.g. `/tickets` without `/api/v1/`).

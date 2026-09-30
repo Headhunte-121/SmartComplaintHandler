@@ -170,6 +170,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -183,11 +185,20 @@ When rendered on screen, this page performs the following operations:
 4. **Friendly Error States:** Displays an illustrative "Ticket Not Found" alert if an invalid code is searched.
 
 ### How to See It Performing Its Job on the Live Website
-1. Navigate to **`http://localhost:5173/track`** in your browser.
-2. Type a valid tracking code (e.g. `TICK-1001`) into the search bar and click **Track Status**:
-   * Observe the status card appear displaying the ticket title, department, priority badge, and current lifecycle step.
-3. Notice that the browser URL updates to `http://localhost:5173/track?code=TICK-1001`.
-4. Refresh the browser page (`F5`):
-   * Observe the page automatically re-fetches and displays the ticket from the URL parameter without requiring you to re-type the code.
-5. Type `TICK-INVALID`:
-   * Observe a clean alert stating *"No ticket found with tracking code TICK-INVALID"*.
+Follow these detailed steps to verify the tracking page:
+
+1. **Verify Manual Search by Tracking Code:**
+   * Open **`http://localhost:5173/track`**.
+   * Enter a valid code (e.g. `TICK-1001`) into the search bar and click **Track Status**:
+     * Observe the status card render with full complaint details.
+     * Check the 4-stage lifecycle timeline: confirm completed stages are highlighted in blue/green.
+
+2. **Verify URL Deep-Linking & Browser Refresh:**
+   * Notice the browser address bar now reads: `http://localhost:5173/track?code=TICK-1001`.
+   * Press `F5` to refresh the browser page:
+     * Confirm the page automatically reads `?code=TICK-1001` from the URL and fetches the ticket without requiring you to re-type the code.
+
+3. **Verify Invalid Tracking Code Handling:**
+   * Type `TICK-999999` in the search bar and click Track:
+     * Observe a clean alert banner stating: *"No complaint found with tracking code TICK-999999"*.
+     * Confirm the UI does not crash or display raw JSON errors.

@@ -141,6 +141,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -153,10 +155,31 @@ When invoked during ticket creation, this module performs the following operatio
 3. **Collision Checking:** Provides helper functions to query SQLite and verify uniqueness before the code is assigned to a new complaint record.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open the complaint form at **`http://localhost:5173/submit`**.
-2. Enter a Title: `Broken study table leg` and Description: `Wood cracked on table 14 in central reading room`.
-3. Click **Submit Complaint**:
-   * Observe the confirmation modal pop up displaying a unique tracking code (e.g. **`TICK-5921`**).
-4. Submit a second complaint immediately:
-   * Observe the modal display a completely different tracking code (e.g. **`TICK-7314`**), certifying that every ticket receives a distinct identifier.
-5. Search for either code at `http://localhost:5173/track` to confirm immediate database lookup.
+Follow these detailed steps to verify tracking code generation on the live system:
+
+1. **Verify Live Code Format on the Student Intake Form:**
+   * Open **`http://localhost:5173/submit`** in your browser.
+   * Enter Title: `Broken study table leg in library`.
+   * Enter Description: `Wood cracked on table 14 in central reading room; wobbles when books are placed.`
+   * Enter Location: `Central Library, 2nd Floor`.
+   * Click **Submit Complaint**:
+     * Observe the confirmation modal pop up: verify the assigned tracking code matches the pattern `TICK-XXXX` (e.g. **`TICK-5921`**).
+     * Verify the code is clearly rendered in a bold monospace font.
+
+2. **Verify Collision Resistance with Successive Submissions:**
+   * Close the modal and submit a second complaint immediately:
+     * Title: `Bathroom tap dripping continuously`.
+     * Description: `Cold water tap in 3rd floor washroom does not shut off completely.`
+     * Location: `Hostel Block C, 3rd Floor`.
+   * Click **Submit Complaint**:
+     * Observe the confirmation modal displays a completely new, distinct tracking code (e.g. **`TICK-7314`**).
+     * Confirm that successive submissions never produce duplicate identifiers.
+
+3. **Verify Programmatic Token Generation in Terminal:**
+   * In project root, test the generator directly:
+     `backend\venv\Scripts\python.exe -c "from app.utils.code_generator import generate_ticket_code; print('Generated 5 sample codes:', [generate_ticket_code() for _ in range(5)])"`
+   * Verify output shows 5 unique strings (e.g. `['TICK-8319', 'TICK-1492', 'TICK-6047', 'TICK-9182', 'TICK-3305']`).
+
+4. **Verify Immediate Database Lookup:**
+   * Copy either tracking code and paste it into **`http://localhost:5173/track`**.
+   * Click **Track Status**: verify the complaint record is retrieved from SQLite instantly.

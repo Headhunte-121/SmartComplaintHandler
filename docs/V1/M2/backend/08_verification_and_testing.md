@@ -210,6 +210,8 @@ If an error occurs during any verification checkpoint, inspect the bottom line o
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -222,8 +224,17 @@ When executed, this test suite validates:
 3. **Validation & Error Handling:** Asserts that invalid payloads return HTTP 422 and non-existent codes return HTTP 404.
 
 ### How to See It Performing Its Job on the Live Website
-1. Run the test suite in your terminal:
-   `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
-2. **Observe 100% Pass Rate:**
-   * All tests pass cleanly in $<2$ seconds.
-3. Open **`http://localhost:5173/`** and complete a live test: submit a complaint, verify tracking code in SQLite, and retrieve it on `/track`.
+Follow these detailed steps to certify Module M2:
+
+1. **Execute Automated Pytest Suite:**
+   * Run in terminal:
+     `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
+   * Confirm all test cases pass with green output in $<2$ seconds:
+     * Complaint submission tests
+     * Tracking code format and uniqueness tests
+     * Keyword routing categorization tests
+     * Schema validation boundary tests
+
+2. **Execute Full-Stack Manual Verification:**
+   * Open `http://localhost:5173/submit` -> submit complaint -> copy code.
+   * Open `http://localhost:5173/track` -> paste code -> verify status and department render accurately.

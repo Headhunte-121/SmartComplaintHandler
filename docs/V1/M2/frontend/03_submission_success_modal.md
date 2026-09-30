@@ -151,6 +151,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -163,12 +165,21 @@ When triggered after complaint submission, this modal performs the following vis
 3. **Direct Navigation Shortcuts:** Provides a "Track This Complaint Now" button that routes directly to `/track?code=TICK-XXXX` and a "Submit Another" button to reset the form.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/submit`**, enter complaint details, and click **Submit Complaint**.
-2. **Observe Success Modal Live:**
-   * The modal animates smoothly into view over a dimmed background.
-   * Prominently displays the tracking code (e.g. `TICK-4829`).
-3. Click the **Copy Code** button:
-   * Observe the button text change to `"Copied!"` with a green checkmark icon.
-   * Open Notepad or any text box and press `Ctrl+V` to verify the code was copied accurately.
-4. Click **Track Complaint**:
-   * Observe the modal closes and the browser navigates to `http://localhost:5173/track?code=TICK-4829`, automatically displaying the ticket status.
+Follow these detailed steps to verify the success modal:
+
+1. **Trigger Modal via Intake Form:**
+   * Open **`http://localhost:5173/submit`**, fill in valid fields, and click **Submit Complaint**.
+   * Observe the modal animate smoothly onto the screen over a dimmed, blurred backdrop.
+   * Confirm the tracking code is prominently displayed (e.g. `TICK-6421`).
+
+2. **Test One-Click Clipboard Copy:**
+   * Click the **Copy Code** button inside the modal:
+     * Observe the button text change immediately to **`"Copied!"`** with a green checkmark icon.
+   * Open a text editor (Notepad) or browser address bar and press `Ctrl+V`:
+     * Verify the exact tracking code string is pasted.
+
+3. **Test Direct Navigation to Tracking View:**
+   * Click the **"Track Complaint"** button:
+     * Observe the modal closes smoothly.
+     * Observe the browser navigates to `http://localhost:5173/track?code=TICK-6421`.
+     * Verify the tracking page immediately displays the live status of the ticket you just created.

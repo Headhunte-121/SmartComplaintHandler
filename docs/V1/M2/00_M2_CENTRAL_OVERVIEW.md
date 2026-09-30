@@ -182,6 +182,8 @@ To maintain engineering consistency across the team, every blueprint in Module M
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification Walkthrough
 
 ### What This Module Is Responsible For
@@ -195,25 +197,44 @@ When operational across the full stack, Module M2 delivers four unified capabili
 4. **Transparent Status Telemetry:** Powers the tracking page (`/track`) with URL search parameter deep linking and visual lifecycle progress steps.
 
 ### How to See It Performing Its Job on the Live Website
-Anyone can verify Module M2 on the live application in under 3 minutes:
+Anyone can verify all features of Module M2 on the live application in under 3 minutes:
 
-#### Step 1: Submit a Complaint
-1. Open **`http://localhost:5173/submit`**.
-2. Type Title: `Classroom fan making grinding noise` and Description: `Blade loose and shaking vigorously in Room 204`.
-3. Click **Submit Complaint**:
-   * Observe the success modal pop up displaying a unique tracking code (e.g. `TICK-2941`).
-   * Click the **Copy Code** button (verify *"Copied!"* badge appears).
+#### Prerequisites: Launch Local Dev Servers
+```powershell
+# Terminal 1 — Backend:
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn app.main:app --port 8000 --reload
 
-#### Step 2: Track Status & Verify Lifecycle
-1. Click **Track Complaint** (or navigate to `http://localhost:5173/track`).
-2. Paste the code into the search box if not already populated:
-   * Observe the ticket details retrieved directly from SQLite.
-   * Verify the assigned department is **`Electrical`**.
-   * Verify the lifecycle timeline shows the **`SUBMITTED`** step active.
+# Terminal 2 — Frontend:
+cd frontend
+npm run dev
+```
 
-#### Step 3: Verify Interactive Swagger Documentation
-1. Open **`http://localhost:8000/docs`**.
-2. Locate `GET /api/v1/tickets/{tracking_code}` and enter your tracking code to view the raw database JSON response.
+#### Step 1: Submit a Grievance on the Intake Form
+1. Open your browser to **`http://localhost:5173/submit`**.
+2. In the Title field, type: `Classroom fan making grinding noise`.
+3. In the Description field, type: `Blade loose and shaking vigorously in Room 204; safety hazard if it falls.`
+4. In the Location field, type: `Academic Block 1, Room 204`.
+5. Observe the **Live Triage Card** beneath the form automatically classify the complaint as **`Electrical`** with **`HIGH`** priority.
+6. Click **Submit Complaint**:
+   * Observe the submit button briefly display a loading spinner.
+   * Observe the **Submission Success Modal** pop up smoothly.
+   * Note the unique tracking code (e.g. **`TICK-2941`**).
+   * Click **Copy Code** and verify the *"Copied!"* badge appears.
+
+#### Step 2: Track Status & Verify Lifecycle Progression
+1. Click **"Track Complaint"** inside the modal (or navigate to `http://localhost:5173/track`).
+2. Observe the tracking page auto-loads the ticket from the URL query parameter (`?code=TICK-2941`):
+   * Confirm the complaint title, description, and location match your submission.
+   * Confirm the assigned department is **`Electrical`**.
+   * Confirm the priority badge displays **`HIGH`** with an SLA target time.
+   * Confirm the lifecycle timeline displays the **`SUBMITTED`** step active in blue/green.
+
+#### Step 3: Verify Persistence in SQLite Database
+1. Open the interactive API docs at **`http://localhost:8000/docs`**.
+2. Locate `GET /api/v1/tickets/{tracking_code}` -> enter `TICK-2941` -> click **Execute**:
+   * Confirm the raw SQLite record returns with `HTTP 200 OK` and contains matching attributes.
 
 ---
 

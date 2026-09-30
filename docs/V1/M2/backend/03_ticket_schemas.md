@@ -175,6 +175,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -187,10 +189,33 @@ When processing request payloads, this module performs the following validations
 3. **Structured Response Serialization:** Serializes database models into `TicketResponse` and `TicketStatusResponse` DTOs, including tracking code, status, priority, and timestamps.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open the interactive API documentation at **`http://localhost:8000/docs`**.
-2. Locate `POST /api/v1/tickets` and click **Try it out**.
-3. In the request body, enter an invalid title that is too short:
-   `{"title": "No", "description": "Too short", "location": "Room 1"}`
-4. Click **Execute**:
-   * Observe the server reject the payload with **HTTP 422 Unprocessable Entity**, highlighting that title must be at least 5 characters.
-5. On the live website at **`http://localhost:5173/submit`**, attempt to submit with 2 characters: observe the form display an immediate red validation warning preventing submission.
+Follow these detailed steps to verify schema validation boundaries:
+
+1. **Test Sub-5 Character Title Rejection in Swagger UI:**
+   * Open **`http://localhost:8000/docs`** in your browser.
+   * Expand `POST /api/v1/tickets` -> click **Try it out**.
+   * Enter an invalid payload with a title that is too short:
+     ```json
+     {
+       "title": "Bad",
+       "description": "Valid description with plenty of characters",
+       "location": "Hostel Room 10"
+     }
+     ```
+   * Click **Execute**:
+     * Observe the server reject the request with **`HTTP 422 Unprocessable Entity`**.
+     * Inspect error response: confirm `"msg": "String should have at least 5 characters"` is returned under `loc: ["body", "title"]`.
+
+2. **Test Sub-10 Character Description Rejection:**
+   * Change title to `"Valid Title Here"`, but change description to `"Too short"`.
+   * Click **Execute**: confirm HTTP 422 error requiring at least 10 characters for description.
+
+3. **Verify Client-Side Validation on Live Web Form:**
+   * Open **`http://localhost:5173/submit`**.
+   * Type `Hi` into the Title field:
+     * Observe the red warning appears: `"Title must be at least 5 characters"`.
+     * Observe the submit button is disabled until valid input lengths are met.
+
+4. **Test Clean Whitespace Sanitization:**
+   * Submit title `"   Flooding in corridor   "`:
+   * Look up the created ticket: confirm leading and trailing whitespace was stripped to `"Flooding in corridor"`.
