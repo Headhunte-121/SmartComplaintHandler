@@ -119,31 +119,35 @@ This React routing module (`frontend/src/router/AppRouter.jsx`) is responsible f
 
 ### What It Should Perform
 When users navigate the portal, this router performs the following operations:
-1. **URL Route Mapping:** Maps `/` to Home, `/submit` to SubmitComplaint, `/track` to TrackTicket, and `/admin` to AdminDashboard.
+1. **URL Route Mapping:** Maps `/` and `/submit` to SubmitComplaint, `/track` to TrackTicket, `/admin` to AdminDashboard, and `/developer` to DeveloperLab.
 2. **Seamless Client-Side Navigation:** Utilizes HTML5 History API (`pushState`) to swap views instantly without triggering white-screen page reloads.
-3. **404 Fallback Boundary:** Catches all undefined or broken URLs (`path="*"`) and renders a helpful "Page Not Found" screen with a "Return to Home" button.
+3. **404 Fallback Boundary:** Catches all undefined or broken URLs (`path="*"`) and renders a helpful "Page Not Found" screen with a "Return to Complaint Submission" button.
 
 ### How to See It Performing Its Job on the Live Website
 Follow these detailed steps to verify routing and page transitions:
 
-1. **Test Zero-Reload Client Transitions:**
+1. **Test Zero-Reload Client Transitions Across All 4 Routes:**
    * Open **`http://localhost:5173/`** in your browser.
    * Watch the reload spinner icon in your browser's address bar.
-   * Click **"Submit Complaint"** in the navigation header:
-     * Observe the URL updates to `http://localhost:5173/submit`.
-     * Notice the browser tab icon **never spins or reloads**; the page changes instantaneously via React Virtual DOM reconciliation.
+   * Click **"Submit Grievance"**:
+     * Observe the URL updates to `http://localhost:5173/submit` without a full page reload.
    * Click **"Track Ticket"**:
      * Observe instant transition to `http://localhost:5173/track`.
+   * Click **"Operations Desk"**:
+     * Observe instant transition to `http://localhost:5173/admin` loading squad capacities and the operations queue.
+   * Click **"Developer Lab"**:
+     * Observe instant transition to `http://localhost:5173/developer` rendering the interactive keystroke simulator and triage telemetry.
 
 2. **Test Browser History Back/Forward Buttons:**
-   * While on `/track`, click your browser's **Back** button:
-     * Confirm the browser returns to `/submit` smoothly.
+   * While on `/developer`, click your browser's **Back** button:
+     * Confirm the browser returns to `/admin` smoothly.
    * Click the browser's **Forward** button:
-     * Confirm the browser advances back to `/track`.
+     * Confirm the browser advances back to `/developer`.
 
 3. **Test Custom 404 Fallback Route:**
    * Manually type an invalid address in the browser bar:
      `http://localhost:5173/random-page-that-does-not-exist`
    * Press Enter:
      * Observe the custom 404 screen render with an alert icon and the message: *"Page Not Found"*.
-     * Click the **"Back to Home"** button on the screen: verify it routes you back to `/` cleanly.
+     * Click the **"Return to Complaint Submission"** button on the screen: verify it routes you back to `/` cleanly.
+

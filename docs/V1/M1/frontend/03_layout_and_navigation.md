@@ -123,35 +123,49 @@ This specification operates strictly as an **implementation and integration blue
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
-This React component module (`Layout.jsx`, `Navbar.jsx`, `Footer.jsx`) is responsible for **rendering the universal application shell, brand header, navigation bar, and sticky footer**. It provides the consistent visual frame that wraps every page across the platform.
+This React component module (`Layout.jsx`, `Navbar.jsx`, `Footer.jsx`, `PersonaSwitcherModal.jsx`) is responsible for **rendering the universal application shell, brand header, persona role switcher, navigation bar, and sticky footer**. It provides the consistent visual frame that wraps every page across the platform and enables 1-click persona switching for role-based testing.
 
 ### What It Should Perform
 When rendered on screen, this component performs the following visual behaviors:
-1. **Persistent Responsive Navigation:** Displays the university logo, portal title, and navigation links (*"Submit Complaint"*, *"Track Ticket"*, *"Admin Desk"*) with active route highlighting.
-2. **Mobile Drawer Menu:** Collapses navigation into an accessible hamburger menu on mobile and tablet viewport widths ($<768\text{px}$).
-3. **Structured Content Outlet:** Wraps dynamic page content inside a responsive container (`<main className="flex-1 max-w-7xl mx-auto px-4 ...">`) and pins a copyright footer to the bottom of the viewport.
+1. **Persistent Responsive Navigation:** Displays the university logo, portal title, and navigation links (*"Submit Grievance"*, *"Track Ticket"*, *"Operations Desk"*, *"Developer Lab"*) with active route highlighting.
+2. **Campus Persona / Role Switcher:** Displays the active persona's name, role badge (Student, Technician, Supervisor), and avatar; clicking launches the modal to instantly toggle roles with zero page reloads.
+3. **Live Backend Health Heartbeat:** Pings `/health` on load and displays an emerald green pulsing status pill (*"API Online"*) or amber/red (*"API Offline"*).
+4. **Mobile Drawer Menu:** Collapses navigation into an accessible hamburger menu on mobile viewport widths ($<768\text{px}$).
+5. **Structured Content Outlet:** Wraps dynamic page content inside a responsive container (`<main className="flex-1 max-w-7xl mx-auto px-4 ...">`) and pins a copyright and emergency contact footer to the bottom of the viewport.
 
 ### How to See It Performing Its Job on the Live Website
-Follow these detailed steps to verify layout and navigation components in the browser:
+Follow these detailed steps to verify layout, navigation, and persona switching in the browser:
 
 1. **Verify Desktop Navigation Bar & Active Highlighting:**
    * Open **`http://localhost:5173/`** on a full-size desktop screen.
-   * Observe the top blue navigation bar:
-     * Check the university brand icon and title *"Smart Complaint Handler"*.
-     * Check navigation tabs: **"Submit Complaint"**, **"Track Ticket"**, and **"Admin Desk"**.
-   * Click **"Submit Complaint"**:
-     * Observe the tab gains an active visual highlight (underlined or contrasting pill).
+   * Observe the top white glassmorphic navigation bar:
+     * Check the university brand icon and title *"SmartComplaintHandler v1.0"*.
+     * Check navigation tabs: **"Submit Grievance"**, **"Track Ticket"**, **"Operations Desk"**, and **"Developer Lab"**.
+   * Click **"Submit Grievance"**:
+     * Observe the tab gains an active visual highlight (`bg-indigo-50 text-indigo-700 font-extrabold`).
    * Click **"Track Ticket"**:
      * Observe the highlight shifts smoothly to "Track Ticket" while the header and footer remain stationary.
 
-2. **Verify Mobile Responsive Drawer Navigation:**
-   * Press `F12` in Chrome/Edge and click the **Toggle Device Toolbar** icon (mobile phone mode).
-   * Set width to `390px` (iPhone 14 / mobile viewport).
-   * Notice the desktop links disappear, replaced by an accessible **Hamburger Menu icon (☰)**.
-   * Click the hamburger icon:
-     * Observe a smooth slide-down or slide-out drawer menu revealing all navigation links.
-   * Tap **"Admin Operations"**:
-     * Observe the drawer automatically closes and routes cleanly to `/admin`.
+2. **Verify 1-Click Persona Role Switching:**
+   * In the top-right navbar, click the **Persona Pill** (e.g. `🎓 Aarav Sharma (Student)`):
+     * Observe the **Role-Based Access** modal open smoothly with 3 selectable campus personas:
+       - 🎓 **Student** (*Aarav Sharma - Roll: 23BCS104*)
+       - 🔧 **Field Technician** (*Ramesh Kumar - Rapid Electrical Squad 1*)
+       - 🛡️ **Chief Facility Supervisor** (*Dr. Sunita Verma - Central Facilities Management*)
+     * Click **Ramesh Kumar (Field Technician)**:
+     * Notice the navbar badge updates to `🔧 Ramesh Kumar (Field Technician)`.
+     * Navigate to `/admin`: notice the operations desk dynamically adapts to show technician action buttons (*"Start Work"*, *"Resolve Ticket"*).
 
-3. **Verify Sticky Footer Placement:**
-   * Navigate to a short page (like an empty tracking search): verify the footer stays pinned to the bottom of the browser viewport without floating into the middle of the screen.
+3. **Verify Live Backend Health Heartbeat:**
+   * In the top-right navbar, inspect the **API Online** pill:
+     * When the FastAPI backend is running on port 8000, verify the green dot pulses with text `"API Online"`.
+     * Stop the backend (`Ctrl+C` in backend terminal) and refresh: verify the pill changes to a warning amber/rose dot reading `"API Offline"`.
+
+4. **Verify Mobile Responsive Drawer Navigation:**
+   * Press `F12` in Chrome/Edge and toggle device toolbar (`390px` mobile viewport).
+   * Notice desktop links collapse into an accessible **Hamburger Menu icon (☰)**.
+   * Click the hamburger icon:
+     * Observe a smooth drawer revealing all navigation links.
+   * Tap **"Operations Desk"**:
+     * Observe the drawer closes automatically and routes cleanly to `/admin`.
+
