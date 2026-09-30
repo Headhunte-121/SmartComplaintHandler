@@ -247,3 +247,10 @@ npm run dev
 * **What Was Changed:** Reconciled upstream commit `91406fe` by supporting dual seed functions (`seed_database(db)` and `seed_data()`) and dual model aliases (`Team` and `MaintenanceTeam`).
 * **Why It Was Changed:** Preserved complete backward compatibility with teammate modules (M1, M4) while preventing merge conflict regressions.
 * **Verification Proof:** `37/37 pytest passed in 0.97s`.
+
+### [2026-09-30] - Seed Idempotency & Primary Key Collision Safeguard
+* **Files Modified:** `backend/app/db/seed.py`
+* **What Was Changed:** Upgraded `seed_database(db)` to check both primary key IDs (`existing_depts_by_id`) and case-insensitive department/squad names (`existing_depts_by_name`) prior to executing inserts.
+* **Why It Was Changed:** Pre-existing databases with custom names (e.g., `'Electrical Services'` at ID 1) triggered `sqlite3.IntegrityError: UNIQUE constraint failed: departments.id` during FastAPI lifespan startup, preventing the backend from booting.
+* **Verification Proof:** `37/37 pytest passed in 1.05s`, `seed_data()` executed cleanly without warnings.
+

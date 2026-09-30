@@ -49,37 +49,53 @@ def seed_database(db: Session) -> None:
     Seed initial departments and maintenance teams if tables are unpopulated.
     Used by FastAPI lifespan in app.main.
     """
-    # 1. Seed standard departments
-    existing_depts = {d.name: d for d in db.query(Department).all()}
+    # 1. Seed standard departments idempotently
+    existing_depts_by_name = {d.name.lower(): d for d in db.query(Department).all()}
+    existing_depts_by_id = {d.id: d for d in db.query(Department).all()}
+    
     for d_data in SEED_DEPARTMENTS:
-        if d_data["name"] not in existing_depts:
-            dept = Department(
-                id=d_data.get("id"),
-                name=d_data["name"],
-                description=d_data["description"],
-            )
-            db.add(dept)
-            db.flush()
-            existing_depts[d_data["name"]] = dept
+        d_id = d_data.get("id")
+        d_name = d_data["name"]
+        
+        # If ID or name already exists in database, skip to avoid primary key collisions
+        if (d_id is not None and d_id in existing_depts_by_id) or d_name.lower() in existing_depts_by_name:
+            continue
+            
+        dept = Department(
+            id=d_id,
+            name=d_name,
+            description=d_data["description"],
+        )
+        db.add(dept)
+        db.flush()
+        existing_depts_by_name[d_name.lower()] = dept
+        if dept.id:
+            existing_depts_by_id[dept.id] = dept
     db.commit()
 
-    # Refresh map
-    existing_depts = {d.name: d for d in db.query(Department).all()}
-
-    # 2. Seed standard teams
-    existing_teams = {t.name: t for t in db.query(MaintenanceTeam).all()}
+    # 2. Seed standard teams idempotently
+    existing_teams_by_name = {t.name.lower(): t for t in db.query(MaintenanceTeam).all()}
+    existing_teams_by_id = {t.id: t for t in db.query(MaintenanceTeam).all()}
+    
     for t_data in SEED_TEAMS:
-        if t_data["name"] not in existing_teams:
-            team = MaintenanceTeam(
-                id=t_data.get("id"),
-                name=t_data["name"],
-                department_id=t_data["department_id"],
-                active_ticket_count=t_data.get("active_ticket_count", 0),
-                is_active=t_data.get("is_active", True),
-            )
-            db.add(team)
-            db.flush()
-            existing_teams[t_data["name"]] = team
+        t_id = t_data.get("id")
+        t_name = t_data["name"]
+        
+        if (t_id is not None and t_id in existing_teams_by_id) or t_name.lower() in existing_teams_by_name:
+            continue
+            
+        team = MaintenanceTeam(
+            id=t_id,
+            name=t_name,
+            department_id=t_data["department_id"],
+            active_ticket_count=t_data.get("active_ticket_count", 0),
+            is_active=t_data.get("is_active", True),
+        )
+        db.add(team)
+        db.flush()
+        existing_teams_by_name[t_name.lower()] = team
+        if team.id:
+            existing_teams_by_id[team.id] = team
     db.commit()
 
 
