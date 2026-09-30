@@ -147,6 +147,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -163,8 +165,21 @@ When rendered on screen, this component performs:
 3. **Lifecycle Awareness:** If ticket status is `RESOLVED`, freezes the timer and displays a calm green checkmark with total turnaround duration.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/track?code=TICK-1001`** (or open the Admin Dashboard).
-2. **Observe Countdown Timer Live:**
-   * Notice the timer pill ticking down seconds in real time.
-   * If the ticket is fresh, observe the calm green or amber badge.
-   * Find an overdue ticket (or test with past target date): observe the bright red **`BREACHED`** badge displaying the exact overdue time.
+Follow these detailed steps to verify the countdown timer in your browser:
+
+1. **Observe Live 1-Second Ticking on the Tracking Page:**
+   * Open **`http://localhost:5173/track?code=TICK-1001`** (or open the Admin Dashboard).
+   * Locate the **SLA Countdown Timer** badge.
+   * Watch the seconds digits tick down continuously: `5h 42m 18s` ➔ `5h 42m 17s` ➔ `5h 42m 16s`.
+
+2. **Verify Dynamic Severity Color Thresholds:**
+   * Fresh tickets with $>4	ext{h}$ remaining render with an emerald green badge.
+   * Tickets with $1-4	ext{h}$ remaining render with an amber badge.
+   * Tickets with $<1	ext{h}$ remaining render with a warning red badge.
+   * Overdue tickets render with a bold, pulsing crimson badge reading **`BREACHED`** with elapsed overdue time (e.g. `Overdue by 3h 12m`).
+
+3. **Verify Timer Freeze Upon Resolution:**
+   * On `/admin`, resolve the ticket:
+   * Return to `/track` and refresh:
+     * Confirm the timer stops ticking.
+     * Confirm a calm green checkmark appears reading: `"Resolved within target SLA (Total: 42m)"`.

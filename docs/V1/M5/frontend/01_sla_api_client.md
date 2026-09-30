@@ -133,6 +133,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -145,9 +147,28 @@ When invoked by UI components, this client provides:
 3. **`fetchSLABreaches()`:** Calls `GET /api/v1/tickets/breaches` to populate administrative escalation views.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/admin`** and open the Developer Tools Console (`F12`).
-2. In the console, execute:
-   `import('/src/api/sla.js').then(api => api.fetchSLABreaches()).then(console.log)`
-3. **Observe Client Live:**
-   * The console prints the list of overdue complaints fetched from the backend.
-4. On the Network tab, resolve a ticket and observe the clean `POST /resolve` request dispatched by this client.
+Follow these detailed steps to test the SLA API transport client:
+
+1. **Test `fetchSLABreaches` in Browser Console:**
+   * Open **`http://localhost:5173/admin`** and press `F12` to open the **Console**.
+   * Paste and execute:
+     ```javascript
+     import('/src/api/sla.js').then(api => api.fetchSLABreaches()).then(breaches => {
+       console.log('✅ Breaches Fetched Successfully:');
+       console.table(breaches.map(b => ({ Code: b.tracking_code, Priority: b.priority, OverdueSecs: b.overdue_seconds })));
+     });
+     ```
+   * Confirm console displays the list of overdue complaints with breach durations.
+
+2. **Test Direct Ticket Resolution via Console:**
+   * Paste and execute:
+     ```javascript
+     import('/src/api/sla.js').then(api => api.resolveTicket(1, 'Console test resolution note 12345')).then(res => {
+       console.log('✅ Resolved Ticket! New Status:', res.status, '| Resolved At:', res.resolved_at);
+     });
+     ```
+   * Confirm response object is printed confirming successful resolution.
+
+3. **Verify Network Payloads in DevTools:**
+   * Switch to the **Network** tab, resolve a ticket on the dashboard:
+   * Verify `POST /api/v1/tickets/{id}/resolve` is sent with proper JSON body and completes with status 200.

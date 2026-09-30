@@ -151,6 +151,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -163,9 +165,19 @@ When rendered inside the operations desk, this component performs:
 3. **Direct Intervention Links:** Provides 1-click shortcuts to reassign squads or contact technicians directly from the breach row.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/admin`** in your browser.
-2. Locate the **SLA Breaches & Escalations** tab or section.
-3. **Observe Breach Table Live:**
-   * Notice any overdue tickets highlighted with prominent crimson warning borders.
-   * Inspect the overdue column: observe clear elapsed time counters showing how long the deadline has been breached.
-   * Click **Reassign** directly on a breach row to quickly transfer the stalled job to an available squad.
+Follow these detailed steps to verify the SLA breach escalation panel:
+
+1. **Navigate to Breach Escalation View on Admin Desk:**
+   * Open **`http://localhost:5173/admin`** in your browser.
+   * Click on the **"SLA Breaches & Escalations"** tab or section header.
+
+2. **Inspect Overdue Ticket Telemetry:**
+   * Observe the breach table rows:
+     * Confirm only overdue tickets are listed.
+     * Inspect the **Overdue Duration** column: verify prominent red badges showing elapsed breach times (e.g. `+2h 30m Overdue`).
+     * Inspect the **Priority** and **Assigned Team** columns.
+
+3. **Test Direct Reassignment from Breach Row:**
+   * Click the **Reassign** button directly on a breach row:
+     * Confirm the reassignment modal opens with the breached ticket pre-selected.
+     * Reassign to an available squad to escalate the overdue job.

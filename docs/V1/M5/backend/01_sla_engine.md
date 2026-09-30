@@ -139,6 +139,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -155,9 +157,24 @@ When evaluating ticket timeliness, this module performs the following operations
 3. **SLA Recalculation on Override:** Recalculates the target resolution deadline when a supervisor modifies ticket priority, preserving fair countdown clocks.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/track`** and enter a tracking code for a newly submitted ticket.
-2. **Observe SLA Engine Live:**
-   * Notice the **Resolution Deadline** displayed on the tracking card (e.g. `Target: Today at 4:30 PM (in 2 hours)`).
-   * Notice the live SLA countdown timer ticking down the remaining time.
-3. Open `http://localhost:8000/docs` and execute `GET /api/v1/tickets/breaches`:
-   * Observe the JSON list of tickets that have exceeded their target resolution timestamp.
+Follow these detailed steps to verify SLA deadline calculation and breach evaluation on the live system:
+
+1. **Verify Target Deadline on Ticket Creation:**
+   * Open **`http://localhost:5173/submit`** in your browser.
+   * Submit a grievance with Title: `Water pipe burst in washroom` (classified as `HIGH` priority).
+   * Copy the tracking code and open **`http://localhost:5173/track`**:
+     * Inspect the **Resolution Deadline** displayed: verify the target date reflects exactly **6 hours** from the submission timestamp.
+     * Verify the live countdown timer displays `5h 59m` remaining.
+
+2. **Verify Dynamic Deadline Tightening on Priority Override:**
+   * Open **`http://localhost:5173/admin`** in a separate tab and locate the ticket.
+   * Click **Override Priority** and upgrade the ticket to **`CRITICAL`** with reason: `Flooding worsening, risk of ceiling damage`.
+   * Return to **`http://localhost:5173/track`** and refresh:
+     * Confirm the deadline automatically tightens to reflect the **2-hour** critical SLA.
+     * Confirm the countdown timer drops from 6 hours to under 2 hours, demonstrating dynamic temporal recalculation.
+
+3. **Verify Overdue Breach Evaluation in Swagger UI:**
+   * Open **`http://localhost:8000/docs`**.
+   * Locate `GET /api/v1/tickets/breaches` -> click **Try it out** -> click **Execute**.
+   * In the response body, inspect the returned overdue tickets:
+     * Confirm each breached record includes `target_resolution_date`, `is_breached: true`, and the calculated `overdue_duration_seconds`.

@@ -132,6 +132,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -144,8 +146,17 @@ When executed, this test suite validates:
 3. **Resolution Constraint Enforcement:** Confirms that tickets cannot be resolved without $\ge 10$ characters of documentation.
 
 ### How to See It Performing Its Job on the Live Website
-1. Run the test suite in your terminal:
-   `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
-2. **Observe 100% Pass Rate:**
-   * All SLA and lifecycle tests pass with 0 failures in $<2$ seconds.
-3. On `http://localhost:5173/admin`, verify that tickets transition cleanly and timers update in real time.
+Follow these detailed steps to certify Module M5:
+
+1. **Execute Pytest Automated Tests:**
+   * In terminal, run:
+     `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
+   * Confirm all SLA and lifecycle tests pass with green output in $<2$ seconds:
+     * Deadline calculation and temporal math tests
+     * Lifecycle state machine transition and illegal jump tests
+     * Resolution notes minimum length constraint tests
+     * SLA breach detection tests
+
+2. **Execute Full-Stack Manual Verification on `/admin` and `/track`:**
+   * Verify countdown timers tick down continuously.
+   * Verify resolution notes modal blocks sub-10 character explanations and updates status cleanly.

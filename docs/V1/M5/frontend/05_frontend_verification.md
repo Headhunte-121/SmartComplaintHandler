@@ -137,6 +137,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -149,9 +151,21 @@ When executing verification across the frontend, this protocol ensures:
 3. **Lifecycle Visual Harmony:** Verifies that resolving a ticket updates the tracking page timeline and admin table without page reloads.
 
 ### How to See It Performing Its Job on the Live Website
-1. Launch both dev servers: `npm run dev` and `uvicorn app.main:app --reload`.
-2. Open **`http://localhost:5173/track`**:
-   * Verify the countdown timer ticks down seconds in real time.
-3. On **`http://localhost:5173/admin`**:
-   * Click **Resolve** on an in-progress ticket, type a valid 10+ character explanation, and submit.
-   * Confirm the ticket reflects `Status: RESOLVED` and the timer freezes with a green completion checkmark.
+Follow this complete step-by-step verification walkthrough on your machine:
+
+1. **Step 1: Execute Production Build Verification:**
+   * In `frontend/`, run: `npm run build`
+   * Confirm build completes with **0 errors** in $<15$ seconds.
+
+2. **Step 2: Verify Real-Time Countdown Timers:**
+   * Open `http://localhost:5173/track?code=TICK-1001`.
+   * Watch the countdown timer tick down seconds in real time.
+   * Verify color thresholds (green, amber, red, breached).
+
+3. **Step 3: Test Lifecycle Advancement & Resolution Gate:**
+   * On `http://localhost:5173/admin`, advance an assigned ticket to `IN_PROGRESS`.
+   * Click **Resolve**: test 10-character validation guard in the modal.
+   * Submit valid repair notes: confirm status updates to `RESOLVED` and timer freezes.
+
+4. **Step 4: Verify SLA Breach Escalation Panel:**
+   * Open the Breaches tab on `/admin`: verify overdue tickets render with red badges and direct action buttons.

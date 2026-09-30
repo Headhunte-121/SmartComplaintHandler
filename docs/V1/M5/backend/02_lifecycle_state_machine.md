@@ -152,6 +152,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -168,10 +170,27 @@ When tickets undergo status changes, this module enforces:
 3. **Terminal State Lockdown:** Prevents further modifications once a ticket reaches a final terminal state without formal administrative reopening.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:8000/docs`** in your browser.
-2. Locate `PATCH /api/v1/tickets/{ticket_id}/status` and click **Try it out**.
-3. Pick a ticket currently in `SUBMITTED` status and attempt to force it directly to `RESOLVED`:
-   `{"new_status": "RESOLVED"}`
-4. Click **Execute**:
-   * Observe the server reject the transition with **HTTP 400 Bad Request**, displaying the error: *"Invalid state transition from SUBMITTED to RESOLVED"*.
-5. Now advance it to `ASSIGNED`: observe the transition succeeds cleanly with HTTP 200.
+Follow these detailed steps to verify lifecycle state automata rules:
+
+1. **Test Illegal Direct Jump Rejection in Swagger UI:**
+   * Open **`http://localhost:8000/docs`** in your browser.
+   * Locate `PATCH /api/v1/tickets/{ticket_id}/status` -> click **Try it out**.
+   * Pick a ticket currently in `SUBMITTED` status and attempt to force it directly to `RESOLVED`:
+     ```json
+     {
+       "new_status": "RESOLVED"
+     }
+     ```
+   * Click **Execute**:
+     * Observe the server reject the transition with **`HTTP 400 Bad Request`**.
+     * Inspect error message: confirm `"Invalid state transition from SUBMITTED to RESOLVED"` is returned.
+
+2. **Test Step-by-Step Authorized State Progression:**
+   * Transition `SUBMITTED` ➔ `ASSIGNED`: confirm `HTTP 200 OK`.
+   * Transition `ASSIGNED` ➔ `IN_PROGRESS`: confirm `HTTP 200 OK`.
+   * On **`http://localhost:5173/track`**, refresh the ticket:
+     * Confirm the 4-stage visual timeline now shows **`In Progress`** highlighted in blue.
+
+3. **Verify Reopening from Resolved State:**
+   * Attempt transition `RESOLVED` ➔ `IN_PROGRESS` directly: observe rejection.
+   * Transition `RESOLVED` ➔ `REOPENED`: confirm authorized recovery transition succeeds.

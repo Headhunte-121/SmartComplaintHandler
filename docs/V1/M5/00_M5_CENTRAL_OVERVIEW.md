@@ -245,6 +245,8 @@ To maintain engineering consistency across the team, every blueprint in Module M
 
 ---
 
+---
+
 # 8. Definition of Done & Live Website Verification Walkthrough
 
 ### What This Module Is Responsible For
@@ -258,28 +260,43 @@ When operational across the full stack, Module M5 delivers four unified capabili
 4. **Live Visual Telemetry:** Powers real-time ticking countdown timers and administrative SLA breach escalation panels.
 
 ### How to See It Performing Its Job on the Live Website
-Anyone can verify Module M5 on the live application in under 3 minutes:
+Anyone can verify all features of Module M5 on the live application in under 3 minutes:
 
-#### Step 1: Observe Real-Time Countdown Timer
-1. Open **`http://localhost:5173/track`** and look up any active ticket.
+#### Prerequisites: Launch Local Dev Servers
+```powershell
+# Terminal 1 — Backend:
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn app.main:app --port 8000 --reload
+
+# Terminal 2 — Frontend:
+cd frontend
+npm run dev
+```
+
+#### Step 1: Observe Real-Time Countdown Timer on Public Tracking View
+1. Open **`http://localhost:5173/track`** and look up any active ticket (e.g. `TICK-1001`).
 2. Observe the **SLA Countdown Timer**:
-   * Watch the seconds count down live in real time.
+   * Watch the seconds count down live in real time: `5h 42m 18s` ➔ `5h 42m 17s`.
    * Note the color coding: Green ($>4	ext{h}$), Amber ($1-4	ext{h}$), Red ($<1	ext{h}$), or flashing Red if breached.
 
 #### Step 2: Test Lifecycle Advancement & Resolution Gate
 1. Open **`http://localhost:5173/admin`**.
-2. Locate a ticket in `ASSIGNED` status and click **Start Work** -> notice status updates to `IN_PROGRESS`.
+2. Locate a ticket in `ASSIGNED` status and click **Start Work**:
+   * Observe status immediately updates to **`IN_PROGRESS`**.
 3. Click **Resolve Ticket**:
-   * Modal opens prompting for resolution notes.
-   * Type `done` (only 4 chars): confirm the submit button is **disabled**.
-   * Type `Replaced damaged light bulb and verified electrical ballast`: confirm button turns active green.
+   * Observe the resolution notes dialog pop up smoothly.
+   * Type `done` (only 4 chars): confirm the submit button remains **disabled**.
+   * Type `Replaced damaged light bulb and verified electrical ballast`:
+   * Observe the character counter turn green and the button activate (emerald green).
 4. Click **Mark Resolved**:
-   * Notice the status updates to **`RESOLVED`**.
-   * Return to `/track`: notice the countdown timer freezes with a completion checkmark.
+   * Notice the status updates to **`RESOLVED`** in the table row.
+   * Return to `/track` and refresh: notice the countdown timer freezes with a calm green completion checkmark.
 
-#### Step 3: Inspect Breaches in Swagger API
+#### Step 3: Inspect Breaches in Swagger API Docs
 1. Open **`http://localhost:8000/docs`**.
-2. Execute `GET /api/v1/tickets/breaches` to view all currently breached campus tickets.
+2. Locate `GET /api/v1/tickets/breaches` -> click **Try it out** -> click **Execute**:
+   * Confirm the JSON response returns all campus tickets that have exceeded their target resolution deadline.
 
 ---
 

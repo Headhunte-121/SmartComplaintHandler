@@ -149,6 +149,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -161,9 +163,25 @@ This controller provides the following endpoints:
 3. **`GET /api/v1/tickets/breaches`:** Returns all active tickets currently exceeding their SLA deadline (**HTTP 200 OK**).
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:8000/docs`** in your browser.
-2. Locate `GET /api/v1/tickets/breaches` -> Click **Try it out** -> Click **Execute**:
-   * Observe the JSON response listing overdue complaints with breach durations.
-3. Locate `POST /api/v1/tickets/{id}/resolve`:
-   * Provide an ID and valid repair notes: `{"resolution_notes": "Replaced cracked drain trap and verified no leaks"}`.
-   * Click **Execute**: observe HTTP 200 confirming ticket resolution.
+Follow these detailed steps to test the SLA REST controllers in Swagger and DevTools:
+
+1. **Test `GET /api/v1/tickets/breaches` in Swagger:**
+   * Open **`http://localhost:8000/docs`**.
+   * Locate `GET /api/v1/tickets/breaches` -> click **Try it out** -> click **Execute**.
+   * Verify server returns **`HTTP 200 OK`** with the list of overdue complaints and breach durations.
+
+2. **Test `POST /api/v1/tickets/{id}/resolve`:**
+   * Locate `POST /api/v1/tickets/{id}/resolve` -> click **Try it out**.
+   * Provide an active ticket ID and enter valid repair documentation:
+     ```json
+     {
+       "resolution_notes": "Replaced cracked drain trap and verified no leaks under sink"
+     }
+     ```
+   * Click **Execute**:
+     * Verify server returns **`HTTP 200 OK`**.
+     * Confirm response body reflects `status: "RESOLVED"` and `resolved_at` timestamp.
+
+3. **Verify Network Payloads in DevTools:**
+   * On `http://localhost:5173/admin`, advance a ticket's status:
+   * Observe in DevTools Network tab that `PATCH /api/v1/tickets/{id}/status` returns status 200.

@@ -152,6 +152,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -164,10 +166,29 @@ When processing lifecycle requests, this module validates:
 3. **Breach Telemetry Serialization:** Formats `SLABreachResponse` objects with overdue duration strings and team accountability details.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:8000/docs`**.
-2. Locate `POST /api/v1/tickets/{ticket_id}/resolve` and click **Try it out**.
-3. Attempt to resolve a ticket with a trivial 3-character note:
-   `{"resolution_notes": "fix"}`
-4. Click **Execute**:
-   * Observe the server reject the request with **HTTP 422 Unprocessable Entity**, highlighting that resolution notes must be at least 10 characters long.
-5. On the live website at `http://localhost:5173/admin`, click "Resolve Ticket": observe the modal submit button remains strictly disabled until 10 characters are typed.
+Follow these detailed steps to verify SLA schema validation boundaries:
+
+1. **Test Sub-10 Character Repair Notes Rejection in Swagger:**
+   * Open **`http://localhost:8000/docs`**.
+   * Locate `POST /api/v1/tickets/{ticket_id}/resolve` -> click **Try it out**.
+   * Enter a ticket ID and provide an invalid short note:
+     ```json
+     {
+       "resolution_notes": "fixed it"
+     }
+     ```
+   * Click **Execute**:
+     * Observe the server reject the request with **`HTTP 422 Unprocessable Entity`**.
+     * Confirm error response highlights: `"String should have at least 10 characters"` under `loc: ["body", "resolution_notes"]`.
+
+2. **Test Valid Repair Notes Acceptance:**
+   * Change `resolution_notes` to `"Replaced broken ceramic valve and tested water pressure for 15 minutes"`.
+   * Click **Execute**:
+     * Confirm server returns **`HTTP 200 OK`**.
+     * Confirm response body reflects `status: "RESOLVED"` and populated `resolved_at` timestamp.
+
+3. **Verify Client-Side Validation in Resolution Notes Modal:**
+   * On **`http://localhost:5173/admin`**, click **Resolve** on an in-progress ticket.
+   * In the notes textarea, type `Done` (only 4 chars):
+     * Observe the character counter warning in amber: `"4/10 characters required (min 10)"`.
+     * Confirm the **"Mark Resolved"** button is disabled until at least 10 non-whitespace characters are entered.

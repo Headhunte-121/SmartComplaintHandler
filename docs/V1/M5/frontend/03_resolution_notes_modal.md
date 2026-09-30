@@ -145,6 +145,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -158,13 +160,24 @@ When activated by a technician or supervisor, this modal performs:
 4. **Optimistic UI Callback:** Dispatches `resolveTicket()`, displays a loading spinner, dismisses cleanly, and notifies the parent view to update the ticket status badge to `RESOLVED`.
 
 ### How to See It Performing Its Job on the Live Website
-1. On **`http://localhost:5173/admin`**, click **Resolve** on any ticket in `IN_PROGRESS` status.
-2. **Observe Resolution Modal Live:**
-   * Modal dialog appears smoothly.
-   * Notice the **Mark Resolved** button is disabled.
-3. Type `fixed` (only 5 chars):
-   * Notice the counter warns: `5/10 characters required (min 10)`.
-4. Type `Replaced broken faucet washer and tested flow`:
-   * Notice the counter turns green and the button turns active emerald.
-5. Click **Mark Resolved**:
-   * Observe the brief spinner, modal dismissal, and the ticket status instantly update to **`RESOLVED`**.
+Follow these detailed steps to verify the resolution modal:
+
+1. **Open Modal & Observe Initial Disabled Guard:**
+   * On **`http://localhost:5173/admin`**, locate any ticket in `IN_PROGRESS` status and click **Resolve**.
+   * Observe the modal open over a dimmed backdrop showing ticket tracking code and title.
+   * Confirm the **"Mark Resolved"** button is **disabled** (grayed out) by default.
+
+2. **Verify Length Guard & Character Counter:**
+   * Click into the repair notes textarea and type `done` (only 4 chars):
+     * Observe the character counter warning: `"4/10 characters required (min 10)"` in amber.
+     * Confirm the button remains disabled.
+   * Type 5 more characters: `done fast`:
+     * Observe counter: `"9/10 characters required"`, button still disabled.
+
+3. **Execute Resolution & Observe Instant UI Update:**
+   * Finish typing a complete explanation: `Replaced damaged power cable and confirmed voltage is stable`.
+   * Observe the character counter turn green (`60/500 characters`) and the button activate (emerald green).
+   * Click **Mark Resolved**:
+     * Observe the brief loading spinner.
+     * Observe the modal dismiss cleanly.
+     * Observe the ticket row status badge immediately update to **`RESOLVED`** without a page refresh.

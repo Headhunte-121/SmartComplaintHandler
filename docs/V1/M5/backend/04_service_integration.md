@@ -152,6 +152,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -164,10 +166,23 @@ During ticket lifecycle operations, this service performs:
 3. **Resolution Stamping:** When a ticket is marked `RESOLVED`, sets `resolved_at = datetime.utcnow()` and appends the mandatory technician repair explanation into `resolution_notes`.
 
 ### How to See It Performing Its Job on the Live Website
-1. Submit a complaint at **`http://localhost:5173/submit`**.
-2. Open **`http://localhost:5173/track`**:
-   * Observe the initial target resolution deadline displayed.
-3. On **`http://localhost:5173/admin`**, open the priority override modal and upgrade the ticket to `CRITICAL`:
-   * Return to `/track` and refresh: observe the deadline has automatically tightened to reflect the 2-hour critical SLA.
-4. Mark the ticket resolved with repair notes:
-   * Notice the timeline advances to **`RESOLVED`** and displays the exact completion timestamp.
+Follow these detailed steps to verify service integration across the lifecycle:
+
+1. **Verify Target Deadline Stamped in SQLite:**
+   * Submit a new complaint on **`http://localhost:5173/submit`**.
+   * Open **`http://localhost:8000/docs`** -> `GET /api/v1/tickets/{tracking_code}`.
+   * Confirm `target_resolution_date` is populated in the SQLite record with an ISO-8601 timestamp.
+
+2. **Verify Resolution Stamping & Audit Appending:**
+   * On **`http://localhost:5173/admin`**, advance the ticket to `IN_PROGRESS` and click **Resolve**.
+   * Enter explanation: `Repaired loose neutral wire inside junction box`.
+   * Click **Mark Resolved**.
+   * Return to Swagger docs and re-query the ticket:
+     * Confirm `status` is now `"RESOLVED"`.
+     * Confirm `resolved_at` is stamped with the exact UTC timestamp.
+     * Confirm `resolution_notes` contains the technician explanation alongside any earlier triage notes.
+
+3. **Verify Timer Freeze on Tracking Page:**
+   * Open `http://localhost:5173/track` with the ticket's code:
+     * Confirm the live countdown timer has stopped ticking.
+     * Confirm a calm green checkmark displays with total resolution turnaround duration.

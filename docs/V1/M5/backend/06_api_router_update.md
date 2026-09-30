@@ -107,6 +107,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -119,7 +121,16 @@ When mounted during server startup, this router performs:
 3. **Clean Route Formatting:** Ensures uniform API paths (`/api/v1/tickets/{id}/status`, `/api/v1/tickets/breaches`).
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:8000/docs`** in your browser.
-2. **Observe Router Organization Live:**
+Follow these detailed steps to verify router registration in Swagger UI:
+
+1. **Verify Section Tag in Swagger Documentation:**
+   * Open **`http://localhost:8000/docs`** in your browser.
    * Locate the section titled **"SLA & Lifecycle Management"**.
-   * Confirm that all status transition, resolution, and breach endpoints are fully accessible with interactive Swagger controls.
+   * Confirm that all three endpoints are registered under this header:
+     * `PATCH /api/v1/tickets/{ticket_id}/status` (Update Status)
+     * `POST /api/v1/tickets/{ticket_id}/resolve` (Resolve Ticket)
+     * `GET /api/v1/tickets/breaches` (List Breached Tickets)
+
+2. **Verify URL Namespace Uniformity:**
+   * Verify that all endpoints require the root `/api/v1/` prefix.
+   * Confirm that executing queries through Swagger routes directly to the registered controller functions.
