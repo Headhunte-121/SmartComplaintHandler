@@ -165,6 +165,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -177,10 +179,28 @@ When executed during setup or server boot, this module performs the following op
 3. **Comprehensive Sample Data:** Seeds 6 standard departments (Electrical, Plumbing, IT Support, Carpentry, Civil, Other) and realistic maintenance teams with assigned capacities.
 
 ### How to See It Performing Its Job on the Live Website
-1. Delete or rename the local `smart_complaints.db` file to test a clean installation.
-2. Run the seed script:
-   `backend\venv\Scripts\python.exe -m app.db.seed`
-3. Launch the web application: `npm run dev` and `uvicorn app.main:app --reload`.
-4. Open **`http://localhost:5173/`**:
-   * Navigate to the complaint submission form: verify all 6 seeded departments appear in the dropdown.
-   * Navigate to the Admin Dashboard at `http://localhost:5173/admin`: verify that pre-seeded maintenance teams and sample tickets appear immediately.
+Follow these detailed steps to verify seed fixtures on a fresh database:
+
+1. **Test Seed Execution on a Clean Database:**
+   * Stop the backend server.
+   * In project root, temporarily rename `smart_complaints.db` to `smart_complaints.db.bak`.
+   * Run the seed script:
+     `backend\venv\Scripts\python.exe -m app.db.seed`
+   * Confirm terminal output: `Seeding database... Database seeded successfully!`.
+
+2. **Verify Seeded Departments in Frontend Dropdown:**
+   * Start the dev servers: `npm run dev` and `uvicorn app.main:app --reload`.
+   * Open **`http://localhost:5173/submit`**.
+   * Click the Category dropdown: verify all 6 seeded departments appear:
+     * Electrical
+     * Plumbing
+     * IT Support
+     * Carpentry
+     * Civil
+     * Other
+
+3. **Test Seeding Idempotency (Zero Duplicate Records):**
+   * Re-run `backend\venv\Scripts\python.exe -m app.db.seed` in the terminal.
+   * Confirm the script runs without throwing `sqlite3.IntegrityError: UNIQUE constraint failed`.
+   * Open `http://localhost:8000/docs` -> `GET /api/v1/departments`: verify exactly 6 departments exist (no duplicate copies created).
+   * Restore your original `.bak` database if desired.

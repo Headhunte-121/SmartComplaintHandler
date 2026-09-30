@@ -123,6 +123,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -135,9 +137,35 @@ When executing development or production builds, this toolchain performs the fol
 3. **Tailwind Design Token Compilation:** Scans JSX files, purges unused CSS, and compiles semantic utility classes for campus branding, typography, priority colors, and responsive layouts into an optimized `<25\text{ KB}` bundle.
 
 ### How to See It Performing Its Job on the Live Website
-1. In `frontend/`, run: `npm run dev`.
-2. Open **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
-3. **Observe Build & Styling Live:**
-   * Notice the page loads instantly with crisp Tailwind typography, custom primary blue header accents, and responsive layout grids.
-   * Open `frontend/src/components/Navbar.jsx`, change a text label, and save: observe the browser update instantly via HMR without losing form state.
-   * Open browser DevTools (`F12`), navigate to the Network tab, and perform an action: observe API requests sent to `/api/...` succeed without CORS errors.
+Follow these detailed steps to verify the Vite toolchain and Tailwind styling in your browser:
+
+1. **Verify Vite Development Server Startup:**
+   * In `frontend/`, run: `npm run dev`
+   * Verify terminal displays: `VITE ready in xxx ms` and `Local: http://localhost:5173/`.
+   * Open **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
+
+2. **Inspect Semantic Tailwind Tokens in the Browser DOM:**
+   * Right-click the top navigation bar and select **Inspect**.
+   * Inspect the DOM classes on `<header>`: verify Tailwind utility classes are active:
+     `bg-blue-600 text-white shadow-md flex items-center justify-between`
+   * Confirm computed styles show the exact campus primary blue (`rgb(37, 99, 235)`).
+
+3. **Verify Sub-Second Hot Module Replacement (HMR):**
+   * Keep your browser open side-by-side with your code editor.
+   * Open `frontend/src/components/Navbar.jsx`.
+   * Change the portal title temporarily to `"Campus Helpdesk Live"`.
+   * Press `Ctrl+S` to save: observe the browser update instantly without a white-screen flash and without resetting any form state.
+   * Revert the title back to `"Smart Complaint Handler"`.
+
+4. **Verify Transparent `/api` Proxying Without CORS Errors:**
+   * In DevTools (`F12`), switch to the **Network** tab.
+   * Submit a complaint on `/submit`: observe the request URL in the Network table displays `http://localhost:5173/api/v1/tickets`.
+   * Notice that Vite transparently forwards this request to port `8000` on the backend, returning `HTTP 201 Created` with zero CORS blocking errors.
+
+5. **Verify Production Bundle Compilation:**
+   * In terminal, run: `npm run build`
+   * Confirm output shows:
+     * `dist/index.html` (~0.5 KB)
+     * `dist/assets/index-xxxx.css` (~24 KB)
+     * `dist/assets/index-xxxx.js` (~238 KB)
+   * Verify the build succeeds with 0 errors in $<15$ seconds.

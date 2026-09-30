@@ -125,6 +125,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -137,8 +139,18 @@ When an API route declares `db: Session = Depends(get_db)`, this module performs
 3. **Transaction Isolation:** Ensures that errors in one user's request do not poison or rollback concurrent transactions executed by other users.
 
 ### How to See It Performing Its Job on the Live Website
-1. Start the backend: `uvicorn app.main:app --port 8000 --reload`.
-2. Open **`http://localhost:5173/`** and submit several complaints in rapid succession, or refresh the ticket list 10 times quickly.
-3. **Observe Dependency Lifecycle Live:**
-   * Notice that every request completes with HTTP 200/201 in the terminal.
-   * Observe zero "Too many open files" or "Database connection limit exceeded" errors, certifying that `get_db` cleans up sessions immediately after each response is dispatched.
+Follow these detailed steps to verify database session injection and leak-free cleanup:
+
+1. **Stress-Test Rapid Request Lifecycle in Browser:**
+   * Start backend: `uvicorn app.main:app --port 8000 --reload`
+   * Open **`http://localhost:5173/`** and open browser DevTools (`F12`), Network tab.
+   * Rapidly navigate between "Submit", "Track", and "Admin" 10 times in 5 seconds.
+   * Observe backend terminal logs: confirm every single HTTP request returns HTTP 200 in $<20	ext{ms}$.
+   * Verify zero "Too many open files", "SQLite connection limit reached", or "Database is locked" exceptions appear.
+
+2. **Verify Transaction Cleanup on Simulated API Error:**
+   * Open **`http://localhost:8000/docs`**.
+   * Locate `GET /api/v1/tickets/{tracking_code}`.
+   * Enter a non-existent code: `INVALID-99999` -> click **Execute**.
+   * Observe the server return `HTTP 404 Not Found`.
+   * Immediately execute a valid query (`GET /api/v1/departments`): confirm it succeeds with `HTTP 200 OK`, proving the error session was cleanly closed in `finally` and did not poison the connection pool.

@@ -107,6 +107,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -119,9 +121,32 @@ When UI components request backend data, this client performs the following oper
 3. **Unified Response Unwrapping & Error Interception:** Extracts clean JSON response payloads and normalizes backend error messages (HTTP 400, 404, 422, 500) into user-friendly error objects.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/`** in your browser and press `F12` to open the Developer Tools Console.
-2. In the console, test the base client directly:
-   `import('/src/api/client.js').then(m => m.default.get('/departments')).then(r => console.log(r.data))`
-3. **Observe Client Live:**
-   * The console prints the list of campus departments returned by the backend.
-   * Now disconnect the backend server (Ctrl+C in terminal) and re-run the snippet: observe the client catch the connection error and return a standardized offline alert message.
+Follow these detailed steps to test the base API client directly in the browser:
+
+1. **Execute Live API Call via Browser Console:**
+   * Open **`http://localhost:5173/`** in your browser.
+   * Press `F12` and switch to the **Console** tab.
+   * Paste the following command and press Enter:
+     ```javascript
+     import('/src/api/client.js').then(m => m.default.get('/departments')).then(res => {
+       console.log('✅ API Client Connected! Status:', res.status);
+       console.table(res.data);
+     });
+     ```
+   * Observe the console print `✅ API Client Connected! Status: 200` followed by a neat table of all 6 campus departments.
+
+2. **Inspect Outbound Request Headers in Network Tab:**
+   * In DevTools, click the **Network** tab and select the `/departments` request from the table.
+   * Click **Headers**:
+     * Verify **Request URL:** `http://localhost:5173/api/v1/departments`
+     * Verify **Request Method:** `GET`
+     * Verify **Accept:** `application/json`
+
+3. **Verify Global Error Interception & Normalization:**
+   * In the Console, simulate a 404 query:
+     ```javascript
+     import('/src/api/client.js').then(m => m.default.get('/tickets/NON-EXISTENT')).catch(err => {
+       console.log('⚠️ Interceptor Caught Error:', err.response?.status, err.message);
+     });
+     ```
+   * Confirm the client catches the HTTP 404 gracefully without uncaught promise exceptions crashing React.

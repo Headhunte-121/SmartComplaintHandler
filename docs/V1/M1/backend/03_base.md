@@ -119,6 +119,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -131,9 +133,21 @@ When model classes inherit from this base, the module performs the following ope
 3. **Model Decoupling:** Allows domain models (`Department`, `Team`, `Ticket`) to inherit common database traits without redundant boilerplate.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open the interactive API documentation at **`http://localhost:8000/docs`**.
-2. Locate `GET /api/v1/tickets` and click **Try it out** -> **Execute**.
-3. **Observe Audit Fields Live:**
-   * Inspect the returned JSON payload in the response body.
-   * Notice that every ticket and entity object contains automated `created_at` and `updated_at` ISO-8601 timestamps.
-   * On the live web portal at **`http://localhost:5173/track`**, verify that complaints display formatted submission dates and times derived directly from these timestamp attributes.
+Follow these detailed steps to verify automated table naming and timestamp mixins on the live system:
+
+1. **Verify Audit Timestamps in Interactive API Docs:**
+   * Open **`http://localhost:8000/docs`** in your browser.
+   * Locate `GET /api/v1/tickets` -> click **Try it out** -> click **Execute**.
+   * In the Response Body, inspect any ticket object:
+     * Verify `created_at` contains a valid ISO-8601 UTC timestamp string (e.g. `"2026-09-29T12:30:45.123456"`).
+     * Verify `updated_at` exists and matches or post-dates `created_at`.
+
+2. **Verify Automated Table Naming in SQLite Metadata:**
+   * In terminal, run:
+     `backend\venv\Scripts\python.exe -c "from app.core.database import engine; from sqlalchemy import inspect; print('Tables:', inspect(engine).get_table_names())"`
+   * Verify the printed list contains lowercase snake_case tables: `['department', 'team', 'ticket']`.
+
+3. **Verify Human-Readable Submission Dates on the Frontend UI:**
+   * Open **`http://localhost:5173/track`** and look up any ticket.
+   * Look at the complaint header: observe the formatted date and time (e.g. *"Submitted on Sep 29, 2026, 6:00 PM"*).
+   * Open browser DevTools (`F12`), Network tab -> select the ticket response: confirm this UI date string is parsed directly from the model's `created_at` timestamp.

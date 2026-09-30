@@ -156,6 +156,8 @@ If an error occurs during any verification checkpoint, inspect the bottom line o
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -168,10 +170,23 @@ When executed, this testing suite verifies:
 3. **Seed Idempotency:** Validates that executing seed functions multiple times produces exactly the same database state without duplicate key errors.
 
 ### How to See It Performing Its Job on the Live Website
-1. Run the test suite in your terminal:
-   `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
-2. **Observe 100% Pass Rate:**
-   * All tests pass cleanly in $<2$ seconds.
-3. Open **`http://localhost:8000/docs`** in your browser:
-   * Verify all API endpoints and schemas are active and functional.
-   * Test any endpoint (e.g. `GET /api/v1/departments`) using Swagger's "Try it out" button to witness live, verified database records returned with HTTP 200 OK.
+Follow these detailed steps to run the complete automated test suite and verify backend integrity:
+
+1. **Execute Pytest Test Suite:**
+   * In your project root terminal, run:
+     `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
+   * Verify all 37 test cases execute with green passes (`PASSED`):
+     * Config loading tests
+     * Department and Team model constraint tests
+     * Ticket CRUD and foreign key tests
+     * Seed script idempotency tests
+   * Confirm the suite finishes in $<2$ seconds with 0 failures.
+
+2. **Execute Live Verification on Swagger UI:**
+   * Open **`http://localhost:8000/docs`**.
+   * Execute `GET /api/v1/departments`: confirm HTTP 200 with 6 department objects.
+   * Execute `GET /api/v1/teams/workload`: confirm HTTP 200 with squad capacity metrics.
+   * Execute `GET /api/v1/tickets`: confirm HTTP 200 with ticket lists.
+
+3. **Verify Live Application Health:**
+   * Open **`http://localhost:5173/`**: confirm the app loads cleanly with zero console errors.

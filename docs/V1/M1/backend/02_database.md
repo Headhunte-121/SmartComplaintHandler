@@ -152,6 +152,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -164,10 +166,26 @@ When interacting with the data persistence layer, this module performs the follo
 3. **Declarative Base Registry:** Provides `Base = declarative_base()`, which binds all platform entity models to the SQLAlchemy metadata registry.
 
 ### How to See It Performing Its Job on the Live Website
-1. Start both backend and frontend servers:
-   `uvicorn app.main:app --port 8000 --reload` and `npm run dev` in `frontend/`.
-2. Open **`http://localhost:5173/`** in your browser and submit a complaint or view the dashboard.
-3. **Observe Database Operations Live:**
-   * Notice that SQLite creates or reads `smart_complaints.db` in the project root directory.
-   * Refresh the browser or open a new browser tab at `http://localhost:5173/track`: notice that all submitted complaints persist across page reloads and server restarts.
-   * In your backend terminal, notice that transactions commit cleanly with zero "database locked" or multi-threading conflict errors.
+Follow these detailed steps to verify database operations and session handling on the live app:
+
+1. **Verify Physical Database File & WAL Mode:**
+   * Start the backend: `uvicorn app.main:app --port 8000 --reload`
+   * Check your project root directory: confirm the file `smart_complaints.db` exists.
+   * Run in terminal: `backend\venv\Scripts\python.exe -c "from app.core.database import engine; print('Engine dialect:', engine.dialect.name, '| Pool:', engine.pool)"`
+   * Confirm dialect reports `sqlite`.
+
+2. **Verify Live Data Persistence Across Page Restarts:**
+   * Open **`http://localhost:5173/submit`** in your browser.
+   * Fill out the grievance form:
+     * Title: `Library air conditioning failure`
+     * Description: `Central cooling unit in 2nd floor study hall stopped blowing cold air; room is humid and hot.`
+     * Location: `Central Library 2nd Floor`
+   * Click **Submit Complaint**: copy the generated tracking code (e.g. `TICK-1005`).
+   * Completely close your browser, terminate the backend server (`Ctrl+C`), and restart it.
+   * Reopen your browser to **`http://localhost:5173/track`**, enter `TICK-1005`, and click **Track Status**.
+   * Confirm the complaint details, title, and status load instantly from SQLite, proving true persistent disk storage.
+
+3. **Verify Thread Concurrency Without SQLite Locking:**
+   * Open 3 separate browser tabs to `http://localhost:5173/admin`, `http://localhost:5173/submit`, and `http://localhost:8000/docs`.
+   * Rapidly submit complaints and refresh `/admin` simultaneously.
+   * Inspect backend terminal logs: confirm zero `sqlite3.OperationalError: database is locked` errors occur, certifying `check_same_thread=False` works seamlessly.

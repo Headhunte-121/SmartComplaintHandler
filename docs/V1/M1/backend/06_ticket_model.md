@@ -257,6 +257,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -269,9 +271,25 @@ When tickets are created, updated, or audited, this model performs the following
 3. **Audit History & Resolution Notes:** Persists an immutable text column (`resolution_notes`) that stores algorithmic triage explanations and timestamped supervisor override justification logs.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/`** and submit a new complaint (e.g. Title: `Broken window latch`, Description: `Wind rattling glass in room 302`).
-2. Copy the generated tracking code (e.g. `TICK-1002`).
-3. Navigate to **`http://localhost:5173/track`**, enter the tracking code, and click **Track Status**.
-4. **Observe Ticket Model Live:**
-   * The live status card retrieves and displays the exact title, description, priority badge, department, and submission timestamp stored in the `Ticket` table.
-   * Open SQLite or execute `GET /api/v1/tickets/{tracking_code}` in `http://localhost:8000/docs` to verify that all database attributes match what is rendered on screen.
+Follow these detailed steps to verify the Ticket model across the full stack:
+
+1. **Submit a Complaint & Inspect Generated Record:**
+   * Open **`http://localhost:5173/submit`**.
+   * Enter Title: `Broken window latch in hostel room 302`.
+   * Enter Description: `Wind rattling glass pane loudly; lock is completely detached from wooden frame`.
+   * Enter Location: `Hostel Block B, Room 302`.
+   * Click **Submit Complaint**: note the generated tracking code (e.g. `TICK-8841`).
+
+2. **Verify Field Retrieval on the Student Tracking Page:**
+   * Navigate to **`http://localhost:5173/track?code=TICK-8841`**.
+   * Confirm that every attribute from the `Ticket` model renders accurately:
+     * Complaint Title: `"Broken window latch in hostel room 302"`
+     * Description text displayed in full
+     * Location badge: `"Hostel Block B, Room 302"`
+     * Status indicator: `"SUBMITTED"` (or `"ASSIGNED"`)
+     * Priority pill: `"MEDIUM"` (or calculated tier)
+
+3. **Verify Audit Trail Storage in SQLite:**
+   * Open **`http://localhost:8000/docs`** -> `GET /api/v1/tickets/TICK-8841`.
+   * Inspect the response: verify `tracking_code`, `department_id`, and `created_at` match.
+   * On `/admin`, trigger a priority override to `HIGH`: re-query Swagger and verify `ticket.resolution_notes` now contains `[OVERRIDE ... by Supervisor]`, proving the audit notes column persists changes immutably.

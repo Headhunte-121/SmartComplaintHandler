@@ -118,6 +118,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -130,8 +132,26 @@ When rendered on screen, this component performs the following visual behaviors:
 3. **Structured Content Outlet:** Wraps dynamic page content inside a responsive container (`<main className="flex-1 max-w-7xl mx-auto px-4 ...">`) and pins a copyright footer to the bottom of the viewport.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/`** in your browser.
-2. **Observe Layout & Navigation Live:**
-   * Notice the deep-blue campus header at the top and the institutional footer at the bottom.
-   * Click between **Submit Complaint**, **Track Ticket**, and **Admin Operations**: notice the top navigation bar remains stable while page content changes, and the active link is underlined with a distinct highlight color.
-   * Press `F12`, toggle the Device Toolbar (mobile mode), and resize the screen to phone width: notice the navigation links collapse into a hamburger menu button that opens a smooth slide-out drawer when clicked.
+Follow these detailed steps to verify layout and navigation components in the browser:
+
+1. **Verify Desktop Navigation Bar & Active Highlighting:**
+   * Open **`http://localhost:5173/`** on a full-size desktop screen.
+   * Observe the top blue navigation bar:
+     * Check the university brand icon and title *"Smart Complaint Handler"*.
+     * Check navigation tabs: **"Submit Complaint"**, **"Track Ticket"**, and **"Admin Desk"**.
+   * Click **"Submit Complaint"**:
+     * Observe the tab gains an active visual highlight (underlined or contrasting pill).
+   * Click **"Track Ticket"**:
+     * Observe the highlight shifts smoothly to "Track Ticket" while the header and footer remain stationary.
+
+2. **Verify Mobile Responsive Drawer Navigation:**
+   * Press `F12` in Chrome/Edge and click the **Toggle Device Toolbar** icon (mobile phone mode).
+   * Set width to `390px` (iPhone 14 / mobile viewport).
+   * Notice the desktop links disappear, replaced by an accessible **Hamburger Menu icon (☰)**.
+   * Click the hamburger icon:
+     * Observe a smooth slide-down or slide-out drawer menu revealing all navigation links.
+   * Tap **"Admin Operations"**:
+     * Observe the drawer automatically closes and routes cleanly to `/admin`.
+
+3. **Verify Sticky Footer Placement:**
+   * Navigate to a short page (like an empty tracking search): verify the footer stays pinned to the bottom of the browser viewport without floating into the middle of the screen.

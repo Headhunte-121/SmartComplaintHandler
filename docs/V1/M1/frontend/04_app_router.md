@@ -110,6 +110,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -122,10 +124,26 @@ When users navigate the portal, this router performs the following operations:
 3. **404 Fallback Boundary:** Catches all undefined or broken URLs (`path="*"`) and renders a helpful "Page Not Found" screen with a "Return to Home" button.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/`** in your browser.
-2. Click **Submit Complaint**: observe the URL updates to `http://localhost:5173/submit` and the form renders instantly without the browser refreshing.
-3. Click **Track Ticket**: observe the URL updates to `http://localhost:5173/track` smoothly.
-4. Manually type an invalid address in the browser bar: `http://localhost:5173/non-existent-page`.
-5. **Observe 404 Route Live:**
-   * The custom 404 screen appears with the message *"The page you are looking for does not exist"*.
-   * Click the **Return Home** button: notice it routes you back to `/` cleanly.
+Follow these detailed steps to verify routing and page transitions:
+
+1. **Test Zero-Reload Client Transitions:**
+   * Open **`http://localhost:5173/`** in your browser.
+   * Watch the reload spinner icon in your browser's address bar.
+   * Click **"Submit Complaint"** in the navigation header:
+     * Observe the URL updates to `http://localhost:5173/submit`.
+     * Notice the browser tab icon **never spins or reloads**; the page changes instantaneously via React Virtual DOM reconciliation.
+   * Click **"Track Ticket"**:
+     * Observe instant transition to `http://localhost:5173/track`.
+
+2. **Test Browser History Back/Forward Buttons:**
+   * While on `/track`, click your browser's **Back** button:
+     * Confirm the browser returns to `/submit` smoothly.
+   * Click the browser's **Forward** button:
+     * Confirm the browser advances back to `/track`.
+
+3. **Test Custom 404 Fallback Route:**
+   * Manually type an invalid address in the browser bar:
+     `http://localhost:5173/random-page-that-does-not-exist`
+   * Press Enter:
+     * Observe the custom 404 screen render with an alert icon and the message: *"Page Not Found"*.
+     * Click the **"Back to Home"** button on the screen: verify it routes you back to `/` cleanly.

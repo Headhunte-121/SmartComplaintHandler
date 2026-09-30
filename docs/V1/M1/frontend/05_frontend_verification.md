@@ -129,6 +129,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -141,12 +143,26 @@ When executing verification across the frontend, this protocol ensures:
 3. **Responsive Visual Rendering:** Confirms that application shell components render cleanly across desktop, tablet, and mobile viewports.
 
 ### How to See It Performing Its Job on the Live Website
-1. In `frontend/`, run the production build:
-   `npm run build`
-   * Confirm the build succeeds with 0 errors and generates minified assets in `dist/`.
-2. Start the development server: `npm run dev`.
-3. Open **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
-4. **Complete Live Verification:**
-   * Check console logs (`F12`): verify 0 JavaScript runtime errors.
-   * Navigate through all top-level routes (`/`, `/submit`, `/track`, `/admin`).
-   * Verify header, footer, navigation highlights, and responsive layouts behave smoothly on all screen sizes.
+Follow this complete step-by-step verification walkthrough on your machine:
+
+1. **Step 1: Execute Production Build Verification:**
+   * Open terminal in `frontend/` and run:
+     `npm run build`
+   * Confirm build completes with **0 errors** in $<15$ seconds, generating:
+     * `dist/index.html`
+     * `dist/assets/index-xxxx.css` (<25 KB)
+     * `dist/assets/index-xxxx.js`
+
+2. **Step 2: Start Development Server & Open Browser:**
+   * Run: `npm run dev`
+   * Open **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
+   * Press `F12` and check the **Console**: verify **0 JavaScript runtime errors** or unresolved module warnings.
+
+3. **Step 3: Verify Interactive Application Shell & Navigation:**
+   * Click between **"Submit Complaint"**, **"Track Ticket"**, and **"Admin Desk"**.
+   * Verify all three views mount cleanly with matching active link highlights.
+   * Resize the browser to mobile width ($<768	ext{px}$): verify the hamburger menu toggles navigation drawer smoothly.
+
+4. **Step 4: Verify API Transport Connectivity:**
+   * In DevTools Network tab, submit a test complaint on `/submit`.
+   * Verify the request routes to `http://localhost:5173/api/v1/tickets` and returns HTTP 201 Created without CORS errors.

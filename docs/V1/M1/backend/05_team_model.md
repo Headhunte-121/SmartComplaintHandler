@@ -166,6 +166,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -178,8 +180,31 @@ When managing maintenance crews, this model performs the following operations:
 3. **Overload Prevention:** Provides the data foundation for Module M4's dispatch engine to calculate remaining capacity and prevent technician burnout.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open the Admin Operations Desk at **`http://localhost:5173/admin`** (or visit `http://localhost:8000/docs` -> `GET /api/v1/teams`).
-2. **Observe Team Model Live:**
-   * Look at the **Team Workload Overview** panel.
-   * Notice each maintenance team is displayed with its parent department name, current ticket count, and workload percentage bar.
-   * Notice that teams with high active ticket counts show elevated capacity warnings, proving the model correctly supplies real-time capacity data to the UI.
+Follow these detailed steps to verify the Team model on the live platform:
+
+1. **Verify Live Team Cards on the Admin Operations Desk:**
+   * Open **`http://localhost:5173/admin`** in your browser.
+   * Look at the **Team Workload Overview** panel on the right sidebar.
+   * Observe each maintenance team displayed:
+     * Squad Name (e.g. `Electrical Squad Alpha`, `Plumbing Quick Response`)
+     * Parent Department tag (`Electrical`, `Plumbing`)
+     * Active Ticket count and visual workload progress bar (e.g. `1/10 tickets (10%)`).
+
+2. **Verify Team Workload Telemetry in Swagger UI:**
+   * Open **`http://localhost:8000/docs`**.
+   * Locate `GET /api/v1/teams/workload` -> click **Try it out** -> click **Execute**.
+   * Confirm output shows active workload metrics:
+     ```json
+     {
+       "id": 1,
+       "name": "Electrical Squad Alpha",
+       "department_id": 1,
+       "max_capacity": 10,
+       "active_tickets": 1,
+       "utilization_rate": 10.0
+     }
+     ```
+
+3. **Verify Dynamic Workload Changes:**
+   * In a separate tab, submit a new Electrical complaint at `http://localhost:5173/submit`.
+   * Return to `/admin` and refresh: observe that `Electrical Squad Alpha` active ticket count increments to 2 and its progress bar expands.

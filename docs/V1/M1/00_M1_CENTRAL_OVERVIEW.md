@@ -181,6 +181,8 @@ To maintain engineering consistency across the team, every blueprint in Module M
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification Walkthrough
 
 ### What This Module Is Responsible For
@@ -194,14 +196,47 @@ When operational across the full stack, Module M1 provides four foundational cap
 4. **Application Shell & Routing:** Renders persistent navigation headers, responsive drawers, and instantaneous client-side route transitions (`/`, `/submit`, `/track`, `/admin`).
 
 ### How to See It Performing Its Job on the Live Website
-1. Launch local dev servers:
-   * Backend: `uvicorn app.main:app --port 8000 --reload`
-   * Frontend: `npm run dev` in `frontend/`
-2. Open **`http://localhost:5173/`** in your browser:
-   * Observe the branded application shell, blue university header, and navigation links.
-   * Click between **Submit Complaint**, **Track Ticket**, and **Admin Operations**: notice instantaneous page transitions without browser page reloads.
-3. Open **`http://localhost:8000/docs`**:
-   * Inspect the OpenAPI interactive documentation: verify `PROJECT_NAME`, `/api/v1` namespace, and all registered schemas for Departments, Teams, and Tickets.
+Anyone can verify all features of Module M1 on the live application in under 3 minutes:
+
+#### Prerequisites: Launch Local Dev Servers
+```powershell
+# Terminal 1 — Backend:
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn app.main:app --port 8000 --reload
+
+# Terminal 2 — Frontend:
+cd frontend
+npm run dev
+```
+
+#### Step 1: Verify the Application Shell & Responsive Navigation
+1. Open your browser to **`http://localhost:5173/`**.
+2. Observe the persistent campus header: confirm university brand title *"Smart Complaint Handler"*.
+3. Click **"Submit Complaint"**, then **"Track Ticket"**, then **"Admin Desk"**:
+   * Observe instantaneous client-side page transitions without white-screen browser reloads.
+   * Observe the active navigation link dynamically highlights.
+4. Resize your browser window to phone width ($<768	ext{px}$):
+   * Verify navigation links collapse into an accessible hamburger menu (☰).
+   * Click the hamburger icon: confirm the mobile navigation drawer opens smoothly.
+
+#### Step 2: Verify Database Seed Fixtures on the Intake Form
+1. On **`http://localhost:5173/submit`**, click the **Department / Category** dropdown menu.
+2. Observe the populated department options:
+   * Verify all 6 campus departments appear: `Electrical`, `Plumbing`, `IT Support`, `Carpentry`, `Civil`, and `Other`.
+   * This proves that `seed.py` successfully populated SQLite and `get_db` served the records to the UI.
+
+#### Step 3: Verify Data Persistence Across Restarts
+1. Fill out the complaint form with Title: `Library study table damaged` and Location: `Central Library`.
+2. Click **Submit Complaint**: copy the generated tracking code (e.g. `TICK-1002`).
+3. Terminate the backend server (`Ctrl+C` in Terminal 1) and restart it.
+4. Navigate to **`http://localhost:5173/track`**, enter `TICK-1002`, and click **Track Status**:
+   * Confirm the complaint title, department, and timestamp load instantly from SQLite disk storage.
+
+#### Step 4: Verify OpenAPI Documentation in Swagger
+1. Open **`http://localhost:8000/docs`** in your browser.
+2. Observe the page header displays the configured title: **"Smart Campus Complaint System"**.
+3. Confirm all endpoints are registered under `/api/v1/` and inspect models under the Schemas section.
 
 ---
 

@@ -174,6 +174,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -186,8 +188,27 @@ When querying or updating departmental data, this model performs the following o
 3. **Data Serialization:** Converts database department records into structured dictionaries for API serialization.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open the complaint submission page at **`http://localhost:5173/`**.
-2. Locate the **Category / Department** dropdown selector.
-3. **Observe Department Model Live:**
-   * Notice the dropdown is populated with the official campus departments: `Electrical`, `Plumbing`, `IT Support`, `Carpentry`, `Civil`, and `Other`.
-   * Open `http://localhost:8000/docs` and execute `GET /api/v1/departments`: verify that the returned JSON matches the database department entities with their corresponding IDs and codes.
+Follow these detailed steps to verify the Department model on the running application:
+
+1. **Verify Live Department Dropdown on the Intake Form:**
+   * Open **`http://localhost:5173/submit`** in your browser.
+   * Click on the **Department / Category** dropdown menu.
+   * Observe the populated options: verify `Electrical`, `Plumbing`, `IT Support`, `Carpentry`, `Civil`, and `Other` are rendered cleanly with matching icons.
+
+2. **Verify Database Records via Swagger UI:**
+   * Open **`http://localhost:8000/docs`**.
+   * Locate `GET /api/v1/departments` -> click **Try it out** -> click **Execute**.
+   * In the Response Body, inspect the array:
+     ```json
+     [
+       {"id": 1, "name": "Electrical", "code": "ELEC", "is_active": true},
+       {"id": 2, "name": "Plumbing", "code": "PLUMB", "is_active": true},
+       {"id": 3, "name": "IT Support", "code": "IT", "is_active": true}
+     ]
+     ```
+   * Confirm all 6 campus departments return with `HTTP 200 OK`.
+
+3. **Verify Department Foreign Key Linkage in Tickets:**
+   * On `http://localhost:5173/submit`, submit a complaint with Category `Plumbing`.
+   * Copy the tracking code and look it up in `http://localhost:8000/docs` (`GET /api/v1/tickets/{tracking_code}`).
+   * Confirm the ticket contains `"department_id": 2` and `"department_name": "Plumbing"`.

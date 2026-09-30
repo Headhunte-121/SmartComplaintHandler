@@ -168,6 +168,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -180,10 +182,27 @@ When loaded during application startup, this module performs the following funct
 3. **Fail-Fast Error Handling:** Rejects malformed configuration at boot time, preventing the FastAPI server from starting in an undefined or insecure state.
 
 ### How to See It Performing Its Job on the Live Website
-1. Boot the FastAPI backend server:
-   `uvicorn app.main:app --port 8000 --reload`
-2. Open **`http://localhost:8000/docs`** in your browser.
-3. **Observe Configuration Live:**
-   * Notice the Swagger documentation header prominently displays the configured title: **"Smart Campus Complaint System"** (derived directly from `settings.PROJECT_NAME`).
-   * Observe all registered API endpoints begin with the prefix defined in `settings.API_V1_STR` (`/api/v1/...`).
-4. To test live environment overrides, stop the server, change `PROJECT_NAME="Custom Campus Desk"` in `.env`, and restart `uvicorn`: notice the documentation header updates immediately.
+Follow these detailed steps to verify this configuration module on the running application:
+
+1. **Verify Live Configuration in Swagger UI:**
+   * Boot the backend server: `uvicorn app.main:app --port 8000 --reload`
+   * Open your browser and navigate to **`http://localhost:8000/docs`**.
+   * Look at the top header of the Swagger page: verify the title reads **"Smart Campus Complaint System"** (loaded directly from `settings.PROJECT_NAME`).
+   * Inspect the URL endpoints listed: verify every single route begins with **`/api/v1/`** (matching `settings.API_V1_STR`).
+
+2. **Verify Frontend API Integration via Browser DevTools:**
+   * Open **`http://localhost:5173/`** in Google Chrome or Microsoft Edge.
+   * Press `F12` to open Developer Tools and select the **Network** tab (filter by `Fetch/XHR`).
+   * Click "Track Ticket" or submit any query: inspect the Request URL in the network table.
+   * Confirm the URL structure targets `http://localhost:8000/api/v1/...`, proving frontend requests correctly resolve through this configuration.
+
+3. **Test Hot-Reloading Configuration Changes:**
+   * Open the `.env` file in `backend/` and modify: `PROJECT_NAME="University Facilities Helpdesk"`.
+   * Watch your backend terminal: observe `uvicorn` detect the file change and reload in $<1$ second.
+   * Refresh **`http://localhost:8000/docs`**: verify the page title updates immediately to "University Facilities Helpdesk".
+   * Revert the `.env` setting to `"Smart Campus Complaint System"` once verified.
+
+4. **Test Fail-Fast Startup Validation:**
+   * In a terminal, run an inline test verifying the singleton export:
+     `backend\venv\Scripts\python.exe -c "from app.core.config import settings; print('Loaded:', settings.PROJECT_NAME, '| DB:', settings.DATABASE_URL)"`
+   * Confirm output: `Loaded: Smart Campus Complaint System | DB: sqlite:///./smart_complaints.db`.

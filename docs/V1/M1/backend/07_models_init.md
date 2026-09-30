@@ -115,6 +115,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -127,8 +129,19 @@ When imported across the backend, this module performs the following operations:
 3. **Metadata Registration:** Ensures all database tables are registered with SQLAlchemy's metadata before `Base.metadata.create_all()` is executed.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open your terminal and start the backend: `uvicorn app.main:app --port 8000 --reload`.
-2. **Observe Zero Import Errors:**
-   * Verify the server starts in $<1$ second with zero `ImportError`, `AttributeError`, or `CircularDependencyError` messages.
-3. Open **`http://localhost:8000/docs`**:
-   * Verify that all model schemas (Departments, Teams, Tickets) are fully rendered under the "Schemas" section at the bottom of the page, certifying that the central registry successfully exposed all models to OpenAPI.
+Follow these detailed steps to verify model exports and metadata registration:
+
+1. **Verify Zero Circular Import Exceptions at Startup:**
+   * Start the backend: `uvicorn app.main:app --port 8000 --reload`
+   * Observe terminal output: confirm the server starts with message `Application startup complete` in $<1$ second with zero `ImportError`, `NameError`, or circular reference warnings.
+
+2. **Verify Unified Exports via Python Interactive Test:**
+   * Run in terminal:
+     `backend\venv\Scripts\python.exe -c "from app.models import Department, Team, MaintenanceTeam, Ticket, Base; print('All models imported successfully:', Base.metadata.tables.keys())"`
+   * Confirm output prints all registered tables:
+     `All models imported successfully: dict_keys(['department', 'team', 'ticket'])`.
+   * Verify that `Team is MaintenanceTeam` evaluates to `True`, proving backward-compatibility aliasing works.
+
+3. **Verify OpenAPI Schema Generation:**
+   * Open **`http://localhost:8000/docs`** in your browser.
+   * Scroll down to the bottom **Schemas** section: verify `Department`, `Team`, and `Ticket` schemas are completely documented with all property types.
