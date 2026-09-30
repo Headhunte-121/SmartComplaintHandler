@@ -232,25 +232,52 @@ When operational across the full stack, Module M4 delivers four unified capabili
 4. **Human-in-the-Loop Reassignment:** Provides a guarded modal and REST endpoint (`PATCH /api/v1/tickets/{id}/reassign`) that enforces mandatory audit justifications ($\ge 5$ characters) for all team transfers.
 
 ### How to See It Performing Its Job on the Live Website
-Anyone can verify Module M4 on the live application in under 3 minutes:
+Anyone can verify all features of Module M4 on the live application in under 3 minutes:
 
-#### Step 1: Open the Operations Desk
-1. Open **`http://localhost:5173/admin`** in your browser.
-2. Notice the comprehensive tickets table and the right-side **Team Workload Overview** panel showing squad capacity bars.
+#### Prerequisites: Launch Local Dev Servers
+```powershell
+# Terminal 1 — Backend:
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn app.main:app --port 8000 --reload
 
-#### Step 2: Observe Automated Least-Loaded Dispatch
-1. In another browser tab, submit a new complaint at **`http://localhost:5173/submit`** with Category: `Electrical`.
-2. Return to `/admin` and refresh:
-   * Observe that the new ticket was automatically assigned to whichever Electrical team had fewer active tickets.
-   * Observe that team's workload counter and progress bar increment.
+# Terminal 2 — Frontend:
+cd frontend
+npm run dev
+```
 
-#### Step 3: Execute Supervisory Reassignment
-1. On the newly created ticket row, click **Reassign**.
-2. Select a different team in the dropdown.
-3. Type a 2-letter reason like `ok`: confirm the submit button remains **disabled**.
-4. Type `Reassigned due to technician shift schedule change`: confirm button turns active.
+#### Step 1: Inspect the Operations Desk & Crew Workloads
+1. Open your browser to **`http://localhost:5173/admin`**.
+2. Notice the comprehensive tickets queue table displaying tracking codes, priority badges, and assigned maintenance squads.
+3. Inspect the **Team Workload Overview** panel on the right sidebar:
+   * Note the active ticket counts and progress bar saturation percentages for each crew.
+
+#### Step 2: Observe Automated Least-Loaded Dispatch in Action
+1. In another browser tab, navigate to **`http://localhost:5173/submit`**.
+2. Submit a new complaint with Category: `Electrical`, Title: `Ceiling fan stopped spinning`, Description: `Fan switch unresponsive in Room 304`.
+3. Return to **`http://localhost:5173/admin`** and refresh:
+   * Observe that the new ticket was automatically dispatched to whichever Electrical team had fewer active tickets.
+   * Observe that squad's workload bar and active ticket counter increment smoothly.
+
+#### Step 3: Execute Supervisory Team Reassignment
+1. On the newly created ticket row, click **Reassign Team**:
+   * Observe the reassignment dialog pop up smoothly.
+   * Confirm the **"Confirm Reassignment"** button is disabled by default.
+2. Select a different maintenance team from the dropdown.
+3. In the reason textarea, type `busy` (only 4 chars):
+   * Confirm the character counter warns in amber: `4/5 characters required (min 5)`.
+   * Confirm the submit button remains disabled.
+4. Finish typing: `Team Alpha busy on emergency power outage in main block`.
+   * Observe the counter turn green and the button turn active blue.
 5. Click **Confirm Reassignment**:
-   * Notice the modal closes and the table row immediately displays the new squad without a full page reload.
+   * Observe the modal dismiss cleanly.
+   * Confirm the ticket table row immediately updates to the new squad without a full page reload.
+
+#### Step 4: Verify Reassignment Audit Log on the Public Tracking View
+1. Copy the ticket tracking code and open **`http://localhost:5173/track`**.
+2. Enter the code and click **Track Status**:
+   * Confirm the assigned team reflects the newly reassigned squad.
+   * Confirm the immutable supervisor audit log appears in the ticket history notes.
 
 ---
 

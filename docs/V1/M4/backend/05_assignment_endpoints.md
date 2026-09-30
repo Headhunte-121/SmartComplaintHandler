@@ -198,6 +198,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -210,9 +212,24 @@ This controller exposes the following endpoints:
 3. **Error Handling:** Returns **HTTP 404** if the ticket or team does not exist, and **HTTP 422** if the audit reason is fewer than 5 characters.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:8000/docs`** in your browser.
-2. Locate `GET /api/v1/teams/workload` and click **Try it out** -> **Execute**:
-   * Observe the JSON array containing all campus teams with active ticket counts and capacity metrics.
-3. Locate `PATCH /api/v1/tickets/{ticket_id}/reassign`:
-   * Enter a valid ticket ID, specify `new_team_id = 2`, and set `reassignment_reason = "Shift change rotation approved"`.
-   * Click **Execute**: confirm HTTP 200 is returned with updated team details.
+Follow these detailed steps to test the assignment REST controllers in Swagger and DevTools:
+
+1. **Test `GET /api/v1/teams/workload` in Swagger:**
+   * Open **`http://localhost:8000/docs`**.
+   * Locate `GET /api/v1/teams/workload` -> click **Try it out** -> click **Execute**.
+   * Verify server returns **`HTTP 200 OK`** with an array of all campus teams.
+
+2. **Test `PATCH /api/v1/tickets/{ticket_id}/reassign`:**
+   * Locate `PATCH /api/v1/tickets/{ticket_id}/reassign` -> click **Try it out**.
+   * Set `ticket_id = 1`, `new_team_id = 2`, `reassignment_reason = "Assigned to specialized HVAC technician"`.
+   * Click **Execute**:
+     * Verify server returns **`HTTP 200 OK`**.
+     * Confirm response body reflects `assigned_team_id: 2`.
+
+3. **Test Non-Existent Ticket 404 Handling:**
+   * Execute reassignment on ticket ID `99999`.
+   * Verify server returns **`HTTP 404 Not Found`** with `{"detail": "Ticket not found"}`.
+
+4. **Verify Live Network Requests from Admin Dashboard:**
+   * Open `http://localhost:5173/admin` and open DevTools Network tab.
+   * Trigger a team reassignment: observe the clean `PATCH /api/v1/tickets/{id}/reassign` request complete with status 200.

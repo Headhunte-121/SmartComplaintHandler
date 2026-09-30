@@ -167,6 +167,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -179,8 +181,30 @@ When queried by dispatchers or dashboard views, this service performs the follow
 3. **Department Team Rostering:** Retrieves active teams filtered by department for dynamic dropdown rendering.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/admin`** in your browser.
-2. **Observe Team Service Live:**
-   * Locate the **Team Workload Overview** sidebar on the dashboard.
-   * Notice that each team card displays its squad name, parent department, current ticket count, and a visual progress bar showing percentage capacity.
-   * As new tickets are assigned, observe the progress bars fill reactively, proving that `team_service.py` computes accurate live utilization metrics.
+Follow these detailed steps to verify team capacity telemetry and health calculations:
+
+1. **Verify Workload Telemetry Endpoint in Swagger:**
+   * Open **`http://localhost:8000/docs`**.
+   * Locate `GET /api/v1/teams/workload` -> click **Try it out** -> click **Execute**.
+   * Confirm the response returns an array of team workload telemetry objects:
+     ```json
+     {
+       "id": 1,
+       "name": "Electrical Squad Alpha",
+       "department_id": 1,
+       "max_capacity": 10,
+       "active_tickets": 2,
+       "utilization_rate": 20.0,
+       "status": "AVAILABLE"
+     }
+     ```
+
+2. **Verify Visual Progress Bars on the Admin Desk:**
+   * Open **`http://localhost:5173/admin`**.
+   * Inspect the **Team Workload Overview** panel:
+     * Check that each crew card displays its exact calculated utilization percentage.
+     * Confirm that teams with low loads display green "Available" badges.
+     * Observe that teams with heavier queues display wider progress bars.
+
+3. **Verify Reactive Capacity Updates:**
+   * Reassign a ticket to a squad: observe that squad's capacity bar increments in real time, proving `team_service.py` calculates accurate live workloads.

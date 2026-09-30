@@ -210,6 +210,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -222,9 +224,25 @@ During ticket lifecycle operations, this service performs the following:
 3. **Atomic Persistence:** Commits all status and team mutations to SQLite in a single transaction.
 
 ### How to See It Performing Its Job on the Live Website
-1. Submit a complaint at **`http://localhost:5173/submit`** (e.g. Title: `Leaking pipe in dorm 4`).
-2. Copy the tracking code and open **`http://localhost:5173/track`**:
-   * Observe that the ticket status is already **`ASSIGNED`** (not stuck in unassigned limbo), and the assigned team is listed.
-3. Open **`http://localhost:5173/admin`**, locate the ticket, and click **Reassign Team**.
-4. Reassign to another squad with reason: `Original team reassigned to emergency flood duty`.
-5. Return to `/track` and observe the new team is displayed, and the immutable reassignment note appears in the ticket history.
+Follow these detailed steps to verify service integration and audit logging:
+
+1. **Verify Automatic Transition from SUBMITTED to ASSIGNED:**
+   * Submit a new complaint at **`http://localhost:5173/submit`** (Title: `Flooding in basement lab`).
+   * Copy tracking code and open **`http://localhost:5173/track`**:
+     * Observe the status timeline: confirm the ticket is marked **`ASSIGNED`** (not left unassigned in submitted limbo).
+     * Verify the assigned maintenance team is explicitly named on the tracking card.
+
+2. **Execute Supervisory Team Reassignment:**
+   * Open **`http://localhost:5173/admin`** and locate the ticket.
+   * Click **Reassign Team**.
+   * In the modal, select a different squad from the dropdown.
+   * Enter explanation: `Original crew deployed to emergency flood duty at sports complex`.
+   * Click **Confirm Reassignment**.
+
+3. **Verify Immutable Audit Log in Resolution Notes:**
+   * Return to **`http://localhost:5173/track`** and refresh the ticket.
+   * Look at the **Resolution & Audit Notes** section:
+     * Confirm the new team is displayed.
+     * Confirm the audit trail contains the timestamped supervisor entry:
+       `[REASSIGNMENT ... by Supervisor]: Original crew deployed to emergency flood duty...`
+     * Notice any previous triage notes were preserved, proving non-destructive append behavior.

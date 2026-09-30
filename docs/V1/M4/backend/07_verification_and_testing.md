@@ -180,6 +180,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -192,8 +194,16 @@ When executed, this test suite validates:
 3. **Workload Telemetry Integrity:** Verifies that team capacity queries accurately reflect database states.
 
 ### How to See It Performing Its Job on the Live Website
-1. Run the test suite in your terminal:
-   `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
-2. **Observe 100% Pass Rate:**
-   * All dispatch and assignment tests pass with 0 failures in $<2$ seconds.
-3. On `http://localhost:5173/admin`, verify that all team capacity counters match test scenarios.
+Follow these detailed steps to certify Module M4:
+
+1. **Execute Pytest Automated Tests:**
+   * In terminal, run:
+     `backend\venv\Scripts\python.exe -m pytest backend/tests -v`
+   * Confirm all dispatch and assignment tests pass with green output in $<2$ seconds:
+     * Least-loaded algorithm selection tests
+     * Reassignment validation and audit trail tests
+     * Workload capacity aggregation tests
+
+2. **Execute Full-Stack Manual Verification on `/admin`:**
+   * Open `http://localhost:5173/admin`.
+   * Reassign a ticket: confirm modal enforces $\ge 5$ character validation, modal closes smoothly, and the table updates immediately.

@@ -164,6 +164,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -176,10 +178,31 @@ When processing assignment payloads, this module validates:
 3. **Workload Telemetry Serialization:** Serializes team metrics (`active_tickets`, `max_capacity`, `utilization_rate`) into `TeamWorkloadResponse` for frontend dashboard rendering.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open the interactive API documentation at **`http://localhost:8000/docs`**.
-2. Locate `PATCH /api/v1/tickets/{ticket_id}/reassign` and click **Try it out**.
-3. Enter a ticket ID, select a new team ID, and enter an invalid short reason:
-   `{"new_team_id": 2, "reassignment_reason": "ok"}`
-4. Click **Execute**:
-   * Observe the server reject the request with **HTTP 422 Unprocessable Entity**, highlighting that the reassignment reason must contain at least 5 characters.
-5. On the live website at `http://localhost:5173/admin`, click "Reassign Team" and type `Fix`: observe the modal submit button remains strictly disabled.
+Follow these detailed steps to verify assignment schema validation boundaries:
+
+1. **Test Sub-5 Character Reason Rejection in Swagger Docs:**
+   * Open **`http://localhost:8000/docs`** in your browser.
+   * Locate `PATCH /api/v1/tickets/{ticket_id}/reassign` -> click **Try it out**.
+   * Enter `ticket_id = 1` and provide an invalid short reason payload:
+     ```json
+     {
+       "new_team_id": 2,
+       "reassignment_reason": "ok"
+     }
+     ```
+   * Click **Execute**:
+     * Observe the server reject the request with **`HTTP 422 Unprocessable Entity`**.
+     * Confirm error response highlights: `"String should have at least 5 characters"` under `loc: ["body", "reassignment_reason"]`.
+
+2. **Test Valid Reassignment Payload:**
+   * Change `reassignment_reason` to `"Shift change rotation approved by supervisor"`.
+   * Click **Execute**:
+     * Confirm server returns **`HTTP 200 OK`**.
+     * Inspect response body: confirm `assigned_team_id` reflects the new team ID (`2`).
+
+3. **Verify Client-Side Validation Guard in Reassign Modal:**
+   * On **`http://localhost:5173/admin`**, click **Reassign** on any ticket row.
+   * Select a new team from the dropdown.
+   * In the reason box, type `Fix` (only 3 characters):
+     * Observe the character counter warning: `"3/5 characters required (min 5)"` in amber.
+     * Confirm the **"Confirm Reassignment"** button remains disabled until at least 5 non-whitespace characters are entered.

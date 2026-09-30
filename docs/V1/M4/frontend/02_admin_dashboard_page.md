@@ -191,6 +191,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -204,9 +206,26 @@ When rendered on screen, this dashboard performs the following functions:
 4. **Side-by-Side Workload Telemetry:** Embeds `TeamWorkloadView.jsx` to give supervisors instant situational awareness of technician capacity.
 
 ### How to See It Performing Its Job on the Live Website
-1. Navigate to **`http://localhost:5173/admin`** in your browser.
-2. **Observe Operations Desk Live:**
-   * Notice the comprehensive table listing campus tickets with color-coded priority pills and status badges.
-   * Click the **Filter by Priority** dropdown and select `CRITICAL`: observe the table filter instantly to show only critical life-safety tickets.
-   * Notice the right-hand panel displaying live maintenance team workloads.
-3. Click the **Reassign** button on any row: observe the reassignment dialog open smoothly.
+Follow these detailed steps to test the administrative operations desk:
+
+1. **Verify Table Columns & Data Presentation:**
+   * Open **`http://localhost:5173/admin`** in your browser.
+   * Observe the main complaints table:
+     * Tracking Code (monospace)
+     * Complaint Title & Location
+     * Department Badge
+     * Priority Badge (with WCAG colored pill)
+     * Assigned Team
+     * Lifecycle Status Badge
+     * Action Buttons ("Override Priority", "Reassign Team")
+
+2. **Test Real-Time Priority and Department Filters:**
+   * Click the **Filter by Priority** dropdown and select `CRITICAL`:
+     * Verify the table filters immediately to show only critical life-safety tickets.
+   * Click the **Filter by Department** dropdown and select `Plumbing`:
+     * Verify the table displays only plumbing complaints.
+   * Reset filters to "All": confirm full queue returns instantly.
+
+3. **Test Action Modal Triggers:**
+   * Click **Reassign** on any ticket row: confirm the reassignment modal opens smoothly.
+   * Click **Override Priority**: confirm the priority override modal opens smoothly.

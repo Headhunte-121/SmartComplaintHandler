@@ -163,6 +163,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -175,9 +177,28 @@ When invoked by UI components, this client provides:
 3. **Error Normalization:** Formats server validation rejections into user-friendly alerts.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/admin`** and open the Developer Tools Console (`F12`).
-2. In the console, execute:
-   `import('/src/api/assignment.js').then(api => api.fetchTeamWorkloads()).then(console.log)`
-3. **Observe Client Live:**
-   * The console prints the array of maintenance teams with active ticket counts and remaining capacities.
-4. On the Network tab, execute a team reassignment and observe the clean `PATCH` request dispatched by this client.
+Follow these detailed steps to test the assignment API transport client:
+
+1. **Test `fetchTeamWorkloads` in Browser Console:**
+   * Open **`http://localhost:5173/admin`** and press `F12` to open the **Console**.
+   * Paste and execute:
+     ```javascript
+     import('/src/api/assignment.js').then(api => api.fetchTeamWorkloads()).then(teams => {
+       console.log('✅ Teams Fetched Successfully:');
+       console.table(teams.map(t => ({ ID: t.id, Squad: t.name, Active: t.active_tickets, Max: t.max_capacity })));
+     });
+     ```
+   * Confirm console displays the table of campus maintenance teams with active queue counts.
+
+2. **Test Direct Reassignment via Console:**
+   * Paste and execute:
+     ```javascript
+     import('/src/api/assignment.js').then(api => api.reassignTicketTeam(1, 2, 'Console test reassignment')).then(res => {
+       console.log('✅ Reassignment Success! New Team ID:', res.assigned_team_id);
+     });
+     ```
+   * Confirm response object is printed confirming successful team transfer.
+
+3. **Verify Network Payloads in DevTools:**
+   * Switch to the **Network** tab, trigger a reassignment on the dashboard:
+   * Verify `PATCH /api/v1/tickets/{id}/reassign` is sent with proper JSON body and completes with status 200.

@@ -190,6 +190,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -203,14 +205,24 @@ When activated by a supervisor, this modal performs:
 4. **Optimistic Parent Callback:** Closes cleanly and invokes `onReassigned(updatedTicket)` so the table row updates immediately with zero page reloads.
 
 ### How to See It Performing Its Job on the Live Website
-1. On **`http://localhost:5173/admin`**, click **Reassign** on any ticket in the table.
-2. **Observe Reassign Modal Live:**
-   * Modal opens displaying the ticket code and current team.
-   * Notice the **Confirm Reassignment** button is disabled by default.
-3. Select a different team from the dropdown. Notice the button remains disabled.
-4. In the reason textarea, type `busy` (only 4 chars):
-   * Notice the character counter alerts: `4/5 characters required (min 5)`.
-5. Finish typing: `Team Alpha busy on emergency power outage`.
-   * Notice the counter turns green and the button turns active blue.
-6. Click **Confirm Reassignment**:
-   * Observe the brief spinner, modal dismissal, and the ticket row assigned team immediately update to the new team.
+Follow these detailed steps to verify the reassignment modal:
+
+1. **Open Modal & Observe Initial Disabled Guard:**
+   * On **`http://localhost:5173/admin`**, click **Reassign** on any ticket in the table.
+   * Observe the modal open with a dimmed background overlay.
+   * Confirm ticket title and current team are shown.
+   * Confirm the **"Confirm Reassignment"** button is **disabled** (grayed out) by default.
+
+2. **Verify Double Validation Guard Enforcement:**
+   * Select a new team from the dropdown. Notice the button remains disabled because no reason has been typed.
+   * In the reason textarea, type `busy` (only 4 chars):
+     * Observe the character counter warning in amber: `"4/5 characters required (min 5)"`.
+     * Confirm the button remains strictly disabled.
+
+3. **Execute Reassignment & Observe Instant UI Update:**
+   * Finish typing a complete explanation: `Original crew deployed to urgent flood incident`.
+   * Observe the character counter turn green (`44/500 characters`) and the button activate (blue).
+   * Click **Confirm Reassignment**:
+     * Observe the button display a brief loading spinner.
+     * Observe the modal dismiss cleanly.
+     * Observe the ticket table row immediately reflect the newly assigned team without a full page reload.

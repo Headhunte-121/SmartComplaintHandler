@@ -176,6 +176,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -188,8 +190,21 @@ When executing verification across the frontend, this protocol ensures:
 3. **Smooth Modal Interactions:** Confirms that modal overlays open, submit, and dismiss cleanly without layout shifts or console errors.
 
 ### How to See It Performing Its Job on the Live Website
-1. Launch both dev servers: `npm run dev` and `uvicorn app.main:app --reload`.
-2. Open **`http://localhost:5173/admin`**:
-   * Confirm the dashboard renders the ticket queue and team workload panel without errors.
-   * Click **Reassign** on a ticket, select a new team, provide a valid reason, and submit.
-   * Verify that the ticket row assigned team updates immediately and the corresponding team workload bar increments.
+Follow this complete step-by-step verification walkthrough on your machine:
+
+1. **Step 1: Execute Production Build Verification:**
+   * In `frontend/`, run: `npm run build`
+   * Confirm build completes with **0 errors** in $<15$ seconds.
+
+2. **Step 2: Verify Admin Operations Desk Rendering:**
+   * Open `http://localhost:5173/admin` in Google Chrome or Microsoft Edge.
+   * Check Console (`F12`): confirm zero JavaScript errors or missing key warnings.
+   * Verify table rows render tracking codes, titles, departments, priority pills, and assigned teams.
+
+3. **Step 3: Test Filtering & Reassignment Workflows:**
+   * Filter table by Department (`Plumbing`): verify only plumbing tickets display.
+   * Click **Reassign** on a ticket row: test validation guard ($<5$ chars disabled).
+   * Submit a valid reassignment: confirm modal auto-dismisses and the table row updates instantly.
+
+4. **Step 4: Verify Workload Telemetry Synchronization:**
+   * Observe the right-side Team Workload panel: confirm capacity meters reflect the reassigned ticket immediately.

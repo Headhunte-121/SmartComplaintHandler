@@ -156,6 +156,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -168,7 +170,15 @@ When mounted during application startup, this router performs:
 3. **Prefix Isolation:** Guarantees clean endpoint URLs (`/api/v1/teams/workload`, `/api/v1/tickets/{id}/reassign`).
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:8000/docs`** in your browser.
-2. **Observe Router Organization Live:**
-   * Look for the **"Workload & Dispatch"** tag group.
-   * Verify both `GET /api/v1/teams/workload` and `PATCH /api/v1/tickets/{id}/reassign` appear with documentation and interactive testing controls.
+Follow these detailed steps to verify router registration in Swagger UI:
+
+1. **Verify Section Tag in Swagger Documentation:**
+   * Open **`http://localhost:8000/docs`** in your browser.
+   * Locate the section titled **"Workload & Dispatch"**.
+   * Confirm that both endpoints are registered under this header:
+     * `GET /api/v1/teams/workload` (Get Team Workload)
+     * `PATCH /api/v1/tickets/{ticket_id}/reassign` (Reassign Ticket Team)
+
+2. **Verify URL Namespace Uniformity:**
+   * Verify that both endpoints require the root `/api/v1/` prefix.
+   * Confirm that executing queries through Swagger routes directly to the registered controller functions.

@@ -184,6 +184,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 ## Section 6: Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -196,8 +198,22 @@ When rendered inside the dashboard, this component performs:
 3. **Real-Time Telemetry:** Updates reactively when tickets are assigned or reassigned without requiring a full page refresh.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open **`http://localhost:5173/admin`** in your browser.
-2. Locate the **Team Workload Overview** card on the right-hand side.
-3. **Observe Workload Panel Live:**
-   * Review the team cards: notice each crew displays its name, parent department badge, and a visual workload progress bar.
-   * Observe how crews with 0 active tickets display green "Available" badges, while crews with heavier queues display higher percentage fills.
+Follow these detailed steps to verify the workload panel:
+
+1. **Inspect Team Cards on the Admin Desk:**
+   * Open **`http://localhost:5173/admin`**.
+   * Look at the **Team Workload Overview** panel in the right sidebar.
+   * Confirm that each maintenance squad has a dedicated card displaying:
+     * Team Name and Department
+     * Active ticket count vs capacity (e.g. `1/10 tickets`)
+     * Visual progress bar filled to the exact percentage
+     * Availability status badge (`Available`, `Busy`, `At Capacity`)
+
+2. **Verify Color Threshold Transitions:**
+   * Check progress bar colors:
+     * `<60%` saturation displays in emerald green (`bg-emerald-500`).
+     * `60-85%` saturation displays in amber (`bg-amber-500`).
+     * `>85%` saturation displays in crimson red (`bg-rose-500`).
+
+3. **Verify Reactive Progress Bar Updates:**
+   * Reassign a ticket to a squad: observe that squad's progress bar smoothly expand in real time without reloading the page.

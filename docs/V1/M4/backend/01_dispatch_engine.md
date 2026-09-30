@@ -166,6 +166,8 @@ This specification operates strictly as an **implementation and integration blue
 
 ---
 
+---
+
 # 6. Definition of Done & Live Website Verification
 
 ### What This File Is Responsible For
@@ -178,10 +180,28 @@ When invoked during ticket routing, this module performs the following operation
 3. **Deterministic Least-Loaded Selection:** Assigns the ticket to the team with the lowest active workload, breaking ties deterministically by primary key to ensure predictable dispatching.
 
 ### How to See It Performing Its Job on the Live Website
-1. Open the Admin Operations Desk at **`http://localhost:5173/admin`**.
-2. Look at the **Team Workload Overview** panel and note the active ticket counts for the Electrical teams (e.g. Squad A has 1 ticket, Squad B has 0 tickets).
-3. In a separate tab, open **`http://localhost:5173/submit`** and submit a new Electrical complaint:
-   Title: `Ceiling light flickering in Room 101` and Category: `Electrical`.
-4. Return to **`http://localhost:5173/admin`** and refresh the queue:
-   * Observe that the new ticket was automatically assigned to **Squad B** because it had the lowest workload (0 tickets).
-   * Observe Squad B's active ticket count increase from 0 to 1, demonstrating dynamic least-loaded load balancing in action.
+Follow these detailed steps to verify automated least-loaded dispatching on the live system:
+
+1. **Inspect Current Crew Workloads on the Operations Desk:**
+   * Open **`http://localhost:5173/admin`** in your browser.
+   * Look at the **Team Workload Overview** panel on the right sidebar.
+   * Note the active ticket counts for the Electrical crews (e.g. `Electrical Squad Alpha`: 1 ticket, `Electrical Squad Beta`: 0 tickets).
+
+2. **Trigger Automated Least-Loaded Dispatch:**
+   * Open a new browser tab to **`http://localhost:5173/submit`**.
+   * Fill out an Electrical grievance:
+     * Title: `Exposed wire sparking in Corridor B`
+     * Description: `High-voltage cable detached from ceiling conduit; continuous sparking.`
+     * Category: `Electrical`
+     * Location: `Engineering Block, Corridor B`
+   * Click **Submit Complaint** and copy the generated tracking code.
+
+3. **Verify Optimal Crew Assignment in the Admin Queue:**
+   * Return to **`http://localhost:5173/admin`** and refresh the ticket table:
+     * Locate the newly submitted ticket in the queue.
+     * Confirm that `dispatch_engine.py` automatically assigned it to **`Electrical Squad Beta`** because it had the lowest active queue (0 vs 1).
+     * Check the sidebar: confirm `Electrical Squad Beta`'s workload counter incremented from 0 to 1 and its progress bar expanded.
+
+4. **Verify Deterministic Balancing on Further Submissions:**
+   * Submit another Electrical complaint on `/submit`.
+   * Return to `/admin`: observe that because both crews now had 1 ticket each, the engine broke the tie deterministically and assigned to Squad Alpha, perfectly balancing crew queues.
