@@ -1,19 +1,20 @@
 /**
- * SmartComplaintHandler - Global Navbar Component
+ * SmartComplaintHandler - Institutional Global Navigation Header
  * Blueprint Reference: V1/M1/frontend/03_layout_and_navigation.md
- * Role: Persistent top navigation with role/persona status, active route highlighting, and live health pill.
+ * Role: Primary institutional navigation bar providing university branding, core service links,
+ *       backend service heartbeat, and authenticated campus persona identity management.
  */
 import React, { useState, useEffect } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
+  const navigate = useNavigate();
   const { currentPersona, openPersonaModal, isStudent, isTechnician, isAdmin } = useAuth();
   const [backendHealthy, setBackendHealthy] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Health check ping on load
     fetch('/health')
       .then((res) => res.json())
       .then((data) => {
@@ -25,32 +26,27 @@ export default function Navbar() {
   }, []);
 
   const navLinkClasses = ({ isActive }) =>
-    `px-3 py-2 text-xs font-bold rounded-lg transition-colors flex items-center space-x-1.5 ${
+    `px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 ${
       isActive
-        ? 'bg-indigo-50 text-indigo-700 font-extrabold shadow-2xs'
+        ? 'bg-indigo-50 text-indigo-700 shadow-2xs font-extrabold'
         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
     }`;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo & Subtitle */}
+          {/* Institutional Brand */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-500 text-white flex items-center justify-center font-black text-lg shadow-sm group-hover:scale-105 transition-transform">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+            <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform">
+              🏛️
             </div>
             <div>
-              <div className="text-sm font-black text-slate-900 tracking-tight flex items-center space-x-1.5">
-                <span>SmartComplaintHandler</span>
-                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200">
-                  v1.0
-                </span>
+              <div className="text-sm font-black text-slate-900 tracking-tight leading-tight">
+                Campus Facilities Services
               </div>
               <p className="text-[10px] text-slate-400 font-medium">
-                Campus Facilities & SLA Automation
+                Estate Management & Service Desk
               </p>
             </div>
           </Link>
@@ -58,25 +54,25 @@ export default function Navbar() {
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-1">
             <NavLink to="/" className={navLinkClasses} end>
-              <span>Submit Grievance</span>
+              <span>Home</span>
+            </NavLink>
+            <NavLink to="/submit" className={navLinkClasses}>
+              <span>Report an Issue</span>
             </NavLink>
             <NavLink to="/track" className={navLinkClasses}>
-              <span>Track Ticket</span>
+              <span>Track Status</span>
             </NavLink>
             <NavLink to="/admin" className={navLinkClasses}>
               <span>Operations Desk</span>
               {isAdmin && (
-                <span className="ml-1 w-2 h-2 rounded-full bg-purple-500" title="Supervisor Access" />
+                <span className="w-2 h-2 rounded-full bg-purple-500 ml-1" title="Supervisor Privileges" />
               )}
-            </NavLink>
-            <NavLink to="/developer" className={navLinkClasses}>
-              <span>Developer Lab</span>
             </NavLink>
           </nav>
 
-          {/* Right Controls: Persona Switcher & Backend Health */}
+          {/* Right Header Area: Live Heartbeat & Persona Account */}
           <div className="hidden sm:flex items-center space-x-3">
-            {/* Backend Heartbeat */}
+            {/* System Health Heartbeat */}
             <div
               className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
                 backendHealthy === true
@@ -85,7 +81,7 @@ export default function Navbar() {
                   ? 'bg-rose-50 text-rose-700 border-rose-200'
                   : 'bg-slate-50 text-slate-500 border-slate-200'
               }`}
-              title={backendHealthy ? 'FastAPI Backend Online' : 'FastAPI Backend Offline'}
+              title={backendHealthy ? 'FastAPI Services Online' : 'Service Desk Backend Offline'}
             >
               <span
                 className={`w-2 h-2 rounded-full ${
@@ -96,42 +92,51 @@ export default function Navbar() {
                     : 'bg-slate-400'
                 }`}
               />
-              <span>{backendHealthy ? 'API Online' : 'API Offline'}</span>
+              <span>{backendHealthy ? 'Services Active' : 'System Offline'}</span>
             </div>
 
-            {/* Persona Switcher Button */}
+            {/* Authenticated Persona Profile Button */}
             <button
               type="button"
               onClick={openPersonaModal}
               className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300 transition-all text-left shadow-2xs"
+              title="Click to switch persona or manage campus account"
             >
               <span className="text-xl">{currentPersona.avatar}</span>
               <div className="leading-tight">
-                <div className="text-xs font-bold text-slate-800 flex items-center space-x-1">
-                  <span className="truncate max-w-[110px]">{currentPersona.name}</span>
+                <div className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
+                  <span className="truncate max-w-[120px]">{currentPersona.name}</span>
                   <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${currentPersona.badgeClass}`}>
                     {currentPersona.roleLabel}
                   </span>
                 </div>
                 <div className="text-[10px] text-slate-400 font-medium">
-                  Click to switch persona
+                  Switch Persona / Role
                 </div>
               </div>
             </button>
+
+            {/* Login Link */}
+            <Link
+              to="/login"
+              className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200"
+            >
+              SSO Login
+            </Link>
           </div>
 
-          {/* Mobile Hamburger Button */}
+          {/* Mobile Actions */}
           <div className="flex md:hidden items-center space-x-2">
             <button
               onClick={openPersonaModal}
-              className="p-1.5 text-lg rounded-lg border border-slate-200"
+              className="p-1.5 text-lg rounded-xl border border-slate-200"
               title="Switch Persona"
             >
               {currentPersona.avatar}
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
@@ -153,14 +158,21 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
             >
-              Submit Grievance
+              Home
+            </NavLink>
+            <NavLink
+              to="/submit"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
+            >
+              Report an Issue
             </NavLink>
             <NavLink
               to="/track"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
             >
-              Track Ticket
+              Track Status
             </NavLink>
             <NavLink
               to="/admin"
@@ -170,11 +182,11 @@ export default function Navbar() {
               Operations Desk
             </NavLink>
             <NavLink
-              to="/developer"
+              to="/login"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
             >
-              Developer Lab
+              Campus SSO Login
             </NavLink>
           </div>
         )}

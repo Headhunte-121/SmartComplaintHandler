@@ -1,9 +1,10 @@
 /**
- * SmartComplaintHandler - Central Administrative Operations Desk
+ * SmartComplaintHandler - Campus Facilities Operations Console
  * Blueprint Reference: V1/M4/frontend/02_admin_dashboard_page.md & V1/M5/00_M5_CENTRAL_OVERVIEW.md
- * Role: Primary operations workstation for campus facility supervisors and maintenance leads.
+ * Role: Primary operations workstation for campus facility supervisors, technicians, and maintenance leads.
  */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchComplaints } from '../api/complaints';
 import { updateTicketStatus, escalateTicket } from '../api/sla';
@@ -28,7 +29,7 @@ export default function AdminDashboard() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modal States
+  // Modals
   const [overrideModalOpen, setOverrideModalOpen] = useState(false);
   const [overrideTicket, setOverrideTicket] = useState(null);
 
@@ -97,28 +98,31 @@ export default function AdminDashboard() {
     return true;
   });
 
+  // Calculate Operational Metrics
+  const totalCount = tickets.length;
+  const inProgressCount = tickets.filter((t) => t.status === 'IN_PROGRESS' || t.status === 'ASSIGNED').length;
+  const criticalCount = tickets.filter((t) => t.priority === 'CRITICAL' && t.status !== 'RESOLVED' && t.status !== 'CLOSED').length;
+  const resolvedCount = tickets.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED').length;
+
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Workstation Header */}
+      {/* Header & Persona Identifier */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-bold tracking-wider text-purple-600 uppercase bg-purple-50 px-2.5 py-1 rounded-md border border-purple-200">
-              Module M4 & M5 Operations
-            </span>
-            <span className="text-xs font-semibold text-slate-500">
-              Campus Facilities Workstation
-            </span>
+          <div className="flex items-center space-x-2 text-xs text-slate-500">
+            <Link to="/" className="hover:text-indigo-600 transition-colors">Campus Facilities</Link>
+            <span>/</span>
+            <span className="font-semibold text-indigo-600">Operations Console</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-2">
-            Administrative Operations & Dispatch Desk
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mt-1">
+            Facilities Maintenance Operations Console
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Consolidated supervisory workstation for squad queue balancing, priority triage overrides, repair proof gates, and SLA breach governance.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Operational queue dispatch, squad workload balancing, supervisor priority adjustment, and SLA breach governance.
           </p>
         </div>
 
-        {/* Persona Role Pill */}
+        {/* Current Active Persona Badge */}
         <div className="flex items-center space-x-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
           <span className="text-2xl">{currentPersona.avatar}</span>
           <div className="text-left text-xs">
@@ -129,36 +133,71 @@ export default function AdminDashboard() {
               </span>
             </div>
             <div className="text-[10px] text-slate-400">
-              {isAdmin ? 'Full Supervisor Authority' : isTechnician ? 'Squad Work Order Queue' : 'Read-Only Inspector'}
+              {isAdmin ? 'Chief Supervisory Authority' : isTechnician ? 'Assigned Field Queue' : 'Campus Member'}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Top Panel: Maintenance Squad Workload Capacities */}
+      {/* Operational Metrics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+            Total Logged Grievances
+          </span>
+          <span className="text-2xl font-black text-slate-900">{totalCount}</span>
+          <span className="text-[10px] text-slate-500 block">Across all campus zones</span>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-blue-500 block">
+            Active Repairs in Progress
+          </span>
+          <span className="text-2xl font-black text-blue-600">{inProgressCount}</span>
+          <span className="text-[10px] text-slate-500 block">Dispatched to field squads</span>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-500 block">
+            Critical Safety Incidents
+          </span>
+          <span className="text-2xl font-black text-rose-600">{criticalCount}</span>
+          <span className="text-[10px] text-slate-500 block">Immediate 2-hour priority gate</span>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-500 block">
+            Verified Resolutions
+          </span>
+          <span className="text-2xl font-black text-emerald-600">{resolvedCount}</span>
+          <span className="text-[10px] text-slate-500 block">Completed with repair proof</span>
+        </div>
+      </div>
+
+      {/* Maintenance Squad Workload Capacities */}
       <TeamWorkloadView />
 
-      {/* Main Operations Queue Section */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
-        {/* Filter Controls Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      {/* Main Incident Operations Table */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-xs space-y-6">
+        {/* Table Filters & Toolbar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <h2 className="text-base font-black text-slate-900">
-              Campus Incident Queue ({filteredTickets.length} tickets)
+              Campus Incident Queue ({filteredTickets.length} records)
             </h2>
             <p className="text-xs text-slate-400">
-              Filter across status, priority, and maintenance squads in real time.
+              Slice active tickets across status, priority, and maintenance squad assignments.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Search Input */}
+            {/* Live Search */}
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search code, title, location..."
-              className="text-xs rounded-xl border border-slate-300 px-3 py-2 w-48 sm:w-60 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              placeholder="Search code, title, room..."
+              className="text-xs rounded-xl border border-slate-300 px-3.5 py-2 w-48 sm:w-60 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
 
             {/* Priority Filter */}
@@ -185,14 +224,13 @@ export default function AdminDashboard() {
               <option value="ASSIGNED">ASSIGNED</option>
               <option value="IN_PROGRESS">IN_PROGRESS</option>
               <option value="RESOLVED">RESOLVED</option>
-              <option value="CLOSED">CLOSED</option>
             </select>
 
-            {/* Refresh Queue Button */}
+            {/* Refresh Button */}
             <button
               onClick={loadTickets}
               disabled={loading}
-              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center space-x-1"
+              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center space-x-1.5"
             >
               <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -208,25 +246,25 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tickets Queue Table */}
+        {/* Incidents Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/75 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
               <tr>
-                <th className="py-3 px-4">Tracking Code</th>
-                <th className="py-3 px-4">Issue & Location</th>
+                <th className="py-3 px-4">Ticket Ref</th>
+                <th className="py-3 px-4">Issue & Campus Location</th>
                 <th className="py-3 px-4">Squad / Dept</th>
                 <th className="py-3 px-4">Priority</th>
                 <th className="py-3 px-4">SLA Clock</th>
                 <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Operations & Actions</th>
+                <th className="py-3 px-4 text-right">Operational Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {loading && tickets.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-slate-400">
-                    Loading campus operations queue...
+                    Querying campus incident database...
                   </td>
                 </tr>
               ) : filteredTickets.length === 0 ? (
@@ -240,7 +278,9 @@ export default function AdminDashboard() {
                   <tr key={t.id} className="hover:bg-slate-50/80 transition-colors">
                     {/* Code */}
                     <td className="py-3.5 px-4 font-mono font-bold text-indigo-700 whitespace-nowrap">
-                      {t.tracking_code}
+                      <Link to={`/track?code=${t.tracking_code}`} className="hover:underline">
+                        {t.tracking_code}
+                      </Link>
                     </td>
 
                     {/* Title & Location */}
@@ -259,7 +299,7 @@ export default function AdminDashboard() {
                     {/* Squad / Dept */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="font-semibold text-slate-800">
-                        {t.assigned_team_name || 'Unassigned'}
+                        {t.assigned_team_name || 'Auto-Dispatch'}
                       </div>
                       <div className="text-[10px] text-slate-400">
                         {t.department_name || 'General'}
@@ -296,7 +336,7 @@ export default function AdminDashboard() {
                       </span>
                     </td>
 
-                    {/* Actions */}
+                    {/* Operational Actions */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end space-x-1.5">
                         {/* Technician Action: Start Work */}
@@ -354,7 +394,7 @@ export default function AdminDashboard() {
                           </button>
                         )}
 
-                        {/* Escalate */}
+                        {/* Escalate Action */}
                         {t.status !== 'RESOLVED' && t.status !== 'CLOSED' && (
                           <button
                             type="button"

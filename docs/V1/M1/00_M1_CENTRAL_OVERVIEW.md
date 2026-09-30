@@ -260,4 +260,11 @@ npm run dev
 * **Why It Was Changed:** Replaces raw developer testing screens with production-grade campus navigation, persona-tailored dashboards, and 1-click persona switching for viva demonstrations.
 * **Verification Proof:** `npm run build` compiled 113 modules in 2.32s with 0 errors; 37/37 backend pytest passed in 1.19s.
 
+### [2026-09-30] - Institutional University Portal Architecture Redesign
+* **Files Modified:** `frontend/src/pages/Home.jsx`, `frontend/src/pages/Login.jsx`, `frontend/src/pages/SubmitComplaint.jsx`, `frontend/src/pages/TrackTicket.jsx`, `frontend/src/pages/AdminDashboard.jsx`, `frontend/src/components/Navbar.jsx`, `frontend/src/components/Footer.jsx`, `frontend/src/router/AppRouter.jsx`
+* **What Was Changed:** Transformed the application into an authentic, production-grade university estate management portal: added an institutional landing homepage (`/`), a campus SSO login portal (`/login`), revamped the grievance submission form with realistic building and category selectors, cleaned the public tracker and operations console of demo/viva tags, and established real institutional emergency hotlines and navigation.
+* **Why It Was Changed:** Elevates the project from an academic demo to a credible, fully functioning institutional web application.
+* **Verification Proof:** `npm run build` compiled 115 modules in 12.87s with 0 errors; 37/37 backend pytest passed in 2.67s.
+
+
 
