@@ -254,3 +254,10 @@ npm run dev
 * **Why It Was Changed:** Pre-existing databases with custom names (e.g., `'Electrical Services'` at ID 1) triggered `sqlite3.IntegrityError: UNIQUE constraint failed: departments.id` during FastAPI lifespan startup, preventing the backend from booting.
 * **Verification Proof:** `37/37 pytest passed in 1.05s`, `seed_data()` executed cleanly without warnings.
 
+### [2026-09-30] - Persona Role-Based Access & Declarative Page Routing Architecture
+* **Files Modified:** `frontend/src/context/AuthContext.jsx`, `frontend/src/components/PersonaSwitcherModal.jsx`, `frontend/src/router/AppRouter.jsx`, `frontend/src/components/Navbar.jsx`, `frontend/src/components/Layout.jsx`, `frontend/src/pages/TrackTicket.jsx`, `frontend/src/pages/AdminDashboard.jsx`, `frontend/src/pages/DeveloperLab.jsx`
+* **What Was Changed:** Replaced the single-screen developer test playground with a full-fledged, multi-page client-side router (`/`, `/submit`, `/track`, `/admin`, `/developer`) and role-based persona authentication system supporting Student, Field Technician, and Facility Supervisor personas.
+* **Why It Was Changed:** Replaces raw developer testing screens with production-grade campus navigation, persona-tailored dashboards, and 1-click persona switching for viva demonstrations.
+* **Verification Proof:** `npm run build` compiled 113 modules in 2.32s with 0 errors; 37/37 backend pytest passed in 1.19s.
+
+
