@@ -462,6 +462,25 @@ npm run dev
   - Frontend Production Build: `npm run build` compiled in 1.35s with 0 errors.
   - Git Branch: Pushed directly to `origin/main` ([commit `8fd50e2`](https://github.com/Headhunte-121/SmartComplaintHandler/commit/8fd50e2)).
 
+### [2026-10-14] - Modern Industry Auth Layout: Only Continue with Email & Continue with Google
+* **Files Modified:**
+  - `frontend/index.html`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Eliminated Custom Modal Dialogs:** Completely removed the intermediate popup modal that requested secondary input of names and emails.
+  2. **Standard Vercel-Style Auth Layout:** Rebuilt `Login.jsx` and `Register.jsx` to match modern industry standards (e.g., Vercel / Linear) providing strictly two clean options:
+     - `Continue with Email`: Email address input with smooth password expansion and Remember Me toggle.
+     - `Continue with Google`: 1-click Google Workspace SSO with official Google 'G' icon.
+  3. **Direct Google Identity Services (GIS):** Added the official Google GIS SDK (`https://accounts.google.com/gsi/client`) to `frontend/index.html` with automated `@iiitnr.edu.in` domain restriction.
+* **Why It Was Changed:** Satisfies user feedback to match the standard layout used by modern websites (like Vercel login), offering strictly the Google and Email options without redundant popups or extra dialogs.
+* **Cross-Module Impact:** Simplifies authentication UX for all students and staff accessing M2 grievance lodging, M4 operations desk, and M5 student portal.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.51s with 0 errors.
+  - Backend Test Suite: 47/47 tests passed cleanly.
+
+
 
 
 

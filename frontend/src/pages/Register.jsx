@@ -1,8 +1,9 @@
 /**
  * SmartComplaintHandler - Clean Institutional Registration Portal
- * Role: Streamlined, distraction-free registration portal for @iiitnr.edu.in accounts.
- *       Auto-detects and locks official Full Name and Department from Google Workspace / campus directory,
- *       preventing manual alteration, and enforcing secure bcrypt passwords and role routing.
+ * Modern single-screen registration matching standard industry design:
+ * Only two options:
+ * 1. Continue with Email (@iiitnr.edu.in)
+ * 2. Continue with Google (@iiitnr.edu.in)
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -24,12 +25,6 @@ export default function Register() {
   const [error, setError] = useState(null);
   const [successUser, setSuccessUser] = useState(null);
 
-  // Google Workspace SSO modal state
-  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
-  const [googleEmail, setGoogleEmail] = useState('');
-  const [googleName, setGoogleName] = useState('');
-  const [googleError, setGoogleError] = useState(null);
-
   useEffect(() => {
     if (currentUser) {
       const redirect =
@@ -44,14 +39,12 @@ export default function Register() {
     }
   }, [currentUser, navigate]);
 
-  // Derive verified official full name and academic department dynamically from IIIT-NR email
+  // Derive verified official department dynamically from IIIT-NR email
   const parseEmailMetadata = (rawEmail) => {
     const clean = (rawEmail || '').trim().toLowerCase();
     if (!clean.endsWith('@iiitnr.edu.in')) return null;
 
     const prefix = clean.split('@')[0];
-    // Student pattern: name part followed by 2-digit batch year and branch/roll code
-    // e.g. "nikhil26100", "nikhil.sharma26100", "rahul_verma26101", "nikheel25302"
     const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*?)(\d{2})(\d{2,5})$/i);
     if (match) {
       const rawName = match[1]
@@ -60,7 +53,7 @@ export default function Register() {
         .trim();
       const code = match[3];
 
-      // Department detection: 100 -> CSE, 101 -> DSAI, 102/302 -> ECE
+      // Branch taxonomy: 100 -> CSE, 101 -> DSAI, 102/302 -> ECE
       let dept = 'Computer Science & Engineering';
       let deptCode = 'CSE';
       if (code.startsWith('101') || code.endsWith('01')) {
@@ -118,13 +111,39 @@ export default function Register() {
     }, 600);
   };
 
-  const handleGoogleSubmit = async (e) => {
-    if (e) e.preventDefault();
-    setGoogleError(null);
+  // 1. Continue with Google Workspace SSO
+  const handleContinueWithGoogle = async () => {
+    setError(null);
 
-    const cleanEmail = googleEmail.trim().toLowerCase();
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (clientId && window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response) => {
+          try {
+            setGoogleLoading(true);
+            const user = await loginGoogle({ credential: response.credential, remember_me: true });
+            handleRoleRedirect(user);
+          } catch (err) {
+            setError(err.response?.data?.detail || err.message || 'Google registration failed.');
+            setGoogleLoading(false);
+          }
+        },
+        hosted_domain: 'iiitnr.edu.in',
+      });
+      window.google.accounts.id.prompt();
+      return;
+    }
+
+    // Direct Google Workspace authentication with the entered email
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setError('Please enter your @iiitnr.edu.in email address, then click Continue with Google.');
+      return;
+    }
+
     if (!cleanEmail.endsWith('@iiitnr.edu.in')) {
-      setGoogleError('Access restricted: Only official @iiitnr.edu.in institutional accounts are permitted. Personal Gmail accounts are blocked.');
+      setError('Access restricted: Only official @iiitnr.edu.in institutional accounts are permitted. Personal Gmail accounts are blocked.');
       return;
     }
 
@@ -132,13 +151,11 @@ export default function Register() {
     try {
       const user = await loginGoogle({
         email: cleanEmail,
-        name: googleName.trim() || undefined,
         remember_me: true,
       });
-      setIsGoogleModalOpen(false);
       handleRoleRedirect(user);
     } catch (err) {
-      setGoogleError(
+      setError(
         err.response?.data?.detail ||
         err.message ||
         'Google Workspace verification failed. Ensure you are using an official @iiitnr.edu.in account.'
@@ -147,7 +164,8 @@ export default function Register() {
     }
   };
 
-  const handleRegister = async (e) => {
+  // 2. Continue with Email
+  const handleRegisterWithEmail = async (e) => {
     e.preventDefault();
     setError(null);
 
@@ -211,14 +229,14 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Main Clean Register Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7 sm:p-9 space-y-6">
-          <div className="space-y-1">
+        {/* Clean Vercel-Style Register Card */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7 sm:p-9 space-y-5">
+          <div className="space-y-1 text-center">
             <h2 className="text-lg font-black text-slate-900">
-              Create an Account
+              Sign Up for IIIT-NR
             </h2>
             <p className="text-xs text-slate-500">
-              Enter your official institutional credentials to register.
+              Create your student or campus facilities account
             </p>
           </div>
 
@@ -236,16 +254,113 @@ export default function Register() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Official Google Workspace 1-Click Registration */}
+              {error && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2 animate-fade-in">
+                  <span>⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleRegisterWithEmail} className="space-y-3">
+                {/* Institutional Email */}
+                <div className="space-y-1.5">
+                  <input
+                    type="email"
+                    required
+                    autoFocus
+                    placeholder="Email Address (@iiitnr.edu.in)"
+                    value={email}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                  />
+
+                  {/* Verified Identity Badge (Department auto-detected, locked, no roll number) */}
+                  {departmentInfo && (
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs animate-fade-in select-none">
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-slate-400 font-bold uppercase text-[10px]">Department:</span>
+                        <span className="font-bold text-indigo-700 text-xs">{departmentInfo.department}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        🔒 Verified
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Password & Confirm Password */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="Password (min 6)"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError(null);
+                      }}
+                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="Confirm Password"
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setError(null);
+                      }}
+                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Password Visibility & Remember Me */}
+                <div className="flex items-center justify-between pt-1">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                    />
+                    <span className="text-[11px] font-medium text-slate-600">
+                      Remember me on this device
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[11px] text-slate-400 hover:text-slate-600 font-semibold"
+                  >
+                    {showPassword ? 'Hide Password' : 'Show Password'}
+                  </button>
+                </div>
+
+                {/* Continue with Email Button */}
+                <button
+                  type="submit"
+                  disabled={loading || googleLoading}
+                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 active:bg-black text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <span>Creating Account...</span>
+                  ) : (
+                    <span>Continue with Email</span>
+                  )}
+                </button>
+              </form>
+
+              {/* Continue with Google Button */}
               <button
                 type="button"
-                onClick={() => {
-                  setGoogleEmail(email || '');
-                  setGoogleError(null);
-                  setIsGoogleModalOpen(true);
-                }}
+                onClick={handleContinueWithGoogle}
                 disabled={googleLoading || loading}
-                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 active:scale-[0.99] text-slate-700 font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-white hover:bg-slate-50 border border-slate-300 active:scale-[0.99] text-slate-800 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                   <path
@@ -265,160 +380,23 @@ export default function Register() {
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
                   />
                 </svg>
-                <span>Sign up with Google Workspace (@iiitnr.edu.in)</span>
-              </button>
-
-              <div className="relative flex items-center">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  or register with password
-                </span>
-                <div className="flex-grow border-t border-slate-200"></div>
-              </div>
-
-              <form onSubmit={handleRegister} className="space-y-4">
-                {error && (
-                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2 animate-fade-in">
-                    <span>⚠️</span>
-                    <span>{error}</span>
-                  </div>
-                )}
-
-              {/* Institutional Email */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Institutional Email ID
-                </label>
-                <input
-                  type="email"
-                  required
-                  autoFocus
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => handleEmailChange(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
-                />
-
-                {/* Verified Non-Editable Institutional Record Card */}
-                {departmentInfo && (
-                  <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200 space-y-2 animate-fade-in select-none">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-bold text-slate-500 uppercase tracking-wider">Campus Directory Identity</span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center space-x-1">
-                        <span>🔒</span>
-                        <span>Locked to Email</span>
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60">
-                      <div>
-                        <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Official Full Name</div>
-                        <div className="text-sm font-black text-slate-900">{departmentInfo.fullName}</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Department</div>
-                        <div className="text-xs font-bold text-indigo-700">{departmentInfo.department}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Password & Confirm Password */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Password
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold"
-                    >
-                      {showPassword ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="Min 6 chars"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setError(null);
-                    }}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Confirm Password
-                  </label>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="Re-type password"
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      setError(null);
-                    }}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Remember Me */}
-              <div className="flex items-center space-x-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="reg_remember"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
-                />
-                <label htmlFor="reg_remember" className="text-xs text-slate-600 select-none cursor-pointer">
-                  Remember me on this device
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/25 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>Creating Account...</span>
-                  </>
+                {googleLoading ? (
+                  <span>Connecting to Google Workspace...</span>
                 ) : (
-                  <>
-                    <span>Create Account</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </>
+                  <span>Continue with Google</span>
                 )}
               </button>
-            </form>
-          </div>
+            </div>
           )}
 
           {/* Footer Navigation */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">Already registered?</span>
+          <div className="pt-3 border-t border-slate-100 text-center text-xs">
+            <span className="text-slate-500">Already have an account? </span>
             <Link
               to="/login"
               className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
             >
-              Sign In
+              Log In
             </Link>
           </div>
         </div>
@@ -428,100 +406,6 @@ export default function Register() {
           Dr. Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur
         </p>
       </div>
-
-      {/* Official Google Workspace Modal */}
-      {isGoogleModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-5 animate-fade-in">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
-                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900">Google Workspace Registration</h3>
-                  <p className="text-[11px] text-slate-500 font-medium">IIIT Naya Raipur Verified Account</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsGoogleModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start space-x-2">
-              <span className="text-sm">🔒</span>
-              <span>
-                <strong>Institutional Security Policy:</strong> Registration is strictly restricted to accounts ending with <strong>@iiitnr.edu.in</strong>. Personal Gmail accounts are blocked.
-              </span>
-            </div>
-
-            {googleError && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2">
-                <span>⚠️</span>
-                <span>{googleError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleGoogleSubmit} className="space-y-4">
-              <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Institutional Email ID
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="e.g. nikhil26100@iiitnr.edu.in"
-                  value={googleEmail}
-                  onChange={(e) => setGoogleEmail(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Official Full Real Name (from Google Profile)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Nikhil Gavel"
-                  value={googleName}
-                  onChange={(e) => setGoogleName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15"
-                />
-                <p className="text-[10px] text-slate-400">
-                  Your full verified institutional name as registered on your @iiitnr.edu.in Google account.
-                </p>
-              </div>
-
-              <div className="pt-2 flex items-center space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setIsGoogleModalOpen(false)}
-                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={googleLoading}
-                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/25 transition-all flex items-center justify-center space-x-2 disabled:bg-slate-300 cursor-pointer"
-                >
-                  {googleLoading ? <span>Creating...</span> : <span>Confirm & Register</span>}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
