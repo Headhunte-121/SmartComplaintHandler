@@ -1,32 +1,129 @@
 """
 SmartComplaintHandler - Application Settings & Configuration
 Blueprint Reference: V1/M1/backend/01_config_and_env.md
-Role: Pydantic BaseSettings loading environment variables (DATABASE_URL, CORS, DEBUG).
+Role: Production-grade Pydantic BaseSettings loading environment variables for Vercel Serverless,
+      Supabase PostgreSQL connection pooling, JWT cryptography, and Google Workspace OAuth2/OIDC.
 """
+import os
+import secrets
+from typing import List, Optional
+
 try:
-    from pydantic_settings import BaseSettings
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+    HAS_PYDANTIC_SETTINGS_V2 = True
 except ImportError:
+    HAS_PYDANTIC_SETTINGS_V2 = False
     try:
         from pydantic import BaseSettings
     except ImportError:
         from pydantic import BaseModel as BaseSettings
 
-from typing import Optional
+
+def _resolve_default_database_url() -> str:
+    """
+    Resolve database connection URL from Vercel / Supabase environment variables,
+    falling back to local SQLite only during local development or automated tests.
+    """
+    for env_key in (
+        "DATABASE_URL",
+        "POSTGRES_URL",
+        "SUPABASE_DB_URL",
+        "POSTGRES_PRISMA_URL",
+        "POSTGRES_URL_NON_POOLING",
+    ):
+        val = os.getenv(env_key, "").strip()
+        if val:
+            if val.startswith("postgres://"):
+                return val.replace("postgres://", "postgresql://", 1)
+            return val
+    return "sqlite:///./smart_complaints.db"
+
+
+def _is_production_env() -> bool:
+    env = os.getenv("ENVIRONMENT", os.getenv("VERCEL_ENV", "")).strip().lower()
+    return bool(os.getenv("VERCEL")) or env in ("production", "prod", "staging")
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Smart Complaint Handler"
     API_V1_STR: str = "/api/v1"
-    DATABASE_URL: str = "postgresql://postgres.swtckhxitsxvphtenaqo:2TKUGaPmLDqXYKx0@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
-    DEBUG: bool = True
+    ENVIRONMENT: str = "production" if _is_production_env() else "development"
+    DEBUG: bool = not _is_production_env()
 
-    # Google Workspace OAuth SSO & IIIT-NR Domain Constraints
-    GOOGLE_CLIENT_ID: Optional[str] = None
-    GOOGLE_ALLOWED_DOMAIN: str = "iiitnr.edu.in"
-    GOOGLE_STRICT_TOKEN_VERIFY: bool = False
-    AUTO_SEED_ON_STARTUP: bool = False
+    # Supabase PostgreSQL / SQLite Database Configuration
+    DATABASE_URL: str = _resolve_default_database_url()
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_RECYCLE_SECONDS: int = 300
+    DB_CONNECT_TIMEOUT_SECONDS: int = 10
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    # Cryptographic JWT & OTP Settings
+    SECRET_KEY: str = os.getenv(
+        "SECRET_KEY",
+        os.getenv(
+            "JWT_SECRET_KEY",
+            os.getenv(
+                "SUPABASE_JWT_SECRET",
+                "iiitnr-campus-grievance-secret-key-super-secure-token-2026-auth-prod",
+            ),
+        ),
+    )
+    REFRESH_SECRET_KEY: str = os.getenv(
+        "REFRESH_SECRET_KEY",
+        f"{os.getenv('SECRET_KEY', 'iiitnr-campus-grievance-secret-key-2026')}-refresh",
+    )
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_HOURS: int = 24
+    REMEMBER_ME_EXPIRE_DAYS: int = 30
+    OTP_EXPIRE_MINUTES: int = 10
+
+    # Google Workspace OAuth2 / OIDC SSO & IIIT-NR Domain Constraints
+    GOOGLE_CLIENT_ID: Optional[str] = (
+        os.getenv("GOOGLE_CLIENT_ID")
+        or os.getenv("VITE_GOOGLE_CLIENT_ID")
+        or os.getenv("NEXT_PUBLIC_GOOGLE_CLIENT_ID")
+        or None
+    )
+    GOOGLE_CLIENT_SECRET: Optional[str] = os.getenv("GOOGLE_CLIENT_SECRET") or None
+    GOOGLE_ALLOWED_DOMAIN: str = os.getenv("GOOGLE_ALLOWED_DOMAIN", "iiitnr.edu.in").strip().lower()
+    GOOGLE_STRICT_TOKEN_VERIFY: bool = (
+        os.getenv("GOOGLE_STRICT_TOKEN_VERIFY", "true" if _is_production_env() else "false").lower()
+        in ("true", "1", "yes")
+    )
+
+    # Security & Startup Policies
+    ALLOW_UNREGISTERED_LOGIN_PROVISIONING: bool = (
+        os.getenv("ALLOW_UNREGISTERED_LOGIN_PROVISIONING", "false" if _is_production_env() else "true").lower()
+        in ("true", "1", "yes")
+    )
+    EXPOSE_DEV_OTP_IN_RESPONSE: bool = (
+        os.getenv("EXPOSE_DEV_OTP_IN_RESPONSE", "false" if _is_production_env() else "true").lower()
+        in ("true", "1", "yes")
+    )
+    AUTO_SEED_ON_STARTUP: bool = (
+        os.getenv("AUTO_SEED_ON_STARTUP", "false").lower() in ("true", "1", "yes")
+    )
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "*")
+
+    @property
+    def parsed_cors_origins(self) -> List[str]:
+        raw = (self.CORS_ORIGINS or "*").strip()
+        if raw == "*":
+            return ["*"]
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+    if HAS_PYDANTIC_SETTINGS_V2:
+        model_config = SettingsConfigDict(
+            case_sensitive=True,
+            env_file=".env",
+            env_file_encoding="utf-8",
+            extra="ignore",
+        )
+    else:
+        class Config:
+            case_sensitive = True
+            env_file = ".env"
+            extra = "ignore"
+
 
 settings = Settings()

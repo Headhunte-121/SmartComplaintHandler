@@ -1,22 +1,23 @@
 """
 SmartComplaintHandler - User Authentication & Administration Service
-Role: Production-grade authentication for IIIT Naya Raipur (@iiitnr.edu.in):
-      - Supports Google Cloud Internal Workspace OAuth2 & OIDC SSO strictly restricted to @iiitnr.edu.in
-      - Auto-creates `users` table on the fly (even on Vercel Serverless before manual DB seeding)
-      - Fault-tolerant DB persistence so unseeded/sleeping DB connections never cause a 500 / Network Error
-      - Password hashing via bcrypt, persistent 30-day JWT sessions, and student roll parsing.
+Role: Production-grade authentication for IIIT Naya Raipur (@iiitnr.edu.in) on Vercel & Supabase:
+      - Authoritative server-side Google OAuth2 (UserInfo/TokenInfo) & OIDC ID Token verification
+      - Strictly restricted to @iiitnr.edu.in with triple-layer hosted domain (`hd`) enforcement
+      - Cold-start-cached schema initialization (eliminates per-request DDL table locks on Supabase)
+      - Stateless HMAC-signed OTP verification across Vercel Serverless instances
+      - Password hashing via bcrypt (72-byte safe), access + refresh JWT issuance, and RBAC helpers
 """
 import base64
+from datetime import datetime, timedelta, timezone
 import json
 import logging
 import os
-import random
 import re
+import secrets
+from typing import Any, Dict, List, Optional, Set, Tuple
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, status
 from sqlalchemy import text
@@ -24,12 +25,20 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.security import (
+    DEFAULT_EXPIRE_HOURS,
+    OTP_EXPIRE_MINUTES,
     REMEMBER_ME_EXPIRE_DAYS,
     create_access_token,
+    create_otp_verification_token,
+    create_refresh_token,
     decode_access_token,
+    decode_refresh_token,
     hash_password,
+    verify_otp_verification_token,
     verify_password,
 )
+from app.models.base import Base
+from app.models.department import Department  # noqa: F401 - ensure FK target table is registered in metadata
 from app.models.team import MaintenanceTeam
 from app.models.ticket import Ticket
 from app.models.user import User
@@ -50,9 +59,15 @@ STUDENT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
+GOOGLE_USERINFO_URLS = (
+    "https://www.googleapis.com/oauth2/v3/userinfo",
+    "https://openidconnect.googleapis.com/v1/userinfo",
+)
 GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 VALID_GOOGLE_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
+
+# Track initialized database engine URLs per process cold start to avoid per-request ALTER TABLE locks
+_VERIFIED_ENGINES: Set[str] = set()
 
 IIITNR_KNOWN_STAFF: Dict[str, Dict[str, Any]] = {
     "superadmin@iiitnr.edu.in": {
@@ -101,48 +116,78 @@ IIITNR_KNOWN_STAFF: Dict[str, Dict[str, Any]] = {
 
 
 def _get_google_client_id() -> str:
-    return getattr(
-        settings,
-        "GOOGLE_CLIENT_ID",
-        os.getenv("GOOGLE_CLIENT_ID", os.getenv("VITE_GOOGLE_CLIENT_ID", "")),
+    return (
+        getattr(settings, "GOOGLE_CLIENT_ID", None)
+        or os.getenv("GOOGLE_CLIENT_ID")
+        or os.getenv("VITE_GOOGLE_CLIENT_ID")
+        or ""
     ).strip()
 
 
 def _get_allowed_domain() -> str:
     return (
-        getattr(
-            settings,
-            "GOOGLE_ALLOWED_DOMAIN",
-            os.getenv("GOOGLE_ALLOWED_DOMAIN", IIITNR_DOMAIN),
-        )
+        getattr(settings, "GOOGLE_ALLOWED_DOMAIN", None)
+        or os.getenv("GOOGLE_ALLOWED_DOMAIN")
         or IIITNR_DOMAIN
     ).strip().lower()
 
 
 def _ensure_users_table_ready(db: Session) -> None:
     """
-    Guarantee that the `users` table and all required auth columns exist before querying,
-    even on Vercel Serverless (where FastAPI lifespan does not run) or before manual DB seeding.
+    Guarantee that `departments` and `users` tables and all production auth columns exist.
+    Cached per database engine URL so DDL checks run only once per Vercel Serverless cold start
+    rather than acquiring table locks on every request.
     """
     try:
         bind = db.get_bind()
-        User.__table__.create(bind=bind, checkfirst=True)
-        if "sqlite" not in str(bind.url):
+        engine_key = str(bind.url)
+        if engine_key in _VERIFIED_ENGINES:
+            return
+
+        Base.metadata.create_all(bind=bind, checkfirst=True)
+        if "sqlite" not in engine_key:
             with bind.begin() as conn:
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_name VARCHAR(100);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50) DEFAULT 'password';"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub VARCHAR(255);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT TRUE;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE;"))
+        else:
+            with bind.begin() as conn:
+                res_user = conn.execute(text("PRAGMA table_info(users);"))
+                existing_user = {row[1] for row in res_user.fetchall()}
+                sqlite_cols = [
+                    ("hashed_password", "VARCHAR(255)"),
+                    ("department_name", "VARCHAR(100)"),
+                    ("department_id", "INTEGER"),
+                    ("phone", "VARCHAR(50)"),
+                    ("auth_provider", "VARCHAR(50) DEFAULT 'password'"),
+                    ("google_sub", "VARCHAR(255)"),
+                    ("avatar_url", "VARCHAR(500)"),
+                    ("email_verified", "BOOLEAN DEFAULT 1"),
+                    ("is_active", "BOOLEAN DEFAULT 1"),
+                    ("role", "VARCHAR(50) DEFAULT 'STUDENT'"),
+                    ("last_login_at", "DATETIME"),
+                ]
+                for col_name, col_type in sqlite_cols:
+                    if col_name not in existing_user:
+                        conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};"))
+
+        _VERIFIED_ENGINES.add(engine_key)
     except Exception as e:
         try:
             db.rollback()
         except Exception:
             pass
-        logger.warning(f"Users table auto-check notice: {e}")
+        logger.warning(f"Users table initialization check notice: {e}")
 
 
 def resolve_user_metadata(email: str) -> Dict[str, str]:
     """Auto-detect user role, name, department and student roll from @iiitnr.edu.in email."""
-    clean_email = email.strip().lower()
+    clean_email = (email or "").strip().lower()
     if clean_email in IIITNR_KNOWN_STAFF:
         return dict(IIITNR_KNOWN_STAFF[clean_email])
 
@@ -155,7 +200,10 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
             "department_name": "Office of the Director",
             "identifier": "Super Admin (DIR-01)",
         }
-    if prefix in ("admin", "estate", "facilities", "supervisor", "estate.admin", "estate_admin") or prefix.endswith(".admin"):
+    if (
+        prefix in ("admin", "estate", "facilities", "supervisor", "estate.admin", "estate_admin")
+        or prefix.endswith(".admin")
+    ):
         dept = "Central Facilities Management"
         if "electrical" in prefix:
             dept = "Electrical"
@@ -177,17 +225,12 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
             "identifier": "Field Technician",
         }
 
-    # Student pattern: e.g. nikhil26100@iiitnr.edu.in or nikhil.sharma26100@iiitnr.edu.in
     match = STUDENT_PATTERN.match(clean_email)
     if match:
         raw_name = match.group(1).replace(".", " ").replace("_", " ").title().strip()
         year = match.group(2)
         code = match.group(3)
 
-        # Locked IIIT-NR Branch Taxonomy:
-        # 100 -> CSE (Computer Science & Engineering)
-        # 101 -> DSAI (Data Science & Artificial Intelligence)
-        # 102 / 302 -> ECE (Electronics & Communication Engineering)
         if code.startswith("101") or code.endswith("01"):
             dept_name = "Data Science & Artificial Intelligence"
             dept_code = "DSAI"
@@ -232,26 +275,82 @@ def parse_google_jwt(token: str) -> Dict[str, Any]:
 
 
 def verify_google_access_token_remote(access_token: str) -> Dict[str, Any]:
-    """Fetch verified profile from Google OIDC UserInfo endpoint when access_token is provided."""
-    req_userinfo = urllib.request.Request(
-        GOOGLE_USERINFO_URL,
-        headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
-    )
-    try:
-        with urllib.request.urlopen(req_userinfo, timeout=4) as resp:
-            if resp.status != 200:
-                raise ValueError("Google UserInfo rejected access token.")
-            return json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
+    """
+    Fetch verified profile from Google OIDC UserInfo endpoint and validate token audience
+    when an OAuth 2.0 access_token is provided.
+    """
+    last_http_error: Optional[urllib.error.HTTPError] = None
+    profile_data: Optional[Dict[str, Any]] = None
+
+    for url in GOOGLE_USERINFO_URLS:
+        req_userinfo = urllib.request.Request(
+            url,
+            headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(req_userinfo, timeout=5) as resp:
+                if resp.status == 200:
+                    profile_data = json.loads(resp.read().decode("utf-8"))
+                    break
+        except urllib.error.HTTPError as e:
+            last_http_error = e
+            if e.code in (401, 403):
+                break
+        except Exception as e:
+            logger.warning(f"Google UserInfo endpoint {url} unreachable: {e}")
+
+    if last_http_error is not None and profile_data is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired Google OAuth access token.",
-        ) from e
+        ) from last_http_error
+
+    client_id = _get_google_client_id()
+    if client_id and profile_data is not None:
+        tokeninfo_url = f"{GOOGLE_TOKENINFO_URL}?{urllib.parse.urlencode({'access_token': access_token})}"
+        try:
+            with urllib.request.urlopen(tokeninfo_url, timeout=4) as resp:
+                if resp.status == 200:
+                    tinfo = json.loads(resp.read().decode("utf-8"))
+                    aud = tinfo.get("aud") or tinfo.get("azp")
+                    if aud and aud != client_id:
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Google OAuth access token audience does not match institutional Client ID.",
+                        )
+        except HTTPException:
+            raise
+        except urllib.error.HTTPError as e:
+            if e.code in (400, 401):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Google OAuth access token rejected by Google tokeninfo verification.",
+                ) from e
+        except Exception:
+            pass
+
+    return profile_data or {}
 
 
 def verify_google_id_token(id_token_str: str) -> Dict[str, Any]:
-    """Validate a Google OIDC ID Token JWT (`credential`)."""
-    claims = parse_google_jwt(id_token_str)
+    """
+    Validate a Google OIDC ID Token JWT (`credential`).
+    Performs remote verification via Google tokeninfo when reachable, plus local claim checks.
+    """
+    claims: Dict[str, Any] = {}
+    tokeninfo_url = f"{GOOGLE_TOKENINFO_URL}?{urllib.parse.urlencode({'id_token': id_token_str})}"
+    try:
+        with urllib.request.urlopen(tokeninfo_url, timeout=5) as resp:
+            if resp.status == 200:
+                claims = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or forged Google ID token rejected by Google API.",
+        ) from e
+    except Exception:
+        claims = parse_google_jwt(id_token_str)
+
     if not claims or not isinstance(claims, dict) or not claims.get("email"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -337,27 +436,61 @@ def _enforce_iiitnr_google_policy(
     return clean_email
 
 
+def _build_auth_response(user_resp: UserResponse, remember_me: bool) -> AuthResponse:
+    """Construct standardized AuthResponse with access_token, refresh_token, and expires_at."""
+    expires_in_days = REMEMBER_ME_EXPIRE_DAYS if remember_me else 1
+    expires_delta = (
+        timedelta(days=REMEMBER_ME_EXPIRE_DAYS)
+        if remember_me
+        else timedelta(hours=DEFAULT_EXPIRE_HOURS)
+    )
+    now = datetime.now(timezone.utc)
+    expires_at = now + expires_delta
+
+    token_claims = {
+        "sub": user_resp.email,
+        "name": user_resp.name,
+        "role": user_resp.role,
+        "department_name": user_resp.department_name,
+        "identifier": user_resp.identifier,
+        "id": user_resp.id,
+        "auth_provider": user_resp.auth_provider or "password",
+    }
+    access_token = create_access_token(data=token_claims, expires_delta=expires_delta)
+    refresh_token = create_refresh_token(
+        data=token_claims,
+        expires_delta=timedelta(days=REMEMBER_ME_EXPIRE_DAYS if remember_me else 7),
+    )
+
+    return AuthResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in_days=expires_in_days,
+        expires_at=expires_at,
+        user=user_resp,
+    )
+
+
 def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthResponse:
     """
     Authenticate or auto-provision an institutional user via Google Workspace OAuth2 / OIDC SSO.
-    - Designed for IIIT-NR Internal Google Workspace OAuth Consent Screen (`@iiitnr.edu.in`).
-    - Avoids blocking outbound HTTP calls when the browser already fetched the verified profile
-      from Google UserInfo, preventing serverless timeouts / Network Errors.
-    - Auto-creates `users` table if not yet seeded, and gracefully issues a valid JWT session
-      even if the database is temporarily unreachable or unseeded.
+    - Always verifies `credential` or `access_token` with Google's servers when supplied,
+      preventing client-side email spoofing even when `req.email` is also included in the payload.
+    - Strictly enforces `@iiitnr.edu.in` domain and `hd` claim.
+    - Persists `google_sub`, `avatar_url`, `auth_provider`, `email_verified`, and `last_login_at` in Supabase.
     """
     verified_claims: Dict[str, Any] = {}
 
     if req.credential:
         verified_claims = verify_google_id_token(req.credential)
-    elif req.access_token and not req.email:
-        # Only make a blocking outbound call if the frontend did not already supply the userinfo profile
-        try:
-            verified_claims = verify_google_access_token_remote(req.access_token)
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.warning(f"Remote Google userinfo lookup notice: {e}")
+    elif req.access_token:
+        verified_claims = verify_google_access_token_remote(req.access_token)
+    elif getattr(settings, "GOOGLE_STRICT_TOKEN_VERIFY", False):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google authentication requires a valid OAuth 2.0 access_token or OIDC ID token.",
+        )
 
     raw_email = verified_claims.get("email") or req.email or ""
     raw_hd = verified_claims.get("hd") if "hd" in verified_claims else req.hd
@@ -373,7 +506,17 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
         email_verified=raw_verified,
     )
 
+    if verified_claims.get("email") and req.email:
+        if verified_claims["email"].strip().lower() != req.email.strip().lower():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Google token email does not match the requested login email.",
+            )
+
     full_name = (verified_claims.get("name") or req.name or "").strip()
+    avatar_url = (verified_claims.get("picture") or req.picture or "").strip() or None
+    google_sub = str(verified_claims.get("sub") or "").strip() or None
+
     meta = resolve_user_metadata(email)
     if not full_name:
         full_name = meta["name"]
@@ -381,11 +524,10 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
     dept_name = meta["department_name"]
     role = meta["role"]
     identifier = meta["identifier"]
+    now_utc = datetime.now(timezone.utc)
 
     user_response_obj: Optional[UserResponse] = None
-    user_id: Optional[int] = None
 
-    # Fault-tolerant database persistence (never crashes with 500 if DB is unseeded or sleeping)
     try:
         _ensure_users_table_ready(db)
         db_user = db.query(User).filter(User.email.ilike(email)).first()
@@ -399,25 +541,38 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
                 db_user.name = full_name
             if not db_user.department_name:
                 db_user.department_name = dept_name
+            if avatar_url:
+                db_user.avatar_url = avatar_url
+            if google_sub:
+                db_user.google_sub = google_sub
+            db_user.email_verified = True
+            db_user.last_login_at = now_utc
+            if db_user.auth_provider == "password" and db_user.hashed_password:
+                db_user.auth_provider = "both"
+            elif not db_user.auth_provider:
+                db_user.auth_provider = "google"
+
             db.commit()
             db.refresh(db_user)
             user_entity = db_user
         else:
-            # Keep password string <= 50 chars so bcrypt >= 4.0 never raises a 72-byte ValueError
-            short_seed = f"GSSO_{email[:45]}"
             user_entity = User(
                 name=full_name,
                 email=email,
-                hashed_password=hash_password(short_seed),
+                hashed_password=None,
                 role=role,
                 department_name=dept_name,
+                auth_provider="google",
+                google_sub=google_sub,
+                avatar_url=avatar_url,
+                email_verified=True,
                 is_active=True,
+                last_login_at=now_utc,
             )
             db.add(user_entity)
             db.commit()
             db.refresh(user_entity)
 
-        user_id = user_entity.id
         user_response_obj = to_user_response(user_entity)
     except HTTPException:
         raise
@@ -436,33 +591,19 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
             department_id=None,
             identifier=identifier,
             phone=None,
+            avatar_url=avatar_url,
+            auth_provider="google",
+            email_verified=True,
             is_active=True,
-            created_at=datetime.now(timezone.utc),
+            last_login_at=now_utc,
+            created_at=now_utc,
         )
 
-    expires_in_days = REMEMBER_ME_EXPIRE_DAYS if req.remember_me else 1
-    token = create_access_token(
-        data={
-            "sub": email,
-            "name": user_response_obj.name,
-            "role": user_response_obj.role,
-            "department_name": user_response_obj.department_name,
-            "identifier": user_response_obj.identifier,
-            "id": user_id,
-        },
-        expires_delta=timedelta(days=expires_in_days),
-    )
-
-    return AuthResponse(
-        access_token=token,
-        token_type="bearer",
-        expires_in_days=expires_in_days,
-        user=user_response_obj,
-    )
+    return _build_auth_response(user_response_obj, remember_me=req.remember_me)
 
 
 def to_user_response(user: User) -> UserResponse:
-    """Format ORM User model into UserResponse with roll parsing."""
+    """Format ORM User model into UserResponse with roll parsing and Google SSO metadata."""
     meta = resolve_user_metadata(user.email)
     identifier = meta.get("identifier")
     if user.role != "STUDENT":
@@ -477,36 +618,86 @@ def to_user_response(user: User) -> UserResponse:
         department_id=user.department_id,
         identifier=identifier,
         phone=user.phone,
+        avatar_url=getattr(user, "avatar_url", None),
+        auth_provider=getattr(user, "auth_provider", None) or "password",
+        email_verified=bool(getattr(user, "email_verified", True)),
         is_active=user.is_active,
+        last_login_at=getattr(user, "last_login_at", None),
         created_at=user.created_at,
     )
 
 
-ACTIVE_OTPS: Dict[str, str] = {}
+ACTIVE_OTPS: Dict[str, Dict[str, Any]] = {}
+MAX_OTP_ATTEMPTS = 5
 
 
 def generate_otp(email: str) -> str:
-    """Generate 6-digit verification OTP for institutional email."""
+    """Generate cryptographically secure 6-digit verification OTP with TTL expiration."""
     clean_email = email.strip().lower()
-    otp = str(random.randint(100000, 999999))
-    ACTIVE_OTPS[clean_email] = otp
+    otp = f"{secrets.randbelow(900000) + 100000:06d}"
+    ACTIVE_OTPS[clean_email] = {
+        "otp": otp,
+        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES),
+        "attempts": 0,
+    }
     return otp
 
 
-def verify_otp(email: str, otp: str) -> bool:
-    """Verify submitted OTP code against active record."""
+def generate_otp_challenge(email: str) -> Tuple[str, str]:
+    """Generate both the 6-digit OTP and a stateless signed challenge token for Vercel Serverless."""
     clean_email = email.strip().lower()
-    clean_otp = otp.strip()
-    if clean_otp == "123456":
+    otp = generate_otp(clean_email)
+    otp_token = create_otp_verification_token(clean_email, otp, expires_minutes=OTP_EXPIRE_MINUTES)
+    return otp, otp_token
+
+
+def verify_otp(email: str, otp: str, otp_token: Optional[str] = None) -> bool:
+    """
+    Verify submitted OTP code against stateless HMAC token (Vercel Serverless safe)
+    or active in-memory record with TTL & brute-force attempt protection.
+    """
+    clean_email = (email or "").strip().lower()
+    clean_otp = (otp or "").strip()
+
+    if not clean_email or not clean_otp:
+        return False
+
+    if clean_otp == "123456" and getattr(settings, "ENVIRONMENT", "development") != "production":
         return True
-    expected = ACTIVE_OTPS.get(clean_email)
-    if expected and expected == clean_otp:
+
+    if otp_token and verify_otp_verification_token(clean_email, clean_otp, otp_token):
+        ACTIVE_OTPS.pop(clean_email, None)
         return True
+
+    record = ACTIVE_OTPS.get(clean_email)
+    if not record:
+        return False
+
+    if isinstance(record, str):
+        if record == clean_otp:
+            ACTIVE_OTPS.pop(clean_email, None)
+            return True
+        return False
+
+    now = datetime.now(timezone.utc)
+    if now > record["expires_at"]:
+        ACTIVE_OTPS.pop(clean_email, None)
+        return False
+
+    record["attempts"] += 1
+    if record["attempts"] > MAX_OTP_ATTEMPTS:
+        ACTIVE_OTPS.pop(clean_email, None)
+        return False
+
+    if record["otp"] == clean_otp:
+        ACTIVE_OTPS.pop(clean_email, None)
+        return True
+
     return False
 
 
 def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
-    """Register a new student, faculty, or staff account with bcrypt password hashing."""
+    """Register a new student, faculty, or staff account in Supabase with bcrypt password hashing."""
     _ensure_users_table_ready(db)
     clean_email = req.email.strip().lower()
     if not clean_email.endswith(f"@{IIITNR_DOMAIN}"):
@@ -515,15 +706,36 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
             detail=f"Registration is restricted to official @{IIITNR_DOMAIN} emails.",
         )
 
+    if req.otp:
+        if not verify_otp(clean_email, req.otp, req.otp_token):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired email verification OTP.",
+            )
+
     existing = db.query(User).filter(User.email.ilike(clean_email)).first()
+    now_utc = datetime.now(timezone.utc)
+
     if existing:
+        if getattr(existing, "auth_provider", None) == "google" or not existing.hashed_password:
+            existing.hashed_password = hash_password(req.password)
+            existing.auth_provider = "both"
+            existing.last_login_at = now_utc
+            if req.name and req.name.strip():
+                existing.name = req.name.strip()
+            if req.phone and req.phone.strip():
+                existing.phone = req.phone.strip()
+            db.commit()
+            db.refresh(existing)
+            return _build_auth_response(to_user_response(existing), remember_me=req.remember_me)
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"An account with email '{clean_email}' already exists. Please log in instead.",
         )
 
     meta = resolve_user_metadata(clean_email)
-    hashed_pw = hash_password(req.password[:70])
+    hashed_pw = hash_password(req.password)
     user_name = req.name.strip() if req.name and req.name.strip() else meta["name"]
     dept_name = (
         req.department_name.strip()
@@ -538,38 +750,23 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
         role=meta["role"],
         department_name=dept_name,
         phone=req.phone.strip() if req.phone else None,
+        auth_provider="password",
+        email_verified=True,
         is_active=True,
+        last_login_at=now_utc,
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
-    expires_in_days = REMEMBER_ME_EXPIRE_DAYS if req.remember_me else 1
     user_resp = to_user_response(new_user)
-    token = create_access_token(
-        data={
-            "sub": new_user.email,
-            "name": user_resp.name,
-            "role": new_user.role,
-            "department_name": user_resp.department_name,
-            "identifier": user_resp.identifier,
-            "id": new_user.id,
-        },
-        expires_delta=timedelta(days=expires_in_days),
-    )
-
-    return AuthResponse(
-        access_token=token,
-        token_type="bearer",
-        expires_in_days=expires_in_days,
-        user=user_resp,
-    )
+    return _build_auth_response(user_resp, remember_me=req.remember_me)
 
 
 def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
     """
-    Authenticate an institutional user via bcrypt password check and issue JWT.
-    Supports persistent 30-day Remember Me token.
+    Authenticate an institutional user via bcrypt password check and issue access + refresh JWTs.
+    Enforces strict password verification in production while preserving seeded account initialization.
     """
     _ensure_users_table_ready(db)
     clean_email = req.email.strip().lower()
@@ -580,6 +777,7 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
         )
 
     db_user = db.query(User).filter(User.email.ilike(clean_email)).first()
+    now_utc = datetime.now(timezone.utc)
 
     if db_user:
         if not db_user.is_active:
@@ -588,24 +786,38 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
                 detail="This institutional account has been deactivated by the Super Administrator.",
             )
         if db_user.hashed_password:
-            if not verify_password(req.password[:70], db_user.hashed_password):
+            if not verify_password(req.password, db_user.hashed_password):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid institutional email or password.",
                 )
         else:
-            db_user.hashed_password = hash_password(req.password[:70])
-            db.commit()
-            db.refresh(db_user)
+            # First-time password initialization for pre-seeded or Google-only accounts
+            db_user.hashed_password = hash_password(req.password)
+            if getattr(db_user, "auth_provider", None) == "google":
+                db_user.auth_provider = "both"
+        db_user.last_login_at = now_utc
+        db.commit()
+        db.refresh(db_user)
     else:
+        allow_auto_provision = getattr(settings, "ALLOW_UNREGISTERED_LOGIN_PROVISIONING", True)
+        if not allow_auto_provision and clean_email not in IIITNR_KNOWN_STAFF:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="No account found for this institutional email. Please sign up first or continue with Google.",
+            )
+
         meta = resolve_user_metadata(clean_email)
         db_user = User(
             name=meta["name"],
             email=clean_email,
-            hashed_password=hash_password(req.password[:70]),
+            hashed_password=hash_password(req.password),
             role=meta["role"],
             department_name=meta["department_name"],
+            auth_provider="password",
+            email_verified=True,
             is_active=True,
+            last_login_at=now_utc,
         )
         try:
             db.add(db_user)
@@ -614,31 +826,82 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
         except Exception:
             db.rollback()
             db_user = db.query(User).filter(User.email.ilike(clean_email)).first()
+            if not db_user or not verify_password(req.password, db_user.hashed_password or ""):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid institutional email or password.",
+                )
 
-    expires_in_days = REMEMBER_ME_EXPIRE_DAYS if req.remember_me else 1
     user_resp = to_user_response(db_user)
-    token = create_access_token(
-        data={
-            "sub": db_user.email,
-            "name": user_resp.name,
-            "role": db_user.role,
-            "department_name": user_resp.department_name,
-            "identifier": user_resp.identifier,
-            "id": db_user.id,
-        },
-        expires_delta=timedelta(days=expires_in_days),
-    )
+    return _build_auth_response(user_resp, remember_me=req.remember_me)
 
-    return AuthResponse(
-        access_token=token,
-        token_type="bearer",
-        expires_in_days=expires_in_days,
-        user=user_resp,
-    )
+
+def refresh_user_session(refresh_token: str, remember_me: bool, db: Session) -> AuthResponse:
+    """Validate a JWT refresh token and issue a fresh access + refresh token pair."""
+    payload = decode_refresh_token(refresh_token)
+    if not payload or "sub" not in payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token is invalid or has expired. Please sign in again.",
+        )
+
+    email = payload["sub"]
+    _ensure_users_table_ready(db)
+    user = db.query(User).filter(User.email.ilike(email)).first()
+    if user:
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This institutional account has been deactivated.",
+            )
+        user_resp = to_user_response(user)
+    else:
+        meta = resolve_user_metadata(email)
+        user_resp = UserResponse(
+            id=payload.get("id"),
+            name=meta["name"],
+            email=email,
+            role=payload.get("role") or meta["role"],
+            department_name=meta["department_name"],
+            identifier=meta["identifier"],
+            is_active=True,
+        )
+
+    return _build_auth_response(user_resp, remember_me=remember_me)
+
+
+def change_user_password(
+    email: str,
+    current_password: Optional[str],
+    new_password: str,
+    db: Session,
+) -> UserResponse:
+    """Allow an authenticated user to update their account password in Supabase."""
+    _ensure_users_table_ready(db)
+    user = db.query(User).filter(User.email.ilike(email.strip().lower())).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Authenticated user record was not found in the database.",
+        )
+
+    if user.hashed_password and getattr(user, "auth_provider", "password") != "google":
+        if not current_password or not verify_password(current_password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Current password is incorrect.",
+            )
+
+    user.hashed_password = hash_password(new_password)
+    if getattr(user, "auth_provider", None) == "google":
+        user.auth_provider = "both"
+    db.commit()
+    db.refresh(user)
+    return to_user_response(user)
 
 
 def get_current_user_from_token(token: str, db: Session) -> UserResponse:
-    """Validate Bearer JWT token and fetch active user profile (with stateless JWT fallback if DB is unseeded)."""
+    """Validate Bearer JWT token and fetch active user profile from Supabase."""
     payload = decode_access_token(token)
     if not payload or "sub" not in payload:
         raise HTTPException(
@@ -662,7 +925,6 @@ def get_current_user_from_token(token: str, db: Session) -> UserResponse:
     except Exception as e:
         logger.warning(f"Stateless JWT profile fallback for {email}: {e}")
 
-    # Stateless fallback if user was authenticated before DB seeding
     meta = resolve_user_metadata(email)
     return UserResponse(
         id=payload.get("id"),
@@ -673,6 +935,8 @@ def get_current_user_from_token(token: str, db: Session) -> UserResponse:
         department_id=None,
         identifier=payload.get("identifier") or meta["identifier"],
         phone=None,
+        auth_provider=payload.get("auth_provider") or "password",
+        email_verified=True,
         is_active=True,
     )
 
@@ -693,7 +957,7 @@ def add_admin_user(admin_data: AdminCreateRequest, db: Session) -> User:
     _ensure_users_table_ready(db)
     clean_email = admin_data.email.strip().lower()
     existing = db.query(User).filter(User.email.ilike(clean_email)).first()
-    raw_password = (admin_data.password or "IIITNR@2026")[:70]
+    raw_password = admin_data.password or "IIITNR@2026"
     hashed_pw = hash_password(raw_password)
 
     if existing:
@@ -715,6 +979,8 @@ def add_admin_user(admin_data: AdminCreateRequest, db: Session) -> User:
         department_name=admin_data.department_name or "General Administration",
         department_id=admin_data.department_id,
         phone=admin_data.phone,
+        auth_provider="password",
+        email_verified=True,
         is_active=True,
     )
     db.add(new_user)

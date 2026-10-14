@@ -4,8 +4,9 @@
  * Step 1: Identifier Screen
  *   - [ Email Address ]
  *   - [ Continue with Email ] -> validates @iiitnr.edu.in domain and transitions to Step 2 (Password)
- *   - [ Continue with Google ] -> opens Google Workspace account chooser locked to
- *     hosted_domain: 'iiitnr.edu.in', verifies @iiitnr.edu.in email & hd claim, and issues a 30-day session.
+ *   - [ Continue with Google ] -> dynamically loads/awaits Google Identity Services SDK, opens
+ *     Google Workspace account chooser locked to hosted_domain: 'iiitnr.edu.in', verifies token
+ *     with backend & Supabase, and issues persistent JWT access + refresh tokens.
  * Step 2: Password Screen
  *   - Displays active institutional email with 'Change' action
  *   - [ Password ] field with show/hide toggle and Remember Me
@@ -17,6 +18,36 @@ import { useAuth } from '../context/AuthContext';
 import { fetchAuthConfig } from '../api/auth';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
+const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
+
+function ensureGoogleSdkLoaded(timeoutMs = 8000) {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== 'undefined' && window.google?.accounts?.oauth2) {
+      resolve(window.google);
+      return;
+    }
+
+    let existingScript = document.querySelector(`script[src="${GOOGLE_GSI_SCRIPT_SRC}"]`);
+    if (!existingScript) {
+      existingScript = document.createElement('script');
+      existingScript.src = GOOGLE_GSI_SCRIPT_SRC;
+      existingScript.async = true;
+      existingScript.defer = true;
+      document.head.appendChild(existingScript);
+    }
+
+    const start = Date.now();
+    const timer = setInterval(() => {
+      if (window.google?.accounts?.oauth2) {
+        clearInterval(timer);
+        resolve(window.google);
+      } else if (Date.now() - start >= timeoutMs) {
+        clearInterval(timer);
+        reject(new Error('Google Identity Services SDK timed out while loading. Please check your connection.'));
+      }
+    }, 100);
+  });
+}
 
 export default function Login() {
   const navigate = useNavigate();
@@ -80,11 +111,10 @@ export default function Login() {
     else if (user.role === 'TECHNICIAN') targetRoute = '/technician';
 
     setTimeout(() => {
-      navigate(targetRoute);
-    }, 600);
+      navigate(targetRoute, { replace: true });
+    }, 500);
   };
 
-  // Fetch Google user profile with fallback endpoint if primary googleapis URL is blocked by browser extensions
   const fetchGoogleUserProfile = async (accessToken) => {
     const endpoints = [
       'https://www.googleapis.com/oauth2/v3/userinfo',
@@ -98,21 +128,18 @@ export default function Login() {
         if (res.ok) {
           return await res.json();
         }
-      } catch (e) {
-        // Try next endpoint
+      } catch (_) {
+        // Fallback to next endpoint or server-side verification
       }
     }
     return null;
   };
 
-  const launchGoogleWorkspaceFlow = (activeClientId) => {
-    if (!window.google?.accounts?.oauth2) {
-      setError('Google Identity Services SDK is still loading. Please check your internet connection and try again.');
-      return;
-    }
-
+  const launchGoogleWorkspaceFlow = async (activeClientId) => {
     try {
       setGoogleLoading(true);
+      await ensureGoogleSdkLoaded();
+
       const cleanHint = email.trim().toLowerCase();
       const tokenClientConfig = {
         client_id: activeClientId,
@@ -120,6 +147,12 @@ export default function Login() {
         hosted_domain: ALLOWED_DOMAIN,
         hd: ALLOWED_DOMAIN,
         prompt: 'select_account',
+        error_callback: (errObj) => {
+          if (errObj?.type !== 'popup_closed') {
+            setError(`Google Sign-In popup error: ${errObj?.message || errObj?.type || 'Unable to open popup'}`);
+          }
+          setGoogleLoading(false);
+        },
         callback: async (tokenResponse) => {
           if (tokenResponse.error) {
             setError(`Google Sign-In was cancelled or failed: ${tokenResponse.error_description || tokenResponse.error}`);
@@ -135,7 +168,6 @@ export default function Login() {
               const userHd = (profile.hd || '').trim().toLowerCase();
               const isVerified = profile.email_verified !== false;
 
-              // Enforce @iiitnr.edu.in email and (if hd is present) hd === 'iiitnr.edu.in'
               if (!isVerified || !userEmail.endsWith(`@${ALLOWED_DOMAIN}`) || (userHd && userHd !== ALLOWED_DOMAIN)) {
                 if (window.google?.accounts?.oauth2?.revoke) {
                   window.google.accounts.oauth2.revoke(tokenResponse.access_token, () => {});
@@ -154,16 +186,16 @@ export default function Login() {
                 picture: profile.picture,
                 hd: userHd || ALLOWED_DOMAIN,
                 email_verified: isVerified,
-                remember_me: true,
+                remember_me: rememberMe,
               });
               handleRoleRedirect(user);
             } else {
-              // Browser blocked direct userinfo fetch; delegate token resolution to backend
+              // Delegate full token resolution directly to backend Google UserInfo verifier
               const user = await loginGoogle({
                 access_token: tokenResponse.access_token,
                 email: cleanHint.endsWith(`@${ALLOWED_DOMAIN}`) ? cleanHint : undefined,
                 hd: ALLOWED_DOMAIN,
-                remember_me: true,
+                remember_me: rememberMe,
               });
               handleRoleRedirect(user);
             }
@@ -186,9 +218,9 @@ export default function Login() {
     }
   };
 
-  const handleContinueWithGoogle = () => {
+  const handleContinueWithGoogle = async () => {
     setError(null);
-    const activeClientId = (
+    let activeClientId = (
       googleClientId ||
       import.meta.env.VITE_GOOGLE_CLIENT_ID ||
       localStorage.getItem('smart_complaint_google_client_id') ||
@@ -196,14 +228,29 @@ export default function Login() {
     ).trim();
 
     if (!activeClientId) {
+      try {
+        setGoogleLoading(true);
+        const cfg = await fetchAuthConfig();
+        if (cfg?.google_client_id) {
+          activeClientId = cfg.google_client_id.trim();
+          setGoogleClientId(activeClientId);
+        }
+      } catch (_) {
+        // Ignore config fetch error and fall through
+      } finally {
+        setGoogleLoading(false);
+      }
+    }
+
+    if (!activeClientId) {
       setShowClientIdModal(true);
       return;
     }
 
-    launchGoogleWorkspaceFlow(activeClientId);
+    await launchGoogleWorkspaceFlow(activeClientId);
   };
 
-  const handleSaveClientIdAndContinue = (e) => {
+  const handleSaveClientIdAndContinue = async (e) => {
     e.preventDefault();
     const cleaned = clientIdInput.trim();
     if (!cleaned || !cleaned.includes('.apps.googleusercontent.com')) {
@@ -214,7 +261,7 @@ export default function Login() {
     setGoogleClientId(cleaned);
     setShowClientIdModal(false);
     setError(null);
-    launchGoogleWorkspaceFlow(cleaned);
+    await launchGoogleWorkspaceFlow(cleaned);
   };
 
   const handleContinueWithEmail = (e) => {
@@ -324,7 +371,8 @@ export default function Login() {
                         type="email"
                         required
                         autoFocus
-                        placeholder="Email Address"
+                        autoComplete="username"
+                        placeholder="Email Address (@iiitnr.edu.in)"
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
@@ -402,6 +450,7 @@ export default function Login() {
                         type={showPassword ? 'text' : 'password'}
                         required
                         autoFocus
+                        autoComplete="current-password"
                         placeholder="Password"
                         value={password}
                         onChange={(e) => {
@@ -501,7 +550,7 @@ export default function Login() {
               </button>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in <code className="font-mono text-slate-700">frontend/.env</code>, or paste your OAuth 2.0 Web Client ID below:
+              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in Vercel Environment Variables, or paste your OAuth 2.0 Web Client ID below:
             </p>
             <form onSubmit={handleSaveClientIdAndContinue} className="space-y-3">
               <input

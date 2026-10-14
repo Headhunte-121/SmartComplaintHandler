@@ -1,5 +1,18 @@
-import React, { createContext, useContext, useState } from 'react';
-import { loginUser, loginWithGoogle, registerUser } from '../api/auth';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import {
+  fetchMe,
+  loginUser,
+  loginWithGoogle,
+  logoutUser,
+  registerUser,
+} from '../api/auth';
+import {
+  AUTH_EXPIRED_EVENT,
+  AUTH_EXPIRES_AT_KEY,
+  AUTH_TOKEN_KEY,
+  AUTH_USER_KEY,
+  REFRESH_TOKEN_KEY,
+} from '../api/client';
 
 /**
  * Institutional IIIT-NR Personas for Role-Based Access & Quick Testing:
@@ -109,18 +122,52 @@ function enrichUser(userData) {
   };
 }
 
+function clearAuthStorage() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USER_KEY);
+  localStorage.removeItem(AUTH_EXPIRES_AT_KEY);
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(AUTH_USER_KEY);
+  sessionStorage.removeItem(AUTH_EXPIRES_AT_KEY);
+}
+
+function persistAuthSession(authData, enrichedUser, rememberMe) {
+  const primaryStorage = rememberMe ? localStorage : sessionStorage;
+  const secondaryStorage = rememberMe ? sessionStorage : localStorage;
+
+  primaryStorage.setItem(AUTH_TOKEN_KEY, authData.access_token);
+  primaryStorage.setItem(AUTH_USER_KEY, JSON.stringify(enrichedUser));
+  if (authData.refresh_token) {
+    primaryStorage.setItem(REFRESH_TOKEN_KEY, authData.refresh_token);
+  }
+  if (authData.expires_at) {
+    primaryStorage.setItem(AUTH_EXPIRES_AT_KEY, authData.expires_at);
+  }
+
+  secondaryStorage.removeItem(AUTH_TOKEN_KEY);
+  secondaryStorage.removeItem(REFRESH_TOKEN_KEY);
+  secondaryStorage.removeItem(AUTH_USER_KEY);
+  secondaryStorage.removeItem(AUTH_EXPIRES_AT_KEY);
+
+  if (rememberMe && enrichedUser?.email) {
+    localStorage.setItem('smart_complaint_remember_email', enrichedUser.email);
+  }
+}
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const persistedUser = localStorage.getItem('smart_complaint_auth_user');
-      const persistedToken = localStorage.getItem('smart_complaint_auth_token');
+      const persistedUser = localStorage.getItem(AUTH_USER_KEY);
+      const persistedToken = localStorage.getItem(AUTH_TOKEN_KEY);
       if (persistedUser && persistedToken) {
         return enrichUser(JSON.parse(persistedUser));
       }
-      const sessionedUser = sessionStorage.getItem('smart_complaint_auth_user');
-      const sessionedToken = sessionStorage.getItem('smart_complaint_auth_token');
+      const sessionedUser = sessionStorage.getItem(AUTH_USER_KEY);
+      const sessionedToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
       if (sessionedUser && sessionedToken) {
         return enrichUser(JSON.parse(sessionedUser));
       }
@@ -130,97 +177,120 @@ export function AuthProvider({ children }) {
     return null;
   });
 
+  const [authInitializing, setAuthInitializing] = useState(true);
   const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
   const [rememberedEmail, setRememberedEmail] = useState(() => {
     return localStorage.getItem('smart_complaint_remember_email') || '';
   });
 
+  const logout = useCallback(() => {
+    setCurrentUser(null);
+    clearAuthStorage();
+    if (typeof window !== 'undefined' && window.google?.accounts?.id?.disableAutoSelect) {
+      try {
+        window.google.accounts.id.disableAutoSelect();
+      } catch (_) {
+        // Ignore if Google SDK not loaded
+      }
+    }
+    logoutUser().catch(() => {});
+  }, []);
+
+  // Verify existing JWT token against backend /auth/me on application startup
+  useEffect(() => {
+    const token =
+      localStorage.getItem(AUTH_TOKEN_KEY) ||
+      sessionStorage.getItem(AUTH_TOKEN_KEY);
+
+    if (!token) {
+      setAuthInitializing(false);
+      return;
+    }
+
+    let isMounted = true;
+    fetchMe()
+      .then((freshProfile) => {
+        if (!isMounted || !freshProfile) return;
+        const enriched = enrichUser(freshProfile);
+        setCurrentUser(enriched);
+        const isPersistent = Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
+        const storage = isPersistent ? localStorage : sessionStorage;
+        storage.setItem(AUTH_USER_KEY, JSON.stringify(enriched));
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          setCurrentUser(null);
+          clearAuthStorage();
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setAuthInitializing(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Listen for global 401 session expiration events from apiClient
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setCurrentUser(null);
+      clearAuthStorage();
+    };
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleSessionExpired);
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleSessionExpired);
+    };
+  }, []);
+
   const login = async (email, password, rememberMe = false) => {
     const data = await loginUser(email, password, rememberMe);
     const enriched = enrichUser(data.user);
     setCurrentUser(enriched);
-
+    persistAuthSession(data, enriched, rememberMe);
     if (rememberMe) {
-      localStorage.setItem('smart_complaint_auth_token', data.access_token);
-      localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
-      localStorage.setItem('smart_complaint_remember_email', email);
-      setRememberedEmail(email);
-
-      sessionStorage.removeItem('smart_complaint_auth_token');
-      sessionStorage.removeItem('smart_complaint_auth_user');
-    } else {
-      sessionStorage.setItem('smart_complaint_auth_token', data.access_token);
-      sessionStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
-
-      localStorage.removeItem('smart_complaint_auth_token');
-      localStorage.removeItem('smart_complaint_auth_user');
+      setRememberedEmail(enriched.email);
     }
-
     return enriched;
   };
 
   const register = async (registrationData) => {
     const data = await registerUser(registrationData);
     const enriched = enrichUser(data.user);
+    const rememberMe = Boolean(registrationData.remember_me);
     setCurrentUser(enriched);
-
-    if (registrationData.remember_me) {
-      localStorage.setItem('smart_complaint_auth_token', data.access_token);
-      localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
-      localStorage.setItem('smart_complaint_remember_email', registrationData.email);
-      setRememberedEmail(registrationData.email);
-      sessionStorage.removeItem('smart_complaint_auth_token');
-      sessionStorage.removeItem('smart_complaint_auth_user');
-    } else {
-      sessionStorage.setItem('smart_complaint_auth_token', data.access_token);
-      sessionStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
-      localStorage.removeItem('smart_complaint_auth_token');
-      localStorage.removeItem('smart_complaint_auth_user');
+    persistAuthSession(data, enriched, rememberMe);
+    if (rememberMe) {
+      setRememberedEmail(enriched.email);
     }
-
     return enriched;
   };
 
   const loginGoogle = async (googleData) => {
     const data = await loginWithGoogle(googleData);
     const enriched = enrichUser(data.user);
+    const rememberMe = googleData.remember_me !== false;
     setCurrentUser(enriched);
-
-    localStorage.setItem('smart_complaint_auth_token', data.access_token);
-    localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
-    localStorage.setItem('smart_complaint_remember_email', enriched.email);
+    persistAuthSession(data, enriched, rememberMe);
     setRememberedEmail(enriched.email);
-
-    sessionStorage.removeItem('smart_complaint_auth_token');
-    sessionStorage.removeItem('smart_complaint_auth_user');
-
     return enriched;
   };
 
   const switchPersona = async (personaId) => {
     const found = CAMPUS_PERSONAS.find((p) => p.id === personaId);
     if (found) {
-      try {
-        const data = await loginUser(found.email, 'password123', true);
-        const enriched = enrichUser(data.user);
-        setCurrentUser(enriched);
-        localStorage.setItem('smart_complaint_auth_token', data.access_token);
-        localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
-        localStorage.setItem('smart_complaint_remember_email', found.email);
-        setRememberedEmail(found.email);
-      } catch (e) {
-        setCurrentUser(found);
-      }
+      const data = await loginUser(found.email, 'password123', true);
+      const enriched = enrichUser(data.user);
+      setCurrentUser(enriched);
+      persistAuthSession(data, enriched, true);
+      setRememberedEmail(found.email);
       setIsPersonaModalOpen(false);
     }
-  };
-
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('smart_complaint_auth_token');
-    localStorage.removeItem('smart_complaint_auth_user');
-    sessionStorage.removeItem('smart_complaint_auth_token');
-    sessionStorage.removeItem('smart_complaint_auth_user');
   };
 
   const isStudent = currentUser?.role === 'STUDENT';
@@ -233,6 +303,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         currentUser,
+        authInitializing,
         currentPersona: currentUser || CAMPUS_PERSONAS[0],
         personas: CAMPUS_PERSONAS,
         rememberedEmail,

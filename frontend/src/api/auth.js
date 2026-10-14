@@ -2,7 +2,7 @@
  * SmartComplaintHandler - Authentication & Administration API Client
  * Domain: Handles @iiitnr.edu.in institutional login with Remember Me,
  *         production Google Workspace OAuth2/OIDC SSO (@iiitnr.edu.in Internal org),
- *         automatic proxy retry, and fault-tolerant session creation when DB is unseeded.
+ *         stateless OTP challenge tokens, JWT refresh rotation, and Supabase profile sync.
  */
 import axios from 'axios';
 import apiClient from './client';
@@ -50,7 +50,12 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
 
   if (prefix.startsWith('tech.') || prefix.includes('technician') || prefix === 'parvinder') {
     return {
-      name: providedName || prefix.replace('tech.', '').replace(/\./g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+      name:
+        providedName ||
+        prefix
+          .replace('tech.', '')
+          .replace(/\./g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase()),
       email: cleanEmail,
       role: 'TECHNICIAN',
       department_name: 'Electrical',
@@ -59,7 +64,6 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
     };
   }
 
-  // Student pattern: e.g. nikhil26100@iiitnr.edu.in
   const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*?)(\d{2})(\d{2,5})$/i);
   if (match) {
     const derivedName = match[1]
@@ -111,11 +115,11 @@ export async function fetchAuthConfig() {
   return response.data;
 }
 
-export async function loginUser(email, password = 'password123', rememberMe = false) {
+export async function loginUser(email, password, rememberMe = false) {
   const response = await apiClient.post('/auth/login', {
     email: email.trim().toLowerCase(),
     password,
-    remember_me: rememberMe,
+    remember_me: Boolean(rememberMe),
   });
   return response.data;
 }
@@ -150,38 +154,14 @@ export async function loginWithGoogle(googleData) {
     const response = await apiClient.post('/auth/google', payload);
     return response.data;
   } catch (err) {
-    // If primary baseURL failed with a Network Error and a custom baseURL was configured, retry via relative /api/v1/auth/google
+    // If a custom VITE_API_BASE_URL failed with a network error on Vercel, retry via relative /api/v1/auth/google rewrite
     if (!err.response && apiClient.defaults.baseURL !== '/api/v1') {
-      try {
-        const retryRes = await axios.post('/api/v1/auth/google', payload, {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 10000,
-        });
-        return retryRes.data;
-      } catch (retryErr) {
-        if (retryErr.response && (retryErr.response.status === 401 || retryErr.response.status === 403)) {
-          throw retryErr;
-        }
-      }
+      const retryRes = await axios.post('/api/v1/auth/google', payload, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 15000,
+      });
+      return retryRes.data;
     }
-
-    // Always rethrow explicit 401 / 403 authorization rejections from the backend
-    if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-      throw err;
-    }
-
-    // If the backend is unreachable/offline or DB is not seeded yet (Network Error / 502 / 503 / 504),
-    // and Google OAuth has already verified the user's @iiitnr.edu.in account, complete the session cleanly!
-    if (cleanEmail && cleanEmail.endsWith(`@${ALLOWED_DOMAIN}`) && googleData.email_verified !== false) {
-      const resolvedUser = resolveIiitnrProfileFromEmail(cleanEmail, googleData.name);
-      return {
-        access_token: googleData.access_token || googleData.credential || `iiitnr_google_sso_${Date.now()}`,
-        token_type: 'bearer',
-        expires_in_days: payload.remember_me ? 30 : 1,
-        user: resolvedUser,
-      };
-    }
-
     throw err;
   }
 }
@@ -193,10 +173,11 @@ export async function sendOTP(email) {
   return response.data;
 }
 
-export async function verifyOTP(email, otp) {
+export async function verifyOTP(email, otp, otpToken = undefined) {
   const response = await apiClient.post('/auth/verify-otp', {
     email: email.trim().toLowerCase(),
     otp: otp.trim(),
+    otp_token: otpToken || undefined,
   });
   return response.data;
 }
@@ -208,8 +189,30 @@ export async function registerUser(registrationData) {
     password: registrationData.password,
     department_name: registrationData.department_name || undefined,
     phone: registrationData.phone ? registrationData.phone.trim() : undefined,
-    remember_me: !!registrationData.remember_me,
+    remember_me: Boolean(registrationData.remember_me),
     otp: registrationData.otp ? registrationData.otp.trim() : undefined,
+    otp_token: registrationData.otp_token || undefined,
+  });
+  return response.data;
+}
+
+export async function refreshSession(refreshToken, rememberMe = true) {
+  const response = await apiClient.post('/auth/refresh', {
+    refresh_token: refreshToken,
+    remember_me: Boolean(rememberMe),
+  });
+  return response.data;
+}
+
+export async function logoutUser() {
+  const response = await apiClient.post('/auth/logout');
+  return response.data;
+}
+
+export async function changePassword(currentPassword, newPassword) {
+  const response = await apiClient.post('/auth/change-password', {
+    current_password: currentPassword || undefined,
+    new_password: newPassword,
   });
   return response.data;
 }

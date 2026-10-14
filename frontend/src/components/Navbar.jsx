@@ -56,7 +56,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Institutional Brand */}
           <Link
-            to={isStudent ? '/submit' : isSuperAdmin ? '/superadmin' : isAdmin ? '/admin' : '/'}
+            to={isStudent ? '/student' : isSuperAdmin ? '/superadmin' : isAdmin ? '/admin' : '/'}
             className="flex items-center space-x-3 group"
           >
             <img
@@ -76,14 +76,14 @@ export default function Navbar() {
 
           {/* Desktop Navigation Links — Strictly Role Isolated */}
           <nav className="hidden md:flex items-center space-x-1">
-            {/* Student View: ONLY Lodge Grievance, My History, Track Status */}
+            {/* Student View: Dashboard, Lodge Grievance, Track Status */}
             {isStudent && (
               <>
+                <NavLink to="/student" className={navLinkClasses}>
+                  <span>Dashboard</span>
+                </NavLink>
                 <NavLink to="/submit" className={navLinkClasses}>
                   <span>Lodge Grievance</span>
-                </NavLink>
-                <NavLink to="/student" className={navLinkClasses}>
-                  <span>My History</span>
                 </NavLink>
                 <NavLink to="/track" className={navLinkClasses}>
                   <span>Track Status</span>
@@ -243,18 +243,18 @@ export default function Navbar() {
             {isStudent && (
               <>
                 <NavLink
+                  to="/student"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50/50 rounded-lg hover:bg-indigo-100"
+                >
+                  Dashboard
+                </NavLink>
+                <NavLink
                   to="/submit"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
                 >
                   Lodge Grievance
-                </NavLink>
-                <NavLink
-                  to="/student"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50/50 rounded-lg hover:bg-indigo-100"
-                >
-                  My History
                 </NavLink>
                 <NavLink
                   to="/track"

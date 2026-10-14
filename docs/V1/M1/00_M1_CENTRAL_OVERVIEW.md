@@ -580,3 +580,37 @@ npm run dev
 * **Verification Proof:**
   - Backend Test Suite: 47/47 pytest unit & integration tests passing cleanly.
   - Frontend Production Build: `npm run build` compiled in 25.98s with 0 errors.
+
+### [2026-10-14] - Production Login System Upgrade (Vercel Serverless + Supabase Connection Pooling + Google OAuth2/OIDC)
+* **Files Modified:**
+  - `backend/app/core/config.py`
+  - `backend/app/core/database.py`
+  - `backend/app/core/security.py`
+  - `backend/app/models/user.py`
+  - `backend/app/db/seed.py`
+  - `backend/app/schemas/user.py`
+  - `backend/app/services/user_service.py`
+  - `backend/app/api/deps.py`
+  - `backend/app/api/v1/endpoints/auth.py`
+  - `backend/tests/test_auth.py`
+  - `frontend/src/api/client.js`
+  - `frontend/src/api/auth.js`
+  - `frontend/src/context/AuthContext.jsx`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `frontend/src/router/AppRouter.jsx`
+  - `frontend/src/components/Navbar.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Supabase Connection Pooling (`database.py` & `config.py`):** Configured `NullPool` on Vercel Serverless (`VERCEL=1`) and transaction pooler ports (`:6543`), stripped unsupported `pgbouncer` query parameters that broke psycopg2, and applied TCP keepalives (`keepalives=1`, `keepalives_idle=30`) to eliminate connection exhaustion.
+  2. **Security & Cryptography (`security.py`):** Added SHA-256 pre-hashing for passwords > 72 UTF-8 bytes to eliminate `bcrypt >= 4.0.0` crashes with `PBKDF2-HMAC-SHA256` fallback; added JWT refresh token signing and stateless HMAC-SHA256 OTP challenge tokens for serverless verification.
+  3. **User ORM & DDL Migrations (`models/user.py` & `seed.py`):** Added `auth_provider`, `google_sub`, `avatar_url`, `email_verified`, and `last_login_at` to the `User` model, with idempotent SQLite and PostgreSQL `ALTER TABLE` migrations in `ensure_schema()`.
+  4. **Engine DDL Cache Storm Fix (`user_service.py`):** Replaced per-request table alteration with `Base.metadata.create_all()` cached in `_VERIFIED_ENGINES`, preventing `ACCESS EXCLUSIVE` lock contention on Supabase.
+  5. **Strict Google Token Verification & Account Provisioning (`user_service.py` & `endpoints/auth.py`):** Enforced remote Google `userinfo` / `tokeninfo` verification whenever tokens are supplied or in production; added `POST /api/v1/auth/refresh`, `POST /api/v1/auth/logout`, and `POST /api/v1/auth/change-password` endpoints.
+  6. **Frontend 401 Refresh Interceptor (`client.js` & `auth.js`):** Intercepts 401 Unauthorized responses, queues concurrent calls, refreshes tokens via `/auth/refresh`, and dispatches `smart-complaint:auth-expired` if refresh fails; eliminated client-side token fabrication.
+  7. **Dynamic Google SDK Loading & Student Dashboard Routing (`Login.jsx`, `Register.jsx`, `AppRouter.jsx`, `Navbar.jsx`):** Dynamically awaits `https://accounts.google.com/gsi/client` if the user clicks "Continue with Google" before async initialization finishes; sets student role default redirect to `/student` (Dashboard).
+* **Why It Was Changed:** Integrated full `Production_Login_System_Changes` archive provided by user to achieve production-grade security, Supabase connection resilience, and smooth Google Workspace auth.
+* **Verification Proof:**
+  - Backend Test Suite: 48/48 pytest unit & integration tests passing cleanly (including 9/9 auth tests).
+  - Frontend Production Build: `npm run build` compiled in 1.39s with 0 errors.
+

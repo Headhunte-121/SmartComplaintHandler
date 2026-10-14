@@ -22,7 +22,7 @@ import { useAuth } from '../context/AuthContext';
 /**
  * Route protection guard checking authenticated role permissions.
  */
-function ProtectedRoute({ children, allowedRoles, fallbackRoute = '/submit' }) {
+function ProtectedRoute({ children, allowedRoles, fallbackRoute = '/student' }) {
   const { currentUser } = useAuth();
 
   if (!currentUser) {
@@ -31,7 +31,7 @@ function ProtectedRoute({ children, allowedRoles, fallbackRoute = '/submit' }) {
 
   if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
     // Redirect unauthorized attempts to their default workplace
-    const redirect = currentUser.role === 'STUDENT' ? '/submit' : currentUser.role === 'SUPER_ADMIN' ? '/superadmin' : '/admin';
+    const redirect = currentUser.role === 'STUDENT' ? '/student' : currentUser.role === 'SUPER_ADMIN' ? '/superadmin' : '/admin';
     return <Navigate to={redirect} replace />;
   }
 
@@ -72,7 +72,7 @@ function RootIndexRedirect() {
   }
   const redirect =
     currentUser.role === 'STUDENT'
-      ? '/submit'
+      ? '/student'
       : currentUser.role === 'SUPER_ADMIN'
       ? '/superadmin'
       : currentUser.role === 'TECHNICIAN'
