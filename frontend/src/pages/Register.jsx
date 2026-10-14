@@ -2,7 +2,7 @@
  * SmartComplaintHandler - Clean Institutional Registration Portal
  * Role: Standalone, distraction-free registration portal for @iiitnr.edu.in accounts.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
