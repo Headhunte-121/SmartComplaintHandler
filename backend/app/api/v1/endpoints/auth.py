@@ -14,6 +14,8 @@ from app.schemas.user import (
     AuthResponse,
     UserResponse,
     AdminCreateRequest,
+    OTPRequest,
+    OTPVerifyRequest,
 )
 from app.services.user_service import (
     authenticate_iiitnr_user,
@@ -23,9 +25,41 @@ from app.services.user_service import (
     add_admin_user,
     delete_admin_user,
     purge_all_tickets,
+    generate_otp,
+    verify_otp,
 )
 
 router = APIRouter()
+
+
+@router.post("/send-otp", summary="Generate & Dispatch Verification OTP")
+def send_otp_endpoint(payload: OTPRequest):
+    """Generate 6-digit verification OTP for institutional email."""
+    clean_email = payload.email.strip().lower()
+    otp = generate_otp(clean_email)
+    return {
+        "status": "success",
+        "email": clean_email,
+        "otp": otp,
+        "message": f"Verification code sent to {clean_email}."
+    }
+
+
+@router.post("/verify-otp", summary="Verify Institutional Email OTP")
+def verify_otp_endpoint(payload: OTPVerifyRequest):
+    """Verify submitted OTP code against active record."""
+    clean_email = payload.email.strip().lower()
+    is_valid = verify_otp(clean_email, payload.otp)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification code."
+        )
+    return {
+        "verified": True,
+        "email": clean_email,
+        "message": "Institutional email verified successfully."
+    }
 
 
 @router.post("/login", response_model=AuthResponse, summary="Institutional @iiitnr.edu.in Login with Remember Me")

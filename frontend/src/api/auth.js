@@ -14,14 +14,30 @@ export async function loginUser(email, password = 'password123', rememberMe = fa
   return response.data;
 }
 
+export async function sendOTP(email) {
+  const response = await apiClient.post('/auth/send-otp', {
+    email: email.trim().toLowerCase(),
+  });
+  return response.data;
+}
+
+export async function verifyOTP(email, otp) {
+  const response = await apiClient.post('/auth/verify-otp', {
+    email: email.trim().toLowerCase(),
+    otp: otp.trim(),
+  });
+  return response.data;
+}
+
 export async function registerUser(registrationData) {
   const response = await apiClient.post('/auth/register', {
-    name: registrationData.name.trim(),
+    name: registrationData.name ? registrationData.name.trim() : undefined,
     email: registrationData.email.trim().toLowerCase(),
     password: registrationData.password,
-    department_name: registrationData.department_name || 'Computer Science & Engineering',
+    department_name: registrationData.department_name || undefined,
     phone: registrationData.phone ? registrationData.phone.trim() : undefined,
     remember_me: !!registrationData.remember_me,
+    otp: registrationData.otp ? registrationData.otp.trim() : undefined,
   });
   return response.data;
 }

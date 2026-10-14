@@ -25,13 +25,31 @@ class LoginRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
 
+class OTPRequest(BaseModel):
+    email: str = Field(..., description="Official IIIT-NR email address to receive OTP")
+
+    @field_validator("email")
+    @classmethod
+    def validate_iiitnr_domain(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not v.endswith(f"@{IIITNR_DOMAIN}"):
+            raise ValueError(f"OTP dispatch is restricted to official @{IIITNR_DOMAIN} accounts.")
+        return v
+
+
+class OTPVerifyRequest(BaseModel):
+    email: str = Field(..., description="Official IIIT-NR email address")
+    otp: str = Field(..., min_length=4, max_length=10, description="Verification code")
+
+
 class RegisterRequest(BaseModel):
-    name: str = Field(..., min_length=2, max_length=150, description="Full name of student, faculty or staff member")
+    name: Optional[str] = Field(None, max_length=150, description="Full name (auto-extracted from email if omitted)")
     email: str = Field(..., description="Official IIIT-NR institutional email address")
     password: str = Field(..., min_length=6, max_length=100, description="Secure account password (minimum 6 characters)")
-    department_name: Optional[str] = Field("Computer Science & Engineering", description="Academic or administrative department")
+    department_name: Optional[str] = Field(None, description="Academic department (auto-detected if omitted)")
     phone: Optional[str] = Field(None, max_length=50, description="Mobile contact or campus extension")
     remember_me: bool = Field(False, description="Persist session for 30 days")
+    otp: Optional[str] = Field(None, description="Verification OTP")
 
     @field_validator("email")
     @classmethod
