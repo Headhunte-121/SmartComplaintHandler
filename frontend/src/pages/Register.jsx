@@ -429,120 +429,35 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 bg-architectural-grid">
-      {/* Left Enterprise Showcase Panel */}
-      <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 relative overflow-hidden bg-slate-950 text-white p-12 xl:p-16 flex-col justify-between bg-dark-architectural-grid border-r border-slate-800">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-12 right-12 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex items-center space-x-4">
-          <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-lg">
-            <img
-              src="/iiitnr_logo.png"
-              alt="IIIT Naya Raipur Official Logo"
-              className="h-11 w-auto object-contain"
-            />
-          </div>
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-[#f4f7f5] bg-architectural-grid">
+      <div className="w-full max-w-lg space-y-6">
+        <div className="text-center space-y-2">
+          <img
+            src="/iiitnr_logo.png"
+            alt="IIIT Naya Raipur Official Logo"
+            className="h-16 w-auto mx-auto object-contain drop-shadow-xs"
+          />
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-base font-black tracking-tight text-white">
-                IIIT Naya Raipur
-              </span>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                Verified Onboarding
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Plot No. 7, Sector 24, Atal Nagar – Nava Raipur (C.G.)
-            </p>
-          </div>
-        </div>
-
-        <div className="relative z-10 max-w-xl space-y-8 my-auto py-8">
-          <div className="space-y-4">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-indigo-300 text-xs font-semibold">
-              <span>Zero-Friction Institutional Provisioning</span>
-            </div>
-            <h1 className="text-3xl xl:text-4xl font-black tracking-tight text-white leading-[1.15]">
-              Automatic roll, branch &amp; IIIT-NR hostel room mapping.
+            <h1 className="text-xl font-black text-slate-900 tracking-tight">
+              IIIT Naya Raipur
             </h1>
-            <p className="text-sm text-slate-300/90 leading-relaxed">
-              Your <code className="font-mono text-indigo-300">@iiitnr.edu.in</code> identifier automatically maps your academic branch (CSE, DSAI, or ECE) and links your hostel room in{' '}
-              <strong className="text-white">Ramanujan, Bhabha, Bose, Raman, or Shabhari House</strong> for 1-click maintenance dispatch.
+            <p className="text-xs text-slate-500 font-medium">
+              Campus Facilities &amp; Grievance Management Portal
             </p>
           </div>
-
-          <div className="grid grid-cols-3 gap-3 text-xs">
-            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
-              <span className="font-mono text-[11px] font-bold text-indigo-400 block">Code 100</span>
-              <span className="font-bold text-white mt-0.5 block">CSE Branch</span>
-              <span className="text-[11px] text-slate-400">Computer Science</span>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
-              <span className="font-mono text-[11px] font-bold text-emerald-400 block">Code 101</span>
-              <span className="font-bold text-white mt-0.5 block">DSAI Branch</span>
-              <span className="text-[11px] text-slate-400">Data Science &amp; AI</span>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
-              <span className="font-mono text-[11px] font-bold text-amber-400 block">Code 102</span>
-              <span className="font-bold text-white mt-0.5 block">ECE Branch</span>
-              <span className="text-[11px] text-slate-400">Electronics &amp; Comm.</span>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 text-xs">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-300">
-              Official IIIT-NR Hostels Covered
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {IIITNR_HOSTELS.map((h) => (
-                <span
-                  key={h.id}
-                  className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-slate-200 font-medium"
-                >
-                  🏠 {h.shortName} ({h.mapZone.badge})
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
 
-        <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 border-t border-white/10 pt-6">
-          <span>Supabase Cloud PostgreSQL • Bcrypt 12-Round Encryption</span>
-          <span className="font-mono text-[11px]">SSL/TLS Enforced</span>
-        </div>
-      </div>
-
-      {/* Right Registration Card */}
-      <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-center items-center px-4 sm:px-8 py-10">
-        <div className="w-full max-w-md space-y-6">
-          <div className="lg:hidden text-center space-y-2">
-            <img
-              src="/iiitnr_logo.png"
-              alt="IIIT Naya Raipur Official Logo"
-              className="h-16 w-auto mx-auto object-contain drop-shadow-sm"
-            />
-            <div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">
-                IIIT Naya Raipur
-              </h1>
-              <p className="text-xs text-slate-500 font-medium">
-                Campus Facilities &amp; Grievance Management Portal
-              </p>
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/[0.04] p-7 sm:p-9 space-y-6">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/80">
+                Account Registration
+              </span>
+              <span className="text-[11px] font-medium text-slate-400">
+                Step {step === 'password' ? '2' : '1'} of 2
+              </span>
             </div>
-          </div>
-
-          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/[0.04] p-7 sm:p-9 space-y-6">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/80">
-                  Account Registration
-                </span>
-                <span className="text-[11px] font-medium text-slate-400">
-                  Step {step === 'password' ? '2' : '1'} of 2
-                </span>
-              </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight pt-1">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight pt-1">
                 {step === 'password' ? 'Select Hostel & Set Password' : 'Create your IIIT-NR account'}
               </h2>
               <p className="text-xs text-slate-500">
@@ -924,9 +839,8 @@ export default function Register() {
             Protected by institutional domain verification (<code className="font-mono">@iiitnr.edu.in</code>)
           </p>
         </div>
-      </div>
 
-      {!IS_PROD_BUILD && showClientIdModal && (
+        {!IS_PROD_BUILD && showClientIdModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-start justify-between">

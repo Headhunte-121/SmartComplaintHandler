@@ -453,11 +453,14 @@ def test_iiitnr_hostel_room_persistence_and_zone_dispatch():
     """
     from app.services.dispatch_engine import compute_zone_affinity_bonus
 
+    unique_suffix = uuid.uuid4().hex[:4]
+    test_email = f"aarav26{unique_suffix}@iiitnr.edu.in"
+
     reg_resp = client.post(
         "/api/v1/auth/register",
         json={
             "name": "Aarav Verma",
-            "email": "aarav26100@iiitnr.edu.in",
+            "email": test_email,
             "password": "StrongPassword123!",
             "hostel_name": "Ramanujan House (Boys Hostel 1)",
             "room_number": "Wing A, Room 204",

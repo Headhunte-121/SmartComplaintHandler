@@ -769,8 +769,21 @@ npm run dev
   - Frontend Production Build: `npm run build` compiled in 1.47s with 0 errors.
   - Backend Test Suite: 56/56 pytest unit, security & residence tests passing cleanly in 7.42s (100% pass rate).
 
-
-
-
-
-
+### [2026-10-15] - Authentication Portal Simplification & Billboard Removal
+* **Files Modified:**
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `backend/tests/test_auth.py`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Removed Promotional Feature Billboard:**
+     - Cleaned out the left-column enterprise SaaS marketing billboard from `Login.jsx` and `Register.jsx` (which contained promotional copy about closed-loop facilities, hazard gates, and feature advertisements).
+  2. **Single-Column Institutional Auth Portal:**
+     - Replaced the split-screen marketing layout with a centered, distraction-free institutional authentication portal on `#f4f7f5` architectural grid.
+     - Preserved official IIIT Naya Raipur crest, Google Workspace SSO integration, real-time `@iiitnr.edu.in` roll/branch preview badge, and authentic hostel/wing/room number selectors.
+  3. **Test Suite Idempotency:**
+     - Fixed `test_iiitnr_hostel_room_persistence_and_zone_dispatch` in `backend/tests/test_auth.py` to use a dynamic unique email address, preventing SQLite unique constraint conflict (409) on repeated test runs.
+* **Why It Was Changed:** Addressed user feedback requesting the removal of promotional advertisements and bloated marketing information from internal university login and registration screens.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled cleanly in 1.45s with 0 errors.
+  - Backend Test Suite: 56/56 pytest tests passing cleanly in 6.99s (100% pass rate).

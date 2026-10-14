@@ -323,118 +323,36 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 bg-architectural-grid">
-      {/* Left Enterprise Showcase Panel (Desktop) */}
-      <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 relative overflow-hidden bg-slate-950 text-white p-12 xl:p-16 flex-col justify-between bg-dark-architectural-grid border-r border-slate-800">
-        {/* Ambient radial glows */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-12 right-12 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Top University Identity */}
-        <div className="relative z-10 flex items-center space-x-4">
-          <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-lg">
-            <img
-              src="/iiitnr_logo.png"
-              alt="IIIT Naya Raipur Official Logo"
-              className="h-11 w-auto object-contain"
-            />
-          </div>
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-[#f4f7f5] bg-architectural-grid">
+      <div className="w-full max-w-md space-y-6">
+        {/* Official Institutional Header */}
+        <div className="text-center space-y-2">
+          <img
+            src="/iiitnr_logo.png"
+            alt="IIIT Naya Raipur Official Logo"
+            className="h-16 w-auto mx-auto object-contain drop-shadow-xs"
+          />
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-base font-black tracking-tight text-white">
-                IIIT Naya Raipur
-              </span>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                v1.0 Production
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Dr. SPM International Institute of Information Technology
-            </p>
-          </div>
-        </div>
-
-        {/* Center Value Proposition & Live Architecture Preview */}
-        <div className="relative z-10 max-w-xl space-y-8 my-auto py-8">
-          <div className="space-y-4">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Closed-Loop Campus Facilities &amp; SLA Automation</span>
-            </div>
-            <h1 className="text-3xl xl:text-4xl font-black tracking-tight text-white leading-[1.15]">
-              Intelligent grievance routing built for campus reliability.
+            <h1 className="text-xl font-black text-slate-900 tracking-tight">
+              IIIT Naya Raipur
             </h1>
-            <p className="text-sm text-slate-300/90 leading-relaxed">
-              Every maintenance request is triaged in real time for life-safety hazards, routed to the least-loaded engineering squad, and governed by contractual SLA countdown timers.
+            <p className="text-xs text-slate-500 font-medium">
+              Campus Facilities &amp; Grievance Management Portal
             </p>
           </div>
-
-          {/* Interactive Bento Feature Preview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="p-4 rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/10 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-indigo-300">Google Workspace SSO</span>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  @iiitnr.edu.in
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Triple-layer OIDC domain verification with automatic roll number &amp; branch detection.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/10 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-300">Automated Hazard Gate</span>
-                <span className="text-[10px] font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                  2h Critical SLA
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Instant priority escalation for electrical sparking, fire risks, and water main leaks.
-              </p>
-            </div>
-          </div>
         </div>
 
-        {/* Bottom Governance Strip */}
-        <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 border-t border-white/10 pt-6">
-          <span>Estate &amp; Facilities Directorate • Nava Raipur, Chhattisgarh</span>
-          <span className="font-mono text-[11px] text-slate-400">24/7 Control Room: Ext. 100</span>
-        </div>
-      </div>
-
-      {/* Right Authentication Column */}
-      <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-center items-center px-4 sm:px-8 py-10">
-        <div className="w-full max-w-md space-y-6">
-          {/* Mobile-only Header */}
-          <div className="lg:hidden text-center space-y-2">
-            <img
-              src="/iiitnr_logo.png"
-              alt="IIIT Naya Raipur Official Logo"
-              className="h-16 w-auto mx-auto object-contain drop-shadow-sm"
-            />
-            <div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">
-                IIIT Naya Raipur
-              </h1>
-              <p className="text-xs text-slate-500 font-medium">
-                Campus Facilities &amp; Grievance Management Portal
-              </p>
+        {/* Main Authentication Card */}
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/[0.04] p-7 sm:p-9 space-y-6">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/80">
+                Institutional IAM
+              </span>
+              <span className="text-[11px] font-medium text-slate-400">
+                Step {step === 'password' ? '2' : '1'} of 2
+              </span>
             </div>
-          </div>
-
-          {/* Main Authentication Card */}
-          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/[0.04] p-7 sm:p-9 space-y-6">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/80">
-                  Institutional IAM
-                </span>
-                <span className="text-[11px] font-medium text-slate-400">
-                  Step {step === 'password' ? '2' : '1'} of 2
-                </span>
-              </div>
               <h2 className="text-xl font-black text-slate-900 tracking-tight pt-1">
                 {step === 'password' ? 'Enter your password' : 'Sign in to your account'}
               </h2>
@@ -676,9 +594,8 @@ export default function Login() {
             Protected by institutional domain verification (<code className="font-mono">@iiitnr.edu.in</code>)
           </p>
         </div>
-      </div>
 
-      {!IS_PROD_BUILD && showClientIdModal && (
+        {!IS_PROD_BUILD && showClientIdModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-start justify-between">
