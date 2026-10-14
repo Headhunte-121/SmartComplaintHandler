@@ -2,7 +2,8 @@
 SmartComplaintHandler - User ORM Model
 Role: Manages campus accounts for Students, Facility Admins, Technicians, and Super Admins
       stored in Supabase PostgreSQL (or local SQLite).
-Domain: Enforces official @iiitnr.edu.in institutional identity and tracks Google OAuth2/OIDC metadata.
+Domain: Enforces official @iiitnr.edu.in institutional identity, tracks Google OAuth2/OIDC metadata,
+        and persists brute-force lockout counters across Vercel Serverless instances.
 """
 from datetime import datetime, timezone
 from typing import Optional
@@ -27,6 +28,8 @@ class User(Base):
     avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     email_verified: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    locked_until: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,

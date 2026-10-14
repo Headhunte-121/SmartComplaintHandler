@@ -2,7 +2,8 @@
 SmartComplaintHandler - User Authentication & Administration Service
 Role: Production-grade authentication for IIIT Naya Raipur (@iiitnr.edu.in) on Vercel & Supabase:
       - Authoritative server-side Google OAuth2 (UserInfo/TokenInfo) & OIDC ID Token verification
-      - Strictly restricted to @iiitnr.edu.in with triple-layer hosted domain (`hd`) enforcement
+      - Blocks unverified Google token fallbacks and DB-outage account-deactivation bypasses in production
+      - Persistent & in-memory brute-force account lockout, OTP rate-limiting, and constant-time anti-enumeration
       - Cold-start-cached schema initialization (eliminates per-request DDL table locks on Supabase)
       - Stateless HMAC-signed OTP verification across Vercel Serverless instances
       - Password hashing via bcrypt (72-byte safe), access + refresh JWT issuance, and RBAC helpers
@@ -26,6 +27,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.security import (
     DEFAULT_EXPIRE_HOURS,
+    DUMMY_PASSWORD_HASH,
     OTP_EXPIRE_MINUTES,
     REMEMBER_ME_EXPIRE_DAYS,
     create_access_token,
@@ -38,7 +40,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.base import Base
-from app.models.department import Department  # noqa: F401 - ensure FK target table is registered in metadata
+from app.models.department import Department  # noqa: F401
 from app.models.team import MaintenanceTeam
 from app.models.ticket import Ticket
 from app.models.user import User
@@ -66,8 +68,12 @@ GOOGLE_USERINFO_URLS = (
 GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 VALID_GOOGLE_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
 
-# Track initialized database engine URLs per process cold start to avoid per-request ALTER TABLE locks
 _VERIFIED_ENGINES: Set[str] = set()
+
+# Sliding-window brute-force & OTP rate limiters
+_FAILED_LOGIN_TRACKER: Dict[str, Dict[str, Any]] = {}
+_OTP_DISPATCH_TRACKER: Dict[str, List[datetime]] = {}
+_OTP_VERIFY_FAILURES: Dict[str, Dict[str, Any]] = {}
 
 IIITNR_KNOWN_STAFF: Dict[str, Dict[str, Any]] = {
     "superadmin@iiitnr.edu.in": {
@@ -115,6 +121,14 @@ IIITNR_KNOWN_STAFF: Dict[str, Dict[str, Any]] = {
 }
 
 
+def reset_rate_limiters() -> None:
+    """Clear in-memory rate-limit trackers (used by test suites)."""
+    _FAILED_LOGIN_TRACKER.clear()
+    _OTP_DISPATCH_TRACKER.clear()
+    _OTP_VERIFY_FAILURES.clear()
+    ACTIVE_OTPS.clear()
+
+
 def _get_google_client_id() -> str:
     return (
         getattr(settings, "GOOGLE_CLIENT_ID", None)
@@ -135,8 +149,7 @@ def _get_allowed_domain() -> str:
 def _ensure_users_table_ready(db: Session) -> None:
     """
     Guarantee that `departments` and `users` tables and all production auth columns exist.
-    Cached per database engine URL so DDL checks run only once per Vercel Serverless cold start
-    rather than acquiring table locks on every request.
+    Cached per database engine URL so DDL checks run only once per Vercel Serverless cold start.
     """
     try:
         bind = db.get_bind()
@@ -154,6 +167,8 @@ def _ensure_users_table_ready(db: Session) -> None:
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT TRUE;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP WITH TIME ZONE;"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE;"))
         else:
             with bind.begin() as conn:
@@ -170,6 +185,8 @@ def _ensure_users_table_ready(db: Session) -> None:
                     ("email_verified", "BOOLEAN DEFAULT 1"),
                     ("is_active", "BOOLEAN DEFAULT 1"),
                     ("role", "VARCHAR(50) DEFAULT 'STUDENT'"),
+                    ("failed_login_attempts", "INTEGER DEFAULT 0"),
+                    ("locked_until", "DATETIME"),
                     ("last_login_at", "DATETIME"),
                 ]
                 for col_name, col_type in sqlite_cols:
@@ -259,7 +276,7 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
 
 
 def parse_google_jwt(token: str) -> Dict[str, Any]:
-    """Decode payload of a Google OIDC ID token JWT."""
+    """Decode payload of a Google OIDC ID token JWT (used only when strict remote verify is disabled in offline tests)."""
     try:
         parts = token.split(".")
         if len(parts) >= 2:
@@ -278,6 +295,7 @@ def verify_google_access_token_remote(access_token: str) -> Dict[str, Any]:
     """
     Fetch verified profile from Google OIDC UserInfo endpoint and validate token audience
     when an OAuth 2.0 access_token is provided.
+    Never returns an empty dict on failure: raises 401 if invalid/expired or 503 if Google APIs are unreachable.
     """
     last_http_error: Optional[urllib.error.HTTPError] = None
     profile_data: Optional[Dict[str, Any]] = None
@@ -302,11 +320,17 @@ def verify_google_access_token_remote(access_token: str) -> Dict[str, Any]:
     if last_http_error is not None and profile_data is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired Google OAuth access token.",
+            detail="Invalid or expired Google OAuth access token. Please sign in with Google again.",
         ) from last_http_error
 
+    if not profile_data or not profile_data.get("email"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to verify Google OAuth token with Google Identity Services. Please try again.",
+        )
+
     client_id = _get_google_client_id()
-    if client_id and profile_data is not None:
+    if client_id:
         tokeninfo_url = f"{GOOGLE_TOKENINFO_URL}?{urllib.parse.urlencode({'access_token': access_token})}"
         try:
             with urllib.request.urlopen(tokeninfo_url, timeout=4) as resp:
@@ -326,16 +350,21 @@ def verify_google_access_token_remote(access_token: str) -> Dict[str, Any]:
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Google OAuth access token rejected by Google tokeninfo verification.",
                 ) from e
-        except Exception:
-            pass
+        except Exception as e:
+            if getattr(settings, "GOOGLE_STRICT_TOKEN_VERIFY", False):
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Google token verification service is temporarily unreachable.",
+                ) from e
 
-    return profile_data or {}
+    return profile_data
 
 
 def verify_google_id_token(id_token_str: str) -> Dict[str, Any]:
     """
     Validate a Google OIDC ID Token JWT (`credential`).
-    Performs remote verification via Google tokeninfo when reachable, plus local claim checks.
+    Performs authoritative remote verification via Google tokeninfo.
+    Blocks unsigned base64 decoding fallback whenever GOOGLE_STRICT_TOKEN_VERIFY is enabled.
     """
     claims: Dict[str, Any] = {}
     tokeninfo_url = f"{GOOGLE_TOKENINFO_URL}?{urllib.parse.urlencode({'id_token': id_token_str})}"
@@ -346,9 +375,14 @@ def verify_google_id_token(id_token_str: str) -> Dict[str, Any]:
     except urllib.error.HTTPError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or forged Google ID token rejected by Google API.",
+            detail="Invalid, expired, or forged Google ID token rejected by Google API.",
         ) from e
-    except Exception:
+    except Exception as net_err:
+        if getattr(settings, "GOOGLE_STRICT_TOKEN_VERIFY", False):
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Unable to reach Google API to verify ID token signature.",
+            ) from net_err
         claims = parse_google_jwt(id_token_str)
 
     if not claims or not isinstance(claims, dict) or not claims.get("email"):
@@ -373,7 +407,10 @@ def verify_google_id_token(id_token_str: str) -> Dict[str, Any]:
                     detail="Google ID token has expired. Please sign in again.",
                 )
         except ValueError:
-            pass
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid expiration claim in Google ID token.",
+            )
 
     client_id = _get_google_client_id()
     if client_id:
@@ -475,10 +512,8 @@ def _build_auth_response(user_resp: UserResponse, remember_me: bool) -> AuthResp
 def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthResponse:
     """
     Authenticate or auto-provision an institutional user via Google Workspace OAuth2 / OIDC SSO.
-    - Always verifies `credential` or `access_token` with Google's servers when supplied,
-      preventing client-side email spoofing even when `req.email` is also included in the payload.
-    - Strictly enforces `@iiitnr.edu.in` domain and `hd` claim.
-    - Persists `google_sub`, `avatar_url`, `auth_provider`, `email_verified`, and `last_login_at` in Supabase.
+    - Always verifies `credential` or `access_token` with Google's servers when supplied.
+    - Never mints unpersisted tokens on database failure in production (preventing deactivated account bypass).
     """
     verified_claims: Dict[str, Any] = {}
 
@@ -523,10 +558,7 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
 
     dept_name = meta["department_name"]
     role = meta["role"]
-    identifier = meta["identifier"]
     now_utc = datetime.now(timezone.utc)
-
-    user_response_obj: Optional[UserResponse] = None
 
     try:
         _ensure_users_table_ready(db)
@@ -546,6 +578,8 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
             if google_sub:
                 db_user.google_sub = google_sub
             db_user.email_verified = True
+            db_user.failed_login_attempts = 0
+            db_user.locked_until = None
             db_user.last_login_at = now_utc
             if db_user.auth_provider == "password" and db_user.hashed_password:
                 db_user.auth_provider = "both"
@@ -567,6 +601,7 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
                 avatar_url=avatar_url,
                 email_verified=True,
                 is_active=True,
+                failed_login_attempts=0,
                 last_login_at=now_utc,
             )
             db.add(user_entity)
@@ -581,23 +616,11 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
             db.rollback()
         except Exception:
             pass
-        logger.warning(f"Database persistence deferred during Google SSO ({email}): {db_err}")
-        user_response_obj = UserResponse(
-            id=None,
-            name=full_name,
-            email=email,
-            role=role,
-            department_name=dept_name,
-            department_id=None,
-            identifier=identifier,
-            phone=None,
-            avatar_url=avatar_url,
-            auth_provider="google",
-            email_verified=True,
-            is_active=True,
-            last_login_at=now_utc,
-            created_at=now_utc,
-        )
+        logger.error(f"Database error during Google SSO ({email}): {db_err}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication database is temporarily unavailable. Please try again shortly.",
+        ) from db_err
 
     return _build_auth_response(user_response_obj, remember_me=req.remember_me)
 
@@ -629,17 +652,36 @@ def to_user_response(user: User) -> UserResponse:
 
 ACTIVE_OTPS: Dict[str, Dict[str, Any]] = {}
 MAX_OTP_ATTEMPTS = 5
+OTP_RATE_WINDOW_MINUTES = 10
+
+
+def _check_otp_dispatch_rate_limit(email: str) -> None:
+    """Enforce sliding-window rate limit on /auth/send-otp to prevent email flooding."""
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(minutes=OTP_RATE_WINDOW_MINUTES)
+    max_requests = getattr(settings, "MAX_OTP_REQUESTS_PER_WINDOW", 5)
+
+    history = [ts for ts in _OTP_DISPATCH_TRACKER.get(email, []) if ts > cutoff]
+    if len(history) >= max_requests:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many verification codes requested for {email}. Please wait {OTP_RATE_WINDOW_MINUTES} minutes.",
+        )
+    history.append(now)
+    _OTP_DISPATCH_TRACKER[email] = history
 
 
 def generate_otp(email: str) -> str:
-    """Generate cryptographically secure 6-digit verification OTP with TTL expiration."""
+    """Generate cryptographically secure 6-digit verification OTP with rate-limiting and TTL expiration."""
     clean_email = email.strip().lower()
+    _check_otp_dispatch_rate_limit(clean_email)
     otp = f"{secrets.randbelow(900000) + 100000:06d}"
     ACTIVE_OTPS[clean_email] = {
         "otp": otp,
         "expires_at": datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES),
         "attempts": 0,
     }
+    _OTP_VERIFY_FAILURES.pop(clean_email, None)
     return otp
 
 
@@ -654,7 +696,7 @@ def generate_otp_challenge(email: str) -> Tuple[str, str]:
 def verify_otp(email: str, otp: str, otp_token: Optional[str] = None) -> bool:
     """
     Verify submitted OTP code against stateless HMAC token (Vercel Serverless safe)
-    or active in-memory record with TTL & brute-force attempt protection.
+    or active in-memory record with strict brute-force attempt locking across both paths.
     """
     clean_email = (email or "").strip().lower()
     clean_otp = (otp or "").strip()
@@ -662,38 +704,120 @@ def verify_otp(email: str, otp: str, otp_token: Optional[str] = None) -> bool:
     if not clean_email or not clean_otp:
         return False
 
-    if clean_otp == "123456" and getattr(settings, "ENVIRONMENT", "development") != "production":
-        return True
-
-    if otp_token and verify_otp_verification_token(clean_email, clean_otp, otp_token):
-        ACTIVE_OTPS.pop(clean_email, None)
-        return True
-
-    record = ACTIVE_OTPS.get(clean_email)
-    if not record:
-        return False
-
-    if isinstance(record, str):
-        if record == clean_otp:
-            ACTIVE_OTPS.pop(clean_email, None)
-            return True
-        return False
-
     now = datetime.now(timezone.utc)
-    if now > record["expires_at"]:
-        ACTIVE_OTPS.pop(clean_email, None)
-        return False
+    fail_info = _OTP_VERIFY_FAILURES.get(clean_email)
+    if fail_info:
+        if now < fail_info["expires_at"] and fail_info["attempts"] >= MAX_OTP_ATTEMPTS:
+            ACTIVE_OTPS.pop(clean_email, None)
+            return False
+        if now >= fail_info["expires_at"]:
+            _OTP_VERIFY_FAILURES.pop(clean_email, None)
+            fail_info = None
 
-    record["attempts"] += 1
-    if record["attempts"] > MAX_OTP_ATTEMPTS:
+    if clean_otp == "123456" and getattr(settings, "ENVIRONMENT", "development") != "production":
         ACTIVE_OTPS.pop(clean_email, None)
-        return False
-
-    if record["otp"] == clean_otp:
-        ACTIVE_OTPS.pop(clean_email, None)
+        _OTP_VERIFY_FAILURES.pop(clean_email, None)
         return True
+
+    # 1. Stateless verification via HMAC-signed OTP token (protected by _OTP_VERIFY_FAILURES counter)
+    if otp_token:
+        if verify_otp_verification_token(clean_email, clean_otp, otp_token):
+            ACTIVE_OTPS.pop(clean_email, None)
+            _OTP_VERIFY_FAILURES.pop(clean_email, None)
+            return True
+
+    # 2. Stateful verification
+    record = ACTIVE_OTPS.get(clean_email)
+    if record:
+        if isinstance(record, str):
+            if record == clean_otp:
+                ACTIVE_OTPS.pop(clean_email, None)
+                _OTP_VERIFY_FAILURES.pop(clean_email, None)
+                return True
+        else:
+            if now > record["expires_at"]:
+                ACTIVE_OTPS.pop(clean_email, None)
+                return False
+            record["attempts"] += 1
+            if record["attempts"] > MAX_OTP_ATTEMPTS:
+                ACTIVE_OTPS.pop(clean_email, None)
+                return False
+            if record["otp"] == clean_otp:
+                ACTIVE_OTPS.pop(clean_email, None)
+                _OTP_VERIFY_FAILURES.pop(clean_email, None)
+                return True
+
+    # Record failed OTP attempt to block brute-forcing stateless otp_tokens
+    if not fail_info:
+        fail_info = {
+            "attempts": 0,
+            "expires_at": now + timedelta(minutes=OTP_EXPIRE_MINUTES),
+        }
+        _OTP_VERIFY_FAILURES[clean_email] = fail_info
+    fail_info["attempts"] += 1
+    if fail_info["attempts"] >= MAX_OTP_ATTEMPTS:
+        ACTIVE_OTPS.pop(clean_email, None)
 
     return False
+
+
+def _check_account_lockout(email: str, db_user: Optional[User]) -> None:
+    """Check both database-persisted and in-memory failed login lockout timers."""
+    now = datetime.now(timezone.utc)
+
+    if db_user and getattr(db_user, "locked_until", None):
+        locked_until = db_user.locked_until
+        if locked_until.tzinfo is None:
+            locked_until = locked_until.replace(tzinfo=timezone.utc)
+        if now < locked_until:
+            remaining_min = max(1, int((locked_until - now).total_seconds() // 60) + 1)
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Account temporarily locked due to multiple failed login attempts. Try again in {remaining_min} minute(s).",
+            )
+
+    mem_lock = _FAILED_LOGIN_TRACKER.get(email)
+    if mem_lock and mem_lock.get("locked_until"):
+        if now < mem_lock["locked_until"]:
+            remaining_min = max(1, int((mem_lock["locked_until"] - now).total_seconds() // 60) + 1)
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Account temporarily locked due to multiple failed login attempts. Try again in {remaining_min} minute(s).",
+            )
+        _FAILED_LOGIN_TRACKER.pop(email, None)
+
+
+def _record_failed_login(email: str, db_user: Optional[User], db: Session) -> None:
+    """Increment failed login counters in Supabase and in-memory tracker, locking after threshold."""
+    now = datetime.now(timezone.utc)
+    max_attempts = getattr(settings, "MAX_LOGIN_ATTEMPTS_PER_WINDOW", 5)
+    lockout_minutes = getattr(settings, "LOGIN_LOCKOUT_MINUTES", 15)
+
+    entry = _FAILED_LOGIN_TRACKER.get(email)
+    if not entry or (now - entry["first_attempt_at"]) > timedelta(minutes=lockout_minutes):
+        entry = {"count": 0, "first_attempt_at": now, "locked_until": None}
+    entry["count"] += 1
+    if entry["count"] >= max_attempts:
+        entry["locked_until"] = now + timedelta(minutes=lockout_minutes)
+    _FAILED_LOGIN_TRACKER[email] = entry
+
+    if db_user is not None:
+        try:
+            current_fails = int(getattr(db_user, "failed_login_attempts", 0) or 0) + 1
+            db_user.failed_login_attempts = current_fails
+            if current_fails >= max_attempts:
+                db_user.locked_until = now + timedelta(minutes=lockout_minutes)
+            db.commit()
+        except Exception:
+            db.rollback()
+
+
+def _clear_failed_login(email: str, db_user: Optional[User]) -> None:
+    """Reset failed login counters upon successful authentication."""
+    _FAILED_LOGIN_TRACKER.pop(email, None)
+    if db_user is not None:
+        db_user.failed_login_attempts = 0
+        db_user.locked_until = None
 
 
 def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
@@ -720,6 +844,8 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
         if getattr(existing, "auth_provider", None) == "google" or not existing.hashed_password:
             existing.hashed_password = hash_password(req.password)
             existing.auth_provider = "both"
+            existing.failed_login_attempts = 0
+            existing.locked_until = None
             existing.last_login_at = now_utc
             if req.name and req.name.strip():
                 existing.name = req.name.strip()
@@ -753,6 +879,7 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
         auth_provider="password",
         email_verified=True,
         is_active=True,
+        failed_login_attempts=0,
         last_login_at=now_utc,
     )
     db.add(new_user)
@@ -766,7 +893,8 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
 def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
     """
     Authenticate an institutional user via bcrypt password check and issue access + refresh JWTs.
-    Enforces strict password verification in production while preserving seeded account initialization.
+    - Enforces brute-force lockout (`429 Too Many Requests`) after repeated failed attempts.
+    - Uses constant-time dummy hash verification when an email is not found to prevent timing enumeration.
     """
     _ensure_users_table_ready(db)
     clean_email = req.email.strip().lower()
@@ -777,6 +905,7 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
         )
 
     db_user = db.query(User).filter(User.email.ilike(clean_email)).first()
+    _check_account_lockout(clean_email, db_user)
     now_utc = datetime.now(timezone.utc)
 
     if db_user:
@@ -787,6 +916,7 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
             )
         if db_user.hashed_password:
             if not verify_password(req.password, db_user.hashed_password):
+                _record_failed_login(clean_email, db_user, db)
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid institutional email or password.",
@@ -796,15 +926,20 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
             db_user.hashed_password = hash_password(req.password)
             if getattr(db_user, "auth_provider", None) == "google":
                 db_user.auth_provider = "both"
+
+        _clear_failed_login(clean_email, db_user)
         db_user.last_login_at = now_utc
         db.commit()
         db.refresh(db_user)
     else:
         allow_auto_provision = getattr(settings, "ALLOW_UNREGISTERED_LOGIN_PROVISIONING", True)
         if not allow_auto_provision and clean_email not in IIITNR_KNOWN_STAFF:
+            # Constant-time dummy hash check to prevent timing-based user enumeration
+            verify_password(req.password, DUMMY_PASSWORD_HASH)
+            _record_failed_login(clean_email, None, db)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="No account found for this institutional email. Please sign up first or continue with Google.",
+                detail="Invalid institutional email or password.",
             )
 
         meta = resolve_user_metadata(clean_email)
@@ -817,6 +952,7 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
             auth_provider="password",
             email_verified=True,
             is_active=True,
+            failed_login_attempts=0,
             last_login_at=now_utc,
         )
         try:
@@ -827,10 +963,12 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
             db.rollback()
             db_user = db.query(User).filter(User.email.ilike(clean_email)).first()
             if not db_user or not verify_password(req.password, db_user.hashed_password or ""):
+                _record_failed_login(clean_email, db_user, db)
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid institutional email or password.",
                 )
+        _clear_failed_login(clean_email, db_user)
 
     user_resp = to_user_response(db_user)
     return _build_auth_response(user_resp, remember_me=req.remember_me)
@@ -856,6 +994,11 @@ def refresh_user_session(refresh_token: str, remember_me: bool, db: Session) -> 
             )
         user_resp = to_user_response(user)
     else:
+        if getattr(settings, "ENVIRONMENT", "development") == "production":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account associated with this session no longer exists.",
+            )
         meta = resolve_user_metadata(email)
         user_resp = UserResponse(
             id=payload.get("id"),
@@ -893,6 +1036,8 @@ def change_user_password(
             )
 
     user.hashed_password = hash_password(new_password)
+    user.failed_login_attempts = 0
+    user.locked_until = None
     if getattr(user, "auth_provider", None) == "google":
         user.auth_provider = "both"
     db.commit()
@@ -901,7 +1046,10 @@ def change_user_password(
 
 
 def get_current_user_from_token(token: str, db: Session) -> UserResponse:
-    """Validate Bearer JWT token and fetch active user profile from Supabase."""
+    """
+    Validate Bearer JWT token and fetch active user profile from Supabase.
+    In production, never falls back to stateless claims if the user record is missing or DB fails.
+    """
     payload = decode_access_token(token)
     if not payload or "sub" not in payload:
         raise HTTPException(
@@ -917,13 +1065,24 @@ def get_current_user_from_token(token: str, db: Session) -> UserResponse:
             if not user.is_active:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="User account deactivated.",
+                    detail="User account has been deactivated.",
                 )
             return to_user_response(user)
     except HTTPException:
         raise
     except Exception as e:
-        logger.warning(f"Stateless JWT profile fallback for {email}: {e}")
+        logger.error(f"Database error resolving token profile for {email}: {e}")
+        if getattr(settings, "ENVIRONMENT", "development") == "production":
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Unable to verify session status at this time.",
+            ) from e
+
+    if getattr(settings, "ENVIRONMENT", "development") == "production":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authenticated user account no longer exists. Please sign in again.",
+        )
 
     meta = resolve_user_metadata(email)
     return UserResponse(
@@ -967,6 +1126,8 @@ def add_admin_user(admin_data: AdminCreateRequest, db: Session) -> User:
         existing.phone = admin_data.phone
         existing.hashed_password = hashed_pw
         existing.is_active = True
+        existing.failed_login_attempts = 0
+        existing.locked_until = None
         db.commit()
         db.refresh(existing)
         return existing
@@ -982,6 +1143,7 @@ def add_admin_user(admin_data: AdminCreateRequest, db: Session) -> User:
         auth_provider="password",
         email_verified=True,
         is_active=True,
+        failed_login_attempts=0,
     )
     db.add(new_user)
     db.commit()

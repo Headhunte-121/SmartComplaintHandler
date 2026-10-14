@@ -2,7 +2,7 @@
  * SmartComplaintHandler - Base API Client
  * Blueprint Reference: V1/M1/frontend/02_base_api_client.md
  * Role: Configures Axios instance with normalized base URL, automatic /api/v1 suffix guard,
- *       JWT Bearer token injection, and automatic 401 token refresh / session expiration recovery.
+ *       proactive JWT expiration checking, Bearer token injection, and automatic 401 refresh rotation.
  */
 import axios from 'axios';
 
@@ -11,6 +11,36 @@ export const REFRESH_TOKEN_KEY = 'smart_complaint_refresh_token';
 export const AUTH_USER_KEY = 'smart_complaint_auth_user';
 export const AUTH_EXPIRES_AT_KEY = 'smart_complaint_auth_expires_at';
 export const AUTH_EXPIRED_EVENT = 'smart-complaint:auth-expired';
+
+/**
+ * Inspect JWT `exp` claim or stored ISO timestamp to detect expired tokens proactively
+ * (with a 30-second clock-skew buffer).
+ */
+export function isTokenExpired(token, storedExpiresAt = null) {
+  if (!token) return true;
+
+  if (storedExpiresAt) {
+    const expTime = Date.parse(storedExpiresAt);
+    if (!Number.isNaN(expTime) && Date.now() + 30000 >= expTime) {
+      return true;
+    }
+  }
+
+  try {
+    const parts = token.split('.');
+    if (parts.length === 3) {
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
+      if (payload.exp && Date.now() + 30000 >= payload.exp * 1000) {
+        return true;
+      }
+    }
+  } catch (_) {
+    // Non-JWT or opaque token; defer verification to backend
+  }
+
+  return false;
+}
 
 export function resolveApiBaseUrl() {
   const rawEnvUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
@@ -28,7 +58,6 @@ export function resolveApiBaseUrl() {
     return '/api/v1';
   }
 
-  // Normalize trailing slashes and ensure /api/v1 suffix is present
   const trimmed = rawEnvUrl.replace(/\/+$/, '');
   if (trimmed.endsWith('/api/v1')) {
     return trimmed;
@@ -91,7 +120,7 @@ apiClient.interceptors.response.use(
         localStorage.getItem(REFRESH_TOKEN_KEY) ||
         sessionStorage.getItem(REFRESH_TOKEN_KEY);
 
-      if (refreshToken) {
+      if (refreshToken && !isTokenExpired(refreshToken)) {
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
             pendingQueue.push({ resolve, reject });

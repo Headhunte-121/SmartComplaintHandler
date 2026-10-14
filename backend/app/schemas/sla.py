@@ -6,7 +6,13 @@ Role: DTOs for lifecycle status updates, closure documentation, and active breac
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
+
+HAS_PYDANTIC_V2 = hasattr(BaseModel, "model_validate")
+if HAS_PYDANTIC_V2:
+    from pydantic import ConfigDict
+else:
+    from pydantic import root_validator
 
 
 class TicketStatusEnum(str, Enum):
@@ -33,17 +39,17 @@ class TicketResolveRequest(BaseModel):
         ...,
         min_length=10,
         max_length=2000,
-        description="Mandatory substantive explanation of repair performed (minimum 10 characters)"
+        description="Mandatory substantive explanation of repair performed (minimum 10 characters)",
     )
     parts_replaced: Optional[str] = Field(
         None,
         max_length=500,
-        description="Optional list or summary of replacement components consumed"
+        description="Optional list or summary of replacement components consumed",
     )
     technician_name: Optional[str] = Field(
         None,
         max_length=150,
-        description="Optional name of field worker who completed the repair"
+        description="Optional name of field worker who completed the repair",
     )
 
 
@@ -53,12 +59,12 @@ class EscalationRequest(BaseModel):
         ...,
         min_length=5,
         max_length=1000,
-        description="Mandatory justification for supervisory escalation (minimum 5 characters)"
+        description="Mandatory justification for supervisory escalation (minimum 5 characters)",
     )
     supervisor_id: Optional[str] = Field(
         None,
         max_length=100,
-        description="Optional supervisor or manager identifier"
+        description="Optional supervisor or manager identifier",
     )
 
 
@@ -77,7 +83,17 @@ class SLABreachResponse(BaseModel):
     is_breached: bool
     status: str
 
-    model_config = ConfigDict(from_attributes=True)
+    if HAS_PYDANTIC_V2:
+        model_config = ConfigDict(from_attributes=True)
+    else:
+        class Config:
+            orm_mode = True
+
+        @classmethod
+        def model_validate(cls, obj):
+            if isinstance(obj, dict):
+                return cls(**obj)
+            return cls.from_orm(obj)
 
 
 class TicketLifecycleResponse(BaseModel):
@@ -92,10 +108,28 @@ class TicketLifecycleResponse(BaseModel):
     resolved_at: Optional[datetime] = None
     resolution_notes: Optional[str] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    if HAS_PYDANTIC_V2:
+        model_config = ConfigDict(from_attributes=True)
 
-    def model_post_init(self, __context):
-        if self.new_status is None:
-            self.new_status = self.status
-        if self.resolved is None:
-            self.resolved = (self.status == "RESOLVED")
+        def model_post_init(self, __context):
+            if self.new_status is None:
+                self.new_status = self.status
+            if self.resolved is None:
+                self.resolved = self.status == "RESOLVED"
+    else:
+        class Config:
+            orm_mode = True
+
+        @root_validator(pre=False)
+        def _populate_lifecycle_fields(cls, values):
+            if values.get("new_status") is None and values.get("status") is not None:
+                values["new_status"] = values["status"]
+            if values.get("resolved") is None and values.get("status") is not None:
+                values["resolved"] = values["status"] == "RESOLVED"
+            return values
+
+        @classmethod
+        def model_validate(cls, obj):
+            if isinstance(obj, dict):
+                return cls(**obj)
+            return cls.from_orm(obj)

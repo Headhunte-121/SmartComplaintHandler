@@ -1,14 +1,16 @@
 """
 SmartComplaintHandler - Security, Hashing, Stateless OTP & JWT Token Utilities
 Role: Industry-standard password hashing via bcrypt (with 72-byte UTF-8 safety & PBKDF2 fallback),
-      cryptographic access/refresh JWT session tokens, and stateless HMAC-signed OTP tokens for Vercel Serverless.
+      cryptographic access/refresh JWT session tokens with key-rotation support,
+      constant-time dummy password verification against timing attacks,
+      and stateless HMAC-signed OTP tokens for Vercel Serverless.
 """
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
 import secrets
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 import jwt
 
 from app.core.config import settings
@@ -25,6 +27,7 @@ SECRET_KEY = getattr(
     "SECRET_KEY",
     "iiitnr-campus-grievance-secret-key-super-secure-token-2026-auth-prod",
 )
+PREVIOUS_SECRET_KEY = getattr(settings, "PREVIOUS_SECRET_KEY", None)
 REFRESH_SECRET_KEY = getattr(
     settings,
     "REFRESH_SECRET_KEY",
@@ -36,6 +39,16 @@ REMEMBER_ME_EXPIRE_DAYS = getattr(settings, "REMEMBER_ME_EXPIRE_DAYS", 30)
 OTP_EXPIRE_MINUTES = getattr(settings, "OTP_EXPIRE_MINUTES", 10)
 PBKDF2_PREFIX = "pbkdf2_sha256$"
 PBKDF2_ITERATIONS = 310000
+
+
+def _get_verification_keys() -> List[str]:
+    """Return active SECRET_KEY plus optional PREVIOUS_SECRET_KEY for seamless key rotation."""
+    active = getattr(settings, "SECRET_KEY", SECRET_KEY)
+    prev = getattr(settings, "PREVIOUS_SECRET_KEY", PREVIOUS_SECRET_KEY)
+    keys = [active]
+    if prev and prev not in keys:
+        keys.append(prev)
+    return keys
 
 
 def _prepare_password_bytes(password: str) -> bytes:
@@ -67,6 +80,10 @@ def hash_password(password: str) -> str:
     return f"{PBKDF2_PREFIX}{PBKDF2_ITERATIONS}${salt_hex}${derived}"
 
 
+# Pre-computed dummy password hash for constant-time verification when an email is not found
+DUMMY_PASSWORD_HASH = hash_password("iiitnr_constant_time_dummy_guard_secret_2026")
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify raw password against stored bcrypt or PBKDF2 hash in constant time."""
     if not plain_password or not hashed_password:
@@ -93,7 +110,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
             pw_bytes = _prepare_password_bytes(plain_password)
             if _bcrypt_lib.checkpw(pw_bytes, hashed_password.encode("utf-8")):
                 return True
-            # Backward compatibility for passwords truncated via `password[:70]` prior to byte-level normalization
             legacy_bytes = plain_password[:70].encode("utf-8")[:72]
             return _bcrypt_lib.checkpw(legacy_bytes, hashed_password.encode("utf-8"))
     except Exception:
@@ -117,7 +133,8 @@ def create_access_token(
             "type": "access",
         }
     )
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    active_key = getattr(settings, "SECRET_KEY", SECRET_KEY)
+    return jwt.encode(to_encode, active_key, algorithm=ALGORITHM)
 
 
 def create_refresh_token(
@@ -140,29 +157,38 @@ def create_refresh_token(
             "type": "refresh",
         }
     )
-    return jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
+    refresh_key = getattr(settings, "REFRESH_SECRET_KEY", REFRESH_SECRET_KEY)
+    return jwt.encode(to_encode, refresh_key, algorithm=ALGORITHM)
 
 
 def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
-    """Decode and validate a cryptographic JWT access bearer token."""
+    """
+    Decode and validate a cryptographic JWT access bearer token.
+    Supports seamless verification across key rotation via PREVIOUS_SECRET_KEY.
+    """
     if not token:
         return None
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        token_type = payload.get("type")
-        if token_type and token_type != "access":
+    for candidate_key in _get_verification_keys():
+        try:
+            payload = jwt.decode(token, candidate_key, algorithms=[ALGORITHM])
+            token_type = payload.get("type")
+            if token_type and token_type != "access":
+                return None
+            return payload
+        except jwt.ExpiredSignatureError:
             return None
-        return payload
-    except jwt.PyJWTError:
-        return None
+        except jwt.PyJWTError:
+            continue
+    return None
 
 
 def decode_refresh_token(token: str) -> Optional[Dict[str, Any]]:
     """Decode and validate a cryptographic JWT refresh token."""
     if not token:
         return None
+    refresh_key = getattr(settings, "REFRESH_SECRET_KEY", REFRESH_SECRET_KEY)
     try:
-        payload = jwt.decode(token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, refresh_key, algorithms=[ALGORITHM])
         if payload.get("type") != "refresh":
             return None
         return payload
@@ -173,44 +199,49 @@ def decode_refresh_token(token: str) -> Optional[Dict[str, Any]]:
 def create_otp_verification_token(email: str, otp: str, expires_minutes: int = OTP_EXPIRE_MINUTES) -> str:
     """
     Create a stateless signed JWT encapsulating an HMAC-SHA256 digest of (email, otp).
-    Ensures OTP verification works across multi-instance Vercel Serverless functions
-    without relying on sticky in-memory dictionaries.
+    Ensures OTP verification works across multi-instance Vercel Serverless functions.
     """
     clean_email = (email or "").strip().lower()
     clean_otp = (otp or "").strip()
     now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=expires_minutes)
+    active_key = getattr(settings, "SECRET_KEY", SECRET_KEY)
     digest = hmac.new(
-        SECRET_KEY.encode("utf-8"),
+        active_key.encode("utf-8"),
         f"{clean_email}:{clean_otp}".encode("utf-8"),
         hashlib.sha256,
     ).hexdigest()
     payload = {
         "sub": clean_email,
         "otp_hash": digest,
+        "jti": uuid.uuid4().hex,
         "type": "otp_challenge",
         "iat": now,
         "exp": expire,
     }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(payload, active_key, algorithm=ALGORITHM)
 
 
 def verify_otp_verification_token(email: str, otp: str, otp_token: str) -> bool:
     """Verify a stateless OTP challenge token against the submitted email and OTP."""
     if not email or not otp or not otp_token:
         return False
-    try:
-        payload = jwt.decode(otp_token, SECRET_KEY, algorithms=[ALGORITHM])
-        if payload.get("type") != "otp_challenge":
+    clean_email = email.strip().lower()
+    for candidate_key in _get_verification_keys():
+        try:
+            payload = jwt.decode(otp_token, candidate_key, algorithms=[ALGORITHM])
+            if payload.get("type") != "otp_challenge":
+                return False
+            if payload.get("sub") != clean_email:
+                return False
+            expected_digest = hmac.new(
+                candidate_key.encode("utf-8"),
+                f"{clean_email}:{otp.strip()}".encode("utf-8"),
+                hashlib.sha256,
+            ).hexdigest()
+            return hmac.compare_digest(payload.get("otp_hash", ""), expected_digest)
+        except jwt.ExpiredSignatureError:
             return False
-        clean_email = email.strip().lower()
-        if payload.get("sub") != clean_email:
-            return False
-        expected_digest = hmac.new(
-            SECRET_KEY.encode("utf-8"),
-            f"{clean_email}:{otp.strip()}".encode("utf-8"),
-            hashlib.sha256,
-        ).hexdigest()
-        return hmac.compare_digest(payload.get("otp_hash", ""), expected_digest)
-    except jwt.PyJWTError:
-        return False
+        except jwt.PyJWTError:
+            continue
+    return False

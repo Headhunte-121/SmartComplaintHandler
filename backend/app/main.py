@@ -1,30 +1,46 @@
 """
 SmartComplaintHandler - FastAPI Application Entry Point
 Blueprint Reference: V1/M1/backend/09_fastapi_app.md
-Role: Mounts CORS middleware, global exception handler (preserving CORS headers on errors),
-      schema initialization, and master API router.
+Role: Mounts hardened CORS middleware, security headers, sanitized global exception handler
+      (preventing SQL/credential leaks in production), schema initialization, and master API router.
 """
 from contextlib import asynccontextmanager
 import logging
 import os
+import re
 import sys
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 from app.core.config import settings
 from app.core.database import engine, SessionLocal
-from app.db.base import Base
+from app.db.base import Base  # noqa: F401
 from app.api.v1.router import api_router
 from app.db.seed import ensure_schema, seed_database
 
 logger = logging.getLogger(__name__)
 
+# Allow localhost dev origins and Vercel deployment origins (*.vercel.app) without wildcard reflection of arbitrary external domains
+SAFE_ORIGIN_PATTERN = re.compile(
+    r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.vercel\.app$"
+)
+
+
+def _is_allowed_origin(origin: str) -> bool:
+    if not origin:
+        return False
+    normalized = origin.strip().rstrip("/")
+    configured = settings.parsed_cors_origins
+    if "*" in configured or normalized in configured:
+        return True
+    return bool(SAFE_ORIGIN_PATTERN.match(normalized))
+
 
 def _initialize_database() -> None:
     """
     Ensure database tables and columns exist.
-    Full data seeding is deferred by default (run `python -m app.db.seed` manually when ready),
-    unless AUTO_SEED_ON_STARTUP=true or running inside pytest.
+    Full data seeding is deferred by default unless AUTO_SEED_ON_STARTUP=true or running inside pytest.
     """
     try:
         ensure_schema()
@@ -54,37 +70,68 @@ async def lifespan(app: FastAPI):
     yield
 
 
+# Disable public Swagger/OpenAPI docs in production unless DEBUG is explicitly enabled
+docs_enabled = getattr(settings, "DEBUG", False) or getattr(settings, "ENVIRONMENT", "development") != "production"
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
     description="Automated Closed-Loop Smart Complaint Routing & Workflow Automation Platform (IIIT Naya Raipur)",
     lifespan=lifespan,
+    docs_url="/docs" if docs_enabled else None,
+    redoc_url="/redoc" if docs_enabled else None,
+    openapi_url="/openapi.json" if docs_enabled else None,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://.*",
+    allow_origins=settings.parsed_cors_origins if "*" not in settings.parsed_cors_origins else [],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.vercel\.app$",
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
 )
+
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    """Attach standard production HTTP security headers to all API responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    if getattr(settings, "ENVIRONMENT", "development") == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """
-    Catch unhandled exceptions and return a structured JSON 500 response inside CORSMiddleware
-    so the browser receives CORS headers and displays the real error instead of 'Network Error'.
+    Catch unhandled exceptions, log full details internally, and return a sanitized JSON 500
+    response so raw SQL statements, table names, or Supabase credentials are never leaked to clients.
     """
     logger.error(f"Unhandled exception on {request.url.path}: {exc}", exc_info=True)
-    origin = request.headers.get("origin", "*")
+    origin = request.headers.get("origin", "")
+    headers = {
+        "X-Content-Type-Options": "nosniff",
+    }
+    if _is_allowed_origin(origin):
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+
+    is_debug = getattr(settings, "DEBUG", False) and getattr(settings, "ENVIRONMENT", "development") != "production"
+    safe_detail = (
+        f"Internal server error: {str(exc)}"
+        if is_debug
+        else "An unexpected internal server error occurred. Please try again later."
+    )
+
     return JSONResponse(
-        status_code=500,
-        content={"detail": f"Internal server error: {str(exc)}"},
-        headers={
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-        },
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": safe_detail},
+        headers=headers,
     )
 
 
@@ -95,8 +142,6 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 def root():
     return {
         "message": "Welcome to Smart Complaint Handler API",
-        "docs_url": "/docs",
-        "openapi_url": "/openapi.json",
         "health_check": "/health",
         "version": "1.0.0",
     }
@@ -104,8 +149,24 @@ def root():
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    return {
-        "status": "healthy",
-        "project": settings.PROJECT_NAME,
-        "database": "connected",
-    }
+    """Verify real database connectivity with a lightweight SELECT 1 ping without leaking credentials."""
+    db_status = "connected"
+    http_status = status.HTTP_200_OK
+    db = SessionLocal()
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception as e:
+        logger.warning(f"Database health check ping failed: {e}")
+        db_status = "disconnected"
+        http_status = status.HTTP_503_SERVICE_UNAVAILABLE
+    finally:
+        db.close()
+
+    return JSONResponse(
+        status_code=http_status,
+        content={
+            "status": "healthy" if db_status == "connected" else "degraded",
+            "project": settings.PROJECT_NAME,
+            "database": db_status,
+        },
+    )

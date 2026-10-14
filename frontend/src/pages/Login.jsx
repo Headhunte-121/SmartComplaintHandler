@@ -1,16 +1,8 @@
 /**
  * SmartComplaintHandler - Clean Institutional Login Portal (IIIT Naya Raipur)
  * Production-Grade Two-Step Authentication + Google Workspace SSO (@iiitnr.edu.in Internal Org):
- * Step 1: Identifier Screen
- *   - [ Email Address ]
- *   - [ Continue with Email ] -> validates @iiitnr.edu.in domain and transitions to Step 2 (Password)
- *   - [ Continue with Google ] -> dynamically loads/awaits Google Identity Services SDK, opens
- *     Google Workspace account chooser locked to hosted_domain: 'iiitnr.edu.in', verifies token
- *     with backend & Supabase, and issues persistent JWT access + refresh tokens.
- * Step 2: Password Screen
- *   - Displays active institutional email with 'Change' action
- *   - [ Password ] field with show/hide toggle and Remember Me
- *   - [ Log In ] button
+ * - Disables localStorage Client-ID injection in production builds to prevent rogue OAuth app phishing on shared campus computers.
+ * - Dynamically awaits Google Identity Services SDK and backend /auth/config before opening the account chooser.
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -19,6 +11,22 @@ import { fetchAuthConfig } from '../api/auth';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
+const GOOGLE_CLIENT_ID_PATTERN = /^[0-9]+-[a-zA-Z0-9_]+\.apps\.googleusercontent\.com$/;
+const IS_PROD_BUILD = Boolean(import.meta.env.PROD);
+
+function getInitialGoogleClientId() {
+  const envClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+  if (envClientId && GOOGLE_CLIENT_ID_PATTERN.test(envClientId)) {
+    return envClientId;
+  }
+  if (!IS_PROD_BUILD) {
+    const devStored = (localStorage.getItem('smart_complaint_google_client_id') || '').trim();
+    if (devStored && GOOGLE_CLIENT_ID_PATTERN.test(devStored)) {
+      return devStored;
+    }
+  }
+  return '';
+}
 
 function ensureGoogleSdkLoaded(timeoutMs = 8000) {
   return new Promise((resolve, reject) => {
@@ -59,9 +67,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  const [googleClientId, setGoogleClientId] = useState(
-    () => import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('smart_complaint_google_client_id') || ''
-  );
+  const [googleClientId, setGoogleClientId] = useState(getInitialGoogleClientId);
   const [showClientIdModal, setShowClientIdModal] = useState(false);
   const [clientIdInput, setClientIdInput] = useState('');
 
@@ -95,8 +101,9 @@ export default function Login() {
     if (!googleClientId) {
       fetchAuthConfig()
         .then((cfg) => {
-          if (cfg?.google_client_id) {
-            setGoogleClientId(cfg.google_client_id);
+          const remoteId = (cfg?.google_client_id || '').trim();
+          if (remoteId && GOOGLE_CLIENT_ID_PATTERN.test(remoteId)) {
+            setGoogleClientId(remoteId);
           }
         })
         .catch(() => {});
@@ -190,7 +197,6 @@ export default function Login() {
               });
               handleRoleRedirect(user);
             } else {
-              // Delegate full token resolution directly to backend Google UserInfo verifier
               const user = await loginGoogle({
                 access_token: tokenResponse.access_token,
                 email: cleanHint.endsWith(`@${ALLOWED_DOMAIN}`) ? cleanHint : undefined,
@@ -220,20 +226,16 @@ export default function Login() {
 
   const handleContinueWithGoogle = async () => {
     setError(null);
-    let activeClientId = (
-      googleClientId ||
-      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-      localStorage.getItem('smart_complaint_google_client_id') ||
-      ''
-    ).trim();
+    let activeClientId = (googleClientId || getInitialGoogleClientId()).trim();
 
     if (!activeClientId) {
       try {
         setGoogleLoading(true);
         const cfg = await fetchAuthConfig();
-        if (cfg?.google_client_id) {
-          activeClientId = cfg.google_client_id.trim();
-          setGoogleClientId(activeClientId);
+        const remoteId = (cfg?.google_client_id || '').trim();
+        if (remoteId && GOOGLE_CLIENT_ID_PATTERN.test(remoteId)) {
+          activeClientId = remoteId;
+          setGoogleClientId(remoteId);
         }
       } catch (_) {
         // Ignore config fetch error and fall through
@@ -243,6 +245,10 @@ export default function Login() {
     }
 
     if (!activeClientId) {
+      if (IS_PROD_BUILD) {
+        setError('Google Workspace SSO is currently being configured by the Campus Directorate. Please sign in with your institutional email and password.');
+        return;
+      }
       setShowClientIdModal(true);
       return;
     }
@@ -253,11 +259,13 @@ export default function Login() {
   const handleSaveClientIdAndContinue = async (e) => {
     e.preventDefault();
     const cleaned = clientIdInput.trim();
-    if (!cleaned || !cleaned.includes('.apps.googleusercontent.com')) {
-      setError('Please enter a valid Google Cloud OAuth 2.0 Client ID ending in .apps.googleusercontent.com');
+    if (!GOOGLE_CLIENT_ID_PATTERN.test(cleaned)) {
+      setError('Please enter a valid Google Cloud OAuth 2.0 Client ID matching <number>-<id>.apps.googleusercontent.com');
       return;
     }
-    localStorage.setItem('smart_complaint_google_client_id', cleaned);
+    if (!IS_PROD_BUILD) {
+      localStorage.setItem('smart_complaint_google_client_id', cleaned);
+    }
     setGoogleClientId(cleaned);
     setShowClientIdModal(false);
     setError(null);
@@ -309,7 +317,6 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-indigo-50/40 flex flex-col justify-center items-center px-4 py-12">
       <div className="max-w-md w-full space-y-6">
-        {/* Institutional Branding */}
         <div className="text-center space-y-2">
           <div className="mx-auto flex justify-center mb-2">
             <img
@@ -328,7 +335,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Clean Vercel-Style Login Card */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7 sm:p-9 space-y-5">
           <div className="space-y-1 text-center">
             <h2 className="text-lg font-black text-slate-900">
@@ -362,7 +368,6 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Step 1: Identifier View */}
               {step === 'email' ? (
                 <div className="space-y-3.5 animate-fade-in">
                   <form onSubmit={handleContinueWithEmail} className="space-y-3">
@@ -391,7 +396,6 @@ export default function Login() {
                     </button>
                   </form>
 
-                  {/* Official Google Workspace OAuth Button (Internal @iiitnr.edu.in) */}
                   <button
                     type="button"
                     onClick={handleContinueWithGoogle}
@@ -424,7 +428,6 @@ export default function Login() {
                   </button>
                 </div>
               ) : (
-                /* Step 2: Password Screen */
                 <form onSubmit={handleLoginSubmit} className="space-y-4 animate-fade-in">
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
                     <div className="flex items-center space-x-2 min-w-0">
@@ -529,13 +532,13 @@ export default function Login() {
         </p>
       </div>
 
-      {showClientIdModal && (
+      {!IS_PROD_BUILD && showClientIdModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-start justify-between">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
-                  Google Workspace OAuth Setup
+                  Local Dev Google OAuth Setup
                 </span>
                 <h3 className="text-base font-black text-slate-900 mt-1">
                   Configure IIIT-NR Google Client ID
@@ -550,7 +553,7 @@ export default function Login() {
               </button>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in Vercel Environment Variables, or paste your OAuth 2.0 Web Client ID below:
+              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in Vercel Environment Variables, or paste your OAuth 2.0 Web Client ID below (local development only):
             </p>
             <form onSubmit={handleSaveClientIdAndContinue} className="space-y-3">
               <input

@@ -1,23 +1,27 @@
 """
 SmartComplaintHandler - Workload & Dispatch Endpoints
 Blueprint Reference: V1/M4/backend/05_assignment_endpoints.md
-Role: REST routes for viewing squad workloads (/teams/workloads) and reassigning tickets (/tickets/{ticket_id}/reassign).
+Role: REST routes for viewing squad workloads (/teams/workloads) and RBAC-protected ticket reassignment (/tickets/{ticket_id}/reassign).
 """
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_db, require_roles
 from app.models.team import MaintenanceTeam
 from app.models.ticket import Ticket
-from app.schemas.assignment import TeamWorkloadResponse, ReassignTeamRequest
+from app.schemas.assignment import ReassignTeamRequest, TeamWorkloadResponse
+from app.schemas.user import UserResponse
 
 router = APIRouter()
 
 
 @router.get("/teams/workloads", response_model=List[TeamWorkloadResponse])
-def get_workloads(db: Session = Depends(get_db)):
+def get_workloads(
+    current_user: Optional[UserResponse] = Depends(require_roles(["ADMIN", "SUPER_ADMIN", "TECHNICIAN"])),
+    db: Session = Depends(get_db),
+):
     """
     Returns active ticket counts across all squads for workload inspection.
     """
@@ -49,10 +53,11 @@ def get_workloads(db: Session = Depends(get_db)):
 def reassign_team(
     ticket_id: int,
     payload: ReassignTeamRequest,
+    current_user: Optional[UserResponse] = Depends(require_roles(["ADMIN", "SUPER_ADMIN"])),
     db: Session = Depends(get_db),
 ):
     """
-    Reassigns a ticket to a new squad with documented justification.
+    Reassigns a ticket to a new squad with documented justification (Admin / Super Admin only).
     """
     ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
     if not ticket:
@@ -71,8 +76,9 @@ def reassign_team(
     old_team_name = ticket.assigned_team.name if ticket.assigned_team else "Unassigned"
     ticket.assigned_team_id = target_team.id
 
+    actor_label = f" by {current_user.email}" if current_user else ""
     audit_entry = (
-        f"[TEAM REASSIGNMENT] Reassigned from {old_team_name} to {target_team.name}. "
+        f"[TEAM REASSIGNMENT] Reassigned from {old_team_name} to {target_team.name}{actor_label}. "
         f"Reason: {payload.reason.strip()}"
     )
     ticket.resolution_notes = (

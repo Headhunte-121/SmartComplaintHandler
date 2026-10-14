@@ -664,5 +664,40 @@ npm run dev
   - Frontend Production Build: `npm run build` compiled in 2.08s with 0 errors.
   - Backend Test Suite: 48/48 pytest unit & integration tests passing cleanly in 38.26s.
 
+### [2026-10-15] - Live-Internet Security Hardening & Production Bug Fixes (BUG-01 to BUG-07)
+* **Files Modified:**
+  - `backend/.vercelignore` & `frontend/.vercelignore`
+  - `backend/app/core/config.py` & `backend/app/core/security.py`
+  - `backend/app/core/database.py`
+  - `backend/app/models/user.py` & `backend/app/db/seed.py`
+  - `backend/app/main.py`
+  - `backend/app/services/user_service.py`
+  - `backend/app/api/deps.py`
+  - `backend/app/api/v1/endpoints/auth.py`
+  - `backend/app/api/v1/endpoints/complaints.py`
+  - `backend/app/api/v1/endpoints/priority.py`
+  - `backend/app/api/v1/endpoints/assignment.py`
+  - `backend/app/api/v1/endpoints/sla.py`
+  - `backend/app/schemas/priority.py`, `backend/app/schemas/sla.py`, `backend/app/schemas/ticket.py`
+  - `backend/tests/test_auth.py`
+  - `frontend/src/api/client.js`
+  - `frontend/src/context/AuthContext.jsx`
+  - `frontend/src/pages/Login.jsx` & `frontend/src/pages/Register.jsx`
+  - `docs/COMPREHENSIVE_BUG_REPORT_AND_SECURITY_AUDIT.md`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **BUG-01 (Credential Exposure & Key Rotation):** Excluded `.env*` and `*.db` in `.vercelignore`; sanitized `backend/.env` to use local SQLite by default; added `PREVIOUS_SECRET_KEY` support in `security.py` for seamless, zero-downtime JWT signing key rotation.
+  2. **BUG-02 (Strict RBAC on Operations & Admin Routes):** Attached `require_roles(...)` across `/admins`, `/purge-tickets`, `/priority`, `/reassign`, `/status`, `/resolve`, and `/escalate` endpoints; added `ENFORCE_STRICT_RBAC` setting to block unauthenticated calls.
+  3. **BUG-03 (Strict Google OAuth/OIDC Verification):** Eliminated unverified client token fallbacks; rejected unsigned JWTs and network dropouts with 401/503; prevented deactivated-account bypass during DB transient outages.
+  4. **BUG-04 (Restricted CORS, Security Headers, Sanitized 500s & Health Ping):** Replaced wildcard CORS with strict localhost and `*.vercel.app` regex; added HTTP security headers (`nosniff`, `DENY`, `strict-origin`, `XSS`, `HSTS`); sanitized global exception handler in production to prevent SQL leaks; updated `/health` with real `SELECT 1` ping.
+  5. **BUG-05 (Brute-Force Lockout, Constant-Time Enumeration Guard & OTP Rate Limiting):** Added `failed_login_attempts` and `locked_until` columns in database; implemented 5-attempt brute-force lockout (`429 Too Many Requests`); pre-computed `DUMMY_PASSWORD_HASH` for constant-time email enumeration defense; added OTP dispatch rate limits.
+  6. **BUG-06 (IDOR Complaint Isolation & Pagination Bounds):** Automatically binds `student_email` and `student_name` on complaint submission when logged in as a student; enforces student ownership checks on ticket queries and feedback submissions (`403 Forbidden` if querying another student's data); capped ticket list pagination to max 200 items.
+  7. **BUG-07 (Frontend Client-ID Injection & Expired Token Flush):** Guarded `localStorage` Google Client ID overrides with `IS_PROD_BUILD` and regex validation (`GOOGLE_CLIENT_ID_PATTERN`) to prevent rogue OAuth phishing; added proactive `isTokenExpired()` check on frontend app bootstrap.
+* **Why It Was Changed:** Integrated complete `Production_Login_Security_Fixes` live-internet security package to ensure robust institutional security, RBAC enforcement, IDOR isolation, and zero-leak compliance on Vercel and Supabase.
+* **Verification Proof:**
+  - Backend Test Suite: 55/55 pytest unit & security tests passing cleanly (100% pass rate).
+  - Frontend Production Build: `npm run build` compiled in 2.22s with 0 errors.
+
+
 
 

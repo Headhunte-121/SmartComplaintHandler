@@ -17,7 +17,6 @@ from app.models.user import User
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Standard institutional facilities taxonomy
 SEED_DEPARTMENTS = [
     {"id": 1, "name": "Electrical", "description": "Power grids, lighting, wiring, and substation maintenance"},
     {"id": 2, "name": "Plumbing", "description": "Water supply pipelines, fixtures, drainage, sewage, and pumps"},
@@ -37,7 +36,6 @@ SEED_TEAMS = [
     {"id": 7, "name": "Hostel Plumbing Squad 2", "department_id": 2, "active_ticket_count": 0, "is_active": True},
 ]
 
-# Official IIIT-NR default administrative accounts
 SEED_ADMINS = [
     {
         "name": "Chief Campus Administrator",
@@ -80,7 +78,6 @@ SEED_ADMINS = [
     },
 ]
 
-# Extended catalog for team member compatibility
 CAMPUS_CATALOG = [
     {"name": "Electrical", "description": "Power grids, lighting, wiring, and substation maintenance", "squads": ["Hostel Wiring Squad", "Academic Power Crew"]},
     {"name": "Plumbing", "description": "Water supply pipelines, fixtures, drainage, sewage, and pumps", "squads": ["Hostel Plumbing Squad", "Campus Waterline Crew"]},
@@ -97,7 +94,6 @@ def ensure_schema() -> None:
     try:
         with engine.begin() as conn:
             if "sqlite" not in str(engine.url):
-                # PostgreSQL / Supabase column safety checks
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_name VARCHAR(100);"))
@@ -105,6 +101,8 @@ def ensure_schema() -> None:
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT TRUE;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP WITH TIME ZONE;"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE;"))
                 return
 
@@ -134,6 +132,8 @@ def ensure_schema() -> None:
                 ("email_verified", "BOOLEAN DEFAULT 1"),
                 ("is_active", "BOOLEAN DEFAULT 1"),
                 ("role", "VARCHAR(50) DEFAULT 'STUDENT'"),
+                ("failed_login_attempts", "INTEGER DEFAULT 0"),
+                ("locked_until", "DATETIME"),
                 ("last_login_at", "DATETIME"),
             ]
             for name, col_type in user_cols:
@@ -150,7 +150,6 @@ def seed_database(db: Session) -> None:
     """
     ensure_schema()
 
-    # 1. Seed standard departments idempotently
     existing_depts_by_name = {d.name.lower(): d for d in db.query(Department).all()}
     existing_depts_by_id = {d.id: d for d in db.query(Department).all()}
 
@@ -173,7 +172,6 @@ def seed_database(db: Session) -> None:
             existing_depts_by_id[dept.id] = dept
     db.commit()
 
-    # 2. Seed standard teams idempotently
     existing_teams_by_name = {t.name.lower(): t for t in db.query(MaintenanceTeam).all()}
     existing_teams_by_id = {t.id: t for t in db.query(MaintenanceTeam).all()}
 
@@ -198,7 +196,6 @@ def seed_database(db: Session) -> None:
             existing_teams_by_id[team.id] = team
     db.commit()
 
-    # 3. Seed initial IIIT-NR administrators idempotently
     existing_users = {u.email.lower(): u for u in db.query(User).all()}
     for a_data in SEED_ADMINS:
         a_email = a_data["email"].lower()
@@ -214,12 +211,12 @@ def seed_database(db: Session) -> None:
             auth_provider="password",
             email_verified=True,
             is_active=True,
+            failed_login_attempts=0,
         )
         db.add(admin_user)
         existing_users[a_email] = admin_user
     db.commit()
 
-    # 4. Synchronize live squad active_ticket_count (0 if tickets are empty)
     teams = db.query(MaintenanceTeam).all()
     for team in teams:
         team.active_ticket_count = (
@@ -234,10 +231,7 @@ def seed_database(db: Session) -> None:
 
 
 def seed_data() -> None:
-    """
-    Populates database with starter campus departments, maintenance squads, and admins.
-    Guarantees idempotency via pre-insert existence checks.
-    """
+    """Populates database with starter campus departments, maintenance squads, and admins."""
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:

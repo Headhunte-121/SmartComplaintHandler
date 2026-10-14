@@ -5,3 +5,9 @@ __pycache__/
 .pytest_cache/
 tests/
 seed_and_test_m5.py
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3

@@ -1,11 +1,13 @@
 """
 SmartComplaintHandler - Database Session & Authentication Dependencies
 Blueprint Reference: V1/M1/backend/09_api_deps.md
-Role: FastAPI dependency injectors yielding SQLAlchemy sessions and verifying JWT Bearer tokens.
+Role: FastAPI dependency injectors yielding SQLAlchemy sessions, verifying JWT Bearer tokens,
+      and enforcing Role-Based Access Control (RBAC) across protected operational endpoints.
 """
 from typing import Callable, Generator, Optional, Sequence
 from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.config import settings
 from app.core.database import SessionLocal
 from app.schemas.user import UserResponse
 
@@ -50,10 +52,25 @@ def get_optional_current_user(
 
 
 def require_roles(allowed_roles: Sequence[str]) -> Callable:
-    """Factory dependency enforcing role-based access control (RBAC) for protected endpoints."""
+    """
+    Factory dependency enforcing role-based access control (RBAC) for protected endpoints.
+    - Whenever a Bearer token is supplied, strictly verifies the user holds one of `allowed_roles`.
+    - When `settings.ENFORCE_STRICT_RBAC` is True (enabled automatically in production/Vercel),
+      rejects unauthenticated requests lacking a Bearer token with 401 Unauthorized.
+    """
     normalized_roles = {r.upper() for r in allowed_roles}
 
-    def _role_checker(current_user: UserResponse = Depends(get_current_user)) -> UserResponse:
+    def _role_checker(
+        current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+    ) -> Optional[UserResponse]:
+        if current_user is None:
+            if getattr(settings, "ENFORCE_STRICT_RBAC", False):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication required to access this protected institutional resource.",
+                )
+            return None
+
         if (current_user.role or "").upper() not in normalized_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

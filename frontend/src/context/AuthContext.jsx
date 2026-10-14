@@ -4,6 +4,7 @@ import {
   loginUser,
   loginWithGoogle,
   logoutUser,
+  refreshSession,
   registerUser,
 } from '../api/auth';
 import {
@@ -12,6 +13,7 @@ import {
   AUTH_TOKEN_KEY,
   AUTH_USER_KEY,
   REFRESH_TOKEN_KEY,
+  isTokenExpired,
 } from '../api/client';
 
 /**
@@ -163,13 +165,28 @@ export function AuthProvider({ children }) {
     try {
       const persistedUser = localStorage.getItem(AUTH_USER_KEY);
       const persistedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+      const persistedExpires = localStorage.getItem(AUTH_EXPIRES_AT_KEY);
+      const persistedRefresh = localStorage.getItem(REFRESH_TOKEN_KEY);
+
       if (persistedUser && persistedToken) {
-        return enrichUser(JSON.parse(persistedUser));
+        if (!isTokenExpired(persistedToken, persistedExpires) || (persistedRefresh && !isTokenExpired(persistedRefresh))) {
+          return enrichUser(JSON.parse(persistedUser));
+        }
+        clearAuthStorage();
+        return null;
       }
+
       const sessionedUser = sessionStorage.getItem(AUTH_USER_KEY);
       const sessionedToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
+      const sessionedExpires = sessionStorage.getItem(AUTH_EXPIRES_AT_KEY);
+      const sessionedRefresh = sessionStorage.getItem(REFRESH_TOKEN_KEY);
+
       if (sessionedUser && sessionedToken) {
-        return enrichUser(JSON.parse(sessionedUser));
+        if (!isTokenExpired(sessionedToken, sessionedExpires) || (sessionedRefresh && !isTokenExpired(sessionedRefresh))) {
+          return enrichUser(JSON.parse(sessionedUser));
+        }
+        clearAuthStorage();
+        return null;
       }
     } catch (e) {
       console.warn('Failed to parse cached auth user:', e);
@@ -196,39 +213,54 @@ export function AuthProvider({ children }) {
     logoutUser().catch(() => {});
   }, []);
 
-  // Verify existing JWT token against backend /auth/me on application startup
+  // Verify or refresh existing JWT token against backend on application startup
   useEffect(() => {
-    const token =
-      localStorage.getItem(AUTH_TOKEN_KEY) ||
-      sessionStorage.getItem(AUTH_TOKEN_KEY);
+    const isPersistent = Boolean(localStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(REFRESH_TOKEN_KEY));
+    const storage = isPersistent ? localStorage : sessionStorage;
+    const token = storage.getItem(AUTH_TOKEN_KEY);
+    const expiresAt = storage.getItem(AUTH_EXPIRES_AT_KEY);
+    const refreshToken = storage.getItem(REFRESH_TOKEN_KEY);
 
-    if (!token) {
+    if (!token && !refreshToken) {
       setAuthInitializing(false);
       return;
     }
 
     let isMounted = true;
-    fetchMe()
-      .then((freshProfile) => {
+
+    const bootstrapSession = async () => {
+      try {
+        if (isTokenExpired(token, expiresAt)) {
+          if (refreshToken && !isTokenExpired(refreshToken)) {
+            const refreshedData = await refreshSession(refreshToken, isPersistent);
+            if (!isMounted) return;
+            const enriched = enrichUser(refreshedData.user);
+            setCurrentUser(enriched);
+            persistAuthSession(refreshedData, enriched, isPersistent);
+            return;
+          }
+          throw new Error('Session expired');
+        }
+
+        const freshProfile = await fetchMe();
         if (!isMounted || !freshProfile) return;
         const enriched = enrichUser(freshProfile);
         setCurrentUser(enriched);
-        const isPersistent = Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
-        const storage = isPersistent ? localStorage : sessionStorage;
         storage.setItem(AUTH_USER_KEY, JSON.stringify(enriched));
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!isMounted) return;
-        if (err.response?.status === 401 || err.response?.status === 403) {
+        if (err.message === 'Session expired' || err.response?.status === 401 || err.response?.status === 403) {
           setCurrentUser(null);
           clearAuthStorage();
         }
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) {
           setAuthInitializing(false);
         }
-      });
+      }
+    };
+
+    bootstrapSession();
 
     return () => {
       isMounted = false;

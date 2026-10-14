@@ -2,10 +2,9 @@
 SmartComplaintHandler - Application Settings & Configuration
 Blueprint Reference: V1/M1/backend/01_config_and_env.md
 Role: Production-grade Pydantic BaseSettings loading environment variables for Vercel Serverless,
-      Supabase PostgreSQL connection pooling, JWT cryptography, and Google Workspace OAuth2/OIDC.
+      Supabase PostgreSQL connection pooling, JWT cryptography with key rotation, and Google Workspace OAuth2/OIDC.
 """
 import os
-import secrets
 from typing import List, Optional
 
 try:
@@ -48,7 +47,11 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Smart Complaint Handler"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "production" if _is_production_env() else "development"
-    DEBUG: bool = not _is_production_env()
+    DEBUG: bool = (
+        os.getenv("DEBUG", "false" if _is_production_env() else "true").lower()
+        in ("true", "1", "yes")
+        and not _is_production_env()
+    )
 
     # Supabase PostgreSQL / SQLite Database Configuration
     DATABASE_URL: str = _resolve_default_database_url()
@@ -57,7 +60,7 @@ class Settings(BaseSettings):
     DB_POOL_RECYCLE_SECONDS: int = 300
     DB_CONNECT_TIMEOUT_SECONDS: int = 10
 
-    # Cryptographic JWT & OTP Settings
+    # Cryptographic JWT & OTP Settings (with PREVIOUS_SECRET_KEY support for zero-downtime key rotation)
     SECRET_KEY: str = os.getenv(
         "SECRET_KEY",
         os.getenv(
@@ -68,6 +71,7 @@ class Settings(BaseSettings):
             ),
         ),
     )
+    PREVIOUS_SECRET_KEY: Optional[str] = os.getenv("PREVIOUS_SECRET_KEY") or None
     REFRESH_SECRET_KEY: str = os.getenv(
         "REFRESH_SECRET_KEY",
         f"{os.getenv('SECRET_KEY', 'iiitnr-campus-grievance-secret-key-2026')}-refresh",
@@ -76,6 +80,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_HOURS: int = 24
     REMEMBER_ME_EXPIRE_DAYS: int = 30
     OTP_EXPIRE_MINUTES: int = 10
+
+    # Brute-Force & Rate-Limiting Thresholds
+    MAX_LOGIN_ATTEMPTS_PER_WINDOW: int = int(os.getenv("MAX_LOGIN_ATTEMPTS_PER_WINDOW", "5"))
+    LOGIN_LOCKOUT_MINUTES: int = int(os.getenv("LOGIN_LOCKOUT_MINUTES", "15"))
+    MAX_OTP_REQUESTS_PER_WINDOW: int = int(os.getenv("MAX_OTP_REQUESTS_PER_WINDOW", "5"))
 
     # Google Workspace OAuth2 / OIDC SSO & IIIT-NR Domain Constraints
     GOOGLE_CLIENT_ID: Optional[str] = (
@@ -91,7 +100,11 @@ class Settings(BaseSettings):
         in ("true", "1", "yes")
     )
 
-    # Security & Startup Policies
+    # Security & Access Control Policies
+    ENFORCE_STRICT_RBAC: bool = (
+        os.getenv("ENFORCE_STRICT_RBAC", "true" if _is_production_env() else "false").lower()
+        in ("true", "1", "yes")
+    )
     ALLOW_UNREGISTERED_LOGIN_PROVISIONING: bool = (
         os.getenv("ALLOW_UNREGISTERED_LOGIN_PROVISIONING", "false" if _is_production_env() else "true").lower()
         in ("true", "1", "yes")
@@ -103,14 +116,19 @@ class Settings(BaseSettings):
     AUTO_SEED_ON_STARTUP: bool = (
         os.getenv("AUTO_SEED_ON_STARTUP", "false").lower() in ("true", "1", "yes")
     )
-    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "*")
+    CORS_ORIGINS: str = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173,https://smart-complaint-handler.vercel.app",
+    )
 
     @property
     def parsed_cors_origins(self) -> List[str]:
-        raw = (self.CORS_ORIGINS or "*").strip()
+        raw = (self.CORS_ORIGINS or "").strip()
+        if not raw:
+            return ["http://localhost:5173", "http://127.0.0.1:5173"]
         if raw == "*":
             return ["*"]
-        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+        return [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
 
     if HAS_PYDANTIC_SETTINGS_V2:
         model_config = SettingsConfigDict(

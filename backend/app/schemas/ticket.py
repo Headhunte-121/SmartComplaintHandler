@@ -1,11 +1,17 @@
 """
 SmartComplaintHandler - Ticket Validation Schemas
 Blueprint Reference: V1/M2/backend/03_ticket_schemas.md & V1/M3/backend/04_service_integration.md
-Role: Pydantic V2 DTOs for complaint intake (TicketCreate) and response serialization (TicketResponse).
+Role: Pydantic DTOs for complaint intake (TicketCreate) and response serialization (TicketResponse).
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
+
+HAS_PYDANTIC_V2 = hasattr(BaseModel, "model_validate")
+if HAS_PYDANTIC_V2:
+    from pydantic import ConfigDict
+else:
+    from pydantic import root_validator
 
 
 class TicketCreate(BaseModel):
@@ -15,7 +21,11 @@ class TicketCreate(BaseModel):
     student_name: Optional[str] = Field(None, max_length=150, description="Student submitter name")
     student_email: Optional[str] = Field(None, max_length=150, description="Student university email")
 
-    model_config = ConfigDict(str_strip_whitespace=True)
+    if HAS_PYDANTIC_V2:
+        model_config = ConfigDict(str_strip_whitespace=True)
+    else:
+        class Config:
+            anystr_strip_whitespace = True
 
 
 class TicketResponse(BaseModel):
@@ -41,13 +51,31 @@ class TicketResponse(BaseModel):
     feedback_comments: Optional[str] = None
     feedback_submitted_at: Optional[datetime] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    if HAS_PYDANTIC_V2:
+        model_config = ConfigDict(from_attributes=True)
 
-    def model_post_init(self, __context):
-        if self.target_resolution_date is None and self.sla_deadline is not None:
-            self.target_resolution_date = self.sla_deadline
-        elif self.sla_deadline is None and self.target_resolution_date is not None:
-            self.sla_deadline = self.target_resolution_date
+        def model_post_init(self, __context):
+            if self.target_resolution_date is None and self.sla_deadline is not None:
+                self.target_resolution_date = self.sla_deadline
+            elif self.sla_deadline is None and self.target_resolution_date is not None:
+                self.sla_deadline = self.target_resolution_date
+    else:
+        class Config:
+            orm_mode = True
+
+        @root_validator(pre=False)
+        def _sync_deadline_aliases(cls, values):
+            if values.get("target_resolution_date") is None and values.get("sla_deadline") is not None:
+                values["target_resolution_date"] = values["sla_deadline"]
+            elif values.get("sla_deadline") is None and values.get("target_resolution_date") is not None:
+                values["sla_deadline"] = values["target_resolution_date"]
+            return values
+
+        @classmethod
+        def model_validate(cls, obj):
+            if isinstance(obj, dict):
+                return cls(**obj)
+            return cls.from_orm(obj)
 
 
 class FeedbackSubmitRequest(BaseModel):
@@ -56,8 +84,6 @@ class FeedbackSubmitRequest(BaseModel):
     student_name: Optional[str] = Field(None, max_length=150, description="Student submitter identity")
 
 
-# Schema aliases for cross-module compatibility
 ComplaintCreate = TicketCreate
 ComplaintResponse = TicketResponse
 FeedbackCreate = FeedbackSubmitRequest
-

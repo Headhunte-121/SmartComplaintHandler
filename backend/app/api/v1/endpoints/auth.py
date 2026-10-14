@@ -3,13 +3,13 @@ SmartComplaintHandler - Authentication & Super Admin Endpoints
 Role: Institutional registration, login with persistent Remember Me sessions,
       Google Workspace OAuth2/OIDC SSO strictly restricted to @iiitnr.edu.in,
       stateless OTP challenge/verification, JWT access/refresh lifecycle,
-      password updates, profile retrieval, and Super Admin operations.
+      password updates, profile retrieval, and RBAC-protected Super Admin operations.
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, get_optional_current_user
+from app.api.deps import get_current_user, get_db, require_roles
 from app.core.config import settings
 from app.schemas.user import (
     IIITNR_DOMAIN,
@@ -78,7 +78,7 @@ def send_otp_endpoint(payload: OTPRequest):
         "expires_in_minutes": settings.OTP_EXPIRE_MINUTES,
         "message": f"Verification code sent to {clean_email}.",
     }
-    if getattr(settings, "EXPOSE_DEV_OTP_IN_RESPONSE", True):
+    if getattr(settings, "EXPOSE_DEV_OTP_IN_RESPONSE", False) and getattr(settings, "ENVIRONMENT", "development") != "production":
         response["otp"] = otp
     return response
 
@@ -108,9 +108,7 @@ def verify_otp_endpoint(payload: OTPVerifyRequest):
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> AuthResponse:
     """
     Authenticate an official IIIT-NR user.
-    Verifies credentials via bcrypt, detects role, and returns access + refresh JWT tokens:
-    - Normal session: 24-hour access token
-    - Remember Me enabled: 30-day persistent token
+    Verifies credentials via bcrypt, enforces brute-force lockout protection, and returns access + refresh JWTs.
     """
     return authenticate_iiitnr_user(payload, db)
 
@@ -197,26 +195,16 @@ def get_me(
     return get_current_user_from_token(token, db)
 
 
-def _enforce_super_admin_if_authenticated(current_user: Optional[UserResponse]) -> None:
-    """If an Authorization header is supplied on admin routes, verify SUPER_ADMIN/ADMIN authority."""
-    if current_user is not None and current_user.role not in ("SUPER_ADMIN", "ADMIN"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Restricted to Super Administrators and Facility Administrators.",
-        )
-
-
 @router.get(
     "/admins",
     response_model=List[UserResponse],
-    summary="List Campus Admins & Staff (Super Admin)",
+    summary="List Campus Admins & Staff (Super Admin / Admin)",
 )
 def get_admins(
-    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+    current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN", "ADMIN"])),
     db: Session = Depends(get_db),
 ) -> List[UserResponse]:
     """Retrieve list of all registered administrators, supervisors, and technicians."""
-    _enforce_super_admin_if_authenticated(current_user)
     users = list_administrative_users(db)
     return [UserResponse.model_validate(u) for u in users]
 
@@ -225,27 +213,25 @@ def get_admins(
     "/admins",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Add New Admin / Staff (Super Admin)",
+    summary="Add New Admin / Staff (Super Admin Only)",
 )
 def create_admin(
     payload: AdminCreateRequest,
-    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+    current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN"])),
     db: Session = Depends(get_db),
 ) -> UserResponse:
     """Super Admin action to register a new facility admin or maintenance squad lead."""
-    _enforce_super_admin_if_authenticated(current_user)
     user = add_admin_user(payload, db)
     return UserResponse.model_validate(user)
 
 
-@router.delete("/admins/{user_id}", summary="Remove Admin / Staff (Super Admin)")
+@router.delete("/admins/{user_id}", summary="Remove Admin / Staff (Super Admin Only)")
 def remove_admin(
     user_id: int,
-    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+    current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN"])),
     db: Session = Depends(get_db),
 ):
     """Super Admin action to delete or revoke access for a staff member."""
-    _enforce_super_admin_if_authenticated(current_user)
     success = delete_admin_user(user_id, db)
     if not success:
         raise HTTPException(
@@ -255,13 +241,12 @@ def remove_admin(
     return {"message": f"Staff account #{user_id} revoked successfully."}
 
 
-@router.post("/purge-tickets", summary="Purge All Tickets (Super Admin)")
+@router.post("/purge-tickets", summary="Purge All Tickets (Super Admin Only)")
 def purge_tickets_endpoint(
-    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+    current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN"])),
     db: Session = Depends(get_db),
 ):
     """Super Admin action to clear all complaint tickets from database."""
-    _enforce_super_admin_if_authenticated(current_user)
     count = purge_all_tickets(db)
     return {
         "message": f"Database sanitized: {count} complaints cleared.",
