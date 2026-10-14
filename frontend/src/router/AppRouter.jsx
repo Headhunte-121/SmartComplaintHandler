@@ -69,13 +69,14 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Standalone Authentication Pages (NO Navbar / Footer) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Main Application Shell (With Persistent Navbar & Footer) */}
         <Route path="/" element={<Layout />}>
           {/* Institutional Homepage */}
           <Route index element={<Home />} />
-
-          {/* Institutional SSO Login & Registration */}
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
 
           {/* Grievance Submission — Accessible to students, staff, and faculty */}
           <Route path="submit" element={<SubmitComplaint />} />

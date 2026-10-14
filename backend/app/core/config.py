@@ -14,7 +14,7 @@ except ImportError:
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Smart Complaint Handler"
     API_V1_STR: str = "/api/v1"
-    DATABASE_URL: str = "sqlite:///./smart_complaints.db"
+    DATABASE_URL: str = "postgresql://postgres.swtckhxitsxvphtenaqo:2TKUGaPmLDqXYKx0@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
     DEBUG: bool = True
 
     class Config:

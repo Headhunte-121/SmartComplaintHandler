@@ -1,8 +1,7 @@
 /**
- * SmartComplaintHandler - IIIT Naya Raipur Institutional Authentication Gateway
- * Role: Single Sign-On (SSO) gateway enforcing @iiitnr.edu.in institutional email domain.
- *       Includes industry-standard persistent Remember Me (30 days), bcrypt verification,
- *       and automatic role-based redirection to dedicated portals.
+ * SmartComplaintHandler - Clean Institutional Login Portal
+ * Role: Standalone, distraction-free authentication gateway enforcing @iiitnr.edu.in credentials,
+ *       bcrypt password verification, persistent Remember Me session support, and role-based redirection.
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,13 +11,13 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, rememberedEmail } = useAuth();
 
-  const [email, setEmail] = useState(rememberedEmail || 'nikhil26100@iiitnr.edu.in');
-  const [password, setPassword] = useState('password123');
-  const [rememberMe, setRememberMe] = useState(!!rememberedEmail || true);
+  const [email, setEmail] = useState(rememberedEmail || '');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [successInfo, setSuccessInfo] = useState(null);
+  const [successUser, setSuccessUser] = useState(null);
 
   useEffect(() => {
     if (rememberedEmail) {
@@ -26,11 +25,6 @@ export default function Login() {
       setRememberMe(true);
     }
   }, [rememberedEmail]);
-
-  const handleQuickFill = (presetEmail) => {
-    setEmail(presetEmail);
-    setError(null);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,13 +36,18 @@ export default function Login() {
       return;
     }
 
+    if (!password) {
+      setError('Please enter your account password.');
+      return;
+    }
+
     setLoading(true);
     try {
       const user = await login(cleanEmail, password, rememberMe);
-      setSuccessInfo(user);
+      setSuccessUser(user);
 
       // Determine redirect route based on role
-      let targetRoute = '/submit'; // Default for STUDENT
+      let targetRoute = '/submit';
       if (user.role === 'SUPER_ADMIN') {
         targetRoute = '/superadmin';
       } else if (user.role === 'ADMIN') {
@@ -59,243 +58,171 @@ export default function Login() {
 
       setTimeout(() => {
         navigate(targetRoute);
-      }, 700);
+      }, 600);
     } catch (err) {
       setError(
         err.response?.data?.detail ||
         err.message ||
-        'Authentication failed. Please verify your credentials or register a new account.'
+        'Invalid institutional credentials. Please check your email and password.'
       );
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto py-8 animate-fade-in space-y-6">
-      {/* Institutional Branding */}
-      <div className="text-center space-y-2">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-lg shadow-indigo-600/30">
-          🏛️
-        </div>
-        <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-          IIIT Naya Raipur
-        </h1>
-        <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-          Central Institutional Identity & Access Management (IAM). Please authenticate using your official <strong className="text-indigo-600 font-bold">@iiitnr.edu.in</strong> email account.
-        </p>
-      </div>
-
-      {/* Main Login Card */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-6">
-        {/* Navigation Tabs: Sign In / Register */}
-        <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
-          <div className="py-2.5 text-center bg-white text-indigo-600 rounded-xl shadow-xs">
-            Sign In
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-indigo-50/40 flex flex-col justify-center items-center px-4 py-12">
+      <div className="max-w-md w-full space-y-6">
+        {/* Institutional Branding */}
+        <div className="text-center space-y-2">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-indigo-600 text-white flex items-center justify-center font-black text-3xl shadow-xl shadow-indigo-600/25 ring-4 ring-indigo-50">
+            🏛️
           </div>
-          <Link
-            to="/register"
-            className="py-2.5 text-center text-slate-600 hover:text-slate-900 rounded-xl transition-all"
-          >
-            Create Account
-          </Link>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              IIIT Naya Raipur
+            </h1>
+            <p className="text-xs text-slate-500 font-medium">
+              Campus Facilities & Grievance Management System
+            </p>
+          </div>
         </div>
 
-        {successInfo ? (
-          <div className="py-8 text-center space-y-3 animate-fade-in">
-            <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold">
-              ✓
-            </div>
-            <h3 className="text-base font-bold text-slate-900">
-              Welcome, {successInfo.name}!
-            </h3>
-            <div className="text-xs text-slate-500 space-y-1">
-              <p>Authenticated as <strong className="text-indigo-600 uppercase font-bold">{successInfo.role}</strong> ({successInfo.identifier})</p>
-              <p className="text-[11px] text-slate-400">
-                Opening {successInfo.role === 'STUDENT' ? 'Grievance Filing Portal (/submit)' : successInfo.role === 'SUPER_ADMIN' ? 'Super Admin Directorate (/superadmin)' : 'Operations Desk (/admin)'}...
+        {/* Main Clean Login Card */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7 sm:p-9 space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-lg font-black text-slate-900">
+              Sign In to Your Account
+            </h2>
+            <p className="text-xs text-slate-500">
+              Use your official institutional credentials to access your dashboard.
+            </p>
+          </div>
+
+          {successUser ? (
+            <div className="py-6 text-center space-y-3 animate-fade-in">
+              <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                ✓
+              </div>
+              <h3 className="text-sm font-bold text-slate-900">
+                Welcome, {successUser.name}!
+              </h3>
+              <p className="text-xs text-slate-500">
+                Redirecting to your workspace...
               </p>
             </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Quick Demo Selector */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                  Quick-Fill Institutional Account:
-                </label>
-                <span className="text-[10px] text-slate-400">Click to autofill</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('nikhil26100@iiitnr.edu.in')}
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    email === 'nikhil26100@iiitnr.edu.in'
-                      ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-500/20'
-                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">🎓 Student</span>
-                    <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">Roll BCS100</span>
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-500 mt-1 truncate">
-                    nikhil26100@iiitnr.edu.in
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('admin@iiitnr.edu.in')}
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    email === 'admin@iiitnr.edu.in'
-                      ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-500/20'
-                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">🛡️ Facility Admin</span>
-                    <span className="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.2 rounded border border-purple-200">Supervisor</span>
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-500 mt-1 truncate">
-                    admin@iiitnr.edu.in
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('superadmin@iiitnr.edu.in')}
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    email === 'superadmin@iiitnr.edu.in'
-                      ? 'border-amber-600 bg-amber-50/60 ring-2 ring-amber-500/20'
-                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">👑 Super Admin</span>
-                    <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-300">Directorate</span>
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-500 mt-1 truncate">
-                    superadmin@iiitnr.edu.in
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('tech.ramesh@iiitnr.edu.in')}
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    email === 'tech.ramesh@iiitnr.edu.in'
-                      ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-500/20'
-                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">🔧 Field Tech</span>
-                    <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">Squad 1</span>
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-500 mt-1 truncate">
-                    tech.ramesh@iiitnr.edu.in
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Error Banner */}
-            {error && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2">
-                <span>⚠️</span>
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Email Input */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Institutional Email ID:
-              </label>
-              <input
-                type="email"
-                required
-                placeholder="name(year)(roll)@iiitnr.edu.in"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError(null);
-                }}
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 font-mono focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Students use enrollment format e.g. <code className="text-indigo-600 font-mono">nikhil26100@iiitnr.edu.in</code>
-              </span>
-            </div>
-
-            {/* Password */}
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Campus Credential Password:
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold"
-                >
-                  {showPassword ? 'Hide Password' : 'Show Password'}
-                </button>
-              </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                />
-              </div>
-            </div>
-
-            {/* Persistent Remember Me Checkbox */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start space-x-3">
-              <input
-                id="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
-              />
-              <label htmlFor="remember-me" className="text-xs text-slate-700 leading-snug cursor-pointer">
-                <strong className="font-bold text-slate-900 block">Persistent Remember Me (Industry Standard)</strong>
-                Keep me signed in on this computer for <strong className="text-indigo-600">30 days</strong> using an encrypted JWT token.
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold text-sm rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center space-x-2 cursor-pointer"
-            >
-              {loading ? (
-                <span>Verifying Institutional Identity...</span>
-              ) : (
-                <>
-                  <span>Sign In to Campus Portal</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2 animate-fade-in">
+                  <span>⚠️</span>
+                  <span>{error}</span>
+                </div>
               )}
-            </button>
-          </form>
-        )}
 
-        {/* Register prompt */}
-        <div className="pt-4 border-t border-slate-100 text-xs text-center text-slate-500">
-          New student or faculty member?{' '}
-          <Link to="/register" className="font-bold text-indigo-600 hover:underline">
-            Register an Account
-          </Link>
+              {/* Email / ID Input */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Institutional Email / Student ID
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    autoFocus
+                    placeholder="name(year)(roll)@iiitnr.edu.in"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError(null);
+                    }}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-xs font-mono text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                  />
+                </div>
+                <span className="text-[11px] text-slate-400">
+                  Must end with <code className="text-indigo-600 font-mono">@iiitnr.edu.in</code>
+                </span>
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError(null);
+                    }}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Persistent Remember Me Checkbox */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center space-x-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-slate-700">
+                    Remember me on this device
+                  </span>
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-300 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                {loading ? (
+                  <span>Signing in...</span>
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* Footer Navigation */}
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500">Don't have an account?</span>
+            <Link
+              to="/register"
+              className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
+            >
+              Register here
+            </Link>
+          </div>
         </div>
+
+        {/* Security Footer Notice */}
+        <p className="text-[11px] text-slate-400 text-center leading-relaxed">
+          Connected to Central Supabase PostgreSQL. Unauthorized access is monitored under institutional IT regulations.
+        </p>
       </div>
     </div>
   );

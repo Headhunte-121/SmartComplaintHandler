@@ -369,6 +369,25 @@ npm run dev
   - Frontend Production Build: `npm run build` compiled 120 modules in 1.47s with 0 errors.
   - End-to-End Live Verification: Tested registration for `aanya26105@iiitnr.edu.in` (`201 Created`), persistent token generation (`30 days`), and immediate login.
 
+### [2026-10-14] - Clean Standalone Auth Portal & Complete Decommissioning of Local Databases
+* **Files Modified:**
+  - `frontend/src/router/AppRouter.jsx`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `frontend/vite.config.js`
+  - `backend/app/core/config.py`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Standalone Distraction-Free Auth Portal:** Separated `/login` and `/register` routes from the primary `Layout` component in `AppRouter.jsx`. The global `Navbar` (with menu links and active user badges) and footer are now completely absent from the login and register screens.
+  2. **Clean Minimalist Sign-In Card:** Stripped all mock quick-fill demo boxes from `Login.jsx`. Rebuilt the page into a clean institutional card focused strictly on email/ID, password (with Show/Hide toggle), Remember Me checkbox, and Sign In action.
+  3. **Complete Decommissioning of Local Databases:** Permanently deleted all leftover `*.db` / `*.sqlite` files. Updated `backend/app/core/config.py` so that the default `DATABASE_URL` points directly to the cloud Supabase PostgreSQL instance, guaranteeing 100% cloud-hosted persistence with zero local database reliance.
+  4. **Health Check Reverse Proxy Fix:** Added `/health` proxy route to `vite.config.js` to ensure the frontend live heartbeat accurately registers the backend as "Services Active" rather than displaying false "System Offline" alerts.
+* **Why It Was Changed:** Directly satisfies user feedback to eliminate the navbar on the sign-in screen, streamline the page to a clean ID/password card, and ensure all data resides exclusively in Supabase without any local databases.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled 120 modules in 1.34s with 0 errors.
+  - Backend Test Suite: 45/45 tests passed against live Supabase PostgreSQL in 14.22s.
+  - Local Database Check: Verified zero `*.db` files exist in the repository tree.
+
 
 
 

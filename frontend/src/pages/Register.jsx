@@ -1,8 +1,6 @@
 /**
- * SmartComplaintHandler - Institutional Registration Gateway
- * Role: Allows students, faculty, and administrative staff to register an authentic account
- *       under the @iiitnr.edu.in institutional domain with bcrypt password hashing
- *       and persistent Remember Me session support.
+ * SmartComplaintHandler - Clean Institutional Registration Portal
+ * Role: Standalone, distraction-free registration portal for @iiitnr.edu.in accounts.
  */
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -46,7 +44,7 @@ export default function Register() {
     }
 
     if (password.length < 6) {
-      setError('Password must contain at least 6 characters for institutional security.');
+      setError('Password must contain at least 6 characters.');
       return;
     }
 
@@ -80,7 +78,7 @@ export default function Register() {
 
       setTimeout(() => {
         navigate(targetRoute);
-      }, 700);
+      }, 600);
     } catch (err) {
       setError(
         err.response?.data?.detail ||
@@ -92,222 +90,203 @@ export default function Register() {
   };
 
   return (
-    <div className="max-w-xl mx-auto py-8 animate-fade-in space-y-6">
-      {/* Institutional Branding */}
-      <div className="text-center space-y-2">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-lg shadow-indigo-600/30">
-          🏛️
-        </div>
-        <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-          Create Institutional Account
-        </h1>
-        <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-          International Institute of Information Technology, Naya Raipur. Register with your official <strong className="text-indigo-600 font-bold">@iiitnr.edu.in</strong> email to access campus grievance workflows.
-        </p>
-      </div>
-
-      {/* Main Registration Card */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-6">
-        {/* Navigation Tabs: Sign In / Register */}
-        <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
-          <Link
-            to="/login"
-            className="py-2.5 text-center text-slate-600 hover:text-slate-900 rounded-xl transition-all"
-          >
-            Sign In
-          </Link>
-          <div className="py-2.5 text-center bg-white text-indigo-600 rounded-xl shadow-xs">
-            Create Account
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-indigo-50/40 flex flex-col justify-center items-center px-4 py-12">
+      <div className="max-w-md w-full space-y-6">
+        {/* Institutional Branding */}
+        <div className="text-center space-y-2">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-indigo-600 text-white flex items-center justify-center font-black text-3xl shadow-xl shadow-indigo-600/25 ring-4 ring-indigo-50">
+            🏛️
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              IIIT Naya Raipur
+            </h1>
+            <p className="text-xs text-slate-500 font-medium">
+              Campus Facilities & Grievance Management System
+            </p>
           </div>
         </div>
 
-        {successUser ? (
-          <div className="py-8 text-center space-y-3 animate-fade-in">
-            <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold">
-              ✓
-            </div>
-            <h3 className="text-base font-bold text-slate-900">
-              Account Created Successfully!
-            </h3>
-            <div className="text-xs text-slate-500 space-y-1">
-              <p>Welcome, <strong className="text-slate-800">{successUser.name}</strong>!</p>
-              <p>Registered as <strong className="text-indigo-600 uppercase font-bold">{successUser.role}</strong> ({successUser.identifier})</p>
-              <p className="text-[11px] text-slate-400">
-                Opening {successUser.role === 'STUDENT' ? 'Grievance Filing Portal (/submit)' : 'Console'}...
+        {/* Main Clean Register Card */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7 sm:p-9 space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-lg font-black text-slate-900">
+              Create an Account
+            </h2>
+            <p className="text-xs text-slate-500">
+              Register with your official @iiitnr.edu.in email address.
+            </p>
+          </div>
+
+          {successUser ? (
+            <div className="py-6 text-center space-y-3 animate-fade-in">
+              <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                ✓
+              </div>
+              <h3 className="text-sm font-bold text-slate-900">
+                Welcome, {successUser.name}!
+              </h3>
+              <p className="text-xs text-slate-500">
+                Opening your portal...
               </p>
             </div>
-          </div>
-        ) : (
-          <form onSubmit={handleRegister} className="space-y-4">
-            {error && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2">
-                <span>⚠️</span>
-                <span>{error}</span>
-              </div>
-            )}
+          ) : (
+            <form onSubmit={handleRegister} className="space-y-4">
+              {error && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2 animate-fade-in">
+                  <span>⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
 
-            {/* Full Name */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Full Name *:
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Nikhil Sharma"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setError(null);
-                }}
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              />
-            </div>
-
-            {/* Institutional Email */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Institutional Email ID (@iiitnr.edu.in) *:
-              </label>
-              <input
-                type="email"
-                required
-                placeholder="name(year)(roll)@iiitnr.edu.in"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError(null);
-                }}
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-mono text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Students use official enrollment format e.g. <code className="text-indigo-600 font-mono">nikhil26100@iiitnr.edu.in</code>
-              </span>
-            </div>
-
-            {/* Department */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Department / Program:
-              </label>
-              <select
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-800 bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              >
-                {DEPARTMENTS.map((dept) => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Contact Phone (Optional) */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Mobile / Intercom Extension (Optional):
-              </label>
-              <input
-                type="text"
-                placeholder="+91-9876543210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-mono text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              />
-            </div>
-
-            {/* Password & Confirm Password */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Password *:
+              {/* Full Name */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Full Name
                 </label>
-                <div className="relative">
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Nikhil Sharma"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setError(null);
+                  }}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                />
+              </div>
+
+              {/* Institutional Email */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Institutional Email ID
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="name(year)(roll)@iiitnr.edu.in"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null);
+                  }}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-mono text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                />
+              </div>
+
+              {/* Department */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Department / Program
+                </label>
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-800 bg-white focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15"
+                >
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Password & Confirm Password */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold"
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="Min. 6 chars"
+                    placeholder="Min 6 chars"
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
                       setError(null);
                     }}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 pr-10 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-xs"
-                    title={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? '🙈' : '👁️'}
-                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Confirm
+                  </label>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="Re-type"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setError(null);
+                    }}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15"
+                  />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Confirm Password *:
-                </label>
+              {/* Remember Me */}
+              <div className="flex items-center space-x-2 pt-1">
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  placeholder="Re-type password"
-                  value={confirmPassword}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                    setError(null);
-                  }}
-                  className={`w-full rounded-xl border px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 ${
-                    confirmPassword && confirmPassword !== password
-                      ? 'border-rose-400 focus:ring-rose-400/20'
-                      : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500/20'
-                  }`}
+                  id="reg-remember"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
                 />
+                <label htmlFor="reg-remember" className="text-xs font-medium text-slate-700 cursor-pointer">
+                  Remember me on this device
+                </label>
               </div>
-            </div>
 
-            {/* Persistent Remember Me Checkbox */}
-            <div className="p-3.5 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-start space-x-3">
-              <input
-                id="reg-remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
-              />
-              <label htmlFor="reg-remember-me" className="text-xs text-slate-700 leading-snug cursor-pointer">
-                <strong className="font-bold text-slate-900 block">Persistent Remember Me (Industry Standard)</strong>
-                Keep me signed in for <strong className="text-indigo-600">30 days</strong> on this device with a secure cryptographic JWT token.
-              </label>
-            </div>
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-300 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                {loading ? (
+                  <span>Creating Account in Supabase...</span>
+                ) : (
+                  <>
+                    <span>Create Account</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </form>
+          )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold text-sm rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+          {/* Footer Navigation */}
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500">Already registered?</span>
+            <Link
+              to="/login"
+              className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
             >
-              {loading ? (
-                <span>Registering Account in Supabase...</span>
-              ) : (
-                <>
-                  <span>Complete Registration & Sign In</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </>
-              )}
-            </button>
-          </form>
-        )}
-
-        {/* Footer Link */}
-        <div className="pt-4 border-t border-slate-100 text-xs text-center text-slate-500">
-          Already have an account?{' '}
-          <Link to="/login" className="font-bold text-indigo-600 hover:underline">
-            Sign In with @iiitnr.edu.in
-          </Link>
+              Sign In
+            </Link>
+          </div>
         </div>
+
+        {/* Security Footer Notice */}
+        <p className="text-[11px] text-slate-400 text-center leading-relaxed">
+          Connected to Central Supabase PostgreSQL.
+        </p>
       </div>
     </div>
   );
