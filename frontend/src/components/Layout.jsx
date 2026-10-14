@@ -17,7 +17,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-[#f4f7f5] text-slate-900 font-sans antialiased">
       {/* Top Persistent Navigation Bar */}
       <Navbar />
 

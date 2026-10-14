@@ -4,8 +4,8 @@
  * Role: Modern, streamlined student & faculty intake portal featuring interactive category selection,
  *       real-time AI triage assessment, and guaranteed turnaround SLA assignment.
  */
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { submitComplaint } from '../api/complaints';
 import LiveTriageCard from '../components/LiveTriageCard';
@@ -105,11 +105,20 @@ const CATEGORY_CARDS = [
 
 export default function SubmitComplaint() {
   const { currentPersona, currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
 
-  const [selectedCategoryId, setSelectedCategoryId] = useState(CATEGORY_CARDS[0].id);
-  const [building, setBuilding] = useState(CAMPUS_BUILDINGS[0]);
+  const queryCat = searchParams.get('category');
+  const queryTitle = searchParams.get('title');
+  const queryBuilding = searchParams.get('building');
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState(
+    queryCat && CATEGORY_CARDS.some((c) => c.id === queryCat) ? queryCat : CATEGORY_CARDS[0].id
+  );
+  const [building, setBuilding] = useState(
+    queryBuilding && CAMPUS_BUILDINGS.includes(queryBuilding) ? queryBuilding : CAMPUS_BUILDINGS[0]
+  );
   const [specificLocation, setSpecificLocation] = useState('Room 204, Wing B');
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(queryTitle || '');
   const [description, setDescription] = useState('');
 
   const [submitting, setSubmitting] = useState(false);

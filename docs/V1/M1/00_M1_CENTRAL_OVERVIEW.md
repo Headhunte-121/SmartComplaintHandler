@@ -639,4 +639,30 @@ npm run dev
   - Backend Test Suite: 48/48 pytest unit & integration tests passing cleanly in 37.82s.
   - Frontend Production Build: `npm run build` compiled in 19.24s with 0 errors.
 
+### [2026-10-15] - High-Contrast Mint/Emerald Theme & Space-Optimized Split Dashboard
+* **Files Modified:**
+  - `frontend/src/components/Layout.jsx`
+  - `frontend/src/pages/StudentDashboard.jsx`
+  - `frontend/src/pages/SubmitComplaint.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **High-Contrast Mint/Emerald Color Palette:**
+     - Applied soft institutional mint/slate backdrop (`bg-[#f4f7f5]`) in `Layout.jsx` to give crisp visual depth and contrast against white cards and status pills.
+     - Upgraded the student profile hero banner with subtle emerald gradient tints (`from-emerald-50/40 via-white to-teal-50/30`), verified student badges (`bg-emerald-100/90 text-emerald-800 border-emerald-300`), and a vibrant primary CTA button (`bg-gradient-to-r from-emerald-600 to-teal-600`).
+     - Transformed the 4 metric cards from monochrome white into distinctly tinted, high-contrast status cards (Amber for Active, Sky for In-Progress, Mint/Emerald for Resolved, and Gold for Satisfaction Rating).
+  2. **Space-Optimized Split Architecture (Eliminating Empty Space):**
+     - Replaced the single expansive empty box with a responsive 2-column grid (`8 cols / 4 cols`).
+     - **Main Column (8 cols):** Features Grievance Audit History with real-time search and filter tabs. When tickets are 0, displays a reassuring "All Clear" status banner alongside a **Fast-Track Triage Launcher** with 4 interactive 1-click grievance shortcut tiles (Room Fan/Light, Washroom Plumbing Leak, Campus Wi-Fi Drop, and Furniture/Lock Repair).
+     - **Side Column (4 cols):** Houses three continuous-utility widgets:
+       - *Live Campus Facility Health*: Real-time operational status of the 33kV substation, RO water supply, Wi-Fi 6 mesh, and water heaters.
+       - *Binding SLA Commitments*: Turnaround response guarantees (<4h Critical, <12h High, <24h Routine).
+       - *Maintenance Helpdesk*: Hostel Block B Caretaker contact (Mr. Ramesh Verma), 24x7 emergency helpline, and operating hours.
+  3. **Deep-Linked Shortcut Intake (`SubmitComplaint.jsx`):**
+     - Integrated `useSearchParams` to read `category`, `building`, and `title` query parameters from dashboard fast-track tiles, instantly pre-populating the grievance form.
+* **Why It Was Changed:** Addressed user feedback regarding washed-out contrast and excessive empty space on the dashboard, delivering high-contrast mint/emerald accents and instant 1-click triage utility.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 2.08s with 0 errors.
+  - Backend Test Suite: 48/48 pytest unit & integration tests passing cleanly in 38.26s.
+
+
 
