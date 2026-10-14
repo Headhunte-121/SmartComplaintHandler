@@ -94,10 +94,15 @@ CAMPUS_CATALOG = [
 def ensure_schema() -> None:
     """Ensure all newly added tables and columns exist across SQLite and PostgreSQL."""
     Base.metadata.create_all(bind=engine)
-    if "sqlite" not in str(engine.url):
-        return  # PostgreSQL/Supabase tables are created with the complete schema natively via create_all
     try:
         with engine.begin() as conn:
+            if "sqlite" not in str(engine.url):
+                # PostgreSQL / Supabase column safety checks
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR(255);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_name VARCHAR(100);"))
+                return
+
             res = conn.execute(text("PRAGMA table_info(tickets);"))
             existing = {row[1] for row in res.fetchall()}
             cols = [
@@ -114,6 +119,7 @@ def ensure_schema() -> None:
             res_user = conn.execute(text("PRAGMA table_info(users);"))
             existing_user = {row[1] for row in res_user.fetchall()}
             user_cols = [
+                ("hashed_password", "VARCHAR(255)"),
                 ("department_name", "VARCHAR(100)"),
                 ("department_id", "INTEGER"),
                 ("phone", "VARCHAR(50)"),

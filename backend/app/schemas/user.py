@@ -1,6 +1,6 @@
 """
 SmartComplaintHandler - User Authentication & Administration Schemas
-Role: Pydantic DTOs for @iiitnr.edu.in login, session payload, and admin creation.
+Role: Pydantic DTOs for @iiitnr.edu.in registration, login, JWT token payloads, and admin creation.
 """
 from datetime import datetime
 from typing import Optional
@@ -8,9 +8,11 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 IIITNR_DOMAIN = "iiitnr.edu.in"
 
+
 class LoginRequest(BaseModel):
     email: str = Field(..., description="Official IIIT-NR institutional email address")
-    password: Optional[str] = Field("••••••••", description="Optional password for campus credentials")
+    password: str = Field(..., min_length=4, description="Campus account credential password")
+    remember_me: bool = Field(False, description="Persist session for 30 days across browser restarts")
 
     @field_validator("email")
     @classmethod
@@ -18,6 +20,25 @@ class LoginRequest(BaseModel):
         v = v.strip().lower()
         if not v.endswith(f"@{IIITNR_DOMAIN}"):
             raise ValueError(f"Institutional login requires an official @{IIITNR_DOMAIN} email address.")
+        return v
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+
+class RegisterRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=150, description="Full name of student, faculty or staff member")
+    email: str = Field(..., description="Official IIIT-NR institutional email address")
+    password: str = Field(..., min_length=6, max_length=100, description="Secure account password (minimum 6 characters)")
+    department_name: Optional[str] = Field("Computer Science & Engineering", description="Academic or administrative department")
+    phone: Optional[str] = Field(None, max_length=50, description="Mobile contact or campus extension")
+    remember_me: bool = Field(False, description="Persist session for 30 days")
+
+    @field_validator("email")
+    @classmethod
+    def validate_iiitnr_domain(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not v.endswith(f"@{IIITNR_DOMAIN}"):
+            raise ValueError(f"Registration is restricted to official @{IIITNR_DOMAIN} accounts.")
         return v
 
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -38,9 +59,17 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AuthResponse(BaseModel):
+    access_token: str = Field(..., description="Cryptographic JWT session bearer token")
+    token_type: str = Field("bearer", description="Standard OAuth2 token type")
+    expires_in_days: int = Field(..., description="Token lifespan in days (30 if remember_me is enabled, else 1)")
+    user: UserResponse = Field(..., description="Authenticated user profile entity")
+
+
 class AdminCreateRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=150, description="Full name of staff/admin member")
     email: str = Field(..., description="Official IIIT-NR email address")
+    password: Optional[str] = Field("IIITNR@2026", min_length=6, description="Initial credentials password")
     role: str = Field("ADMIN", description="Role to assign: ADMIN or TECHNICIAN")
     department_name: Optional[str] = Field("General Administration", description="Assigned campus maintenance department")
     department_id: Optional[int] = None

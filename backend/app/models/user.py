@@ -14,6 +14,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     email: Mapped[str] = mapped_column(String(150), unique=True, index=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=True)
     role: Mapped[str] = mapped_column(String(50), default="STUDENT", nullable=False) # STUDENT, ADMIN, SUPER_ADMIN, TECHNICIAN
     department_name: Mapped[str] = mapped_column(String(100), nullable=True)
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"), nullable=True)

@@ -15,6 +15,7 @@ import StudentDashboard from '../pages/StudentDashboard';
 import TechnicianWorkstation from '../pages/TechnicianWorkstation';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import Login from '../pages/Login';
+import Register from '../pages/Register';
 import DeveloperLab from '../pages/DeveloperLab';
 import { useAuth } from '../context/AuthContext';
 
@@ -72,8 +73,9 @@ export default function AppRouter() {
           {/* Institutional Homepage */}
           <Route index element={<Home />} />
 
-          {/* Institutional SSO Login */}
+          {/* Institutional SSO Login & Registration */}
           <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
 
           {/* Grievance Submission — Accessible to students, staff, and faculty */}
           <Route path="submit" element={<SubmitComplaint />} />

@@ -1,15 +1,33 @@
 /**
  * SmartComplaintHandler - Authentication & Administration API Client
- * Domain: Handles @iiitnr.edu.in institutional login, staff listing, admin creation,
- *         and database sanitization actions under Super Admin authority.
+ * Domain: Handles @iiitnr.edu.in institutional login with Remember Me, new user registration,
+ *         staff listing, admin creation, and database sanitization actions under Super Admin authority.
  */
 import apiClient from './client';
 
-export async function loginUser(email, password = '••••••••') {
+export async function loginUser(email, password = 'password123', rememberMe = false) {
   const response = await apiClient.post('/auth/login', {
     email: email.trim().toLowerCase(),
     password,
+    remember_me: rememberMe,
   });
+  return response.data;
+}
+
+export async function registerUser(registrationData) {
+  const response = await apiClient.post('/auth/register', {
+    name: registrationData.name.trim(),
+    email: registrationData.email.trim().toLowerCase(),
+    password: registrationData.password,
+    department_name: registrationData.department_name || 'Computer Science & Engineering',
+    phone: registrationData.phone ? registrationData.phone.trim() : undefined,
+    remember_me: !!registrationData.remember_me,
+  });
+  return response.data;
+}
+
+export async function fetchMe() {
+  const response = await apiClient.get('/auth/me');
   return response.data;
 }
 

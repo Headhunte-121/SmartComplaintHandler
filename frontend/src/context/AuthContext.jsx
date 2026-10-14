@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser } from '../api/auth';
+import { loginUser, registerUser, fetchMe } from '../api/auth';
 
 /**
- * Institutional IIIT-NR Personas for Role-Based Access & Quick Demonstration:
+ * Institutional IIIT-NR Personas for Role-Based Access & Quick Testing:
  * 1. STUDENT: Lodges complaints (/submit), tracks personal grievances (/student, /track). Strictly isolated from admin desks.
  * 2. ADMIN: Facilities supervisor overseeing triage, queues, reassignment, and SLA governance (/admin).
  * 3. SUPER_ADMIN: Directorate authority managing admins, technicians, data sanitization, and campus catalog (/superadmin).
@@ -100,52 +100,98 @@ function enrichUser(userData) {
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  // Load initial session: check persistent localStorage first, then session-scoped sessionStorage
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('smart_complaint_auth_user');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return enrichUser(parsed);
+      const persisted = localStorage.getItem('smart_complaint_auth_user');
+      if (persisted) {
+        return enrichUser(JSON.parse(persisted));
+      }
+      const sessioned = sessionStorage.getItem('smart_complaint_auth_user');
+      if (sessioned) {
+        return enrichUser(JSON.parse(sessioned));
       }
     } catch (e) {
       console.warn('Failed to parse cached auth user:', e);
     }
-    // Default initial user is student Nikhil
+    // Default initial user for instant interaction
     return CAMPUS_PERSONAS[0];
   });
 
   const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('smart_complaint_auth_user', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('smart_complaint_auth_user');
-    }
-  }, [currentUser]);
+  const [rememberedEmail, setRememberedEmail] = useState(() => {
+    return localStorage.getItem('smart_complaint_remember_email') || '';
+  });
 
   /**
-   * Perform real backend login against /api/v1/auth/login
+   * Industry-Standard Login with Persistent Remember Me
    */
-  const login = async (email, password = '••••••••') => {
-    const data = await loginUser(email, password);
-    const enriched = enrichUser(data);
+  const login = async (email, password, rememberMe = false) => {
+    const data = await loginUser(email, password, rememberMe);
+    const enriched = enrichUser(data.user);
     setCurrentUser(enriched);
+
+    if (rememberMe) {
+      // 30-day persistent session in localStorage
+      localStorage.setItem('smart_complaint_auth_token', data.access_token);
+      localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
+      localStorage.setItem('smart_complaint_remember_email', email);
+      setRememberedEmail(email);
+
+      sessionStorage.removeItem('smart_complaint_auth_token');
+      sessionStorage.removeItem('smart_complaint_auth_user');
+    } else {
+      // Ephemeral tab/browser session in sessionStorage
+      sessionStorage.setItem('smart_complaint_auth_token', data.access_token);
+      sessionStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
+
+      localStorage.removeItem('smart_complaint_auth_token');
+      localStorage.removeItem('smart_complaint_auth_user');
+    }
+
     return enriched;
   };
 
   /**
-   * Switch persona shortcut
+   * Register a new institutional user with bcrypt hash & JWT
+   */
+  const register = async (registrationData) => {
+    const data = await registerUser(registrationData);
+    const enriched = enrichUser(data.user);
+    setCurrentUser(enriched);
+
+    if (registrationData.remember_me) {
+      localStorage.setItem('smart_complaint_auth_token', data.access_token);
+      localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
+      localStorage.setItem('smart_complaint_remember_email', registrationData.email);
+      setRememberedEmail(registrationData.email);
+      sessionStorage.removeItem('smart_complaint_auth_token');
+      sessionStorage.removeItem('smart_complaint_auth_user');
+    } else {
+      sessionStorage.setItem('smart_complaint_auth_token', data.access_token);
+      sessionStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
+      localStorage.removeItem('smart_complaint_auth_token');
+      localStorage.removeItem('smart_complaint_auth_user');
+    }
+
+    return enriched;
+  };
+
+  /**
+   * Quick persona switch for demonstration & testing
    */
   const switchPersona = async (personaId) => {
     const found = CAMPUS_PERSONAS.find((p) => p.id === personaId);
     if (found) {
       try {
-        const backendUser = await loginUser(found.email);
-        const enriched = enrichUser(backendUser);
+        const data = await loginUser(found.email, 'password123', true);
+        const enriched = enrichUser(data.user);
         setCurrentUser(enriched);
+        localStorage.setItem('smart_complaint_auth_token', data.access_token);
+        localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
+        localStorage.setItem('smart_complaint_remember_email', found.email);
+        setRememberedEmail(found.email);
       } catch (e) {
-        // Fallback to local persona definition if offline
         setCurrentUser(found);
       }
       setIsPersonaModalOpen(false);
@@ -154,7 +200,10 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setCurrentUser(null);
+    localStorage.removeItem('smart_complaint_auth_token');
     localStorage.removeItem('smart_complaint_auth_user');
+    sessionStorage.removeItem('smart_complaint_auth_token');
+    sessionStorage.removeItem('smart_complaint_auth_user');
   };
 
   const isStudent = currentUser?.role === 'STUDENT';
@@ -169,7 +218,9 @@ export function AuthProvider({ children }) {
         currentUser,
         currentPersona: currentUser || CAMPUS_PERSONAS[0],
         personas: CAMPUS_PERSONAS,
+        rememberedEmail,
         login,
+        register,
         logout,
         switchPersona,
         isPersonaModalOpen,

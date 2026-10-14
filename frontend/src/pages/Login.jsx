@@ -1,24 +1,31 @@
 /**
  * SmartComplaintHandler - IIIT Naya Raipur Institutional Authentication Gateway
  * Role: Single Sign-On (SSO) gateway enforcing @iiitnr.edu.in institutional email domain.
- *       Automatically parses student roll numbers and auto-redirects according to role:
- *       - Student (e.g. nikhil26100@iiitnr.edu.in) -> Lodging Grievance page (/submit)
- *       - Facility Admin (e.g. admin@iiitnr.edu.in) -> Operations Desk (/admin)
- *       - Super Admin (e.g. superadmin@iiitnr.edu.in) -> Super Admin Console (/superadmin)
+ *       Includes industry-standard persistent Remember Me (30 days), bcrypt verification,
+ *       and automatic role-based redirection to dedicated portals.
  */
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, rememberedEmail } = useAuth();
 
-  const [email, setEmail] = useState('nikhil26100@iiitnr.edu.in');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState(rememberedEmail || 'nikhil26100@iiitnr.edu.in');
+  const [password, setPassword] = useState('password123');
+  const [rememberMe, setRememberMe] = useState(!!rememberedEmail || true);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successInfo, setSuccessInfo] = useState(null);
+
+  useEffect(() => {
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, [rememberedEmail]);
 
   const handleQuickFill = (presetEmail) => {
     setEmail(presetEmail);
@@ -37,7 +44,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const user = await login(cleanEmail, password);
+      const user = await login(cleanEmail, password, rememberMe);
       setSuccessInfo(user);
 
       // Determine redirect route based on role
@@ -57,7 +64,7 @@ export default function Login() {
       setError(
         err.response?.data?.detail ||
         err.message ||
-        'Authentication failed. Please verify institutional credentials.'
+        'Authentication failed. Please verify your credentials or register a new account.'
       );
       setLoading(false);
     }
@@ -73,13 +80,26 @@ export default function Login() {
         <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
           IIIT Naya Raipur
         </h1>
-        <p className="text-xs text-slate-500 max-w-md mx-auto">
+        <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
           Central Institutional Identity & Access Management (IAM). Please authenticate using your official <strong className="text-indigo-600 font-bold">@iiitnr.edu.in</strong> email account.
         </p>
       </div>
 
       {/* Main Login Card */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-6">
+        {/* Navigation Tabs: Sign In / Register */}
+        <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
+          <div className="py-2.5 text-center bg-white text-indigo-600 rounded-xl shadow-xs">
+            Sign In
+          </div>
+          <Link
+            to="/register"
+            className="py-2.5 text-center text-slate-600 hover:text-slate-900 rounded-xl transition-all"
+          >
+            Create Account
+          </Link>
+        </div>
+
         {successInfo ? (
           <div className="py-8 text-center space-y-3 animate-fade-in">
             <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold">
@@ -215,17 +235,38 @@ export default function Login() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                   Campus Credential Password:
                 </label>
-                <span className="text-[10px] text-indigo-600 font-semibold cursor-pointer hover:underline">
-                  Self-Service Reset
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold"
+                >
+                  {showPassword ? 'Hide Password' : 'Show Password'}
+                </button>
               </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+            </div>
+
+            {/* Persistent Remember Me Checkbox */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start space-x-3">
               <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                id="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
               />
+              <label htmlFor="remember-me" className="text-xs text-slate-700 leading-snug cursor-pointer">
+                <strong className="font-bold text-slate-900 block">Persistent Remember Me (Industry Standard)</strong>
+                Keep me signed in on this computer for <strong className="text-indigo-600">30 days</strong> using an encrypted JWT token.
+              </label>
             </div>
 
             {/* Submit Button */}
@@ -248,9 +289,12 @@ export default function Login() {
           </form>
         )}
 
-        {/* Security Notice */}
-        <div className="pt-4 border-t border-slate-100 text-[11px] text-slate-400 text-center leading-relaxed">
-          Protected by Central Institutional Identity & Access Management (IAM). All actions are auditable by the Directorate of IIIT Naya Raipur.
+        {/* Register prompt */}
+        <div className="pt-4 border-t border-slate-100 text-xs text-center text-slate-500">
+          New student or faculty member?{' '}
+          <Link to="/register" className="font-bold text-indigo-600 hover:underline">
+            Register an Account
+          </Link>
         </div>
       </div>
     </div>

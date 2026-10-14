@@ -340,6 +340,35 @@ npm run dev
   - Live Seed Verification: Verified 6 departments, 7 squads, 5 staff accounts, and 0 dummy tickets in Supabase Table Editor.
   - Uvicorn Server: Successfully running live on port 8000 connected to Supabase.
 
+### [2026-10-14] - Industry-Standard Authentication: Registration, Bcrypt Hashing & Persistent 30-Day Remember Me Sessions
+* **Files Modified:**
+  - `backend/app/core/security.py`
+  - `backend/app/models/user.py`
+  - `backend/app/schemas/user.py`
+  - `backend/app/services/user_service.py`
+  - `backend/app/api/v1/endpoints/auth.py`
+  - `backend/app/db/seed.py`
+  - `backend/requirements.txt`
+  - `backend/tests/test_auth.py`
+  - `frontend/src/api/client.js`
+  - `frontend/src/api/auth.js`
+  - `frontend/src/context/AuthContext.jsx`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `frontend/src/router/AppRouter.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Password Hashing via Bcrypt:** Added `bcrypt>=4.0.0` and implemented salted password hashing (`hash_password`, `verify_password`) in `app/core/security.py`. Updated `users` table schema in Supabase with `hashed_password VARCHAR(255)`.
+  2. **Cryptographic JWT Tokens & Persistent Remember Me:** Implemented industry-standard JWT session issuance (`pyjwt>=2.8.0`). If "Remember Me" is enabled, sessions persist for **30 days** in `localStorage`; if unchecked, tokens live strictly for the duration of the browser tab in `sessionStorage`.
+  3. **New User Registration:** Implemented `POST /api/v1/auth/register` and created a dedicated, institutional registration portal (`Register.jsx` at `/register`). Automatically detects student roll numbers, checks for duplicate accounts, hashes credentials, and logs the user in immediately.
+  4. **Global Authorization Interceptor:** Updated `frontend/src/api/client.js` to automatically attach the active `Authorization: Bearer <token>` to all HTTP requests. Added `GET /api/v1/auth/me` to authenticate sessions cryptographically.
+  5. **Enhanced Login Experience:** Revamped `Login.jsx` with a "Persistent Remember Me" toggle, pre-filled remembered emails, password visibility toggles, and seamless tab transitions between Sign In and Registration.
+* **Why It Was Changed:** Fulfills user request for an industry-standard login and registration system with persistent Remember Me functionality, cryptographically secure password storage, and seamless session resumption across browser restarts.
+* **Verification Proof:**
+  - Backend Pytest Suite: 45/45 tests passed across the network on Supabase PostgreSQL (including registration, wrong password rejection, Remember Me expiry, and `/auth/me` bearer verification).
+  - Frontend Production Build: `npm run build` compiled 120 modules in 1.47s with 0 errors.
+  - End-to-End Live Verification: Tested registration for `aanya26105@iiitnr.edu.in` (`201 Created`), persistent token generation (`30 days`), and immediate login.
+
 
 
 
