@@ -1,9 +1,15 @@
 /**
  * SmartComplaintHandler - Clean Institutional Login Portal
- * Modern single-screen authentication matching standard industry design:
- * Only two options:
- * 1. Continue with Email (@iiitnr.edu.in)
- * 2. Continue with Google (@iiitnr.edu.in)
+ * Modern two-step authentication matching standard Vercel layout:
+ * Step 1: Identifier Screen
+ *   - [ Email Address ]
+ *   - [ Continue with Email ] -> validates domain and transitions to Step 2 (Password)
+ *   - [ Continue with Google ] -> directly opens native Google OAuth popup (zero email pre-fill required)
+ * Step 2: Password Screen
+ *   - Displays active institutional email with 'Change' action
+ *   - [ Password ] field with show/hide toggle and Remember Me
+ *   - [ Log In ] button
+ *   - [ ← Use a different email ] navigation
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -13,11 +19,12 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, loginGoogle, rememberedEmail, currentUser } = useAuth();
 
+  const [step, setStep] = useState(rememberedEmail ? 'password' : 'email');
   const [email, setEmail] = useState(rememberedEmail || '');
   const [password, setPassword] = useState('');
-  const [showPasswordField, setShowPasswordField] = useState(!!rememberedEmail);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -40,7 +47,7 @@ export default function Login() {
   useEffect(() => {
     if (rememberedEmail) {
       setEmail(rememberedEmail);
-      setShowPasswordField(true);
+      setStep('password');
     }
   }, [rememberedEmail]);
 
@@ -56,26 +63,26 @@ export default function Login() {
     }, 600);
   };
 
-  // 1. Continue with Google Workspace (Standard Google OAuth Popup)
+  // Continue with Google Workspace: DIRECT standard Google popup (zero pre-fill required!)
   const handleContinueWithGoogle = () => {
     setError(null);
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('smart_complaint_google_client_id');
+    let clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('smart_complaint_google_client_id');
 
     if (!clientId) {
       const promptId = window.prompt(
         'Google OAuth Setup:\nPlease enter your Google Cloud OAuth Client ID (e.g., xxxxxx.apps.googleusercontent.com):\n\nYou can also set VITE_GOOGLE_CLIENT_ID in your Vercel Environment Variables.'
       );
       if (promptId && promptId.trim()) {
-        localStorage.setItem('smart_complaint_google_client_id', promptId.trim());
-        window.location.reload();
+        clientId = promptId.trim();
+        localStorage.setItem('smart_complaint_google_client_id', clientId);
+      } else {
+        setError('Google Sign-In requires a Google Cloud OAuth Client ID (VITE_GOOGLE_CLIENT_ID). Please provide your Client ID or use Continue with Email.');
         return;
       }
-      setError('Google Sign-In requires a Google Cloud OAuth Client ID (VITE_GOOGLE_CLIENT_ID). Please provide your Client ID or use Continue with Email.');
-      return;
     }
 
     if (!window.google?.accounts?.oauth2) {
-      setError('Google Identity Services SDK is initializing. Please check your internet connection and click again.');
+      setError('Google Identity Services SDK is initializing. Please check your internet connection and try again.');
       return;
     }
 
@@ -94,7 +101,7 @@ export default function Login() {
           }
 
           try {
-            // Retrieve verified institutional profile from Google
+            // Retrieve verified institutional profile directly from Google
             const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
               headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
             });
@@ -130,8 +137,8 @@ export default function Login() {
     }
   };
 
-  // 2. Continue with Email
-  const handleContinueWithEmail = async (e) => {
+  // Step 1: Submit Email -> Transition to Password Step
+  const handleContinueWithEmail = (e) => {
     e.preventDefault();
     setError(null);
 
@@ -146,11 +153,13 @@ export default function Login() {
       return;
     }
 
-    // Reveal password field on first click if hidden
-    if (!showPasswordField) {
-      setShowPasswordField(true);
-      return;
-    }
+    setStep('password');
+  };
+
+  // Step 2: Submit Password -> Perform Authentication
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
 
     if (!password) {
       setError('Please enter your account password.');
@@ -159,6 +168,7 @@ export default function Login() {
 
     setLoading(true);
     try {
+      const cleanEmail = email.trim().toLowerCase();
       const user = await login(cleanEmail, password, rememberMe);
       handleRoleRedirect(user);
     } catch (err) {
@@ -197,10 +207,12 @@ export default function Login() {
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7 sm:p-9 space-y-5">
           <div className="space-y-1 text-center">
             <h2 className="text-lg font-black text-slate-900">
-              Log in to IIIT-NR
+              {step === 'password' ? 'Enter Password' : 'Log in to IIIT-NR'}
             </h2>
             <p className="text-xs text-slate-500">
-              Access your student or campus facilities account
+              {step === 'password'
+                ? 'Sign in with your institutional credentials'
+                : 'Access your student or campus facilities account'}
             </p>
           </div>
 
@@ -225,30 +237,95 @@ export default function Login() {
                 </div>
               )}
 
-              <form onSubmit={handleContinueWithEmail} className="space-y-3">
-                {/* Institutional Email Address */}
-                <div className="space-y-1">
-                  <input
-                    type="email"
-                    required
-                    autoFocus
-                    placeholder="Email Address (@iiitnr.edu.in)"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setError(null);
-                    }}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
-                  />
-                </div>
+              {/* Step 1: Identifier View (Matches Vercel Layout) */}
+              {step === 'email' ? (
+                <div className="space-y-3.5 animate-fade-in">
+                  <form onSubmit={handleContinueWithEmail} className="space-y-3">
+                    <div>
+                      <input
+                        type="email"
+                        required
+                        autoFocus
+                        placeholder="Email Address"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setError(null);
+                        }}
+                        className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                      />
+                    </div>
 
-                {/* Password field (shown when user continues with email or remembered) */}
-                {showPasswordField && (
-                  <div className="space-y-2 animate-fade-in">
+                    <button
+                      type="submit"
+                      disabled={loading || googleLoading}
+                      className="w-full py-3 bg-slate-900 hover:bg-slate-800 active:bg-black text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
+                    >
+                      <span>Continue with Email</span>
+                    </button>
+                  </form>
+
+                  {/* Standard Google OAuth Button (Zero Pre-fill required) */}
+                  <button
+                    type="button"
+                    onClick={handleContinueWithGoogle}
+                    disabled={googleLoading || loading}
+                    className="w-full py-3 bg-white hover:bg-slate-50 border border-slate-300 active:scale-[0.99] text-slate-800 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                      />
+                    </svg>
+                    {googleLoading ? (
+                      <span>Opening Google Account Chooser...</span>
+                    ) : (
+                      <span>Continue with Google</span>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                /* Step 2: Password Screen (Triggered once user enters email) */
+                <form onSubmit={handleLoginSubmit} className="space-y-4 animate-fade-in">
+                  {/* Email Summary Pill with Change Button */}
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email</span>
+                      <span className="text-xs font-semibold text-slate-900 truncate">{email}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep('email');
+                        setError(null);
+                        setPassword('');
+                      }}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 ml-3 shrink-0 cursor-pointer"
+                    >
+                      Change
+                    </button>
+                  </div>
+
+                  {/* Password Input */}
+                  <div className="space-y-1.5">
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
+                        autoFocus
                         placeholder="Password"
                         value={password}
                         onChange={(e) => {
@@ -260,7 +337,7 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-600 font-semibold"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-600 font-semibold cursor-pointer"
                       >
                         {showPassword ? 'Hide' : 'Show'}
                       </button>
@@ -280,53 +357,36 @@ export default function Login() {
                       </label>
                     </div>
                   </div>
-                )}
 
-                {/* Continue with Email Button */}
-                <button
-                  type="submit"
-                  disabled={loading || googleLoading}
-                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 active:bg-black text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <span>Verifying...</span>
-                  ) : (
-                    <span>{showPasswordField ? 'Sign In with Email' : 'Continue with Email'}</span>
-                  )}
-                </button>
-              </form>
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 bg-slate-900 hover:bg-slate-800 active:bg-black text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <span>Verifying credentials...</span>
+                    ) : (
+                      <span>Log In</span>
+                    )}
+                  </button>
 
-              {/* Continue with Google Button */}
-              <button
-                type="button"
-                onClick={handleContinueWithGoogle}
-                disabled={googleLoading || loading}
-                className="w-full py-3 bg-white hover:bg-slate-50 border border-slate-300 active:scale-[0.99] text-slate-800 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
-              >
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-                {googleLoading ? (
-                  <span>Connecting to Google Workspace...</span>
-                ) : (
-                  <span>Continue with Google</span>
-                )}
-              </button>
+                  {/* Back to Step 1 Action */}
+                  <div className="text-center pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep('email');
+                        setError(null);
+                        setPassword('');
+                      }}
+                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                    >
+                      ← Use a different email
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
 

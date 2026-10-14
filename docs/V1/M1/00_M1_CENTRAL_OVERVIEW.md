@@ -492,3 +492,20 @@ npm run dev
 * **Verification Proof:**
   - Frontend Production Build: `npm run build` compiled successfully in 1.31s without errors.
   - Backend Test Suite: 47/47 pytest unit & integration tests passing cleanly.
+
+### [2026-10-14] - Two-Step Vercel-Style Auth Flow: Initial Email Screen & Dedicated Password Page
+* **Files Modified:**
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Strict Two-Step Vercel Authentication Model:**
+     - **Step 1 (Identifier Screen):** Clean minimal card matching Vercel's login UI (Image 2), containing solely the `Email Address` input, `Continue with Email` primary button, and `Continue with Google` SSO button.
+     - **Step 2 (Password Screen):** Submitting institutional email transitions smoothly to a dedicated password screen displaying the active email with a `Change` button, password field, Remember Me toggle, and `Log In` / `Create Account` action.
+  2. **Zero Pre-fill Google SSO:** Clicking "Continue with Google" triggers the standard Google OAuth popup window directly without requiring any email pre-fill, validating `@iiitnr.edu.in` and registering/logging in via backend automatically.
+  3. **Department Lock on Registration:** On `Register.jsx`, Step 2 reveals the locked, auto-detected Department badge (strictly labeled "Department", no roll numbers) with password confirmation.
+* **Why It Was Changed:** Fulfills exact user directive: "people don't need to enter the email for them to open the google thing, it should look like this (Vercel): if they enter the email it should open the password page, and if they click google it should do the standard google workflow".
+* **Cross-Module Impact:** Provides a frictionless, standard enterprise auth UX across M1 and downstream portal access.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.29s with 0 errors.
+  - Backend Test Suite: 47/47 pytest unit & integration tests passed.
