@@ -514,6 +514,8 @@ npm run dev
 * **Files Modified:**
   - `backend/api/index.py`
   - `backend/index.py`
+  - `api/index.py`
+  - `vercel.json`
   - `backend/requirements.txt`
   - `requirements.txt`
   - `backend/app/core/database.py`
