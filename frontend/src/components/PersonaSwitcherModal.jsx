@@ -1,10 +1,23 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function PersonaSwitcherModal() {
+  const navigate = useNavigate();
   const { isPersonaModalOpen, closePersonaModal, currentPersona, personas, switchPersona } = useAuth();
 
   if (!isPersonaModalOpen) return null;
+
+  const handleSelectPersona = (persona) => {
+    switchPersona(persona.id);
+    if (persona.role === 'ADMIN') {
+      navigate('/admin');
+    } else if (persona.role === 'TECHNICIAN') {
+      navigate('/technician');
+    } else {
+      navigate('/student');
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
@@ -39,7 +52,7 @@ export default function PersonaSwitcherModal() {
             return (
               <div
                 key={persona.id}
-                onClick={() => switchPersona(persona.id)}
+                onClick={() => handleSelectPersona(persona)}
                 className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start space-x-4 ${
                   isSelected
                     ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20 shadow-xs'

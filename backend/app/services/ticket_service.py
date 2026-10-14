@@ -54,6 +54,8 @@ def create_ticket(
     department_id: Optional[int] = None,
     assigned_team_id: Optional[int] = None,
     created_at: Optional[datetime] = None,
+    student_name: Optional[str] = None,
+    student_email: Optional[str] = None,
 ) -> Ticket:
     """
     Ingest a new grievance ticket. Dynamically calculates classification and urgency priority
@@ -68,6 +70,10 @@ def create_ticket(
         title = ticket_in.title
         description = ticket_in.description
         location = ticket_in.location
+        if ticket_in.student_name:
+            student_name = ticket_in.student_name
+        if ticket_in.student_email:
+            student_email = ticket_in.student_email
     elif isinstance(ticket_in, str) and tracking_code is None:
         # Legacy signature: create_ticket(db, tracking_code, title, ...)
         tracking_code = ticket_in
@@ -118,6 +124,8 @@ def create_ticket(
         created_at=now,
         sla_deadline=calculated_deadline,
         resolution_notes=None,
+        student_name=student_name or "Aarav Sharma",
+        student_email=student_email or "aarav.sharma@campus.edu",
     )
 
     try:
@@ -188,9 +196,11 @@ def list_tickets(
     priority: Optional[str] = None,
     department_id: Optional[int] = None,
     status: Optional[str] = None,
+    student_email: Optional[str] = None,
+    assigned_team_id: Optional[int] = None,
 ) -> List[Ticket]:
     """
-    Query tickets with optional priority, department, and status filters.
+    Query tickets with optional priority, department, status, student, and team filters.
     """
     query = db.query(Ticket)
     if priority:
@@ -199,7 +209,57 @@ def list_tickets(
         query = query.filter(Ticket.department_id == department_id)
     if status:
         query = query.filter(Ticket.status == status.strip().upper())
+    if student_email:
+        query = query.filter(Ticket.student_email.ilike(student_email.strip()))
+    if assigned_team_id is not None:
+        query = query.filter(Ticket.assigned_team_id == assigned_team_id)
     return query.order_by(Ticket.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def submit_ticket_feedback(
+    db: Session,
+    ticket_identifier: Union[int, str],
+    rating: int,
+    comments: Optional[str] = None,
+    student_name: Optional[str] = None,
+) -> Optional[Ticket]:
+    """
+    Records student satisfaction rating (1-5) and feedback review upon resolution.
+    Appends audit trail entry into ticket notes.
+    """
+    if isinstance(ticket_identifier, int) or (isinstance(ticket_identifier, str) and ticket_identifier.isdigit()):
+        ticket = db.query(Ticket).filter(Ticket.id == int(ticket_identifier)).first()
+    else:
+        ticket = db.query(Ticket).filter(Ticket.tracking_code == str(ticket_identifier).strip().upper()).first()
+
+    if not ticket:
+        return None
+
+    ticket.feedback_rating = rating
+    ticket.feedback_comments = comments
+    ticket.feedback_submitted_at = datetime.now(timezone.utc)
+    if student_name and (not ticket.student_name or ticket.student_name == "Anonymous"):
+        ticket.student_name = student_name
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    feedback_audit = (
+        f"[{timestamp}] [STUDENT FEEDBACK] Rating: {rating}/5 Stars | "
+        f"Review: {comments or 'No written comments'} (Submitted by: {student_name or ticket.student_name or 'Student'})"
+    )
+    ticket.resolution_notes = (
+        (ticket.resolution_notes + "\n" + feedback_audit)
+        if ticket.resolution_notes
+        else feedback_audit
+    )
+
+    try:
+        db.commit()
+        db.refresh(ticket)
+        return ticket
+    except Exception:
+        db.rollback()
+        raise
+
 
 
 def update_ticket_status(

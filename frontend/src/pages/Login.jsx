@@ -28,10 +28,12 @@ export default function Login() {
       setLoginSuccess(true);
 
       setTimeout(() => {
-        if (selected.role === 'ADMIN' || selected.role === 'TECHNICIAN') {
+        if (selected.role === 'ADMIN') {
           navigate('/admin');
+        } else if (selected.role === 'TECHNICIAN') {
+          navigate('/technician');
         } else {
-          navigate('/submit');
+          navigate('/student');
         }
       }, 700);
     }, 400);

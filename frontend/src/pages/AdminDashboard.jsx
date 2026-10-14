@@ -200,11 +200,26 @@ export default function AdminDashboard() {
               className="text-xs rounded-xl border border-slate-300 px-3.5 py-2 w-48 sm:w-60 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
 
+            {/* Department Filter */}
+            <select
+              value={selectedDept}
+              onChange={(e) => setSelectedDept(e.target.value)}
+              className="text-xs rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-700 focus:border-indigo-500 focus:outline-hidden"
+            >
+              <option value="">All Departments</option>
+              <option value="1">Electrical</option>
+              <option value="2">Plumbing</option>
+              <option value="3">Sanitation</option>
+              <option value="4">Carpentry</option>
+              <option value="5">IT Support</option>
+              <option value="6">General Administration</option>
+            </select>
+
             {/* Priority Filter */}
             <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
-              className="text-xs rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-700 focus:border-indigo-500 focus:outline-none"
+              className="text-xs rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-700 focus:border-indigo-500 focus:outline-hidden"
             >
               <option value="">All Priorities</option>
               <option value="CRITICAL">CRITICAL</option>
@@ -314,7 +329,8 @@ export default function AdminDashboard() {
                     {/* SLA Countdown Timer */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <SLACountdownTimer
-                        slaDeadline={t.target_resolution_date}
+                        slaDeadline={t.sla_deadline || t.target_resolution_date}
+                        priority={t.priority}
                         status={t.status}
                       />
                     </td>
@@ -329,6 +345,8 @@ export default function AdminDashboard() {
                             ? 'bg-blue-50 text-blue-700 border-blue-200'
                             : t.status === 'ASSIGNED'
                             ? 'bg-purple-50 text-purple-700 border-purple-200'
+                            : t.status === 'ESCALATED'
+                            ? 'bg-rose-50 text-rose-700 border-rose-200 font-extrabold'
                             : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}
                       >
@@ -339,8 +357,8 @@ export default function AdminDashboard() {
                     {/* Operational Actions */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end space-x-1.5">
-                        {/* Technician Action: Start Work */}
-                        {t.status === 'ASSIGNED' && (
+                        {/* Start Repair Work */}
+                        {(t.status === 'ASSIGNED' || t.status === 'SUBMITTED') && (
                           <button
                             type="button"
                             onClick={() => handleStartWork(t)}

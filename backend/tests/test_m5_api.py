@@ -202,3 +202,69 @@ def test_get_active_sla_breaches_endpoint(client, db_session):
     assert breaches[0]["is_breached"] is True
     assert breaches[0]["overdue_seconds"] > 0
     assert breaches[0]["department_name"] == "Electrical Services"
+
+
+def test_ticket_feedback_submission(client, db_session):
+    ticket = create_ticket(
+        db=db_session,
+        tracking_code="TICK-FEEDBACK-1",
+        title="Ceiling fan wobbling",
+        description="Fan motor loose on ceiling rod",
+        location="Hostel Block B, Room 102",
+        priority="MEDIUM",
+        student_name="Aarav Sharma",
+        student_email="aarav.sharma@campus.edu",
+    )
+
+    res = client.post(
+        f"/api/v1/tickets/{ticket.tracking_code}/feedback",
+        json={"rating": 5, "comments": "Swift repair and polite staff", "student_name": "Aarav Sharma"},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["feedback_rating"] == 5
+    assert data["feedback_comments"] == "Swift repair and polite staff"
+    assert "STUDENT FEEDBACK" in data["resolution_notes"]
+
+
+def test_ticket_list_role_filters(client, db_session):
+    team = db_session.query(MaintenanceTeam).first()
+
+    # Create ticket for Aarav Sharma with team
+    t1 = create_ticket(
+        db=db_session,
+        tracking_code="TICK-FILT-1",
+        title="Flickering corridor tube",
+        description="Tube light flashing",
+        location="Hostel Block B",
+        priority="LOW",
+        assigned_team_id=team.id,
+        student_name="Aarav Sharma",
+        student_email="aarav.sharma@campus.edu",
+    )
+
+    # Create ticket for Priya Nair without team
+    t2 = create_ticket(
+        db=db_session,
+        tracking_code="TICK-FILT-2",
+        title="Water filter tap loose",
+        description="Tap dripping continuously",
+        location="Dining Hall",
+        priority="MEDIUM",
+        student_name="Priya Nair",
+        student_email="priya.nair@campus.edu",
+    )
+
+    # Filter by student email
+    res_student = client.get("/api/v1/tickets/?student_email=aarav.sharma@campus.edu")
+    assert res_student.status_code == 200
+    codes = [item["tracking_code"] for item in res_student.json()]
+    assert "TICK-FILT-1" in codes
+    assert "TICK-FILT-2" not in codes
+
+    # Filter by team ID
+    res_team = client.get(f"/api/v1/tickets/?team_id={team.id}")
+    assert res_team.status_code == 200
+    team_codes = [item["tracking_code"] for item in res_team.json()]
+    assert "TICK-FILT-1" in team_codes
+

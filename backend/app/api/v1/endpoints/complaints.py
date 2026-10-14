@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
 from app.models.ticket import Ticket
-from app.schemas.ticket import TicketCreate, TicketResponse
-from app.services.ticket_service import create_ticket, list_tickets
+from app.schemas.ticket import TicketCreate, TicketResponse, FeedbackSubmitRequest
+from app.services.ticket_service import create_ticket, list_tickets, submit_ticket_feedback
 
 router = APIRouter()
 
@@ -50,10 +50,12 @@ def get_complaints(
     priority: Optional[str] = None,
     department_id: Optional[int] = None,
     status: Optional[str] = None,
+    student_email: Optional[str] = None,
+    team_id: Optional[int] = None,
     db: Session = Depends(get_db),
 ) -> List[TicketResponse]:
     """
-    List tickets with pagination and optional filtering by priority, department, or status.
+    List tickets with pagination and optional filtering by priority, department, status, student, or squad.
     """
     tickets = list_tickets(
         db=db,
@@ -62,6 +64,8 @@ def get_complaints(
         priority=priority,
         department_id=department_id,
         status=status,
+        student_email=student_email,
+        assigned_team_id=team_id,
     )
     results = []
     for t in tickets:
@@ -72,6 +76,41 @@ def get_complaints(
             item.assigned_team_name = t.assigned_team.name
         results.append(item)
     return results
+
+
+@router.post(
+    "/{ticket_identifier}/feedback",
+    response_model=TicketResponse,
+    summary="Submit student resolution satisfaction feedback",
+)
+def submit_feedback(
+    ticket_identifier: str,
+    feedback_in: FeedbackSubmitRequest,
+    db: Session = Depends(get_db),
+) -> TicketResponse:
+    """
+    Module M5 Closed-Loop Feedback:
+    Submit satisfaction score (1-5 stars) and review comments for a resolved campus ticket.
+    """
+    ticket = submit_ticket_feedback(
+        db=db,
+        ticket_identifier=ticket_identifier,
+        rating=feedback_in.rating,
+        comments=feedback_in.comments,
+        student_name=feedback_in.student_name,
+    )
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Ticket '{ticket_identifier}' not found.",
+        )
+
+    response = TicketResponse.model_validate(ticket)
+    if ticket.department:
+        response.department_name = ticket.department.name
+    if ticket.assigned_team:
+        response.assigned_team_name = ticket.assigned_team.name
+    return response
 
 
 @router.get(
@@ -103,3 +142,4 @@ def track_complaint(
     if ticket.assigned_team:
         response.assigned_team_name = ticket.assigned_team.name
     return response
+

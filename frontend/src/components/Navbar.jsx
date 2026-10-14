@@ -56,18 +56,53 @@ export default function Navbar() {
             <NavLink to="/" className={navLinkClasses} end>
               <span>Home</span>
             </NavLink>
-            <NavLink to="/submit" className={navLinkClasses}>
-              <span>Report an Issue</span>
-            </NavLink>
-            <NavLink to="/track" className={navLinkClasses}>
-              <span>Track Status</span>
-            </NavLink>
-            <NavLink to="/admin" className={navLinkClasses}>
-              <span>Operations Desk</span>
-              {isAdmin && (
-                <span className="w-2 h-2 rounded-full bg-purple-500 ml-1" title="Supervisor Privileges" />
-              )}
-            </NavLink>
+
+            {isStudent && (
+              <>
+                <NavLink to="/student" className={navLinkClasses}>
+                  <span>My Grievances</span>
+                </NavLink>
+                <NavLink to="/submit" className={navLinkClasses}>
+                  <span>Report an Issue</span>
+                </NavLink>
+                <NavLink to="/track" className={navLinkClasses}>
+                  <span>Track Status</span>
+                </NavLink>
+              </>
+            )}
+
+            {isTechnician && (
+              <>
+                <NavLink to="/technician" className={navLinkClasses}>
+                  <span>Squad Workstation</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 ml-1" title="Assigned Field Queue" />
+                </NavLink>
+                <NavLink to="/submit" className={navLinkClasses}>
+                  <span>Report Hazard</span>
+                </NavLink>
+                <NavLink to="/track" className={navLinkClasses}>
+                  <span>Track Ticket</span>
+                </NavLink>
+              </>
+            )}
+
+            {isAdmin && (
+              <>
+                <NavLink to="/admin" className={navLinkClasses}>
+                  <span>Operations Desk</span>
+                  <span className="w-2 h-2 rounded-full bg-purple-500 ml-1" title="Chief Supervisor Authority" />
+                </NavLink>
+                <NavLink to="/technician" className={navLinkClasses}>
+                  <span>Field Console</span>
+                </NavLink>
+                <NavLink to="/student" className={navLinkClasses}>
+                  <span>Student Portal</span>
+                </NavLink>
+                <NavLink to="/track" className={navLinkClasses}>
+                  <span>Tracker</span>
+                </NavLink>
+              </>
+            )}
           </nav>
 
           {/* Right Header Area: Live Heartbeat & Persona Account */}
@@ -151,7 +186,7 @@ export default function Navbar() {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-100 space-y-2 animate-fade-in">
+          <div className="md:hidden py-4 border-t border-slate-100 space-y-1 animate-fade-in">
             <NavLink
               to="/"
               end
@@ -160,6 +195,53 @@ export default function Navbar() {
             >
               Home
             </NavLink>
+
+            {isStudent && (
+              <NavLink
+                to="/student"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50/50 rounded-lg hover:bg-indigo-100"
+              >
+                My Grievances Portal
+              </NavLink>
+            )}
+
+            {isTechnician && (
+              <NavLink
+                to="/technician"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-sm font-semibold text-amber-800 bg-amber-50/50 rounded-lg hover:bg-amber-100"
+              >
+                Squad Workstation Console
+              </NavLink>
+            )}
+
+            {isAdmin && (
+              <>
+                <NavLink
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-semibold text-purple-800 bg-purple-50/50 rounded-lg hover:bg-purple-100"
+                >
+                  Chief Operations Desk
+                </NavLink>
+                <NavLink
+                  to="/technician"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
+                >
+                  Field Squad Console
+                </NavLink>
+                <NavLink
+                  to="/student"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
+                >
+                  Student Portal View
+                </NavLink>
+              </>
+            )}
+
             <NavLink
               to="/submit"
               onClick={() => setMobileMenuOpen(false)}
@@ -175,18 +257,11 @@ export default function Navbar() {
               Track Status
             </NavLink>
             <NavLink
-              to="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
-            >
-              Operations Desk
-            </NavLink>
-            <NavLink
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
             >
-              Campus SSO Login
+              Switch Role / Campus SSO
             </NavLink>
           </div>
         )}

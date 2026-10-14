@@ -30,32 +30,43 @@ export default function Home() {
           </p>
 
           {/* Action CTAs */}
-          <div className="flex flex-wrap items-center gap-4 pt-2">
+          <div className="flex flex-wrap items-center gap-3 pt-2">
             <Link
               to="/submit"
-              className="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center space-x-2"
+              className="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center space-x-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              <span>Report a Facility Issue</span>
+              <span>Lodge Grievance</span>
             </Link>
 
             <Link
-              to="/track"
-              className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm rounded-xl border border-white/20 backdrop-blur-xs transition-all flex items-center space-x-2"
+              to="/student"
+              className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm rounded-xl border border-white/20 backdrop-blur-xs transition-all flex items-center space-x-1.5"
             >
-              <svg className="w-5 h-5 text-indigo-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <span>Track Existing Ticket</span>
+              <span>🎓 Student Portal</span>
+            </Link>
+
+            <Link
+              to="/technician"
+              className="px-4 py-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold text-xs sm:text-sm rounded-xl border border-amber-400/30 backdrop-blur-xs transition-all flex items-center space-x-1.5"
+            >
+              <span>🔧 Squad Workstation</span>
             </Link>
 
             <Link
               to="/admin"
-              className="px-5 py-3.5 text-slate-300 hover:text-white font-semibold text-sm transition-colors flex items-center space-x-1.5"
+              className="px-4 py-3 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 font-bold text-xs sm:text-sm rounded-xl border border-purple-400/30 backdrop-blur-xs transition-all flex items-center space-x-1.5"
             >
-              <span>Staff Desk</span>
+              <span>🛡️ Operations Desk</span>
+            </Link>
+
+            <Link
+              to="/track"
+              className="px-4 py-3 text-slate-300 hover:text-white font-semibold text-xs sm:text-sm transition-colors flex items-center space-x-1"
+            >
+              <span>Track Ticket</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
               </svg>

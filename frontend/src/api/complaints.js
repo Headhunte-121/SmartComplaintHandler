@@ -22,7 +22,9 @@ export async function submitComplaint(ticketData) {
   const payload = {
     title: ticketData.title.trim(),
     description: ticketData.description.trim(),
-    location: ticketData.location && ticketData.location.trim() ? ticketData.location.trim() : 'Campus'
+    location: ticketData.location && ticketData.location.trim() ? ticketData.location.trim() : 'Campus',
+    student_name: ticketData.student_name && ticketData.student_name.trim() ? ticketData.student_name.trim() : null,
+    student_email: ticketData.student_email && ticketData.student_email.trim() ? ticketData.student_email.trim() : null,
   };
 
   const response = await apiClient.post('/tickets/', payload);
@@ -55,3 +57,31 @@ export async function fetchComplaints(params = {}) {
   const response = await apiClient.get('/tickets/', { params });
   return response.data;
 }
+
+/**
+ * Submit student satisfaction feedback for a resolved ticket.
+ * 
+ * @param {string|number} ticketIdentifier - Ticket tracking code or ID.
+ * @param {number} rating - 1 to 5 star rating.
+ * @param {string|null} comments - Student review comments.
+ * @param {string|null} studentName - Student identifier or name.
+ * @returns {Promise<Object>} Updated ticket record.
+ */
+export async function submitFeedback(ticketIdentifier, rating, comments = null, studentName = null) {
+  if (!ticketIdentifier) {
+    throw new Error('A valid ticket identifier is required.');
+  }
+  if (!rating || rating < 1 || rating > 5) {
+    throw new Error('Rating must be between 1 and 5 stars.');
+  }
+
+  const payload = {
+    rating: Number(rating),
+    comments: comments && comments.trim() ? comments.trim() : null,
+    student_name: studentName && studentName.trim() ? studentName.trim() : null,
+  };
+
+  const response = await apiClient.post(`/tickets/${encodeURIComponent(ticketIdentifier)}/feedback`, payload);
+  return response.data;
+}
+

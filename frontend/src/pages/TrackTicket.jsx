@@ -127,7 +127,7 @@ export default function TrackTicket() {
           <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             Active Campus Tickets:
           </span>
-          {['TICK-1001', 'TICK-1002', 'TICK-LIVE-001', 'TICK-M5-002'].map((code) => (
+          {['CMP-2026-E101', 'CMP-2026-P202', 'CMP-2026-IT303', 'CMP-2026-C404'].map((code) => (
             <button
               key={code}
               type="button"
@@ -175,7 +175,8 @@ export default function TrackTicket() {
             {/* SLA Countdown Timer */}
             <div className="self-start sm:self-center">
               <SLACountdownTimer
-                slaDeadline={ticket.target_resolution_date}
+                slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
+                priority={ticket.priority}
                 status={ticket.status}
               />
             </div>

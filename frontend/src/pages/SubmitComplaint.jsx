@@ -64,6 +64,8 @@ export default function SubmitComplaint() {
         title: title.trim(),
         description: description.trim(),
         location: fullLocation,
+        student_name: currentPersona?.name || 'Aarav Sharma',
+        student_email: currentPersona?.email || 'aarav.sharma@campus.edu',
       });
 
       setCreatedTicket(ticket);

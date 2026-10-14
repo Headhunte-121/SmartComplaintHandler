@@ -10,6 +10,8 @@ import Home from '../pages/Home';
 import SubmitComplaint from '../pages/SubmitComplaint';
 import TrackTicket from '../pages/TrackTicket';
 import AdminDashboard from '../pages/AdminDashboard';
+import StudentDashboard from '../pages/StudentDashboard';
+import TechnicianWorkstation from '../pages/TechnicianWorkstation';
 import Login from '../pages/Login';
 import DeveloperLab from '../pages/DeveloperLab';
 
@@ -56,6 +58,12 @@ export default function AppRouter() {
 
           {/* Facilities Staff Operations Console */}
           <Route path="admin" element={<AdminDashboard />} />
+
+          {/* Student Self-Service Grievance Portal */}
+          <Route path="student" element={<StudentDashboard />} />
+
+          {/* Field Squad Technician Workstation */}
+          <Route path="technician" element={<TechnicianWorkstation />} />
 
           {/* Campus SSO & Role Authentication */}
           <Route path="login" element={<Login />} />
