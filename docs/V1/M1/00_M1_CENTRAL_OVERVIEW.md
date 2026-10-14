@@ -509,3 +509,21 @@ npm run dev
 * **Verification Proof:**
   - Frontend Production Build: `npm run build` compiled in 1.29s with 0 errors.
   - Backend Test Suite: 47/47 pytest unit & integration tests passed.
+
+### [2026-10-14] - Vercel Serverless Function Startup Diagnostics & PostgreSQL Driver Compatibility
+* **Files Modified:**
+  - `backend/api/index.py`
+  - `backend/index.py`
+  - `backend/requirements.txt`
+  - `requirements.txt`
+  - `backend/app/core/database.py`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Serverless Startup Diagnostics:** Wrapped `backend/api/index.py` and `backend/index.py` with an ASGI fallback handler that catches and surfaces startup tracebacks directly with full CORS headers instead of opaque Vercel `FUNCTION_INVOCATION_FAILED`.
+  2. **Driver Compatibility:** Added `psycopg[binary]>=3.1.18` alongside `psycopg2-binary>=2.9.9` in both `backend/requirements.txt` and root `requirements.txt` to eliminate driver resolution errors in cloud serverless containers.
+  3. **SSL Mode Enforcement:** Added `connect_args={"sslmode": "require"}` for PostgreSQL connections to guarantee robust connectivity with Supabase cloud pools on serverless cold starts.
+* **Why It Was Changed:** Resolves Vercel `FUNCTION_INVOCATION_FAILED` (HTTP 500) that manifested as "Network Error" on the frontend during authentication requests.
+* **Cross-Module Impact:** Guarantees cloud API availability for all authentication, grievance lodging, and operational desk endpoints.
+* **Verification Proof:**
+  - Backend Test Suite: 8/8 test_auth.py tests passing cleanly.
+  - Frontend Production Build: `npm run build` compiled in 1.37s with 0 errors.
