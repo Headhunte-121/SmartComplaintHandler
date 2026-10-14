@@ -1,37 +1,28 @@
 /**
  * SmartComplaintHandler - Clean Institutional Registration Portal
  * Role: Streamlined, distraction-free registration portal for @iiitnr.edu.in accounts.
- *       Auto-extracts Student Name and Department from email taxonomy (100=CSE, 101=DSAI, 102=ECE),
- *       includes OTP email verification status, password confirmation, and role routing.
+ *       Auto-detects Full Name and Department from email taxonomy (100=CSE, 101=DSAI, 102=ECE),
+ *       supports password confirmation, persistent Remember Me session, and instant role routing.
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { sendOTP, verifyOTP } from '../api/auth';
 
 export default function Register() {
   const navigate = useNavigate();
   const { register, currentUser } = useAuth();
 
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [otpMessage, setOtpMessage] = useState(null);
-
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
+  const [departmentInfo, setDepartmentInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successUser, setSuccessUser] = useState(null);
-
-  // Auto-derived identity from institutional email
-  const [derivedIdentity, setDerivedIdentity] = useState(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -47,14 +38,15 @@ export default function Register() {
     }
   }, [currentUser, navigate]);
 
-  const parseIdentityFromEmail = (rawEmail) => {
+  // Derive full name and academic branch from IIIT-NR institutional email format
+  const parseEmailMetadata = (rawEmail) => {
     const clean = rawEmail.trim().toLowerCase();
     if (!clean.endsWith('@iiitnr.edu.in')) return null;
 
     const prefix = clean.split('@')[0];
-    const match = prefix.match(/^([a-z]+)(\d{2})(\d{2,5})$/i);
+    const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*)(\d{2})(\d{2,5})$/i);
     if (match) {
-      const name = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+      const rawName = match[1].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
       const year = match[2];
       const code = match[3];
 
@@ -69,88 +61,34 @@ export default function Register() {
       }
 
       return {
-        name,
+        fullName: rawName,
         department: dept,
         deptCode,
         batch: `20${year}`,
+        rollCode: code,
       };
     }
 
     const cleanName = prefix.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     return {
-      name: cleanName,
+      fullName: cleanName,
       department: 'IIIT Naya Raipur',
       deptCode: 'General',
       batch: 'Campus Staff / Scholar',
+      rollCode: '',
     };
   };
 
   const handleEmailChange = (val) => {
     setEmail(val);
     setError(null);
-    setIsVerified(false);
-    setOtpSent(false);
-    setOtp('');
-    setOtpMessage(null);
-    setDerivedIdentity(parseIdentityFromEmail(val));
-  };
 
-  const handleSendOtp = async () => {
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail.endsWith('@iiitnr.edu.in')) {
-      setError('Please enter a valid @iiitnr.edu.in institutional email address.');
-      return;
-    }
-
-    setError(null);
-    setSendingOtp(true);
-    try {
-      const res = await sendOTP(cleanEmail);
-      setOtpSent(true);
-      setOtpMessage(
-        res.otp
-          ? `Verification OTP sent to ${cleanEmail} (Use Code: ${res.otp})`
-          : `Verification OTP dispatched to ${cleanEmail}.`
-      );
-    } catch (err) {
-      setOtpSent(true);
-      setOtpMessage(`Verification OTP dispatched to ${cleanEmail} (Use Code: 123456)`);
-    } finally {
-      setSendingOtp(false);
-    }
-  };
-
-  const handleVerifyOtp = async (codeToVerify) => {
-    const code = (codeToVerify !== undefined ? codeToVerify : otp).trim();
-    if (!code) {
-      setError('Please enter the 6-digit OTP code.');
-      return;
-    }
-
-    setError(null);
-    setVerifyingOtp(true);
-    try {
-      await verifyOTP(email, code);
-      setIsVerified(true);
-      setOtpMessage('Email successfully verified! ✓');
-    } catch (err) {
-      if (code === '123456') {
-        setIsVerified(true);
-        setOtpMessage('Email successfully verified! ✓');
-      } else {
-        setIsVerified(false);
-        setError('Invalid verification OTP code. Please check and try again.');
-      }
-    } finally {
-      setVerifyingOtp(false);
-    }
-  };
-
-  const handleOtpInputChange = (val) => {
-    setOtp(val);
-    setError(null);
-    if (val.trim().length === 6) {
-      handleVerifyOtp(val.trim());
+    const parsed = parseEmailMetadata(val);
+    if (parsed) {
+      setName(parsed.fullName);
+      setDepartmentInfo(parsed);
+    } else {
+      setDepartmentInfo(null);
     }
   };
 
@@ -164,8 +102,8 @@ export default function Register() {
       return;
     }
 
-    if (!isVerified) {
-      setError('Please verify your institutional email with the OTP code before completing registration.');
+    if (!name.trim()) {
+      setError('Please enter or confirm your Full Name.');
       return;
     }
 
@@ -181,14 +119,12 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const identity = derivedIdentity || parseIdentityFromEmail(cleanEmail);
       const user = await register({
-        name: identity?.name,
+        name: name.trim(),
         email: cleanEmail,
         password,
-        department_name: identity?.department,
+        department_name: departmentInfo?.department || 'Computer Science & Engineering',
         remember_me: rememberMe,
-        otp,
       });
 
       setSuccessUser(user);
@@ -206,7 +142,7 @@ export default function Register() {
       setError(
         err.response?.data?.detail ||
         err.message ||
-        'Registration failed. Please check your network and credentials.'
+        'Registration failed. Please check your network and institutional credentials.'
       );
       setLoading(false);
     }
@@ -241,7 +177,7 @@ export default function Register() {
               Create an Account
             </h2>
             <p className="text-xs text-slate-500">
-              Enter your official institutional email to register.
+              Enter your official institutional credentials to register.
             </p>
           </div>
 
@@ -254,7 +190,7 @@ export default function Register() {
                 Welcome, {successUser.name}!
               </h3>
               <p className="text-xs text-slate-500">
-                Opening your portal...
+                Account created. Opening your portal...
               </p>
             </div>
           ) : (
@@ -271,87 +207,47 @@ export default function Register() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                   Institutional Email ID
                 </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="email"
-                    required
-                    placeholder="Enter your email address"
-                    value={email}
-                    onChange={(e) => handleEmailChange(e.target.value)}
-                    className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={sendingOtp || !email.trim().toLowerCase().endsWith('@iiitnr.edu.in')}
-                    className="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
-                  >
-                    {sendingOtp ? 'Sending...' : otpSent ? 'Resend' : 'Send OTP'}
-                  </button>
-                </div>
+                <input
+                  type="email"
+                  required
+                  autoFocus
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                />
 
-                {/* Auto-detected Name & Department preview */}
-                {derivedIdentity && (
+                {/* Auto-detected Department Pill */}
+                {departmentInfo && (
                   <div className="p-2.5 rounded-xl bg-indigo-50/80 border border-indigo-100 text-[11px] text-indigo-900 font-medium flex items-center justify-between animate-fade-in">
                     <div>
-                      <span className="font-bold text-indigo-700">Name:</span> {derivedIdentity.name}
+                      <span className="font-bold text-indigo-700">Program:</span> {departmentInfo.department}
                     </div>
-                    <div>
-                      <span className="font-bold text-indigo-700">Dept:</span> {derivedIdentity.deptCode || derivedIdentity.department}
-                    </div>
+                    {departmentInfo.batch && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                        {departmentInfo.batch}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* Verification OTP Field with Status Badge */}
-              <div className="space-y-1.5 pt-1">
-                <div className="flex justify-between items-center">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Verification Code (OTP)
-                  </label>
-                  {isVerified ? (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300 flex items-center space-x-1">
-                      <span>✓</span>
-                      <span>Verified</span>
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
-                      {otpSent ? 'Enter Code' : 'Not Verified'}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    maxLength={6}
-                    disabled={isVerified}
-                    placeholder="6-digit OTP code"
-                    value={otp}
-                    onChange={(e) => handleOtpInputChange(e.target.value)}
-                    className={`flex-1 rounded-xl border px-3.5 py-2.5 text-xs font-mono tracking-widest text-slate-800 placeholder-slate-400 focus:outline-none transition-all ${
-                      isVerified
-                        ? 'border-emerald-400 bg-emerald-50/30 text-emerald-800 font-bold'
-                        : 'border-slate-300 focus:border-indigo-600 focus:ring-3 focus:ring-indigo-600/15'
-                    }`}
-                  />
-                  {!isVerified && (
-                    <button
-                      type="button"
-                      onClick={() => handleVerifyOtp()}
-                      disabled={verifyingOtp || !otp.trim()}
-                      className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
-                    >
-                      {verifyingOtp ? 'Checking...' : 'Verify'}
-                    </button>
-                  )}
-                </div>
-
-                {otpMessage && (
-                  <p className={`text-[11px] leading-tight ${isVerified ? 'text-emerald-600 font-bold' : 'text-indigo-600'}`}>
-                    {otpMessage}
-                  </p>
-                )}
+              {/* Full Name (Auto-extracted from email, user-confirmed) */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Nikhil Sharma"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setError(null);
+                  }}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                />
               </div>
 
               {/* Password & Confirm Password */}
@@ -389,7 +285,7 @@ export default function Register() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="Re-type"
+                    placeholder="Re-type password"
                     value={confirmPassword}
                     onChange={(e) => {
                       setConfirmPassword(e.target.value);
@@ -417,12 +313,8 @@ export default function Register() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading || !isVerified}
-                className={`w-full py-3 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 ${
-                  loading || !isVerified
-                    ? 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none'
-                    : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/25 active:scale-[0.99] cursor-pointer'
-                }`}
+                disabled={loading}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/25 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -434,7 +326,7 @@ export default function Register() {
                   </>
                 ) : (
                   <>
-                    <span>{isVerified ? 'Create Account' : 'Verify Email with OTP to Register'}</span>
+                    <span>Create Account</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>

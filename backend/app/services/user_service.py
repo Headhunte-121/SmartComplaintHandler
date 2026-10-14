@@ -28,7 +28,7 @@ from app.core.security import (
     REMEMBER_ME_EXPIRE_DAYS,
 )
 
-STUDENT_PATTERN = re.compile(r"^([a-zA-Z]+)(\d{2})(\d{2,5})@iiitnr\.edu\.in$", re.IGNORECASE)
+STUDENT_PATTERN = re.compile(r"^([a-zA-Z]+(?:[._][a-zA-Z]+)*)(\d{2})(\d{2,5})@iiitnr\.edu\.in$", re.IGNORECASE)
 
 
 def resolve_user_metadata(email: str) -> Dict[str, str]:
@@ -58,10 +58,10 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
             "identifier": "Field Technician",
         }
 
-    # Student pattern: e.g. nikhil26100@iiitnr.edu.in
+    # Student pattern: e.g. nikhil26100@iiitnr.edu.in or nikhil.sharma26100@iiitnr.edu.in
     match = STUDENT_PATTERN.match(clean_email)
     if match:
-        raw_name = match.group(1).title()
+        raw_name = match.group(1).replace(".", " ").replace("_", " ").title()
         year = match.group(2)
         code = match.group(3)
 
