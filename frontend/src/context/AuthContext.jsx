@@ -6,6 +6,7 @@ import {
   logoutUser,
   refreshSession,
   registerUser,
+  updateUserProfile,
 } from '../api/auth';
 import {
   AUTH_EXPIRED_EVENT,
@@ -33,28 +34,30 @@ export const CAMPUS_PERSONAS = [
     identifier: 'Roll: 2026CSE100',
     department: 'Computer Science & Engineering',
     department_name: 'Computer Science & Engineering',
+    hostel_name: 'Ramanujan House (Boys Hostel 1)',
+    room_number: 'Wing A, Room 204',
     avatar: '🎓',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
     targetRoute: '/submit',
-    description: 'Undergraduate student reporting campus facility issues and tracking personal complaints.',
+    description: 'Undergraduate student residing in Ramanujan House (Room 204) reporting campus facility issues.',
   },
   {
     id: 'admin_verma',
-    name: 'Dr. Sunita Verma',
+    name: 'Rakesh Kumar Mishra (Estate Officer)',
     role: 'ADMIN',
-    roleLabel: 'Facility Admin',
+    roleLabel: 'Estate Officer',
     email: 'admin@iiitnr.edu.in',
-    identifier: 'Staff ID: FAC-01',
-    department: 'Central Facilities Management',
-    department_name: 'Central Facilities Management',
+    identifier: 'Estate Officer (0771-2474104)',
+    department: 'General Administration',
+    department_name: 'General Administration',
     avatar: '🛡️',
     badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
     targetRoute: '/admin',
-    description: 'Chief operational supervisor overseeing queues, workload balancing, priority overrides, and SLA governance.',
+    description: 'Estate & Facilities supervisor overseeing queues, workload balancing, priority overrides, and SLA governance.',
   },
   {
     id: 'super_admin',
-    name: 'Chief Campus Administrator',
+    name: 'Prof. (Dr.) Om Prakash Vyas (Director)',
     role: 'SUPER_ADMIN',
     roleLabel: 'Super Admin',
     email: 'superadmin@iiitnr.edu.in',
@@ -64,7 +67,7 @@ export const CAMPUS_PERSONAS = [
     avatar: '👑',
     badgeClass: 'bg-amber-50 text-amber-800 border-amber-300',
     targetRoute: '/superadmin',
-    description: 'Supreme administrator with full authority to add/manage facility admins, purge records, and audit telemetry.',
+    description: 'Directorate administrator with full authority to manage facility admins, purge records, and audit telemetry.',
   },
   {
     id: 'tech_ramesh',
@@ -112,10 +115,27 @@ function enrichUser(userData) {
     userData.department_name ||
     'Computer Science & Engineering';
 
+  // Merge locally cached hostel/room fallback if backend record does not yet have one
+  const cleanEmail = (userData.email || '').trim().toLowerCase();
+  let cachedResidence = null;
+  if (cleanEmail && typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(`iiitnr_residence_${cleanEmail}`);
+      if (raw) cachedResidence = JSON.parse(raw);
+    } catch (_) {
+      // Ignore storage parse error
+    }
+  }
+
+  const hostelName = userData.hostel_name || cachedResidence?.hostel_name || null;
+  const roomNumber = userData.room_number || cachedResidence?.room_number || null;
+
   return {
     ...userData,
     department: resolvedDept,
     department_name: resolvedDept,
+    hostel_name: hostelName,
+    room_number: roomNumber,
     identifier: userData.identifier || `ID: ${(userData.email || '').split('@')[0].toUpperCase()}`,
     avatar,
     roleLabel,
@@ -292,8 +312,22 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (registrationData) => {
+    const cleanEmail = (registrationData.email || '').trim().toLowerCase();
+    if (cleanEmail && (registrationData.hostel_name || registrationData.room_number)) {
+      localStorage.setItem(
+        `iiitnr_residence_${cleanEmail}`,
+        JSON.stringify({
+          hostel_name: registrationData.hostel_name || null,
+          room_number: registrationData.room_number || null,
+        })
+      );
+    }
     const data = await registerUser(registrationData);
-    const enriched = enrichUser(data.user);
+    const enriched = enrichUser({
+      ...data.user,
+      hostel_name: data.user?.hostel_name || registrationData.hostel_name || null,
+      room_number: data.user?.room_number || registrationData.room_number || null,
+    });
     const rememberMe = Boolean(registrationData.remember_me);
     setCurrentUser(enriched);
     persistAuthSession(data, enriched, rememberMe);
@@ -313,11 +347,44 @@ export function AuthProvider({ children }) {
     return enriched;
   };
 
+  const updateProfile = async (profileUpdates) => {
+    const activeEmail = (currentUser?.email || CAMPUS_PERSONAS[0].email).trim().toLowerCase();
+    localStorage.setItem(
+      `iiitnr_residence_${activeEmail}`,
+      JSON.stringify({
+        hostel_name: profileUpdates.hostel_name ?? currentUser?.hostel_name ?? null,
+        room_number: profileUpdates.room_number ?? currentUser?.room_number ?? null,
+      })
+    );
+
+    try {
+      const updatedUser = await updateUserProfile(profileUpdates);
+      const enriched = enrichUser(updatedUser);
+      setCurrentUser(enriched);
+      const isPersistent = Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
+      const storage = isPersistent ? localStorage : sessionStorage;
+      storage.setItem(AUTH_USER_KEY, JSON.stringify(enriched));
+      return enriched;
+    } catch (_) {
+      // Fallback to local state update if unauthenticated demo persona is active
+      const merged = enrichUser({
+        ...(currentUser || CAMPUS_PERSONAS[0]),
+        ...profileUpdates,
+      });
+      setCurrentUser(merged);
+      return merged;
+    }
+  };
+
   const switchPersona = async (personaId) => {
     const found = CAMPUS_PERSONAS.find((p) => p.id === personaId);
     if (found) {
       const data = await loginUser(found.email, 'password123', true);
-      const enriched = enrichUser(data.user);
+      const enriched = enrichUser({
+        ...data.user,
+        hostel_name: data.user?.hostel_name || found.hostel_name || null,
+        room_number: data.user?.room_number || found.room_number || null,
+      });
       setCurrentUser(enriched);
       persistAuthSession(data, enriched, true);
       setRememberedEmail(found.email);
@@ -342,6 +409,7 @@ export function AuthProvider({ children }) {
         login,
         loginGoogle,
         register,
+        updateProfile,
         logout,
         switchPersona,
         isPersonaModalOpen,

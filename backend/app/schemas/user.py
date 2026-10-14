@@ -1,7 +1,7 @@
 """
 SmartComplaintHandler - User Authentication & Administration Schemas
 Role: Pydantic DTOs for @iiitnr.edu.in registration, login, Google Workspace OAuth2/OIDC SSO,
-      stateless OTP verification, JWT access/refresh token payloads, and admin creation.
+      student hostel/room profile management, stateless OTP verification, JWT access/refresh token payloads, and admin creation.
 """
 from datetime import datetime
 from typing import Optional
@@ -93,6 +93,8 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=6, max_length=128, description="Secure account password (minimum 6 characters)")
     department_name: Optional[str] = Field(None, description="Academic department (auto-detected if omitted)")
     phone: Optional[str] = Field(None, max_length=50, description="Mobile contact or campus extension")
+    hostel_name: Optional[str] = Field(None, max_length=120, description="Assigned IIIT-NR hostel house (e.g., Ramanujan House, Bhabha House, Bose House, Raman House, Shabhari House)")
+    room_number: Optional[str] = Field(None, max_length=60, description="Assigned room number and wing/floor (e.g., Wing A, Room 204)")
     remember_me: bool = Field(False, description="Persist session for 30 days")
     otp: Optional[str] = Field(None, description="Verification OTP")
     otp_token: Optional[str] = Field(None, description="Stateless signed OTP challenge token")
@@ -111,6 +113,21 @@ class RegisterRequest(BaseModel):
         @validator("email")
         def validate_iiitnr_domain(cls, v: str) -> str:
             return _validate_iiitnr_email(v, "Registration")
+
+
+class UserProfileUpdateRequest(BaseModel):
+    """Request payload for students/staff updating their hostel, room number, phone, or display name."""
+    name: Optional[str] = Field(None, max_length=150, description="Updated full name")
+    phone: Optional[str] = Field(None, max_length=50, description="Mobile number or intercom extension")
+    hostel_name: Optional[str] = Field(None, max_length=120, description="IIIT-NR Hostel House (Ramanujan, Bhabha, Bose, Raman, Shabhari, Transit Hostel, or Day Scholar)")
+    room_number: Optional[str] = Field(None, max_length=60, description="Specific hostel room number / wing (e.g., Wing A, Room 204)")
+    department_name: Optional[str] = Field(None, max_length=100, description="Academic branch or department")
+
+    if HAS_PYDANTIC_V2:
+        model_config = ConfigDict(str_strip_whitespace=True)
+    else:
+        class Config:
+            anystr_strip_whitespace = True
 
 
 class GoogleAuthRequest(BaseModel):
@@ -166,6 +183,8 @@ class UserResponse(BaseModel):
     department_id: Optional[int] = None
     identifier: Optional[str] = None
     phone: Optional[str] = None
+    hostel_name: Optional[str] = None
+    room_number: Optional[str] = None
     avatar_url: Optional[str] = None
     auth_provider: Optional[str] = "password"
     email_verified: bool = True

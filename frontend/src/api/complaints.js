@@ -85,3 +85,31 @@ export async function submitFeedback(ticketIdentifier, rating, comments = null, 
   return response.data;
 }
 
+/**
+ * Fetch high-level analytics summary metrics for landing page telemetry.
+ *
+ * @returns {Promise<Object>} Aggregate statistics including total_tickets and sla_compliance_rate.
+ */
+export async function fetchAnalyticsSummary() {
+  try {
+    const response = await apiClient.get('/tickets/', { params: { limit: 200 } });
+    const tickets = Array.isArray(response.data) ? response.data : [];
+    const total = tickets.length;
+    const resolved = tickets.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED').length;
+    const compliant = tickets.filter((t) => !t.is_sla_breached).length;
+    const complianceRate = total > 0 ? (compliant / total) * 100 : 100;
+    return {
+      total_tickets: total,
+      resolved_tickets: resolved,
+      sla_compliance_rate: complianceRate,
+    };
+  } catch {
+    return {
+      total_tickets: 0,
+      resolved_tickets: 0,
+      sla_compliance_rate: 100,
+    };
+  }
+}
+
+

@@ -1,7 +1,8 @@
 """
 SmartComplaintHandler - Workload Dispatch Engine
 Blueprint Reference: V1/M4/backend/01_dispatch_engine.md
-Role: Least-loaded queue balancing algorithm dispatching tickets to squads with lowest load.
+Role: Least-loaded queue balancing algorithm dispatching tickets to squads with lowest load,
+      incorporating authentic IIIT Naya Raipur hostel and academic zone affinity.
 """
 from typing import Dict, List, Optional
 from sqlalchemy import func
@@ -14,15 +15,48 @@ from app.models.ticket import Ticket
 # Emergency rapid-response squads designated for short-circuit allocation on CRITICAL priority
 EMERGENCY_SQUAD_MAP: Dict[int, str] = {
     1: "Substation High-Voltage Team",  # Department 1: Electrical Services
-    2: "Water Supply Emergency Team",     # Department 2: Plumbing Services
-    3: "Structural Fixtures Crew",        # Department 3: Civil & Carpentry
-    4: "Network & Wi-Fi Squad",           # Department 4: IT & Infrastructure
+    2: "Water Supply Emergency Team",   # Department 2: Plumbing Services
+    3: "Structural Fixtures Crew",      # Department 3: Civil & Carpentry
+    4: "Network & Wi-Fi Squad",         # Department 4: IT & Infrastructure
 }
 
-# Campus zone affinity keyword mappings for geographic proximity bias
+# Authentic IIIT Naya Raipur campus zone affinity keyword mappings for geographic proximity bias
 ZONE_AFFINITY_MAP: Dict[str, List[str]] = {
-    "Hostel": ["hostel", "mess", "dormitory", "room", "hall"],
-    "Academic": ["academic", "class", "hall", "lab", "department", "seminar", "library"],
+    "Hostel": [
+        "hostel",
+        "mess",
+        "dormitory",
+        "room",
+        "hall",
+        "ramanujan",
+        "bhabha",
+        "bose",
+        "raman",
+        "shabhari",
+        "transit",
+        "wing a",
+        "wing b",
+    ],
+    "Academic": [
+        "academic",
+        "class",
+        "hall",
+        "lab",
+        "department",
+        "seminar",
+        "library",
+        "krc",
+        "idealab",
+        "idea lab",
+        "vlsi",
+        "iot",
+        "131c",
+        "131e",
+        "e-101",
+        "e-102",
+        "sac",
+        "mph",
+    ],
 }
 
 # Ticket lifecycle statuses considered active (unresolved) in squad work queues
@@ -35,6 +69,23 @@ ACTIVE_TICKET_STATUSES: List[str] = [
 ]
 
 
+def compute_zone_affinity_bonus(location: str, team_name: str) -> int:
+    """
+    Returns 1 if the IIIT-NR location matches the squad's zone specialization (Hostel vs Academic), else 0.
+    """
+    loc_lower = (location or "").lower()
+    squad_name_lower = (team_name or "").lower()
+
+    has_hostel_affinity = any(kw in loc_lower for kw in ZONE_AFFINITY_MAP["Hostel"])
+    has_academic_affinity = any(kw in loc_lower for kw in ZONE_AFFINITY_MAP["Academic"])
+
+    if has_hostel_affinity and "hostel" in squad_name_lower:
+        return 1
+    if has_academic_affinity and any(term in squad_name_lower for term in ["academic", "lab", "class"]):
+        return 1
+    return 0
+
+
 def select_optimal_team(
     db: Session,
     department_id: int,
@@ -43,7 +94,7 @@ def select_optimal_team(
 ) -> Optional[MaintenanceTeam]:
     """
     Select the optimal maintenance squad using emergency short-circuiting,
-    availability filtering, least-loaded queue balancing, and zone affinity.
+    availability filtering, least-loaded queue balancing, and IIIT-NR zone affinity.
 
     Args:
         db: Active SQLAlchemy database session.
@@ -85,7 +136,7 @@ def select_optimal_team(
         return None
 
     # 3. Workload Inspection: Calculate active queue depth for each candidate
-    # 4. Zone Affinity Bonus: Apply preference credit if squad specialization matches zone
+    # 4. Zone Affinity Bonus: Apply preference credit if squad specialization matches IIIT-NR zone
     loc_lower = (location or "").lower()
     has_hostel_affinity = any(kw in loc_lower for kw in ZONE_AFFINITY_MAP["Hostel"])
     has_academic_affinity = any(kw in loc_lower for kw in ZONE_AFFINITY_MAP["Academic"])

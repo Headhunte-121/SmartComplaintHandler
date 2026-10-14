@@ -2,7 +2,8 @@
  * SmartComplaintHandler - Authentication & Administration API Client
  * Domain: Handles @iiitnr.edu.in institutional login with Remember Me,
  *         production Google Workspace OAuth2/OIDC SSO (@iiitnr.edu.in Internal org),
- *         stateless OTP challenge tokens, JWT refresh rotation, and Supabase profile sync.
+ *         student hostel & room profile persistence, stateless OTP challenge tokens,
+ *         JWT refresh rotation, and Supabase profile sync.
  */
 import axios from 'axios';
 import apiClient from './client';
@@ -19,11 +20,11 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
 
   if (prefix === 'superadmin' || prefix === 'director' || prefix === 'super.admin') {
     return {
-      name: providedName || 'Chief Campus Administrator',
+      name: providedName || 'Prof. (Dr.) Om Prakash Vyas (Director)',
       email: cleanEmail,
       role: 'SUPER_ADMIN',
       department_name: 'Office of the Director',
-      identifier: 'Super Admin (DIR-01)',
+      identifier: 'Directorate (DIR-01)',
       is_active: true,
     };
   }
@@ -39,11 +40,11 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
     prefix.endsWith('.admin')
   ) {
     return {
-      name: providedName || 'Estate & Facilities Supervisor',
+      name: providedName || 'Rakesh Kumar Mishra (Estate Officer)',
       email: cleanEmail,
       role: 'ADMIN',
-      department_name: 'Central Facilities Management',
-      identifier: 'Supervisor (FAC-01)',
+      department_name: 'General Administration',
+      identifier: 'Estate Officer (0771-2474104)',
       is_active: true,
     };
   }
@@ -189,9 +190,22 @@ export async function registerUser(registrationData) {
     password: registrationData.password,
     department_name: registrationData.department_name || undefined,
     phone: registrationData.phone ? registrationData.phone.trim() : undefined,
+    hostel_name: registrationData.hostel_name ? registrationData.hostel_name.trim() : undefined,
+    room_number: registrationData.room_number ? registrationData.room_number.trim() : undefined,
     remember_me: Boolean(registrationData.remember_me),
     otp: registrationData.otp ? registrationData.otp.trim() : undefined,
     otp_token: registrationData.otp_token || undefined,
+  });
+  return response.data;
+}
+
+export async function updateUserProfile(profileData) {
+  const response = await apiClient.patch('/auth/profile', {
+    name: profileData.name !== undefined ? profileData.name : undefined,
+    phone: profileData.phone !== undefined ? profileData.phone : undefined,
+    hostel_name: profileData.hostel_name !== undefined ? profileData.hostel_name : undefined,
+    room_number: profileData.room_number !== undefined ? profileData.room_number : undefined,
+    department_name: profileData.department_name !== undefined ? profileData.department_name : undefined,
   });
   return response.data;
 }

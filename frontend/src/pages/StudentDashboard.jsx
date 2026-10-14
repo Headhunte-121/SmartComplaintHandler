@@ -1,18 +1,27 @@
 /**
  * SmartComplaintHandler - Student Self-Service Grievance Portal (IIIT Naya Raipur)
  * Blueprint Reference: V1/M2/frontend & V1/M5/frontend/04_feedback_rating.md
- * Design Pattern: Enterprise Bento KPI dashboard with search/filter bar, live SLA countdowns,
+ * Design Pattern: Enterprise Bento KPI dashboard with interactive IIIT-NR Hostel & Room selector,
+ *                 interactive Campus Map toggle, search/filter bar, live SLA countdowns,
  *                 and interactive 5-star closed-loop resolution rating modal.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchComplaints, submitFeedback } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
+import CampusMapSelector from '../components/CampusMapSelector';
+import {
+  IIITNR_HOSTELS,
+  HOSTEL_FLOORS,
+  HOSTEL_WINGS,
+  IIITNR_CAMPUS_METADATA,
+  getRoomsForBuilding,
+} from '../data/iiitnrCampusData';
 
 export default function StudentDashboard() {
-  const { currentPersona, currentUser } = useAuth();
+  const { currentPersona, currentUser, updateProfile } = useAuth();
   const activeUser = currentUser || currentPersona;
 
   const [tickets, setTickets] = useState([]);
@@ -20,6 +29,21 @@ export default function StudentDashboard() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCampusMap, setShowCampusMap] = useState(false);
+
+  // Student Hostel & Room Residence Modal State
+  const [isResidenceModalOpen, setIsResidenceModalOpen] = useState(false);
+  const [selectedHostel, setSelectedHostel] = useState(
+    activeUser?.hostel_name || IIITNR_HOSTELS[0].name
+  );
+  const [selectedFloor, setSelectedFloor] = useState('2');
+  const [selectedWing, setSelectedWing] = useState('Wing A');
+  const [selectedRoom, setSelectedRoom] = useState(
+    activeUser?.room_number || 'Wing A, Room 204'
+  );
+  const [customRoomInput, setCustomRoomInput] = useState('');
+  const [savingResidence, setSavingResidence] = useState(false);
+  const [residenceSavedBanner, setResidenceSavedBanner] = useState(null);
 
   // Rating Modal State
   const [selectedTicketForFeedback, setSelectedTicketForFeedback] = useState(null);
@@ -30,6 +54,20 @@ export default function StudentDashboard() {
   const [feedbackSuccess, setFeedbackSuccess] = useState(null);
 
   const studentEmail = activeUser?.email || 'nikhil26100@iiitnr.edu.in';
+
+  const availableRooms = useMemo(
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing),
+    [selectedHostel, selectedFloor, selectedWing]
+  );
+
+  useEffect(() => {
+    if (activeUser?.hostel_name) {
+      setSelectedHostel(activeUser.hostel_name);
+    }
+    if (activeUser?.room_number) {
+      setSelectedRoom(activeUser.room_number);
+    }
+  }, [activeUser?.hostel_name, activeUser?.room_number]);
 
   const loadStudentTickets = async () => {
     setLoading(true);
@@ -57,6 +95,31 @@ export default function StudentDashboard() {
   useEffect(() => {
     loadStudentTickets();
   }, [studentEmail]);
+
+  const handleSaveResidence = async (e) => {
+    e.preventDefault();
+    setSavingResidence(true);
+    setResidenceSavedBanner(null);
+
+    const finalRoom =
+      selectedHostel === 'Day Scholar (Off-Campus)'
+        ? 'Off-Campus Residence'
+        : customRoomInput.trim() || selectedRoom;
+
+    try {
+      await updateProfile({
+        hostel_name: selectedHostel,
+        room_number: finalRoom,
+      });
+      setResidenceSavedBanner(`Updated residence to ${selectedHostel} (${finalRoom})`);
+      setTimeout(() => {
+        setIsResidenceModalOpen(false);
+        setResidenceSavedBanner(null);
+      }, 900);
+    } finally {
+      setSavingResidence(false);
+    }
+  };
 
   const activeTickets = tickets.filter(
     (t) => t.status === 'SUBMITTED' || t.status === 'ASSIGNED' || t.status === 'IN_PROGRESS' || t.status === 'ESCALATED'
@@ -158,17 +221,20 @@ export default function StudentDashboard() {
     5: '5/5 — Outstanding Service',
   };
 
+  const currentHostelLabel = activeUser?.hostel_name || 'Ramanujan House (Boys Hostel 1)';
+  const currentRoomLabel = activeUser?.room_number || 'Wing A, Room 204';
+
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-12">
-      {/* Student Profile & Portal Welcome Banner (Fixed Tailwind v3 bg-gradient-to-r) */}
+      {/* Student Profile & Residence Hero Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-slate-800">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-start sm:items-center space-x-4">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-3xl shadow-inner shrink-0">
               {activeUser?.avatar || '🎓'}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                   {activeUser?.name}
@@ -180,9 +246,29 @@ export default function StudentDashboard() {
               <p className="text-xs text-indigo-200/90 font-medium">
                 {activeUser?.identifier} • {activeUser?.department}
               </p>
-              <p className="text-xs text-slate-300 font-mono">
-                {activeUser?.email}
-              </p>
+
+              {/* Student Hostel & Room Badge + Change Trigger */}
+              <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-bold">
+                  <span>🏠 {currentHostelLabel}</span>
+                  <span>•</span>
+                  <span className="font-mono text-white">{currentRoomLabel}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsResidenceModalOpen(true)}
+                  className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-indigo-200 hover:text-white transition-all cursor-pointer"
+                >
+                  ✏️ Change Hostel / Room
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCampusMap((prev) => !prev)}
+                  className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-sky-200 hover:text-white transition-all cursor-pointer"
+                >
+                  🗺️ {showCampusMap ? 'Hide IIIT-NR Map' : 'Explore IIIT-NR Map'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -208,6 +294,40 @@ export default function StudentDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Expandable IIIT Naya Raipur Interactive Campus Map & Estate Contacts */}
+      {showCampusMap && (
+        <div className="space-y-4 animate-fade-in">
+          <CampusMapSelector
+            selectedBuilding={currentHostelLabel}
+            selectedRoom={currentRoomLabel}
+            studentSavedHostel={currentHostelLabel}
+            studentSavedRoom={currentRoomLabel}
+            onSelectBuilding={(bName) => {
+              setSelectedHostel(bName);
+              setIsResidenceModalOpen(true);
+            }}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {IIITNR_CAMPUS_METADATA.contacts.map((c) => (
+              <div
+                key={c.email}
+                className="bento-card p-4 space-y-1 text-xs border-l-4 border-l-indigo-500"
+              >
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-600 block">
+                  {c.role}
+                </span>
+                <div className="font-bold text-slate-900">{c.name}</div>
+                <div className="text-[11px] text-slate-500">{c.office}</div>
+                <div className="text-[11px] font-mono text-slate-700 pt-1">
+                  📞 {c.phone} • {c.email}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bento Telemetry Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -341,7 +461,8 @@ export default function StudentDashboard() {
             <div className="space-y-1">
               <h3 className="text-base font-bold text-slate-800">No Grievances Found</h3>
               <p className="text-xs text-slate-500">
-                You have no complaints matching the current filter. Report any hostel, lab, or campus issue below.
+                You have no complaints matching the current filter. Report any issue in{' '}
+                <strong>{currentHostelLabel}</strong> or across campus below.
               </p>
             </div>
             <Link
@@ -396,7 +517,7 @@ export default function StudentDashboard() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-[11px] text-slate-400">
-                      <span className="text-slate-500 font-medium">
+                      <span className="text-slate-600 font-semibold">
                         📍 {ticket.location}
                       </span>
                       <span>•</span>
@@ -478,6 +599,179 @@ export default function StudentDashboard() {
           </div>
         )}
       </div>
+
+      {/* Student Hostel & Room Selection Modal */}
+      {isResidenceModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+          onClick={() => setIsResidenceModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl space-y-5 border border-slate-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                  IIIT Naya Raipur Student Residence
+                </span>
+                <h3 className="text-lg font-black text-slate-900 mt-1">
+                  Select Your Hostel &amp; Room Number
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Your saved hostel and room number will auto-fill whenever you lodge a maintenance grievance.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsResidenceModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {residenceSavedBanner && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2">
+                <span>✓</span>
+                <span>{residenceSavedBanner}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveResidence} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  IIIT-NR Hostel House
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {IIITNR_HOSTELS.map((h) => {
+                    const active = selectedHostel === h.name;
+                    return (
+                      <button
+                        key={h.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedHostel(h.name);
+                          setCustomRoomInput('');
+                        }}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          active
+                            ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-600/15'
+                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900">
+                            {h.shortName}
+                          </span>
+                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                            {h.mapZone.badge}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 block mt-0.5">
+                          {h.type}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Floor
+                  </label>
+                  <select
+                    value={selectedFloor}
+                    onChange={(e) => setSelectedFloor(e.target.value)}
+                    className="enterprise-input text-xs"
+                  >
+                    {HOSTEL_FLOORS.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Wing
+                  </label>
+                  <select
+                    value={selectedWing}
+                    onChange={(e) => setSelectedWing(e.target.value)}
+                    className="enterprise-input text-xs"
+                  >
+                    {HOSTEL_WINGS.slice(0, 2).map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Select Room Number
+                  </label>
+                  <select
+                    value={selectedRoom}
+                    onChange={(e) => {
+                      setSelectedRoom(e.target.value);
+                      setCustomRoomInput('');
+                    }}
+                    className="enterprise-input text-xs"
+                  >
+                    {availableRooms
+                      .filter((r) => r.includes('Room') || r.includes('Suite'))
+                      .map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Or Enter Exact Room No.
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Wing B, Room 312"
+                    value={customRoomInput}
+                    onChange={(e) => setCustomRoomInput(e.target.value)}
+                    className="enterprise-input text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsResidenceModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingResidence}
+                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {savingResidence ? 'Saving to Profile...' : 'Save Hostel & Room'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Closed-Loop Student Satisfaction Rating Modal */}
       {selectedTicketForFeedback && (

@@ -440,3 +440,62 @@ def test_bug7_frontend_client_id_injection_and_token_expiry_guards():
     assert "GOOGLE_CLIENT_ID_PATTERN" in register_code
     assert "IS_PROD_BUILD" in register_code
     assert "export function isTokenExpired" in client_code
+
+
+def test_iiitnr_hostel_room_persistence_and_zone_dispatch():
+    """
+    IIIT Naya Raipur Campus Map, Hostels & Student Room Persistence Verification:
+    1. Student registration persists authentic IIIT-NR `hostel_name` (Ramanujan House) and `room_number` (Wing A, Room 204).
+    2. `GET /api/v1/auth/me` returns the student's saved hostel and room number.
+    3. `PATCH /api/v1/auth/profile` updates the student's hostel (Bhabha House) and room number (Wing B, Room 312).
+    4. `compute_zone_affinity_bonus` matches authentic IIIT-NR hostels (Ramanujan, Bhabha, Bose, Raman, Shabhari)
+       and academic/lab buildings (VLSI Lab, Room 131C, Smart E-Classroom E-101).
+    """
+    from app.services.dispatch_engine import compute_zone_affinity_bonus
+
+    reg_resp = client.post(
+        "/api/v1/auth/register",
+        json={
+            "name": "Aarav Verma",
+            "email": "aarav26100@iiitnr.edu.in",
+            "password": "StrongPassword123!",
+            "hostel_name": "Ramanujan House (Boys Hostel 1)",
+            "room_number": "Wing A, Room 204",
+            "remember_me": True,
+        },
+    )
+    assert reg_resp.status_code == 201
+    reg_data = reg_resp.json()
+    assert reg_data["user"]["hostel_name"] == "Ramanujan House (Boys Hostel 1)"
+    assert reg_data["user"]["room_number"] == "Wing A, Room 204"
+    token = reg_data["access_token"]
+
+    me_resp = client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert me_resp.status_code == 200
+    me_data = me_resp.json()
+    assert me_data["hostel_name"] == "Ramanujan House (Boys Hostel 1)"
+    assert me_data["room_number"] == "Wing A, Room 204"
+
+    patch_resp = client.patch(
+        "/api/v1/auth/profile",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "hostel_name": "Bhabha House (Boys Hostel 2)",
+            "room_number": "Wing B, Room 312",
+            "phone": "+91-9876543210",
+        },
+    )
+    assert patch_resp.status_code == 200
+    patched_user = patch_resp.json()
+    assert patched_user["hostel_name"] == "Bhabha House (Boys Hostel 2)"
+    assert patched_user["room_number"] == "Wing B, Room 312"
+    assert patched_user["phone"] == "+91-9876543210"
+
+    # Verify IIIT-NR Zone Affinity matching
+    assert compute_zone_affinity_bonus("Ramanujan House (Boys Hostel 1), Wing A, Room 204", "Hostel Electrical Squad 1") == 1
+    assert compute_zone_affinity_bonus("Shabhari House (Girls Hostel 2), Wing B, Room 118", "Hostel Plumbing Squad 2") == 1
+    assert compute_zone_affinity_bonus("Academic Block, VLSI Lab (Room 202)", "Academic Power Crew") == 1
+    assert compute_zone_affinity_bonus("Academic Block, Room 131C Data Centre", "Academic Network Squad") == 1

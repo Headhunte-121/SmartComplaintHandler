@@ -2,8 +2,8 @@
 SmartComplaintHandler - Authentication & Super Admin Endpoints
 Role: Institutional registration, login with persistent Remember Me sessions,
       Google Workspace OAuth2/OIDC SSO strictly restricted to @iiitnr.edu.in,
-      stateless OTP challenge/verification, JWT access/refresh lifecycle,
-      password updates, profile retrieval, and RBAC-protected Super Admin operations.
+      student hostel & room number profile persistence, stateless OTP challenge/verification,
+      JWT access/refresh lifecycle, password updates, and RBAC-protected Super Admin operations.
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -23,6 +23,7 @@ from app.schemas.user import (
     PasswordChangeRequest,
     RefreshTokenRequest,
     RegisterRequest,
+    UserProfileUpdateRequest,
     UserResponse,
 )
 from app.services.user_service import (
@@ -37,6 +38,7 @@ from app.services.user_service import (
     purge_all_tickets,
     refresh_user_session,
     register_user,
+    update_user_profile,
     verify_otp,
 )
 
@@ -176,6 +178,24 @@ def update_password(
         email=current_user.email,
         current_password=payload.current_password,
         new_password=payload.new_password,
+        db=db,
+    )
+
+
+@router.patch(
+    "/profile",
+    response_model=UserResponse,
+    summary="Update Authenticated User Profile (Hostel, Room Number, Phone, Name)",
+)
+def update_profile_endpoint(
+    payload: UserProfileUpdateRequest,
+    current_user: UserResponse = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> UserResponse:
+    """Allow an authenticated student or staff member to update their IIIT-NR hostel, room number, or contact info."""
+    return update_user_profile(
+        email=current_user.email,
+        payload=payload,
         db=db,
     )
 

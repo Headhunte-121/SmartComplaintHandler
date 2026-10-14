@@ -4,6 +4,7 @@ Role: Production-grade authentication for IIIT Naya Raipur (@iiitnr.edu.in) on V
       - Authoritative server-side Google OAuth2 (UserInfo/TokenInfo) & OIDC ID Token verification
       - Blocks unverified Google token fallbacks and DB-outage account-deactivation bypasses in production
       - Persistent & in-memory brute-force account lockout, OTP rate-limiting, and constant-time anti-enumeration
+      - Student hostel & room number profile persistence (Ramanujan, Bhabha, Bose, Raman, Shabhari Houses)
       - Cold-start-cached schema initialization (eliminates per-request DDL table locks on Supabase)
       - Stateless HMAC-signed OTP verification across Vercel Serverless instances
       - Password hashing via bcrypt (72-byte safe), access + refresh JWT issuance, and RBAC helpers
@@ -51,6 +52,7 @@ from app.schemas.user import (
     GoogleAuthRequest,
     LoginRequest,
     RegisterRequest,
+    UserProfileUpdateRequest,
     UserResponse,
 )
 
@@ -77,16 +79,22 @@ _OTP_VERIFY_FAILURES: Dict[str, Dict[str, Any]] = {}
 
 IIITNR_KNOWN_STAFF: Dict[str, Dict[str, Any]] = {
     "superadmin@iiitnr.edu.in": {
-        "name": "Chief Campus Administrator",
+        "name": "Prof. (Dr.) Om Prakash Vyas (Director)",
         "role": "SUPER_ADMIN",
         "department_name": "Office of the Director",
-        "identifier": "Super Admin (DIR-01)",
+        "identifier": "Directorate (DIR-01)",
     },
     "director@iiitnr.edu.in": {
         "name": "Prof. (Dr.) Om Prakash Vyas",
         "role": "SUPER_ADMIN",
         "department_name": "Office of the Director",
         "identifier": "Vice Chancellor & Director",
+    },
+    "admin@iiitnr.edu.in": {
+        "name": "Rakesh Kumar Mishra (Estate Officer)",
+        "role": "ADMIN",
+        "department_name": "General Administration",
+        "identifier": "Estate Officer (0771-2474104)",
     },
     "rakesh@iiitnr.edu.in": {
         "name": "Rakesh Kumar Mishra (Estate Officer)",
@@ -148,7 +156,7 @@ def _get_allowed_domain() -> str:
 
 def _ensure_users_table_ready(db: Session) -> None:
     """
-    Guarantee that `departments` and `users` tables and all production auth columns exist.
+    Guarantee that `departments` and `users` tables and all production auth & hostel columns exist.
     Cached per database engine URL so DDL checks run only once per Vercel Serverless cold start.
     """
     try:
@@ -162,6 +170,8 @@ def _ensure_users_table_ready(db: Session) -> None:
             with bind.begin() as conn:
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hostel_name VARCHAR(120);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS room_number VARCHAR(60);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_name VARCHAR(100);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50) DEFAULT 'password';"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub VARCHAR(255);"))
@@ -179,6 +189,8 @@ def _ensure_users_table_ready(db: Session) -> None:
                     ("department_name", "VARCHAR(100)"),
                     ("department_id", "INTEGER"),
                     ("phone", "VARCHAR(50)"),
+                    ("hostel_name", "VARCHAR(120)"),
+                    ("room_number", "VARCHAR(60)"),
                     ("auth_provider", "VARCHAR(50) DEFAULT 'password'"),
                     ("google_sub", "VARCHAR(255)"),
                     ("avatar_url", "VARCHAR(500)"),
@@ -212,16 +224,16 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
 
     if prefix in ("superadmin", "director", "super.admin"):
         return {
-            "name": "Chief Campus Administrator",
+            "name": "Prof. (Dr.) Om Prakash Vyas (Director)",
             "role": "SUPER_ADMIN",
             "department_name": "Office of the Director",
-            "identifier": "Super Admin (DIR-01)",
+            "identifier": "Directorate (DIR-01)",
         }
     if (
         prefix in ("admin", "estate", "facilities", "supervisor", "estate.admin", "estate_admin")
         or prefix.endswith(".admin")
     ):
-        dept = "Central Facilities Management"
+        dept = "General Administration"
         if "electrical" in prefix:
             dept = "Electrical"
         elif "plumbing" in prefix:
@@ -455,7 +467,7 @@ def _enforce_iiitnr_google_policy(
         )
 
     if hd is not None and str(hd).strip() != "":
-        if str(hd).strip().lower() != allowed_domain:
+        if str(hd).strip() != allowed_domain:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=(
@@ -490,6 +502,8 @@ def _build_auth_response(user_resp: UserResponse, remember_me: bool) -> AuthResp
         "role": user_resp.role,
         "department_name": user_resp.department_name,
         "identifier": user_resp.identifier,
+        "hostel_name": user_resp.hostel_name,
+        "room_number": user_resp.room_number,
         "id": user_resp.id,
         "auth_provider": user_resp.auth_provider or "password",
     }
@@ -626,7 +640,7 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
 
 
 def to_user_response(user: User) -> UserResponse:
-    """Format ORM User model into UserResponse with roll parsing and Google SSO metadata."""
+    """Format ORM User model into UserResponse with roll parsing, hostel/room info, and Google SSO metadata."""
     meta = resolve_user_metadata(user.email)
     identifier = meta.get("identifier")
     if user.role != "STUDENT":
@@ -641,6 +655,8 @@ def to_user_response(user: User) -> UserResponse:
         department_id=user.department_id,
         identifier=identifier,
         phone=user.phone,
+        hostel_name=getattr(user, "hostel_name", None),
+        room_number=getattr(user, "room_number", None),
         avatar_url=getattr(user, "avatar_url", None),
         auth_provider=getattr(user, "auth_provider", None) or "password",
         email_verified=bool(getattr(user, "email_verified", True)),
@@ -821,7 +837,7 @@ def _clear_failed_login(email: str, db_user: Optional[User]) -> None:
 
 
 def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
-    """Register a new student, faculty, or staff account in Supabase with bcrypt password hashing."""
+    """Register a new student, faculty, or staff account in Supabase with bcrypt password hashing and hostel/room info."""
     _ensure_users_table_ready(db)
     clean_email = req.email.strip().lower()
     if not clean_email.endswith(f"@{IIITNR_DOMAIN}"):
@@ -851,6 +867,10 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
                 existing.name = req.name.strip()
             if req.phone and req.phone.strip():
                 existing.phone = req.phone.strip()
+            if req.hostel_name and req.hostel_name.strip():
+                existing.hostel_name = req.hostel_name.strip()
+            if req.room_number and req.room_number.strip():
+                existing.room_number = req.room_number.strip()
             db.commit()
             db.refresh(existing)
             return _build_auth_response(to_user_response(existing), remember_me=req.remember_me)
@@ -876,6 +896,8 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
         role=meta["role"],
         department_name=dept_name,
         phone=req.phone.strip() if req.phone else None,
+        hostel_name=req.hostel_name.strip() if req.hostel_name and req.hostel_name.strip() else None,
+        room_number=req.room_number.strip() if req.room_number and req.room_number.strip() else None,
         auth_provider="password",
         email_verified=True,
         is_active=True,
@@ -888,6 +910,49 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
 
     user_resp = to_user_response(new_user)
     return _build_auth_response(user_resp, remember_me=req.remember_me)
+
+
+def update_user_profile(
+    email: str,
+    payload: UserProfileUpdateRequest,
+    db: Session,
+) -> UserResponse:
+    """Update an authenticated user's hostel, room number, phone, or display name in Supabase."""
+    _ensure_users_table_ready(db)
+    clean_email = (email or "").strip().lower()
+    user = db.query(User).filter(User.email.ilike(clean_email)).first()
+
+    if not user:
+        meta = resolve_user_metadata(clean_email)
+        user = User(
+            name=(payload.name or meta["name"]).strip(),
+            email=clean_email,
+            role=meta["role"],
+            department_name=(payload.department_name or meta["department_name"]).strip(),
+            phone=payload.phone.strip() if payload.phone else None,
+            hostel_name=payload.hostel_name.strip() if payload.hostel_name else None,
+            room_number=payload.room_number.strip() if payload.room_number else None,
+            auth_provider="password",
+            email_verified=True,
+            is_active=True,
+            failed_login_attempts=0,
+        )
+        db.add(user)
+    else:
+        if payload.name is not None and payload.name.strip():
+            user.name = payload.name.strip()
+        if payload.phone is not None:
+            user.phone = payload.phone.strip() or None
+        if payload.hostel_name is not None:
+            user.hostel_name = payload.hostel_name.strip() or None
+        if payload.room_number is not None:
+            user.room_number = payload.room_number.strip() or None
+        if payload.department_name is not None and payload.department_name.strip():
+            user.department_name = payload.department_name.strip()
+
+    db.commit()
+    db.refresh(user)
+    return to_user_response(user)
 
 
 def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
@@ -1007,6 +1072,8 @@ def refresh_user_session(refresh_token: str, remember_me: bool, db: Session) -> 
             role=payload.get("role") or meta["role"],
             department_name=meta["department_name"],
             identifier=meta["identifier"],
+            hostel_name=payload.get("hostel_name"),
+            room_number=payload.get("room_number"),
             is_active=True,
         )
 
@@ -1094,6 +1161,8 @@ def get_current_user_from_token(token: str, db: Session) -> UserResponse:
         department_id=None,
         identifier=payload.get("identifier") or meta["identifier"],
         phone=None,
+        hostel_name=payload.get("hostel_name"),
+        room_number=payload.get("room_number"),
         auth_provider=payload.get("auth_provider") or "password",
         email_verified=True,
         is_active=True,

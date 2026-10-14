@@ -1,7 +1,8 @@
 /**
  * SmartComplaintHandler - Enterprise Split-Screen Institutional Registration Portal (IIIT Naya Raipur)
  * Design Pattern: Inspired by Linear, Clerk, and Vercel onboarding flows with live password strength
- *                 scoring, automatic roll/department extraction, and Google Workspace SSO.
+ *                 scoring, automatic roll/department extraction, IIIT-NR Hostel & Room assignment,
+ *                 and Google Workspace SSO.
  * Security:
  * - Disables localStorage Client-ID injection in production builds (`IS_PROD_BUILD`).
  * - Enforces GOOGLE_CLIENT_ID_PATTERN validation.
@@ -10,6 +11,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchAuthConfig } from '../api/auth';
+import {
+  IIITNR_HOSTELS,
+  HOSTEL_FLOORS,
+  HOSTEL_WINGS,
+  getRoomsForBuilding,
+} from '../data/iiitnrCampusData';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
@@ -87,6 +94,12 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
+  // IIIT-NR Student Residence Selection State
+  const [selectedHostel, setSelectedHostel] = useState(IIITNR_HOSTELS[0].name);
+  const [selectedFloor, setSelectedFloor] = useState('2');
+  const [selectedWing, setSelectedWing] = useState('Wing A');
+  const [selectedRoomNumber, setSelectedRoomNumber] = useState('Wing A, Room 204');
+
   const [googleClientId, setGoogleClientId] = useState(getInitialGoogleClientId);
   const [showClientIdModal, setShowClientIdModal] = useState(false);
   const [clientIdInput, setClientIdInput] = useState('');
@@ -96,6 +109,17 @@ export default function Register() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successUser, setSuccessUser] = useState(null);
+
+  const availableRooms = useMemo(
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing),
+    [selectedHostel, selectedFloor, selectedWing]
+  );
+
+  useEffect(() => {
+    if (availableRooms.length > 0 && !availableRooms.includes(selectedRoomNumber)) {
+      setSelectedRoomNumber(availableRooms[0]);
+    }
+  }, [availableRooms]);
 
   useEffect(() => {
     if (currentUser) {
@@ -388,6 +412,8 @@ export default function Register() {
         password,
         role: 'STUDENT',
         department_name: meta?.department || 'Computer Science & Engineering',
+        hostel_name: selectedHostel,
+        room_number: selectedRoomNumber,
         remember_me: rememberMe,
       });
 
@@ -427,7 +453,7 @@ export default function Register() {
               </span>
             </div>
             <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Dr. SPM International Institute of Information Technology
+              Plot No. 7, Sector 24, Atal Nagar – Nava Raipur (C.G.)
             </p>
           </div>
         </div>
@@ -438,10 +464,11 @@ export default function Register() {
               <span>Zero-Friction Institutional Provisioning</span>
             </div>
             <h1 className="text-3xl xl:text-4xl font-black tracking-tight text-white leading-[1.15]">
-              Automatic roll &amp; department recognition from your campus email.
+              Automatic roll, branch &amp; IIIT-NR hostel room mapping.
             </h1>
             <p className="text-sm text-slate-300/90 leading-relaxed">
-              Your <code className="font-mono text-indigo-300">@iiitnr.edu.in</code> identifier automatically maps your academic branch (CSE, DSAI, or ECE) and links your hostel and lab maintenance tickets to your student profile.
+              Your <code className="font-mono text-indigo-300">@iiitnr.edu.in</code> identifier automatically maps your academic branch (CSE, DSAI, or ECE) and links your hostel room in{' '}
+              <strong className="text-white">Ramanujan, Bhabha, Bose, Raman, or Shabhari House</strong> for 1-click maintenance dispatch.
             </p>
           </div>
 
@@ -460,6 +487,22 @@ export default function Register() {
               <span className="font-mono text-[11px] font-bold text-amber-400 block">Code 102</span>
               <span className="font-bold text-white mt-0.5 block">ECE Branch</span>
               <span className="text-[11px] text-slate-400">Electronics &amp; Comm.</span>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 text-xs">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-300">
+              Official IIIT-NR Hostels Covered
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {IIITNR_HOSTELS.map((h) => (
+                <span
+                  key={h.id}
+                  className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-slate-200 font-medium"
+                >
+                  🏠 {h.shortName} ({h.mapZone.badge})
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -500,11 +543,11 @@ export default function Register() {
                 </span>
               </div>
               <h2 className="text-xl font-black text-slate-900 tracking-tight pt-1">
-                {step === 'password' ? 'Set your campus password' : 'Create your IIIT-NR account'}
+                {step === 'password' ? 'Select Hostel & Set Password' : 'Create your IIIT-NR account'}
               </h2>
               <p className="text-xs text-slate-500">
                 {step === 'password'
-                  ? 'Choose a strong password for your institutional account'
+                  ? 'Select your IIIT-NR hostel room and set your account password'
                   : 'Register with Google Workspace or your @iiitnr.edu.in email'}
               </p>
             </div>
@@ -517,6 +560,11 @@ export default function Register() {
                 <h3 className="text-sm font-bold text-slate-900">
                   Welcome to IIIT-NR Facilities, {successUser.name}!
                 </h3>
+                {successUser.hostel_name && (
+                  <p className="text-xs text-indigo-600 font-semibold">
+                    🏠 {successUser.hostel_name} • {successUser.room_number}
+                  </p>
+                )}
                 <p className="text-xs text-slate-500">
                   Your account is active. Opening your portal...
                 </p>
@@ -663,6 +711,96 @@ export default function Register() {
                       </div>
                     )}
 
+                    {/* IIIT-NR Hostel & Room Number Selector */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
+                          🏠 IIIT-NR Hostel &amp; Room Assignment
+                        </span>
+                        <span className="text-[10px] font-mono text-indigo-600 font-bold">
+                          Auto-Fills Complaints
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                          Select Your Hostel House
+                        </label>
+                        <select
+                          value={selectedHostel}
+                          onChange={(e) => setSelectedHostel(e.target.value)}
+                          className="enterprise-input text-xs"
+                        >
+                          {IIITNR_HOSTELS.map((h) => (
+                            <option key={h.id} value={h.name}>
+                              {h.name}
+                            </option>
+                          ))}
+                          <option value="Day Scholar (Off-Campus)">
+                            Day Scholar (Non-Hosteller)
+                          </option>
+                        </select>
+                      </div>
+
+                      {selectedHostel !== 'Day Scholar (Off-Campus)' && (
+                        <>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                Floor
+                              </label>
+                              <select
+                                value={selectedFloor}
+                                onChange={(e) => setSelectedFloor(e.target.value)}
+                                className="enterprise-input text-xs"
+                              >
+                                {HOSTEL_FLOORS.map((f) => (
+                                  <option key={f.id} value={f.id}>
+                                    {f.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                Wing
+                              </label>
+                              <select
+                                value={selectedWing}
+                                onChange={(e) => setSelectedWing(e.target.value)}
+                                className="enterprise-input text-xs"
+                              >
+                                {HOSTEL_WINGS.slice(0, 2).map((w) => (
+                                  <option key={w.id} value={w.id}>
+                                    {w.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                              Room Number
+                            </label>
+                            <select
+                              value={selectedRoomNumber}
+                              onChange={(e) => setSelectedRoomNumber(e.target.value)}
+                              className="enterprise-input text-xs"
+                            >
+                              {availableRooms
+                                .filter((r) => r.includes('Room') || r.includes('Suite'))
+                                .map((r) => (
+                                  <option key={r} value={r}>
+                                    {r}
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -803,37 +941,40 @@ export default function Register() {
               <button
                 type="button"
                 onClick={() => setShowClientIdModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in Vercel Environment Variables, or paste your OAuth 2.0 Web Client ID below (local development only):
-            </p>
+
             <form onSubmit={handleSaveClientIdAndContinue} className="space-y-3">
-              <input
-                type="text"
-                required
-                autoFocus
-                placeholder="xxxxxxxxxxxx-xxxxxxxxxxxxxxxx.apps.googleusercontent.com"
-                value={clientIdInput}
-                onChange={(e) => setClientIdInput(e.target.value)}
-                className="enterprise-input font-mono"
-              />
-              <div className="flex items-center justify-end space-x-2 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Google OAuth 2.0 Client ID
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="1234567890-abcdefg.apps.googleusercontent.com"
+                  value={clientIdInput}
+                  onChange={(e) => setClientIdInput(e.target.value)}
+                  className="enterprise-input font-mono text-xs"
+                />
+              </div>
+
+              <div className="flex items-center justify-end space-x-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowClientIdModal(false)}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs cursor-pointer"
                 >
-                  Save &amp; Continue
+                  Save &amp; Launch Google Sign-Up
                 </button>
               </div>
             </form>

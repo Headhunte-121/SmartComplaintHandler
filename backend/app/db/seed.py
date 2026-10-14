@@ -1,8 +1,8 @@
 """
 SmartComplaintHandler - Database Bootstrap & Starter Data Seeder
 Blueprint Reference: V1/M1/backend/08_seed_data.md
-Role: Idempotently seeds the standard campus departments, maintenance squads, and
-      production User schema columns upon boot or manual CLI invocation.
+Role: Idempotently seeds authentic IIIT Naya Raipur campus departments, maintenance squads,
+      official administrative staff, and production User schema columns upon boot or manual CLI invocation.
 """
 import logging
 from sqlalchemy import text
@@ -18,12 +18,12 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 SEED_DEPARTMENTS = [
-    {"id": 1, "name": "Electrical", "description": "Power grids, lighting, wiring, and substation maintenance"},
-    {"id": 2, "name": "Plumbing", "description": "Water supply pipelines, fixtures, drainage, sewage, and pumps"},
-    {"id": 3, "name": "Sanitation", "description": "Waste disposal, restroom hygiene, cleaning, and pest control"},
-    {"id": 4, "name": "Carpentry", "description": "Doors, windows, wooden furniture, desks, and civil fixtures"},
-    {"id": 5, "name": "IT Support", "description": "Campus networks, Wi-Fi access points, lab computers, and portals"},
-    {"id": 6, "name": "General Administration", "description": "Miscellaneous campus facilities, civil repairs, and general inquiries"},
+    {"id": 1, "name": "Electrical", "description": "Power grids, lighting, wiring, AC units, and 33/11kV substation maintenance"},
+    {"id": 2, "name": "Plumbing", "description": "RO water coolers, supply pipelines, fixtures, drainage, sewage, and pumps"},
+    {"id": 3, "name": "Sanitation", "description": "Hostel and academic block hygiene, waste disposal, cleaning, and pest control"},
+    {"id": 4, "name": "Carpentry", "description": "Doors, locks, windows, hostel cot/table furniture, desks, and civil fixtures"},
+    {"id": 5, "name": "IT Support", "description": "Campus Wi-Fi access points, LAN ports, Data Centre NOC (131C/131E), and lab systems"},
+    {"id": 6, "name": "General Administration", "description": "Estate Office, hostel wardens, mess administration, and campus civil facilities"},
 ]
 
 SEED_TEAMS = [
@@ -38,30 +38,30 @@ SEED_TEAMS = [
 
 SEED_ADMINS = [
     {
-        "name": "Chief Campus Administrator",
+        "name": "Prof. (Dr.) Om Prakash Vyas (Director)",
         "email": "superadmin@iiitnr.edu.in",
         "role": "SUPER_ADMIN",
         "department_name": "Office of the Director",
         "phone": "+91-771-2474001",
     },
     {
-        "name": "Dr. Sunita Verma (Estate Lead)",
+        "name": "Rakesh Kumar Mishra (Estate Officer)",
         "email": "admin@iiitnr.edu.in",
         "role": "ADMIN",
-        "department_name": "Central Facilities Management",
+        "department_name": "General Administration",
         "department_id": 6,
-        "phone": "+91-771-2474102",
+        "phone": "+91-771-2474104",
     },
     {
-        "name": "Er. Rajesh Sharma",
+        "name": "Ranjeet Singh Thakur (JE Electrical)",
         "email": "electrical.admin@iiitnr.edu.in",
         "role": "ADMIN",
         "department_name": "Electrical",
         "department_id": 1,
-        "phone": "+91-771-2474103",
+        "phone": "+91-771-2474109",
     },
     {
-        "name": "Er. Manoj Verma",
+        "name": "Er. Manoj Verma (Hostel & Water Works)",
         "email": "plumbing.admin@iiitnr.edu.in",
         "role": "ADMIN",
         "department_name": "Plumbing",
@@ -69,7 +69,23 @@ SEED_ADMINS = [
         "phone": "+91-771-2474104",
     },
     {
-        "name": "Ramesh Kumar (Tech Lead)",
+        "name": "Abir Bhattacharya (Sr. Network Engineer)",
+        "email": "abir@iiitnr.edu.in",
+        "role": "ADMIN",
+        "department_name": "IT Support",
+        "department_id": 5,
+        "phone": "+91-771-2474131",
+    },
+    {
+        "name": "Parvinder Singh (Network Engineer, Room 131E)",
+        "email": "parvinder@iiitnr.edu.in",
+        "role": "TECHNICIAN",
+        "department_name": "IT Support",
+        "department_id": 5,
+        "phone": "+91-771-2474132",
+    },
+    {
+        "name": "Ramesh Kumar (Electrical Tech Lead)",
         "email": "tech.ramesh@iiitnr.edu.in",
         "role": "TECHNICIAN",
         "department_name": "Electrical",
@@ -96,6 +112,8 @@ def ensure_schema() -> None:
             if "sqlite" not in str(engine.url):
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hostel_name VARCHAR(120);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS room_number VARCHAR(60);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_name VARCHAR(100);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50) DEFAULT 'password';"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub VARCHAR(255);"))
@@ -126,6 +144,8 @@ def ensure_schema() -> None:
                 ("department_name", "VARCHAR(100)"),
                 ("department_id", "INTEGER"),
                 ("phone", "VARCHAR(50)"),
+                ("hostel_name", "VARCHAR(120)"),
+                ("room_number", "VARCHAR(60)"),
                 ("auth_provider", "VARCHAR(50) DEFAULT 'password'"),
                 ("google_sub", "VARCHAR(255)"),
                 ("avatar_url", "VARCHAR(500)"),

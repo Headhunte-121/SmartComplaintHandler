@@ -727,6 +727,49 @@ npm run dev
   - Frontend Production Build: `npm run build` compiled in 1.43s with 0 errors.
   - Backend Test Suite: 55/55 pytest unit & security tests passing cleanly in 6.08s (100% pass rate).
 
+### [2026-10-15] - IIIT Naya Raipur Campus Map, Hostels & Student Residence System
+* **Files Modified & Added:**
+  - `backend/app/models/user.py`
+  - `backend/app/schemas/user.py`
+  - `backend/app/services/user_service.py`
+  - `backend/app/api/v1/endpoints/auth.py`
+  - `backend/app/db/seed.py`
+  - `backend/app/services/dispatch_engine.py`
+  - `backend/tests/test_auth.py`
+  - `frontend/src/data/iiitnrCampusData.js` (NEW)
+  - `frontend/src/components/CampusMapSelector.jsx` (NEW)
+  - `frontend/src/api/auth.js`
+  - `frontend/src/api/complaints.js`
+  - `frontend/src/context/AuthContext.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `frontend/src/pages/StudentDashboard.jsx`
+  - `frontend/src/pages/SubmitComplaint.jsx`
+  - `frontend/src/pages/Home.jsx`
+  - `docs/IIITNR_CAMPUS_MAP_AND_HOSTEL_GUIDE.md` (NEW)
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Interactive IIIT-NR Campus Map (`CampusMapSelector.jsx` & `iiitnrCampusData.js`):**
+     - Interactive SVG Master Plan of the 50-acre Sector 24 campus displaying clickable footprints for all 6 Residential Hostels (`BH-1`, `BH-2`, `BH-3`, `GH-1`, `GH-2`, `TH-1`) and 5 Academic/Amenity zones (`ACAD`, `KRC`, `SAC`, `MESS`, `SPORTS`).
+     - OpenStreetMap live GPS satellite/street view centered at `21.1284° N, 81.7661° E` with direct Google Maps launch (`Plot No. 7, Sector 24, Atal Nagar`).
+  2. **Authentic Hostels, Wings, Floors & Room Numbers:**
+     - Cataloged all rooms across Ramanujan House, Bhabha House, Bose House, Raman House, and Shabhari House (Floors G–3, Wings A & B, Rooms 101–324, RO Water Coolers, Washroom Blocks, and TV Lounges).
+     - Cataloged Academic Block facilities including Data Centre & NOC (Room 131C/131E), Smart E-Classrooms (E-101/E-102), VLSI Lab, AICTE IDEA Lab, and KRC Central Library.
+  3. **End-to-End Student Residence Persistence (`Register.jsx` & `StudentDashboard.jsx`):**
+     - Added `hostel_name` and `room_number` columns to `User` ORM model with idempotent migrations.
+     - Added `PATCH /api/v1/auth/profile` allowing students to update their hostel, wing, and room number.
+     - Embedded a 1-click `Change Hostel / Room` modal and expandable `Explore IIIT-NR Map` drawer on the student dashboard.
+  4. **Smart Grievance Pre-Filling (`SubmitComplaint.jsx`):**
+     - Embedded `<CampusMapSelector />` with 1-click `My Room` auto-fill from saved profile and structured Building/Floor/Wing/Room Number pickers.
+  5. **Zone-Aware Dispatch Engine (`dispatch_engine.py`):**
+     - Expanded `ZONE_AFFINITY_MAP` with authentic IIIT-NR hostel and lab keywords for automated technician routing.
+  6. **Landing Page Command Hub (`Home.jsx`):**
+     - Integrated interactive campus map master plan, directory of authentic hostels, and verified directory of official IIIT-NR Estate & Network engineers.
+* **Why It Was Changed:** Replaced generic placeholder locations with authentic IIIT Naya Raipur campus infrastructure, providing exact room-level maintenance routing and interactive spatial map exploration.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.47s with 0 errors.
+  - Backend Test Suite: 56/56 pytest unit, security & residence tests passing cleanly in 7.42s (100% pass rate).
+
+
 
 
 
