@@ -13,10 +13,13 @@ import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import CampusMapSelector from '../components/CampusMapSelector';
 import {
-  IIITNR_HOSTELS,
+  getHostelBuildings,
+  IIITNR_MAP_UPDATED_EVENT,
   HOSTEL_FLOORS,
   HOSTEL_WINGS,
   IIITNR_CAMPUS_METADATA,
+  getFloorsForBuilding,
+  getWingsForBuilding,
   getRoomsForBuilding,
 } from '../data/iiitnrCampusData';
 
@@ -33,8 +36,18 @@ export default function StudentDashboard() {
 
   // Student Hostel & Room Residence Modal State
   const [isResidenceModalOpen, setIsResidenceModalOpen] = useState(false);
+  const [hostelList, setHostelList] = useState(() => getHostelBuildings());
+
+  useEffect(() => {
+    const handleMapUpdate = () => {
+      setHostelList(getHostelBuildings());
+    };
+    window.addEventListener(IIITNR_MAP_UPDATED_EVENT, handleMapUpdate);
+    return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, handleMapUpdate);
+  }, []);
+
   const [selectedHostel, setSelectedHostel] = useState(
-    activeUser?.hostel_name || IIITNR_HOSTELS[0].name
+    activeUser?.hostel_name || hostelList[0]?.name || 'Ramanujan House (Boys Hostel 1)'
   );
   const [selectedFloor, setSelectedFloor] = useState('2');
   const [selectedWing, setSelectedWing] = useState('Wing A');
@@ -55,9 +68,19 @@ export default function StudentDashboard() {
 
   const studentEmail = activeUser?.email || 'nikhil26100@iiitnr.edu.in';
 
+  const availableFloors = useMemo(
+    () => getFloorsForBuilding(selectedHostel, hostelList),
+    [selectedHostel, hostelList]
+  );
+
+  const availableWings = useMemo(
+    () => getWingsForBuilding(selectedHostel, hostelList),
+    [selectedHostel, hostelList]
+  );
+
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing),
-    [selectedHostel, selectedFloor, selectedWing]
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing, hostelList),
+    [selectedHostel, selectedFloor, selectedWing, hostelList]
   );
 
   useEffect(() => {
@@ -646,7 +669,7 @@ export default function StudentDashboard() {
                   IIIT-NR Hostel House
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {IIITNR_HOSTELS.map((h) => {
+                  {hostelList.map((h) => {
                     const active = selectedHostel === h.name;
                     return (
                       <button
@@ -667,11 +690,11 @@ export default function StudentDashboard() {
                             {h.shortName}
                           </span>
                           <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
-                            {h.mapZone.badge}
+                            {h.mapPin?.badge || h.mapZone?.badge || 'HOSTEL'}
                           </span>
                         </div>
                         <span className="text-[10px] text-slate-500 block mt-0.5">
-                          {h.type}
+                          {h.type || 'Student Residence'}
                         </span>
                       </button>
                     );
@@ -689,7 +712,7 @@ export default function StudentDashboard() {
                     onChange={(e) => setSelectedFloor(e.target.value)}
                     className="enterprise-input text-xs"
                   >
-                    {HOSTEL_FLOORS.map((f) => (
+                    {availableFloors.map((f) => (
                       <option key={f.id} value={f.id}>
                         {f.label}
                       </option>
@@ -706,11 +729,13 @@ export default function StudentDashboard() {
                     onChange={(e) => setSelectedWing(e.target.value)}
                     className="enterprise-input text-xs"
                   >
-                    {HOSTEL_WINGS.slice(0, 2).map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.label}
-                      </option>
-                    ))}
+                    {availableWings
+                      .filter((w) => w.id !== 'Common Area')
+                      .map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.label}
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>

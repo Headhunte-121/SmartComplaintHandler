@@ -63,3 +63,68 @@ To replace generic placeholder data with **authentic IIIT Naya Raipur campus inf
 | `frontend/src/pages/StudentDashboard.jsx` | Added Hostel & Room badge in header, `Change Hostel / Room` modal, and expandable IIIT-NR Campus Map & Estate Contacts panel. |
 | `frontend/src/pages/SubmitComplaint.jsx` | Integrated `<CampusMapSelector />`, structured Building/Floor/Wing/Room Number pickers, 1-click `My Room` auto-fill, and authentic IIIT-NR quick scenario templates. |
 | `frontend/src/pages/Home.jsx` | Added interactive IIIT Naya Raipur Campus Map section, clickable Hostel Houses directory, and official IIIT-NR Estate/Electrical/IT authority contact cards. |
+| `iiitnr_interactive_map_labeler.html` | **NEW:** Standalone visual campus map studio with Leaflet satellite view, drag-and-drop pins, room manager, blueprint upload, and 1-click JSON export. |
+| `frontend/public/iiitnr_interactive_map_labeler.html` | Served publicly at `/iiitnr_interactive_map_labeler.html` for instant browser access during local dev or production. |
+
+---
+
+## 3. How to Update, Edit & Label the Campus Map
+
+You have **three simple ways** to update or customize the campus map, hostel rooms, and building locations:
+
+### Method 1: Directly In-App (No Coding Required)
+1. Open the Complaint Submission page (`/submit`) or Student Dashboard (`/student-dashboard`).
+2. On the campus map card, click the **`✏️ Edit Map Pins & Rooms`** button in the top right.
+3. **Move existing buildings:** Click and drag any building marker to its exact physical position on the campus master plan.
+4. **Add a new building or hostel:** Click anywhere on the map grid. A new pin appears instantly!
+5. **Customize building details:** Click on any building in the editor panel to modify:
+   - Full Building Name (e.g. *Ramanujan House*, *Bhabha House*, *New Girls Hostel*)
+   - Short Map Label & Badge Code (e.g. *BH-1*, *GH-3*, *E-LAB*)
+   - Category: `HOSTEL`, `ACADEMIC`, `AMENITY`, or `INFRASTRUCTURE`
+   - Wings (comma-separated, e.g. `Wing A, Wing B, Wing C`)
+   - Floors (comma-separated, e.g. `G, 1, 2, 3, 4`)
+   - Rooms per Floor (auto-generates all room numbers e.g. `Room 101` to `Room 124`)
+   - Custom Rooms / Labs override (e.g. `Room 131C, Robotics Lab, Server Room`)
+6. **Upload Custom Map Image:** Click **`Upload Custom Image`** to load a custom CAD blueprint or aerial satellite photo as the canvas background.
+7. Click **`💾 Save Changes`**. The updated map is persisted in `localStorage` and automatically updates all hostel selectors and room dropdowns across the entire application in real time!
+8. **Export / Import JSON:** Click **`📋 Export / Import JSON`** to copy the complete layout JSON to share with teammates or paste an existing layout.
+
+---
+
+### Method 2: Standalone Visual Studio (`iiitnr_interactive_map_labeler.html`)
+For detailed visual calibration against real GPS satellite imagery:
+1. Open [`iiitnr_interactive_map_labeler.html`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/iiitnr_interactive_map_labeler.html) in your browser:
+   - Double-click `iiitnr_interactive_map_labeler.html` in the project root, or
+   - Visit `http://localhost:5173/iiitnr_interactive_map_labeler.html` while running the frontend dev server.
+2. Choose between:
+   - **`🛰️ Satellite View`** (Esri World Imagery satellite view of the IIIT-NR Atal Nagar campus).
+   - **`🗺️ Street Map`** (OpenStreetMap street lines & boundaries).
+   - **`📐 Custom Blueprint`** / **`🖼️ Upload Campus Map Image`**.
+3. Click anywhere on the campus grounds to drop pins, drag pins to exact blocks, and configure hostel wings and room numbers.
+4. Click **`📋 Copy Labeled JSON`** at the top right.
+5. In the app's map, click **`📋 Export / Import JSON`**, paste the copied JSON, and click **`Apply & Save JSON`**.
+
+---
+
+### Method 3: Permanent Code Configuration (`iiitnrCampusData.js`)
+If you want the changes to be permanent in the Git repository for all users without relying on browser storage:
+1. Open [`frontend/src/data/iiitnrCampusData.js`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/frontend/src/data/iiitnrCampusData.js).
+2. Locate `export const DEFAULT_IIITNR_BUILDINGS = [ ... ]`.
+3. Add, edit, or adjust any building object. Each building has:
+   ```javascript
+   {
+     id: 'ramanujan_bh1',
+     name: 'Ramanujan House (Boys Hostel 1)',
+     shortName: 'Ramanujan',
+     code: 'BH-1',
+     category: 'HOSTEL',
+     type: 'Boys Residence Hall',
+     floors: ['G', '1', '2', '3'],
+     wings: ['Wing A', 'Wing B'],
+     roomsPerFloor: 24,
+     mapPin: { xPct: 22, yPct: 42, lat: 21.1298, lng: 81.7645, color: '#4f46e5', badge: 'BH-1' },
+     gps: '21.1298° N, 81.7645° E',
+     description: 'B.Tech Boys Hostel 1 with Wings A & B, TV lounge, and sports arena.',
+   }
+   ```
+4. Run `npm run build` in `frontend/` to verify and deploy!

@@ -787,3 +787,31 @@ npm run dev
 * **Verification Proof:**
   - Frontend Production Build: `npm run build` compiled cleanly in 1.45s with 0 errors.
   - Backend Test Suite: 56/56 pytest tests passing cleanly in 6.99s (100% pass rate).
+
+### [2026-10-15] - Interactive IIIT-NR Campus Map Studio, Labeler & Customization System
+* **Files Modified & Added:**
+  - `iiitnr_interactive_map_labeler.html` (NEW)
+  - `frontend/public/iiitnr_interactive_map_labeler.html` (NEW)
+  - `frontend/src/data/iiitnrCampusData.js`
+  - `frontend/src/components/CampusMapSelector.jsx`
+  - `frontend/src/pages/SubmitComplaint.jsx`
+  - `frontend/src/pages/StudentDashboard.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `docs/IIITNR_CAMPUS_MAP_AND_HOSTEL_GUIDE.md`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Visual Campus Map Studio & Standalone Labeler (`iiitnr_interactive_map_labeler.html`):**
+     - Standalone interactive tool with Leaflet satellite imagery, street map, blueprint canvas, and drag-and-drop building marker positioning.
+     - Also served from `frontend/public/` at `/iiitnr_interactive_map_labeler.html` for instant browser access.
+     - Supports 1-click JSON export/import of custom building coordinates and room metadata.
+  2. **In-App Interactive Map Editor (`CampusMapSelector.jsx`):**
+     - Added `✏️ Edit Map Pins & Rooms` toggle allowing users to drag pins, click to add new buildings/hostels/labs, modify names/codes/badges, customize wings, floors, and room counts per floor directly on the campus map canvas.
+     - Added `📋 Export / Import JSON` modal to paste or copy full campus map JSON configurations.
+     - Persists customizations to `localStorage` with a `↺ Reset to Default` failsafe.
+  3. **Reactive Application-Wide Campus Map Synchronization:**
+     - Connected `StudentDashboard.jsx`, `Register.jsx`, and `SubmitComplaint.jsx` to `IIITNR_MAP_UPDATED_EVENT` and `getHostelBuildings()`.
+     - Any updates, additions, or renames made to hostels or buildings immediately sync across registration pickers, profile modals, and complaint dispatch dropdowns.
+* **Why It Was Changed:** Integrated latest update providing complete visual map customization and interactive labeling tools for campus administrators and developers.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.48s with 0 errors.
+  - Backend Test Suite: 56/56 pytest unit, security & residence tests passing cleanly in 6.48s (100% pass rate).

@@ -12,9 +12,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchAuthConfig } from '../api/auth';
 import {
-  IIITNR_HOSTELS,
+  getHostelBuildings,
+  IIITNR_MAP_UPDATED_EVENT,
   HOSTEL_FLOORS,
   HOSTEL_WINGS,
+  getFloorsForBuilding,
+  getWingsForBuilding,
   getRoomsForBuilding,
 } from '../data/iiitnrCampusData';
 
@@ -95,7 +98,19 @@ export default function Register() {
   const [rememberMe, setRememberMe] = useState(true);
 
   // IIIT-NR Student Residence Selection State
-  const [selectedHostel, setSelectedHostel] = useState(IIITNR_HOSTELS[0].name);
+  const [hostelList, setHostelList] = useState(() => getHostelBuildings());
+
+  useEffect(() => {
+    const handleMapUpdate = () => {
+      setHostelList(getHostelBuildings());
+    };
+    window.addEventListener(IIITNR_MAP_UPDATED_EVENT, handleMapUpdate);
+    return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, handleMapUpdate);
+  }, []);
+
+  const [selectedHostel, setSelectedHostel] = useState(
+    () => hostelList[0]?.name || 'Ramanujan House (Boys Hostel 1)'
+  );
   const [selectedFloor, setSelectedFloor] = useState('2');
   const [selectedWing, setSelectedWing] = useState('Wing A');
   const [selectedRoomNumber, setSelectedRoomNumber] = useState('Wing A, Room 204');
@@ -110,9 +125,19 @@ export default function Register() {
   const [error, setError] = useState(null);
   const [successUser, setSuccessUser] = useState(null);
 
+  const availableFloors = useMemo(
+    () => getFloorsForBuilding(selectedHostel, hostelList),
+    [selectedHostel, hostelList]
+  );
+
+  const availableWings = useMemo(
+    () => getWingsForBuilding(selectedHostel, hostelList),
+    [selectedHostel, hostelList]
+  );
+
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing),
-    [selectedHostel, selectedFloor, selectedWing]
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing, hostelList),
+    [selectedHostel, selectedFloor, selectedWing, hostelList]
   );
 
   useEffect(() => {
@@ -646,7 +671,7 @@ export default function Register() {
                           onChange={(e) => setSelectedHostel(e.target.value)}
                           className="enterprise-input text-xs"
                         >
-                          {IIITNR_HOSTELS.map((h) => (
+                          {hostelList.map((h) => (
                             <option key={h.id} value={h.name}>
                               {h.name}
                             </option>
@@ -669,7 +694,7 @@ export default function Register() {
                                 onChange={(e) => setSelectedFloor(e.target.value)}
                                 className="enterprise-input text-xs"
                               >
-                                {HOSTEL_FLOORS.map((f) => (
+                                {availableFloors.map((f) => (
                                   <option key={f.id} value={f.id}>
                                     {f.label}
                                   </option>
@@ -685,11 +710,13 @@ export default function Register() {
                                 onChange={(e) => setSelectedWing(e.target.value)}
                                 className="enterprise-input text-xs"
                               >
-                                {HOSTEL_WINGS.slice(0, 2).map((w) => (
-                                  <option key={w.id} value={w.id}>
-                                    {w.label}
-                                  </option>
-                                ))}
+                                {availableWings
+                                  .filter((w) => w.id !== 'Common Area')
+                                  .map((w) => (
+                                    <option key={w.id} value={w.id}>
+                                      {w.label}
+                                    </option>
+                                  ))}
                               </select>
                             </div>
                           </div>

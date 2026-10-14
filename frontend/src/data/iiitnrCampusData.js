@@ -1,9 +1,18 @@
 /**
- * SmartComplaintHandler - Official IIIT Naya Raipur Campus Master Plan, Hostels, Rooms & Labs Dataset
+ * SmartComplaintHandler - Dynamic & User-Labelable IIIT Naya Raipur Campus Map, Hostels & Rooms Store
  * Campus: Dr. SPM International Institute of Information Technology, Naya Raipur
  * Address: Plot No. 7, Sector 24, Near Purkhoti Muktangan, Atal Nagar – Nava Raipur, Chhattisgarh 493661
- * Coordinates: 21.1284° N, 81.7661° E (50-Acre Residential Campus)
+ * Coordinates: 21.1284° N, 81.7661° E
+ *
+ * Key Capability:
+ * - Supports live in-app interactive map pinning, dragging, renaming, and custom room-range configuration!
+ * - Any building, hostel, wing, floor, or room number edited in the Interactive Map Labeler is persisted
+ *   in `localStorage` (`iiitnr_custom_campus_map_v1`) and broadcast via `iiitnr-campus-map-updated`
+ *   so Register, StudentDashboard, SubmitComplaint, and Home update immediately without code changes.
  */
+
+export const IIITNR_CAMPUS_STORAGE_KEY = 'iiitnr_custom_campus_map_v1';
+export const IIITNR_MAP_UPDATED_EVENT = 'iiitnr-campus-map-updated';
 
 export const IIITNR_CAMPUS_METADATA = {
   instituteName: 'Dr. SPM IIIT Naya Raipur',
@@ -11,11 +20,11 @@ export const IIITNR_CAMPUS_METADATA = {
   address: 'Plot No. 7, Sector 24, Near Purkhoti Muktangan, Atal Nagar – Nava Raipur, Chhattisgarh 493661',
   latitude: 21.1284,
   longitude: 81.7661,
-  campusArea: '50 Acres Residential Wi-Fi Campus',
+  campusArea: '50 Acres Residential Campus',
   osmEmbedUrl:
-    'https://www.openstreetmap.org/export/embed.html?bbox=81.7605%2C21.1240%2C81.7720%2C21.1330&layer=mapnik&marker=21.1284%2C81.7661',
+    'https://www.openstreetmap.org/export/embed.html?bbox=81.7615%2C21.1250%2C81.7705%2C21.1318&layer=mapnik&marker=21.1284%2C81.7661',
   googleMapsUrl:
-    'https://www.google.com/maps/search/?api=1&query=IIIT+Naya+Raipur+Plot+No+7+Sector+24+Atal+Nagar+Chhattisgarh',
+    'https://www.google.com/maps/search/?api=1&query=21.1284,81.7661',
   contacts: [
     {
       role: 'Estate Officer',
@@ -48,344 +57,346 @@ export const IIITNR_CAMPUS_METADATA = {
   ],
 };
 
-function generateHostelRoomsForFloor(floorCode, maxRoom = 24) {
-  const rooms = [];
-  for (let i = 1; i <= maxRoom; i += 1) {
-    const padded = String(i).padStart(2, '0');
-    if (floorCode === 'G') {
-      rooms.push(`Room G-${padded}`);
-    } else {
-      rooms.push(`Room ${floorCode}${padded}`);
-    }
-  }
-  return rooms;
-}
-
 export const HOSTEL_FLOORS = [
-  { id: 'G', label: 'Ground Floor (G-01 – G-24)' },
-  { id: '1', label: '1st Floor (101 – 124)' },
-  { id: '2', label: '2nd Floor (201 – 224)' },
-  { id: '3', label: '3rd Floor (301 – 324)' },
+  { id: 'G', label: 'Ground Floor (G)' },
+  { id: '1', label: '1st Floor (1xx)' },
+  { id: '2', label: '2nd Floor (2xx)' },
+  { id: '3', label: '3rd Floor (3xx)' },
 ];
 
 export const HOSTEL_WINGS = [
-  { id: 'Wing A', label: 'Wing A (Rooms 01–12)' },
-  { id: 'Wing B', label: 'Wing B (Rooms 13–24)' },
-  { id: 'Common Area', label: 'Corridor / Common Utilities' },
+  { id: 'Wing A', label: 'Wing A / Block A' },
+  { id: 'Wing B', label: 'Wing B / Block B' },
+  { id: 'Common Area', label: 'Corridor / Washroom / Common Utility' },
 ];
 
 export const HOSTEL_COMMON_ZONES = [
-  'Corridor RO Water Cooler (Wing A)',
-  'Corridor RO Water Cooler (Wing B)',
-  'Washroom & Shower Block (Wing A)',
-  'Washroom & Shower Block (Wing B)',
-  'Common Room & TV Lounge',
-  'Indoor Badminton / TT Court',
+  'Corridor RO Water Cooler',
+  'Washroom & Shower Block',
+  'Common Room / TV Lounge',
+  'Badminton / TT Court',
   'Staircase & Corridor Lighting',
   'Wi-Fi Ceiling Access Point',
-  'Washing Machine / Laundry Area',
+  'Washing Machine / Laundry Bay',
 ];
 
-export const IIITNR_HOSTELS = [
+export const DEFAULT_IIITNR_BUILDINGS = [
   {
     id: 'ramanujan_house',
-    name: 'Ramanujan House (Boys Hostel 1)',
+    name: 'Ramanujan House (Boys Hostel)',
     shortName: 'Ramanujan House',
     type: 'Boys Hostel',
     category: 'HOSTEL',
     gender: 'Boys',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
-    capacity: '280+ Students (Single & Double Occupancy)',
-    amenities: ['LAN & Campus Wi-Fi', 'RO Water Coolers', 'Indoor Badminton Court', 'TV Common Room'],
+    roomsPerFloor: 24,
+    roomPrefix: 'Room ',
+    customRooms: [],
+    capacity: 'Boys Residential Block',
+    amenities: ['LAN & Campus Wi-Fi', 'RO Water Coolers', 'Common Room'],
+    // Map coordinates: xPct/yPct on the interactive map canvas (0-100%) + GPS lat/lng
+    mapPin: { xPct: 24, yPct: 26, lat: 21.1296, lng: 81.7648, color: '#4f46e5', badge: 'BH-1' },
     mapZone: { x: 110, y: 88, width: 150, height: 64, color: '#4f46e5', badge: 'BH-1' },
     gps: '21.1296° N, 81.7648° E',
-    description: 'Primary undergraduate boys residential house with Wing A & Wing B blocks and central courtyard.',
+    description: 'Boys residential house. Click "Edit / Label Map" to customize wings, floors, or exact room numbers.',
   },
   {
     id: 'bhabha_house',
-    name: 'Bhabha House (Boys Hostel 2)',
+    name: 'Bhabha House (Boys Hostel)',
     shortName: 'Bhabha House',
     type: 'Boys Hostel',
     category: 'HOSTEL',
     gender: 'Boys',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
-    capacity: '280+ Students (Single & Double Occupancy)',
-    amenities: ['High-Speed Wi-Fi & LAN', 'RO Water Coolers', 'Table Tennis Lounge', 'Solar Water Heaters'],
+    roomsPerFloor: 24,
+    roomPrefix: 'Room ',
+    customRooms: [],
+    capacity: 'Boys Residential Block',
+    amenities: ['High-Speed Wi-Fi & LAN', 'RO Water Coolers', 'TT Lounge'],
+    mapPin: { xPct: 42, yPct: 24, lat: 21.1298, lng: 81.7656, color: '#4f46e5', badge: 'BH-2' },
     mapZone: { x: 280, y: 88, width: 150, height: 64, color: '#4f46e5', badge: 'BH-2' },
     gps: '21.1298° N, 81.7656° E',
-    description: 'Boys residential block adjacent to the North Sports Complex and Mess Block.',
+    description: 'Boys residential block. Fully customizable via the interactive map labeler.',
   },
   {
     id: 'bose_house',
-    name: 'Bose House (Boys Hostel 3)',
+    name: 'Bose House (Boys Hostel)',
     shortName: 'Bose House',
     type: 'Boys Hostel',
     category: 'HOSTEL',
     gender: 'Boys',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
-    capacity: '300+ Students (Senior & PG Wing)',
-    amenities: ['Fiber LAN Ports', 'RO Water Coolers', 'Reading & Study Room', 'Common Recreation Hall'],
+    roomsPerFloor: 24,
+    roomPrefix: 'Room ',
+    customRooms: [],
+    capacity: 'Boys Residential Block',
+    amenities: ['Fiber LAN Ports', 'RO Water Coolers', 'Study Room'],
+    mapPin: { xPct: 60, yPct: 24, lat: 21.1299, lng: 81.7665, color: '#4f46e5', badge: 'BH-3' },
     mapZone: { x: 450, y: 88, width: 150, height: 64, color: '#4f46e5', badge: 'BH-3' },
     gps: '21.1299° N, 81.7665° E',
-    description: 'Senior undergraduate and postgraduate boys hostel block in the northern residential zone.',
+    description: 'Boys hostel block in the residential zone.',
   },
   {
     id: 'raman_house',
-    name: 'Raman House (Girls Hostel 1)',
+    name: 'Raman House (Girls Hostel)',
     shortName: 'Raman House',
     type: 'Girls Hostel',
     category: 'HOSTEL',
     gender: 'Girls',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
-    capacity: '220+ Students',
-    amenities: ['24/7 Biometric Security', 'Dedicated Mess Hall', 'Badminton Court', 'RO Water Coolers'],
+    roomsPerFloor: 24,
+    roomPrefix: 'Room ',
+    customRooms: [],
+    capacity: 'Girls Residential Block',
+    amenities: ['24/7 Security', 'Dedicated Mess', 'RO Water Coolers'],
+    mapPin: { xPct: 79, yPct: 28, lat: 21.1291, lng: 81.7676, color: '#db2777', badge: 'GH-1' },
     mapZone: { x: 640, y: 88, width: 145, height: 64, color: '#db2777', badge: 'GH-1' },
     gps: '21.1291° N, 81.7676° E',
-    description: 'Primary girls residential hostel with enclosed courtyard, dedicated dining hall, and indoor recreation.',
+    description: 'Girls residential hostel block.',
   },
   {
     id: 'shabhari_house',
-    name: 'Shabhari House (Girls Hostel 2)',
+    name: 'Shabhari House (Girls Hostel)',
     shortName: 'Shabhari House',
     type: 'Girls Hostel',
     category: 'HOSTEL',
     gender: 'Girls',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
-    capacity: '200+ Students',
-    amenities: ['24/7 Security Desk', 'Campus Wi-Fi', 'Common Study Lounge', 'Solar Hot Water'],
+    roomsPerFloor: 24,
+    roomPrefix: 'Room ',
+    customRooms: [],
+    capacity: 'Girls Residential Block',
+    amenities: ['24/7 Security Desk', 'Campus Wi-Fi', 'Common Lounge'],
+    mapPin: { xPct: 81, yPct: 48, lat: 21.1286, lng: 81.7679, color: '#db2777', badge: 'GH-2' },
     mapZone: { x: 640, y: 170, width: 145, height: 64, color: '#db2777', badge: 'GH-2' },
     gps: '21.1286° N, 81.7679° E',
-    description: 'Girls residential house located along the eastern residential avenue near KRC.',
+    description: 'Girls residential hostel block.',
   },
-  {
-    id: 'transit_hostel',
-    name: 'Transit Hostel & Faculty Residences',
-    shortName: 'Transit Hostel',
-    type: 'Guest & Faculty Housing',
-    category: 'HOSTEL',
-    gender: 'All',
-    wings: ['Main Block', 'Faculty Quarters'],
-    floors: ['G', '1', '2'],
-    capacity: 'Visiting Faculty, PhD Scholars & Official Guests',
-    amenities: ['AC Suites', 'Conference Lounge', 'Faculty Residential Towers'],
-    mapZone: { x: 640, y: 252, width: 145, height: 60, color: '#0d9488', badge: 'TH-1' },
-    gps: '21.1278° N, 81.7681° E',
-    description: 'Visiting faculty transit suites and campus residential quarters.',
-  },
-];
-
-export const IIITNR_ACADEMIC_BLOCKS = [
   {
     id: 'academic_block',
-    name: 'Academic & Administrative Block (Main Building)',
+    name: 'Academic & Administrative Block',
     shortName: 'Academic Block',
     type: 'Academic & Labs',
     category: 'ACADEMIC',
-    mapZone: { x: 250, y: 235, width: 230, height: 95, color: '#0284c7', badge: 'ACAD' },
-    gps: '21.1283° N, 81.7660° E',
-    description: 'Central academic complex housing 120-seat Smart E-Classrooms, CSE/DSAI/ECE Research Labs, Data Centre (131C/131E), and Estate Office.',
+    wings: ['Main Wing'],
     floors: [
       {
         id: 'G',
-        label: 'Ground Floor (Classrooms, IDEA Lab & Estate Office)',
+        label: 'Ground Floor',
         rooms: [
-          'Smart E-Classroom E-101 (120-Seat AC)',
+          'Smart E-Classroom E-101',
           'Lecture Hall LH-1',
           'Lecture Hall LH-2',
-          'AICTE IDEA Lab (Ground Floor)',
-          'Estate & Facilities Office (Room G-04)',
-          'Registrar & Administration Office',
-          'Directorate Secretariat',
-          'Ground Floor Restroom Block (East)',
-          'Ground Floor Restroom Block (West)',
-          'Ground Floor RO Water Cooler',
+          'AICTE IDEA Lab',
+          'Estate & Facilities Office',
+          'Registrar & Admin Office',
+          'Directorate Office',
         ],
       },
       {
         id: '1',
-        label: '1st Floor (Data Centre NOC 131C/131E, CSE & DSAI Labs)',
+        label: '1st Floor',
         rooms: [
           'Room 131C — Data Centre & Server NOC',
           'Room 131E — Network Operations Center',
-          'Smart E-Classroom E-102 (120-Seat AC)',
-          'CSE Programming & Systems Lab 1 (Room 104)',
-          'Data Science & AI Research Lab (Room 108)',
-          'Cybersecurity & Network Security Lab (Room 112)',
+          'Smart E-Classroom E-102',
+          'Computer Science Lab 1',
+          'Data Science & AI Lab',
           'Lecture Hall LH-3',
           'Lecture Hall LH-4',
-          'Faculty Cabins Wing A (1st Floor)',
-          '1st Floor Restroom & RO Water Cooler',
         ],
       },
       {
         id: '2',
-        label: '2nd Floor (VLSI, IoT, Embedded & ECE Research Labs)',
+        label: '2nd Floor',
         rooms: [
-          'VLSI & Microelectronics Lab (Room 202)',
-          'IoT, Robotics & Autonomous Systems Lab (Room 205)',
-          'Embedded Systems & Microcontrollers Lab (Room 208)',
-          'RF, Microwave & 5G Communications Lab (Room 211)',
-          'Signal Processing & Communication Lab (Room 214)',
+          'VLSI & Embedded Systems Lab',
+          'IoT & Robotics Lab',
+          'RF & Microwave Comm. Lab',
+          'Faculty Cabins (2nd Floor)',
           'Lecture Hall LH-5',
-          'Lecture Hall LH-6',
-          'Faculty Cabins Wing B (2nd Floor)',
-          '2nd Floor Restroom & RO Water Cooler',
         ],
       },
       {
         id: '3',
-        label: '3rd Floor (Seminar Hall, PhD Scholars & Solar Plant)',
+        label: '3rd Floor',
         rooms: [
-          'Main Seminar & Conference Hall (Room 301)',
-          'PhD & M.Tech Research Scholars Bay (Room 305)',
-          'Incubation & Startup Cell (TIH)',
-          'Terrace Central HVAC & Solar Inverter Room',
-          '3rd Floor Restroom & RO Cooler',
+          'Seminar Hall',
+          'PhD Research Scholars Bay',
+          'Incubation Cell',
         ],
       },
     ],
+    mapPin: { xPct: 46, yPct: 68, lat: 21.1283, lng: 81.7660, color: '#0284c7', badge: 'ACAD' },
+    mapZone: { x: 250, y: 235, width: 230, height: 95, color: '#0284c7', badge: 'ACAD' },
+    gps: '21.1283° N, 81.7660° E',
+    description: 'Main academic complex housing classrooms, CSE/DSAI/ECE labs, Data Centre (131C/131E), and Estate Office.',
   },
   {
     id: 'krc_library',
-    name: 'Knowledge Resource Centre (KRC / Central Library)',
+    name: 'Knowledge Resource Centre (Library)',
     shortName: 'KRC Library',
     type: 'Library & Digital Center',
     category: 'ACADEMIC',
-    mapZone: { x: 500, y: 242, width: 120, height: 80, color: '#7c3aed', badge: 'KRC' },
-    gps: '21.1282° N, 81.7668° E',
-    description: 'Central library, 24x7 reading rooms, digital e-resource terminals, and RFID circulation desk.',
     floors: [
       {
         id: 'G',
-        label: 'Ground Floor (Circulation & Main Reading Hall)',
-        rooms: [
-          'Main Reading Hall (Ground Floor)',
-          'RFID Issue / Return Desk',
-          'Periodical & Newspaper Lounge',
-          'KRC Ground Floor Restroom & Water Cooler',
-        ],
+        label: 'Ground Floor',
+        rooms: ['Main Reading Hall', 'Circulation & RFID Desk', 'Restroom & RO Cooler'],
       },
       {
         id: '1',
-        label: '1st Floor (Digital Library & Discussion Rooms)',
-        rooms: [
-          'Digital Library & Computer Terminals',
-          'Reference & Thesis Archive Section',
-          'Group Discussion Room GD-1',
-          'Group Discussion Room GD-2',
-          'KRC Server & Wi-Fi Rack',
-        ],
+        label: '1st Floor',
+        rooms: ['Digital Library', 'Reference Section', 'Discussion Room 1', 'Discussion Room 2'],
       },
     ],
+    mapPin: { xPct: 66, yPct: 68, lat: 21.1282, lng: 81.7668, color: '#7c3aed', badge: 'KRC' },
+    mapZone: { x: 500, y: 242, width: 120, height: 80, color: '#7c3aed', badge: 'KRC' },
+    gps: '21.1282° N, 81.7668° E',
+    description: 'Central library, reading halls, and digital resource center.',
   },
   {
     id: 'sac_mph',
-    name: 'Student Activity Centre (SAC) & Multi-Purpose Hall (MPH)',
+    name: 'Student Activity Centre (SAC) & MPH',
     shortName: 'SAC & MPH',
     type: 'Student Center & Auditorium',
     category: 'AMENITY',
-    mapZone: { x: 95, y: 242, width: 135, height: 80, color: '#ea580c', badge: 'SAC' },
-    gps: '21.1285° N, 81.7651° E',
-    description: 'Multi-Purpose Hall auditorium, indoor gymnasium, badminton courts, and student club rooms.',
     floors: [
       {
         id: 'G',
-        label: 'Ground Floor (MPH Auditorium & Indoor Courts)',
-        rooms: [
-          'Multi-Purpose Hall (MPH) Main Auditorium',
-          'MPH Stage Lighting & Sound Control Room',
-          'Indoor Wooden Badminton Court 1',
-          'Indoor Wooden Badminton Court 2',
-          'SAC Restroom & Changing Rooms',
-        ],
+        label: 'Ground Floor',
+        rooms: ['Multi-Purpose Hall (MPH)', 'Indoor Badminton Courts', 'Stage & Audio Room'],
       },
       {
         id: '1',
-        label: '1st Floor (Gymnasium & Student Club Rooms)',
-        rooms: [
-          'Central Student Gymnasium (Cardio & Weights)',
-          'Table Tennis, Carrom & Chess Arena',
-          'Music, Dance & Drama Club Room',
-          'Coding, Robotics & IEEE Student Chapter Room',
-        ],
+        label: '1st Floor',
+        rooms: ['Student Gymnasium', 'Table Tennis & Indoor Games', 'Club & Music Rooms'],
       },
     ],
+    mapPin: { xPct: 22, yPct: 68, lat: 21.1285, lng: 81.7651, color: '#ea580c', badge: 'SAC' },
+    mapZone: { x: 95, y: 242, width: 135, height: 80, color: '#ea580c', badge: 'SAC' },
+    gps: '21.1285° N, 81.7651° E',
+    description: 'Auditorium, indoor sports courts, gymnasium, and student club rooms.',
   },
   {
     id: 'cafeteria_mess',
-    name: 'Central Mess Block, Cafeteria & Medical Dispensary',
-    shortName: 'Mess & Cafeteria',
-    type: 'Dining & Campus Utilities',
+    name: 'Central Mess, Cafeteria & Dispensary',
+    shortName: 'Mess & Canteen',
+    type: 'Dining & Utilities',
     category: 'AMENITY',
-    mapZone: { x: 95, y: 165, width: 155, height: 60, color: '#d97706', badge: 'MESS' },
-    gps: '21.1290° N, 81.7650° E',
-    description: 'Student dining halls, night canteen, medical health center, and campus ATM.',
     floors: [
       {
         id: 'G',
-        label: 'Ground Floor (Mess Halls, Canteen & Dispensary)',
-        rooms: [
-          'Central Mess Dining Hall 1 (Ground Floor)',
-          'Night Canteen & Nescafé Kiosk',
-          'Campus Medical Dispensary & First-Aid Room',
-          'Mess Handwash & RO Water Station',
-          'Campus ATM & Utility Counter',
-        ],
+        label: 'Ground Floor',
+        rooms: ['Mess Dining Hall 1', 'Canteen / Nescafé', 'Medical Dispensary', 'ATM Kiosk'],
       },
       {
         id: '1',
-        label: '1st Floor (Dining Hall 2 & Kitchen Exhaust)',
-        rooms: [
-          'Central Mess Dining Hall 2 (1st Floor)',
-          'Mess Dishwashing & RO Filtration Plant',
-          '1st Floor Dining Hall AC & Ventilation Fans',
-        ],
+        label: '1st Floor',
+        rooms: ['Mess Dining Hall 2', 'RO Water Filtration Plant'],
       },
     ],
+    mapPin: { xPct: 22, yPct: 46, lat: 21.1290, lng: 81.7650, color: '#d97706', badge: 'MESS' },
+    mapZone: { x: 95, y: 165, width: 155, height: 60, color: '#d97706', badge: 'MESS' },
+    gps: '21.1290° N, 81.7650° E',
+    description: 'Student mess halls, canteen, medical dispensary, and ATM.',
   },
   {
     id: 'sports_substation',
-    name: 'Sports Complex, Amphitheater & 33/11kV Substation',
-    shortName: 'Sports & Substation',
+    name: 'Sports Complex, Amphitheater & Substation',
+    shortName: 'Sports & Grounds',
     type: 'Grounds & Power Grid',
     category: 'INFRASTRUCTURE',
-    mapZone: { x: 270, y: 165, width: 330, height: 55, color: '#059669', badge: 'SPORTS' },
-    gps: '21.1292° N, 81.7661° E',
-    description: 'Floodlit basketball and volleyball courts, football/cricket ground, open-air amphitheater, and 33/11kV substation.',
     floors: [
       {
         id: 'G',
-        label: 'Outdoor Campus Zones & Utility Grid',
+        label: 'Outdoor & Utility Grid',
         rooms: [
-          'Open-Air Amphitheater Stage & Seating',
-          'Floodlit Basketball Court',
-          'Volleyball Court 1 & Court 2',
-          'Main Football & Cricket Ground Floodlights',
-          'Open-Air Fitness Gym',
-          '33/11kV Main Electrical Substation & DG Set',
-          'Sewage Treatment Plant (STP) & Pump House',
-          'Main Gate No. 1 Security Plaza (Sector 24 Road)',
+          'Open-Air Amphitheater',
+          'Basketball & Volleyball Courts',
+          'Football / Cricket Ground',
+          '33/11kV Electrical Substation',
+          'Main Gate Security Plaza',
         ],
       },
     ],
+    mapPin: { xPct: 48, yPct: 46, lat: 21.1292, lng: 81.7661, color: '#059669', badge: 'GROUND' },
+    mapZone: { x: 270, y: 165, width: 330, height: 55, color: '#059669', badge: 'GROUND' },
+    gps: '21.1292° N, 81.7661° E',
+    description: 'Sports grounds, open-air amphitheater, main gate, and electrical substation.',
   },
 ];
 
-export const ALL_IIITNR_BUILDINGS = [
-  ...IIITNR_HOSTELS,
-  ...IIITNR_ACADEMIC_BLOCKS,
-];
-
 /**
- * Returns structured floor list and room options for any IIIT Naya Raipur hostel or academic building.
+ * Load user-customized IIIT-NR campus buildings from localStorage, falling back to DEFAULT_IIITNR_BUILDINGS.
  */
-export function getFloorsForBuilding(buildingNameOrId) {
-  const target = ALL_IIITNR_BUILDINGS.find(
+export function getCampusBuildings() {
+  if (typeof window === 'undefined') {
+    return DEFAULT_IIITNR_BUILDINGS;
+  }
+  try {
+    const raw = localStorage.getItem(IIITNR_CAMPUS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to parse custom campus map data:', e);
+  }
+  return DEFAULT_IIITNR_BUILDINGS;
+}
+
+export function saveCustomCampusBuildings(buildingsList) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(IIITNR_CAMPUS_STORAGE_KEY, JSON.stringify(buildingsList));
+  window.dispatchEvent(new CustomEvent(IIITNR_MAP_UPDATED_EVENT, { detail: buildingsList }));
+}
+
+export function resetCampusBuildingsToDefault() {
+  if (typeof window === 'undefined') return DEFAULT_IIITNR_BUILDINGS;
+  localStorage.removeItem(IIITNR_CAMPUS_STORAGE_KEY);
+  window.dispatchEvent(new CustomEvent(IIITNR_MAP_UPDATED_EVENT, { detail: DEFAULT_IIITNR_BUILDINGS }));
+  return DEFAULT_IIITNR_BUILDINGS;
+}
+
+export function getHostelBuildings(buildings = null) {
+  const list = buildings || getCampusBuildings();
+  return list.filter((b) => b.category === 'HOSTEL');
+}
+
+export function getNonHostelBuildings(buildings = null) {
+  const list = buildings || getCampusBuildings();
+  return list.filter((b) => b.category !== 'HOSTEL');
+}
+
+// Static exports for backward compatibility
+export const IIITNR_HOSTELS = DEFAULT_IIITNR_BUILDINGS.filter((b) => b.category === 'HOSTEL');
+export const IIITNR_ACADEMIC_BLOCKS = DEFAULT_IIITNR_BUILDINGS.filter((b) => b.category !== 'HOSTEL');
+export const ALL_IIITNR_BUILDINGS = DEFAULT_IIITNR_BUILDINGS;
+
+function generateHostelRoomsForFloor(floorCode, maxRoom = 24, prefix = 'Room ') {
+  const rooms = [];
+  for (let i = 1; i <= maxRoom; i += 1) {
+    const padded = String(i).padStart(2, '0');
+    if (floorCode === 'G') {
+      rooms.push(`${prefix}G-${padded}`);
+    } else {
+      rooms.push(`${prefix}${floorCode}${padded}`);
+    }
+  }
+  return rooms;
+}
+
+export function getFloorsForBuilding(buildingNameOrId, customBuildingsList = null) {
+  const list = customBuildingsList || getCampusBuildings();
+  const target = list.find(
     (b) => b.id === buildingNameOrId || b.name === buildingNameOrId || b.shortName === buildingNameOrId
   );
 
@@ -393,22 +404,36 @@ export function getFloorsForBuilding(buildingNameOrId) {
     return HOSTEL_FLOORS;
   }
 
-  if (target.category === 'HOSTEL') {
-    if (target.id === 'transit_hostel') {
-      return [
-        { id: 'G', label: 'Ground Floor (Suites G-01 – G-08)' },
-        { id: '1', label: '1st Floor (Suites 101 – 108)' },
-        { id: '2', label: '2nd Floor (Faculty Residences)' },
-      ];
+  if (Array.isArray(target.floors) && target.floors.length > 0) {
+    if (typeof target.floors[0] === 'string') {
+      return target.floors.map((fl) => ({
+        id: fl,
+        label: fl === 'G' ? 'Ground Floor (G)' : `Floor ${fl}`,
+      }));
     }
-    return HOSTEL_FLOORS;
+    return target.floors.map((f) => ({ id: f.id, label: f.label }));
   }
 
-  return (target.floors || []).map((f) => ({ id: f.id, label: f.label }));
+  return HOSTEL_FLOORS;
 }
 
-export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'Wing A') {
-  const target = ALL_IIITNR_BUILDINGS.find(
+export function getWingsForBuilding(buildingNameOrId, customBuildingsList = null) {
+  const list = customBuildingsList || getCampusBuildings();
+  const target = list.find(
+    (b) => b.id === buildingNameOrId || b.name === buildingNameOrId || b.shortName === buildingNameOrId
+  );
+  if (target && Array.isArray(target.wings) && target.wings.length > 0) {
+    return [
+      ...target.wings.map((w) => ({ id: w, label: w })),
+      { id: 'Common Area', label: 'Corridor / Washroom / Common Utility' },
+    ];
+  }
+  return HOSTEL_WINGS;
+}
+
+export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'Wing A', customBuildingsList = null) {
+  const list = customBuildingsList || getCampusBuildings();
+  const target = list.find(
     (b) => b.id === buildingNameOrId || b.name === buildingNameOrId || b.shortName === buildingNameOrId
   );
 
@@ -416,35 +441,38 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
     return generateHostelRoomsForFloor(floorId, 24);
   }
 
+  // If user defined explicit custom rooms list on this building
+  if (Array.isArray(target.customRooms) && target.customRooms.length > 0) {
+    return target.customRooms;
+  }
+
   if (target.category === 'HOSTEL') {
-    if (target.id === 'transit_hostel') {
-      return [
-        `Transit Suite ${floorId}-01`,
-        `Transit Suite ${floorId}-02`,
-        `Transit Suite ${floorId}-03`,
-        `Transit Suite ${floorId}-04`,
-        `Transit Suite ${floorId}-05`,
-        `Transit Suite ${floorId}-06`,
-        'Faculty Quarter Block A',
-        'Faculty Quarter Block B',
-        'Transit Hostel Reception & Dining Lounge',
-      ];
-    }
+    const maxRooms = Number(target.roomsPerFloor) || 24;
+    const prefix = target.roomPrefix || 'Room ';
 
     if (wingId === 'Common Area') {
-      return HOSTEL_COMMON_ZONES.map((z) => `${floorId === 'G' ? 'Ground Floor' : `${floorId}st/nd/rd Floor`} — ${z}`);
+      return HOSTEL_COMMON_ZONES.map((z) => `Floor ${floorId} — ${z}`);
     }
 
-    const allFloorRooms = generateHostelRoomsForFloor(floorId, 24);
-    const wingRooms =
-      wingId === 'Wing B' ? allFloorRooms.slice(12, 24) : allFloorRooms.slice(0, 12);
+    const allFloorRooms = generateHostelRoomsForFloor(floorId, maxRooms, prefix);
+    const wings = Array.isArray(target.wings) && target.wings.length > 0 ? target.wings : ['Wing A', 'Wing B'];
+    const wingIndex = Math.max(0, wings.indexOf(wingId));
+    const chunkSize = Math.ceil(allFloorRooms.length / Math.max(1, wings.length));
+    const sliced = allFloorRooms.slice(wingIndex * chunkSize, (wingIndex + 1) * chunkSize);
+    const activeRooms = sliced.length > 0 ? sliced : allFloorRooms;
 
     return [
-      ...wingRooms.map((r) => `${wingId}, ${r}`),
-      ...HOSTEL_COMMON_ZONES.map((z) => `${wingId} (${floorId} Floor) — ${z}`),
+      ...activeRooms.map((r) => (wingId ? `${wingId}, ${r}` : r)),
+      ...HOSTEL_COMMON_ZONES.map((z) => `${wingId || 'Floor ' + floorId} — ${z}`),
     ];
   }
 
-  const floorObj = (target.floors || []).find((f) => f.id === floorId) || (target.floors || [])[0];
-  return floorObj ? floorObj.rooms : ['General Area'];
+  if (Array.isArray(target.floors)) {
+    const floorObj = target.floors.find((f) => typeof f === 'object' && f.id === floorId) || target.floors[0];
+    if (floorObj && Array.isArray(floorObj.rooms)) {
+      return floorObj.rooms;
+    }
+  }
+
+  return ['General Area'];
 }

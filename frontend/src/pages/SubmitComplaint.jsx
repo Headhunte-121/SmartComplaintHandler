@@ -2,9 +2,8 @@
  * SmartComplaintHandler - Official Campus Grievance Intake Portal (IIIT Naya Raipur)
  * Blueprint Reference: V1/M2/frontend/02_submit_complaint_page.md
  * Features:
- * - Interactive IIIT Naya Raipur Campus Map (Plot No. 7, Sector 24, Atal Nagar) with clickable Hostels & Academic Blocks
- * - Authentic IIIT-NR Hostels (Ramanujan House, Bhabha House, Bose House, Raman House, Shabhari House, Transit Hostel)
- * - Authentic Academic & Lab rooms (Smart E-Classrooms E-101/E-102, NOC 131C/131E, VLSI Lab, IDEA Lab, KRC, SAC/MPH)
+ * - Live-Synced Interactive IIIT Naya Raipur Campus Map & Labeler (Plot No. 7, Sector 24, Atal Nagar)
+ * - Dynamically updates Hostels, Buildings, Floors, Wings, and Room Numbers whenever edited on the map
  * - Structured Floor, Wing, and Room Number selector + 1-click "My Saved Hostel Room" auto-fill & persistence
  */
 import React, { useState, useEffect, useMemo } from 'react';
@@ -15,11 +14,12 @@ import LiveTriageCard from '../components/LiveTriageCard';
 import SubmissionSuccessModal from '../components/SubmissionSuccessModal';
 import CampusMapSelector from '../components/CampusMapSelector';
 import {
-  ALL_IIITNR_BUILDINGS,
-  IIITNR_HOSTELS,
-  IIITNR_ACADEMIC_BLOCKS,
-  HOSTEL_WINGS,
+  IIITNR_MAP_UPDATED_EVENT,
+  getCampusBuildings,
+  getHostelBuildings,
+  getNonHostelBuildings,
   getFloorsForBuilding,
+  getWingsForBuilding,
   getRoomsForBuilding,
 } from '../data/iiitnrCampusData';
 
@@ -32,62 +32,28 @@ const SERVICE_CATEGORIES = [
   { id: 'General', icon: '🏛️', label: 'General Facilities', hint: 'Estate Office, mess, pathways, common areas' },
 ];
 
-const QUICK_SCENARIO_TEMPLATES = [
-  {
-    label: '⚡ Sparking Switchboard (VLSI Lab)',
-    category: 'Electrical',
-    building: 'Academic & Administrative Block (Main Building)',
-    floor: '2',
-    room: 'VLSI & Microelectronics Lab (Room 202)',
-    title: 'Main electrical distribution switchboard emitting sparks and burning smell',
-    description:
-      'The three-phase distribution switchboard inside VLSI & Microelectronics Lab (Room 202, 2nd Floor Academic Block) is emitting visible electrical sparks and a strong burning insulation odor. Immediate shutdown and JE Electrical inspection required.',
-  },
-  {
-    label: '🚰 RO Water Cooler Leak (Bhabha House)',
-    category: 'Plumbing',
-    building: 'Bhabha House (Boys Hostel 2)',
-    floor: '2',
-    wing: 'Wing A',
-    room: 'Wing A (2 Floor) — Corridor RO Water Cooler (Wing A)',
-    title: 'Drinking water cooler inlet pipe burst and flooding 2nd floor corridor',
-    description:
-      'The main inlet valve behind the 2nd floor Wing A RO water cooler in Bhabha House has ruptured, causing continuous water pooling across the hostel corridor near Room 204.',
-  },
-  {
-    label: '🌐 Hostel Wi-Fi Outage (Ramanujan House)',
-    category: 'IT Support',
-    building: 'Ramanujan House (Boys Hostel 1)',
-    floor: '3',
-    wing: 'Wing B',
-    room: 'Wing B, Room 314',
-    title: 'Ceiling Wi-Fi access point & LAN port offline in Ramanujan Wing B',
-    description:
-      'The corridor ceiling Wi-Fi access point and room wall LAN jack serving Ramanujan House Wing B (Rooms 313 to 324) have been blinking red since morning and students cannot connect to the @iiitnr.edu.in network.',
-  },
-  {
-    label: '❄️ Smart E-Classroom AC Fault (E-101)',
-    category: 'Electrical',
-    building: 'Academic & Administrative Block (Main Building)',
-    floor: 'G',
-    room: 'Smart E-Classroom E-101 (120-Seat AC)',
-    title: 'Central AC duct not cooling in 120-seater Smart E-Classroom E-101',
-    description:
-      'Both primary HVAC split units in Smart E-Classroom E-101 (Ground Floor, Academic Block) are blowing warm air during afternoon lectures with 110 students seated.',
-  },
-];
-
 export default function SubmitComplaint() {
   const { currentPersona, currentUser, updateProfile } = useAuth();
   const activeUser = currentUser || currentPersona;
   const [searchParams] = useSearchParams();
 
-  const savedHostel = activeUser?.hostel_name || IIITNR_HOSTELS[0].name;
+  const [allBuildings, setAllBuildings] = useState(() => getCampusBuildings());
+
+  useEffect(() => {
+    const syncBuildings = () => setAllBuildings(getCampusBuildings());
+    window.addEventListener(IIITNR_MAP_UPDATED_EVENT, syncBuildings);
+    return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, syncBuildings);
+  }, []);
+
+  const hostelsList = useMemo(() => getHostelBuildings(allBuildings), [allBuildings]);
+  const nonHostelsList = useMemo(() => getNonHostelBuildings(allBuildings), [allBuildings]);
+
+  const savedHostel = activeUser?.hostel_name || hostelsList[0]?.name || allBuildings[0]?.name;
   const savedRoom = activeUser?.room_number || 'Wing A, Room 204';
 
   const initialBuildingFromUrl = searchParams.get('building');
   const [building, setBuilding] = useState(
-    initialBuildingFromUrl || savedHostel || IIITNR_HOSTELS[0].name
+    initialBuildingFromUrl || savedHostel || allBuildings[0]?.name
   );
   const [selectedFloor, setSelectedFloor] = useState('2');
   const [selectedWing, setSelectedWing] = useState('Wing A');
@@ -107,25 +73,29 @@ export default function SubmitComplaint() {
 
   const activeBuildingObj = useMemo(
     () =>
-      ALL_IIITNR_BUILDINGS.find(
+      allBuildings.find(
         (b) => b.name === building || b.id === building || b.shortName === building
-      ) || ALL_IIITNR_BUILDINGS[0],
-    [building]
+      ) || allBuildings[0],
+    [allBuildings, building]
   );
 
-  const isHostelBuilding = activeBuildingObj.category === 'HOSTEL';
+  const isHostelBuilding = activeBuildingObj?.category === 'HOSTEL';
 
   const availableFloors = useMemo(
-    () => getFloorsForBuilding(activeBuildingObj.name),
-    [activeBuildingObj]
+    () => getFloorsForBuilding(activeBuildingObj?.name, allBuildings),
+    [activeBuildingObj, allBuildings]
+  );
+
+  const availableWings = useMemo(
+    () => getWingsForBuilding(activeBuildingObj?.name, allBuildings),
+    [activeBuildingObj, allBuildings]
   );
 
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(activeBuildingObj.name, selectedFloor, selectedWing),
-    [activeBuildingObj, selectedFloor, selectedWing]
+    () => getRoomsForBuilding(activeBuildingObj?.name, selectedFloor, selectedWing, allBuildings),
+    [activeBuildingObj, selectedFloor, selectedWing, allBuildings]
   );
 
-  // Keep floor & room valid when switching buildings
   useEffect(() => {
     const validFloorIds = availableFloors.map((f) => f.id);
     const nextFloor = validFloorIds.includes(selectedFloor)
@@ -139,7 +109,7 @@ export default function SubmitComplaint() {
   const handleSelectBuilding = (newBuildingName) => {
     setBuilding(newBuildingName);
     setCustomRoomOverride('');
-    const targetRooms = getRoomsForBuilding(newBuildingName, selectedFloor, selectedWing);
+    const targetRooms = getRoomsForBuilding(newBuildingName, selectedFloor, selectedWing, allBuildings);
     if (targetRooms.length > 0) {
       setSpecificLocation(targetRooms[0]);
     }
@@ -152,7 +122,7 @@ export default function SubmitComplaint() {
   };
 
   const handleSaveCurrentAsMyRoom = async () => {
-    if (!isHostelBuilding) return;
+    if (!isHostelBuilding || !activeBuildingObj) return;
     const finalRoom = customRoomOverride.trim() || specificLocation;
     await updateProfile({
       hostel_name: activeBuildingObj.name,
@@ -160,18 +130,6 @@ export default function SubmitComplaint() {
     });
     setResidenceSavedNotice(`Saved ${activeBuildingObj.shortName} • ${finalRoom} as your default hostel room!`);
     setTimeout(() => setResidenceSavedNotice(null), 3500);
-  };
-
-  const applyQuickTemplate = (tpl) => {
-    setCategory(tpl.category);
-    setBuilding(tpl.building);
-    if (tpl.floor) setSelectedFloor(tpl.floor);
-    if (tpl.wing) setSelectedWing(tpl.wing);
-    setSpecificLocation(tpl.room);
-    setCustomRoomOverride('');
-    setTitle(tpl.title);
-    setDescription(tpl.description);
-    setError(null);
   };
 
   async function handleSubmit(e) {
@@ -185,10 +143,10 @@ export default function SubmitComplaint() {
     setError(null);
 
     const resolvedRoom = customRoomOverride.trim() || specificLocation.trim() || 'General Area';
-    const fullLocation = `${activeBuildingObj.name}, ${resolvedRoom}`;
+    const fullLocation = `${activeBuildingObj?.name || building}, ${resolvedRoom}`;
 
     try {
-      if (saveAsDefaultResidence && isHostelBuilding) {
+      if (saveAsDefaultResidence && isHostelBuilding && activeBuildingObj) {
         await updateProfile({
           hostel_name: activeBuildingObj.name,
           room_number: resolvedRoom,
@@ -223,13 +181,14 @@ export default function SubmitComplaint() {
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-[11px] font-bold uppercase tracking-wider">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>IIIT Naya Raipur • Plot No. 7, Sector 24, Atal Nagar</span>
+              <span>IIIT Naya Raipur • Interactive Campus Map &amp; Hostel Intake</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Lodge IIIT-NR Hostel &amp; Campus Maintenance Request
+              Lodge Hostel &amp; Campus Maintenance Request
             </h1>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Select your exact hostel house (<strong className="text-white">Ramanujan, Bhabha, Bose, Raman, or Shabhari</strong>), wing, and room number—or click any lab or academic block on the interactive IIIT-NR Campus Map below.
+              Click any pin on the interactive IIIT-NR Campus Map below to select your Hostel or Academic Block—or click{' '}
+              <strong className="text-amber-300">&quot;✏️ Label / Edit Campus Map&quot;</strong> on the map to add, drag, or rename any hostel, wing, floor, or room number.
             </p>
           </div>
 
@@ -239,7 +198,7 @@ export default function SubmitComplaint() {
               onClick={handleUseMySavedRoom}
               className="px-4 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-emerald-200 font-bold text-xs transition-all cursor-pointer"
             >
-              🏠 My Room: {savedHostel.split(' ')[0]} ({savedRoom})
+              🏠 My Room: {(savedHostel || '').split(' ')[0]} ({savedRoom})
             </button>
             <Link
               to="/student"
@@ -251,9 +210,9 @@ export default function SubmitComplaint() {
         </div>
       </div>
 
-      {/* Interactive IIIT Naya Raipur Campus Master Plan & Live GPS Map */}
+      {/* Interactive & User-Labelable IIIT Naya Raipur Campus Map */}
       <CampusMapSelector
-        selectedBuilding={activeBuildingObj.name}
+        selectedBuilding={activeBuildingObj?.name}
         onSelectBuilding={handleSelectBuilding}
         selectedRoom={customRoomOverride.trim() || specificLocation}
         onSelectRoom={(rm) => {
@@ -276,43 +235,10 @@ export default function SubmitComplaint() {
                 Hostel / Building Room &amp; Technical Narrative
               </h2>
               <p className="text-xs text-slate-500">
-                Pinpoint the exact IIIT-NR room or lab and describe the defect for rapid squad dispatch.
+                Select or type your exact IIIT-NR room or lab and describe the issue.
               </p>
             </div>
             <span className="text-[11px] font-mono text-slate-400 shrink-0">* Required fields</span>
-          </div>
-
-          {/* 1-Click Authentic IIIT-NR Scenario Templates */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                IIIT-NR Quick Incident Templates (1-Click Fill)
-              </span>
-              {(title || description) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTitle('');
-                    setDescription('');
-                  }}
-                  className="text-[11px] font-bold text-slate-400 hover:text-rose-600 cursor-pointer"
-                >
-                  Clear Form
-                </button>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_SCENARIO_TEMPLATES.map((tpl) => (
-                <button
-                  key={tpl.label}
-                  type="button"
-                  onClick={() => applyQuickTemplate(tpl)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200/90 hover:border-indigo-200 text-xs font-semibold transition-all cursor-pointer"
-                >
-                  {tpl.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {error && (
@@ -331,33 +257,11 @@ export default function SubmitComplaint() {
             </div>
           )}
 
-          {/* Authenticated Requestor Identity Card */}
-          <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center space-x-3 min-w-0">
-              <span className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-lg shadow-2xs shrink-0">
-                {activeUser?.avatar || '🎓'}
-              </span>
-              <div className="min-w-0">
-                <span className="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">
-                  Verified Submitter Identity
-                </span>
-                <span className="font-bold text-slate-900 truncate block">
-                  {activeUser?.name} • <span className="font-mono text-indigo-600">{activeUser?.email}</span>
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700">
-                🏠 {savedHostel.split(' ')[0]} • {savedRoom}
-              </span>
-            </div>
-          </div>
-
           {/* Structured IIIT-NR Building, Floor, Wing & Room Number Picker */}
           <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                📍 Step 1: Select IIIT-NR Hostel / Building &amp; Room Number
+                📍 Step 1: Select Building / Hostel &amp; Room Number
               </span>
               {isHostelBuilding && (
                 <button
@@ -373,23 +277,23 @@ export default function SubmitComplaint() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="sm:col-span-2">
                 <label htmlFor="building" className="block text-xs font-bold text-slate-700 mb-1">
-                  IIIT-NR Hostel House or Academic Building <span className="text-rose-500">*</span>
+                  Hostel House or Campus Building <span className="text-rose-500">*</span>
                 </label>
                 <select
                   id="building"
-                  value={activeBuildingObj.name}
+                  value={activeBuildingObj?.name || ''}
                   onChange={(e) => handleSelectBuilding(e.target.value)}
                   className="enterprise-input font-semibold"
                 >
-                  <optgroup label="🏠 Student Hostels (Residential Zone)">
-                    {IIITNR_HOSTELS.map((h) => (
+                  <optgroup label="🏠 Student Hostels">
+                    {hostelsList.map((h) => (
                       <option key={h.id} value={h.name}>
-                        {h.name} — {h.capacity}
+                        {h.name}
                       </option>
                     ))}
                   </optgroup>
                   <optgroup label="🏛️ Academic Blocks, Labs, Library & Amenities">
-                    {IIITNR_ACADEMIC_BLOCKS.map((b) => (
+                    {nonHostelsList.map((b) => (
                       <option key={b.id} value={b.name}>
                         {b.name}
                       </option>
@@ -408,7 +312,12 @@ export default function SubmitComplaint() {
                   onChange={(e) => {
                     const newFloor = e.target.value;
                     setSelectedFloor(newFloor);
-                    const nextRooms = getRoomsForBuilding(activeBuildingObj.name, newFloor, selectedWing);
+                    const nextRooms = getRoomsForBuilding(
+                      activeBuildingObj?.name,
+                      newFloor,
+                      selectedWing,
+                      allBuildings
+                    );
                     if (nextRooms.length > 0) {
                       setSpecificLocation(nextRooms[0]);
                       setCustomRoomOverride('');
@@ -427,7 +336,7 @@ export default function SubmitComplaint() {
               {isHostelBuilding ? (
                 <div>
                   <label htmlFor="wingSelect" className="block text-xs font-bold text-slate-700 mb-1">
-                    Hostel Wing / Common Area
+                    Hostel Wing / Block
                   </label>
                   <select
                     id="wingSelect"
@@ -435,7 +344,12 @@ export default function SubmitComplaint() {
                     onChange={(e) => {
                       const newWing = e.target.value;
                       setSelectedWing(newWing);
-                      const nextRooms = getRoomsForBuilding(activeBuildingObj.name, selectedFloor, newWing);
+                      const nextRooms = getRoomsForBuilding(
+                        activeBuildingObj?.name,
+                        selectedFloor,
+                        newWing,
+                        allBuildings
+                      );
                       if (nextRooms.length > 0) {
                         setSpecificLocation(nextRooms[0]);
                         setCustomRoomOverride('');
@@ -443,7 +357,7 @@ export default function SubmitComplaint() {
                     }}
                     className="enterprise-input"
                   >
-                    {HOSTEL_WINGS.map((w) => (
+                    {availableWings.map((w) => (
                       <option key={w.id} value={w.id}>
                         {w.label}
                       </option>
@@ -456,8 +370,8 @@ export default function SubmitComplaint() {
                     Building Zone Code
                   </label>
                   <div className="enterprise-input bg-slate-100 text-slate-600 font-mono text-xs flex items-center justify-between">
-                    <span>{activeBuildingObj.mapZone.badge}</span>
-                    <span>{activeBuildingObj.gps}</span>
+                    <span>{activeBuildingObj?.mapPin?.badge || activeBuildingObj?.mapZone?.badge || 'BLDG'}</span>
+                    <span>{activeBuildingObj?.gps || ''}</span>
                   </div>
                 </div>
               )}
@@ -485,12 +399,12 @@ export default function SubmitComplaint() {
 
               <div>
                 <label htmlFor="customRoomOverride" className="block text-xs font-bold text-slate-700 mb-1">
-                  Or Type Specific Room / Spot (Optional)
+                  Or Type Exact Room / Spot Number
                 </label>
                 <input
                   id="customRoomOverride"
                   type="text"
-                  placeholder="e.g. Room 209, Study Table 2, or Balcony Door"
+                  placeholder="Type any exact room number or spot..."
                   value={customRoomOverride}
                   onChange={(e) => setCustomRoomOverride(e.target.value)}
                   className="enterprise-input"
@@ -498,7 +412,7 @@ export default function SubmitComplaint() {
               </div>
             </div>
 
-            {isHostelBuilding && (
+            {isHostelBuilding && activeBuildingObj && (
               <label className="flex items-center space-x-2 pt-1 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -570,7 +484,7 @@ export default function SubmitComplaint() {
               required
               minLength={5}
               maxLength={150}
-              placeholder="e.g. Ceiling fan regulator broken in Ramanujan Room 204, or LAN port dead"
+              placeholder="e.g. Ceiling fan regulator broken, or LAN port dead"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={submitting}
@@ -597,7 +511,7 @@ export default function SubmitComplaint() {
               required
               minLength={10}
               rows={4}
-              placeholder="Describe the physical defect, duration, and any safety symptoms (such as sparks, smoke, or active water leakage)..."
+              placeholder="Describe the physical defect, duration, and any safety symptoms..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={submitting}
@@ -611,11 +525,11 @@ export default function SubmitComplaint() {
             className="w-full py-3.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
           >
             {submitting ? (
-              <span>Dispatching Grievance to IIIT-NR Maintenance Queue...</span>
+              <span>Dispatching Grievance to Maintenance Queue...</span>
             ) : (
               <>
                 <span>
-                  Submit Request for {activeBuildingObj.shortName} ({customRoomOverride.trim() || specificLocation})
+                  Submit Request for {activeBuildingObj?.shortName || building} ({customRoomOverride.trim() || specificLocation})
                 </span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -642,52 +556,17 @@ export default function SubmitComplaint() {
           <div className="bento-card p-5 space-y-2.5 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">
-                📍 Selected IIIT-NR Dispatch Target
+                📍 Selected Campus Target
               </span>
               <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold">
-                {activeBuildingObj.mapZone.badge}
+                {activeBuildingObj?.mapPin?.badge || activeBuildingObj?.mapZone?.badge || 'BLDG'}
               </span>
             </div>
             <div className="font-black text-slate-900 text-sm">
-              {activeBuildingObj.name}
+              {activeBuildingObj?.name || building}
             </div>
             <div className="font-mono text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl font-bold">
               Room / Zone: {customRoomOverride.trim() || specificLocation}
-            </div>
-            <p className="text-[11px] text-slate-500">
-              Zone Affinity Routing automatically prioritizes{' '}
-              <strong className="text-slate-700">
-                {isHostelBuilding ? 'Hostel Maintenance Squads' : 'Academic & Lab Infrastructure Crews'}
-              </strong>{' '}
-              for this location.
-            </p>
-          </div>
-
-          {/* SLA Reference Matrix Card */}
-          <div className="bento-card p-5 space-y-3 text-xs">
-            <div className="flex items-center justify-between">
-              <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
-                Institutional SLA Resolution Targets
-              </h4>
-              <span className="text-[10px] font-mono text-slate-400">24/7 Watchdog</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5 text-[11px]">
-              <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/70">
-                <span className="font-black text-rose-700 block">CRITICAL</span>
-                <span className="text-rose-600 font-mono">2 Hours Max</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-orange-50/70 border border-orange-200/70">
-                <span className="font-black text-orange-700 block">HIGH</span>
-                <span className="text-orange-600 font-mono">8 Hours Max</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/70">
-                <span className="font-black text-amber-800 block">MEDIUM</span>
-                <span className="text-amber-700 font-mono">24 Hours Max</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/70">
-                <span className="font-black text-emerald-700 block">LOW</span>
-                <span className="text-emerald-600 font-mono">72 Hours Max</span>
-              </div>
             </div>
           </div>
         </div>
