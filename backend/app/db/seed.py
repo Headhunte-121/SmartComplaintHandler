@@ -92,8 +92,10 @@ CAMPUS_CATALOG = [
 
 
 def ensure_schema() -> None:
-    """Ensure all newly added tables and columns exist in SQLite."""
+    """Ensure all newly added tables and columns exist across SQLite and PostgreSQL."""
     Base.metadata.create_all(bind=engine)
+    if "sqlite" not in str(engine.url):
+        return  # PostgreSQL/Supabase tables are created with the complete schema natively via create_all
     try:
         with engine.begin() as conn:
             res = conn.execute(text("PRAGMA table_info(tickets);"))

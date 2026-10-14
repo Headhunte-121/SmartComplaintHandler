@@ -322,6 +322,24 @@ npm run dev
   - Frontend Compilation: `npm run build` compiled 119 modules in 1.30s with 0 errors.
   - End-to-End Flow: Verified clean slate (0 tickets), student login as `nikhil26100@iiitnr.edu.in`, ticket creation, isolated ticket viewing, and database purge.
 
+### [2026-10-14] - Supabase Cloud PostgreSQL Migration & Cross-Platform Persistence
+* **Files Modified:**
+  - `backend/app/core/database.py`
+  - `backend/app/db/seed.py`
+  - `backend/requirements.txt`
+  - `backend/.env.example`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **PostgreSQL Adapter Integration:** Added `psycopg2-binary>=2.9.9` to dependencies and installed it in the backend environment.
+  2. **Connection Resilience & Dialect Normalization:** Updated `database.py` to auto-normalize `postgres://` to `postgresql://` and enabled `pool_pre_ping=True` to guarantee robust reconnection across cloud networks without dropping sessions.
+  3. **Cross-Engine Table Initialization:** Updated `seed.py` to conditionally bypass SQLite-only `PRAGMA` commands on PostgreSQL while allowing SQLAlchemy `Base.metadata.create_all` to provision the complete schema natively on Supabase.
+  4. **Live Cloud Migration:** Connected to user's live Supabase PostgreSQL instance (`aws-0-ap-south-1.pooler.supabase.com:5432`), auto-provisioned all tables, and seeded the 6 facilities departments and 5 staff accounts with 0 dummy tickets.
+* **Why It Was Changed:** Replaces ephemeral local SQLite disk storage with a persistent, hosted cloud PostgreSQL database on Supabase to enable seamless cloud deployments on Vercel and Render/Railway without data loss on cold starts.
+* **Verification Proof:**
+  - Backend Pytest Suite: 45/45 tests passed across the cloud network against live Supabase PostgreSQL in 11.71s.
+  - Live Seed Verification: Verified 6 departments, 7 squads, 5 staff accounts, and 0 dummy tickets in Supabase Table Editor.
+  - Uvicorn Server: Successfully running live on port 8000 connected to Supabase.
+
 
 
 
