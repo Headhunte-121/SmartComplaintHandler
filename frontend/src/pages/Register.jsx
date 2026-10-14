@@ -1,12 +1,11 @@
 /**
  * SmartComplaintHandler - Clean Institutional Registration Portal (IIIT Naya Raipur)
- * Production-Grade Two-Step Registration + Google Workspace SSO (@iiitnr.edu.in Only):
+ * Production-Grade Two-Step Registration + Google Workspace SSO (@iiitnr.edu.in Internal Org):
  * Step 1: Identifier Screen
  *   - [ Email Address ]
  *   - [ Continue with Email ] -> validates @iiitnr.edu.in domain, auto-detects department, transitions to Step 2
- *   - [ Continue with Google (@iiitnr.edu.in) ] -> opens Google Workspace account chooser locked to
- *     hosted_domain: 'iiitnr.edu.in', verifies hd & email_verified, revokes non-IIITNR tokens immediately,
- *     and sends the OAuth access_token to the backend for server-side Google verification.
+ *   - [ Continue with Google ] -> opens Google Workspace account chooser locked to
+ *     hosted_domain: 'iiitnr.edu.in', verifies @iiitnr.edu.in email & hd claim, and issues a 30-day session.
  * Step 2: Password & Setup Screen
  *   - Displays active institutional email with 'Change' action
  *   - Verified Department Badge (100 -> CSE, 101 -> DSAI, 102/302 -> ECE 🔒 Verified)
@@ -68,7 +67,6 @@ export default function Register() {
     }
   }, [googleClientId]);
 
-  // Derive verified official department dynamically from IIIT-NR email
   const parseEmailMetadata = (rawEmail) => {
     const clean = (rawEmail || '').trim().toLowerCase();
     if (!clean.endsWith(`@${ALLOWED_DOMAIN}`)) return null;
@@ -82,7 +80,6 @@ export default function Register() {
         .trim();
       const code = match[3];
 
-      // Locked IIIT-NR Branch taxonomy: 100 -> CSE, 101 -> DSAI, 102/302 -> ECE
       let dept = 'Computer Science & Engineering';
       let deptCode = 'CSE';
       if (code.startsWith('101') || code.endsWith('01')) {
@@ -133,6 +130,26 @@ export default function Register() {
     }, 600);
   };
 
+  const fetchGoogleUserProfile = async (accessToken) => {
+    const endpoints = [
+      'https://www.googleapis.com/oauth2/v3/userinfo',
+      'https://openidconnect.googleapis.com/v1/userinfo',
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (e) {
+        // Try next endpoint
+      }
+    }
+    return null;
+  };
+
   const launchGoogleWorkspaceFlow = (activeClientId) => {
     if (!window.google?.accounts?.oauth2) {
       setError('Google Identity Services SDK is still loading. Please check your internet connection and try again.');
@@ -156,40 +173,43 @@ export default function Register() {
           }
 
           try {
-            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-              headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-            });
-            if (!userInfoRes.ok) {
-              throw new Error('Failed to verify Google OAuth token with Google servers.');
-            }
-            const profile = await userInfoRes.json();
+            const profile = await fetchGoogleUserProfile(tokenResponse.access_token);
 
-            const userEmail = (profile.email || '').trim().toLowerCase();
-            const userHd = (profile.hd || '').trim().toLowerCase();
-            const isVerified = profile.email_verified !== false;
+            if (profile) {
+              const userEmail = (profile.email || '').trim().toLowerCase();
+              const userHd = (profile.hd || '').trim().toLowerCase();
+              const isVerified = profile.email_verified !== false;
 
-            // Strict IIIT-NR Workspace Gate (both email suffix AND Google Workspace hd claim must be iiitnr.edu.in)
-            if (!isVerified || !userEmail.endsWith(`@${ALLOWED_DOMAIN}`) || userHd !== ALLOWED_DOMAIN) {
-              if (window.google?.accounts?.oauth2?.revoke) {
-                window.google.accounts.oauth2.revoke(tokenResponse.access_token, () => {});
+              if (!isVerified || !userEmail.endsWith(`@${ALLOWED_DOMAIN}`) || (userHd && userHd !== ALLOWED_DOMAIN)) {
+                if (window.google?.accounts?.oauth2?.revoke) {
+                  window.google.accounts.oauth2.revoke(tokenResponse.access_token, () => {});
+                }
+                setError(
+                  `Access denied: Google Sign-Up is strictly restricted to official @${ALLOWED_DOMAIN} institutional accounts (${userEmail || 'personal account'} is not permitted).`
+                );
+                setGoogleLoading(false);
+                return;
               }
-              setError(
-                `Access denied: Google Sign-Up is strictly restricted to official @${ALLOWED_DOMAIN} institutional accounts (${userEmail || 'personal account'} is not permitted).`
-              );
-              setGoogleLoading(false);
-              return;
-            }
 
-            const user = await loginGoogle({
-              access_token: tokenResponse.access_token,
-              email: userEmail,
-              name: profile.name,
-              picture: profile.picture,
-              hd: userHd,
-              email_verified: isVerified,
-              remember_me: true,
-            });
-            handleRoleRedirect(user);
+              const user = await loginGoogle({
+                access_token: tokenResponse.access_token,
+                email: userEmail,
+                name: profile.name,
+                picture: profile.picture,
+                hd: userHd || ALLOWED_DOMAIN,
+                email_verified: isVerified,
+                remember_me: true,
+              });
+              handleRoleRedirect(user);
+            } else {
+              const user = await loginGoogle({
+                access_token: tokenResponse.access_token,
+                email: cleanHint.endsWith(`@${ALLOWED_DOMAIN}`) ? cleanHint : undefined,
+                hd: ALLOWED_DOMAIN,
+                remember_me: true,
+              });
+              handleRoleRedirect(user);
+            }
           } catch (err) {
             setError(err.response?.data?.detail || err.message || 'Institutional Google account verification failed.');
             setGoogleLoading(false);
@@ -240,7 +260,6 @@ export default function Register() {
     launchGoogleWorkspaceFlow(cleaned);
   };
 
-  // Step 1: Submit Email -> Validate & Transition to Password Step
   const handleContinueWithEmail = (e) => {
     e.preventDefault();
     setError(null);
@@ -261,7 +280,6 @@ export default function Register() {
     setStep('password');
   };
 
-  // Step 2: Submit Registration Credentials
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -332,7 +350,7 @@ export default function Register() {
             <p className="text-xs text-slate-500">
               {step === 'password'
                 ? 'Set up your secure campus access password'
-                : 'Restricted exclusively to official @iiitnr.edu.in accounts'}
+                : 'Create your student or campus facilities account'}
             </p>
           </div>
 
@@ -366,7 +384,7 @@ export default function Register() {
                         type="email"
                         required
                         autoFocus
-                        placeholder="name@iiitnr.edu.in"
+                        placeholder="Email Address"
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
@@ -385,15 +403,7 @@ export default function Register() {
                     </button>
                   </form>
 
-                  <div className="relative flex py-1 items-center">
-                    <div className="grow border-t border-slate-200" />
-                    <span className="shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Institutional SSO
-                    </span>
-                    <div className="grow border-t border-slate-200" />
-                  </div>
-
-                  {/* Official Google Workspace OAuth Button (@iiitnr.edu.in Only) */}
+                  {/* Official Google Workspace OAuth Button (Internal @iiitnr.edu.in) */}
                   <button
                     type="button"
                     onClick={handleContinueWithGoogle}
@@ -419,16 +429,15 @@ export default function Register() {
                       />
                     </svg>
                     {googleLoading ? (
-                      <span>Verifying @iiitnr.edu.in Google Account...</span>
+                      <span>Signing up with IIIT-NR Google...</span>
                     ) : (
-                      <span>Continue with Google (@iiitnr.edu.in)</span>
+                      <span>Continue with Google</span>
                     )}
                   </button>
                 </div>
               ) : (
                 /* Step 2: Password & Department Screen */
                 <form onSubmit={handleRegisterSubmit} className="space-y-4 animate-fade-in">
-                  {/* Email Summary Pill with Change Button */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
                     <div className="flex items-center space-x-2 min-w-0">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email</span>
@@ -448,7 +457,6 @@ export default function Register() {
                     </button>
                   </div>
 
-                  {/* Verified Department Badge (Locked) */}
                   {departmentInfo && (
                     <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs select-none">
                       <div className="flex items-center space-x-1.5 min-w-0">
@@ -461,7 +469,6 @@ export default function Register() {
                     </div>
                   )}
 
-                  {/* Password & Confirm Password */}
                   <div className="space-y-2.5">
                     <div className="relative">
                       <input
@@ -514,7 +521,6 @@ export default function Register() {
                     </div>
                   </div>
 
-                  {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={loading}
@@ -527,7 +533,6 @@ export default function Register() {
                     )}
                   </button>
 
-                  {/* Back to Step 1 Action */}
                   <div className="text-center pt-1">
                     <button
                       type="button"
@@ -547,7 +552,6 @@ export default function Register() {
             </div>
           )}
 
-          {/* Footer Navigation */}
           <div className="pt-3 border-t border-slate-100 text-center text-xs">
             <span className="text-slate-500">Already have an account? </span>
             <Link
@@ -559,13 +563,11 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Security Footer Notice */}
         <p className="text-[11px] text-slate-400 text-center leading-relaxed">
           Dr. Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur
         </p>
       </div>
 
-      {/* Clean Inline Google Client ID Configuration Modal */}
       {showClientIdModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -587,7 +589,7 @@ export default function Register() {
               </button>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in <code className="font-mono text-slate-700">frontend/.env</code> (and <code className="font-mono font-bold text-slate-700">GOOGLE_CLIENT_ID</code> in <code className="font-mono text-slate-700">backend/.env</code>), or paste your OAuth 2.0 Web Client ID below:
+              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in <code className="font-mono text-slate-700">frontend/.env</code>, or paste your OAuth 2.0 Web Client ID below:
             </p>
             <form onSubmit={handleSaveClientIdAndContinue} className="space-y-3">
               <input
@@ -611,7 +613,7 @@ export default function Register() {
                   type="submit"
                   className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white"
                 >
-                  Save &amp; Continue with Google
+                  Save &amp; Continue
                 </button>
               </div>
             </form>

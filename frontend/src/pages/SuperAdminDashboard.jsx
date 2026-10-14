@@ -346,9 +346,9 @@ export default function SuperAdminDashboard() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {teams.map((t) => (
-            <div key={t.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-2">
+            <div key={t.team_id || t.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800">{t.name}</span>
+                <span className="text-xs font-bold text-slate-800">{t.team_name || t.name}</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active" />
               </div>
               <div className="text-[11px] text-slate-500">

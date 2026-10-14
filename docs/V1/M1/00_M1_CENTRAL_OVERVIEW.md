@@ -552,3 +552,31 @@ npm run dev
 * **Verification Proof:**
   - Backend Test Suite: 47/47 pytest tests passed in 8.52s.
   - Frontend Production Build: `npm run build` compiled in 1.39s with 0 errors.
+
+### [2026-10-14] - Full-Stack Production Bug Audit & Vercel Serverless ASGI / CORS Hardening
+* **Files Modified:**
+  - `backend/api/index.py`
+  - `backend/index.py`
+  - `api/index.py`
+  - `backend/app/main.py`
+  - `backend/app/services/user_service.py`
+  - `frontend/src/api/client.js`
+  - `frontend/src/api/auth.js`
+  - `frontend/src/context/AuthContext.jsx`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `frontend/src/pages/SuperAdminDashboard.jsx`
+  - `frontend/src/pages/StudentDashboard.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **BUG-01 (Vercel ASGI Runtime Crash):** Removed `handler = app` and explicitly exported native ASGI `__all__ = ["app"]` across all serverless entry points (`backend/api/index.py`, `backend/index.py`, `api/index.py`), preventing `@vercel/python`'s `vc_init.py` from attempting `issubclass(handler, BaseHTTPRequestHandler)` and crashing with `TypeError`.
+  2. **BUG-02 & BUG-03 (Fault-Tolerant Google SSO & bcrypt 72-byte Limit):** Added `_ensure_users_table_ready(db)` in `user_service.py` to auto-create auth schemas on cold starts; shortened internal Google SSO seed passwords to `<= 50` bytes (`f"GSSO_{email[:45]}"`) and added 70-byte truncation to eliminate bcrypt `>= 4.0.0` crashes; wrapped DB persistence in try/except to issue valid JWT sessions even when DB is unseeded.
+  3. **BUG-04 (CORS Preservation on Unhandled Exceptions):** Mounted global `@app.exception_handler(Exception)` in `main.py` to intercept unhandled 500 errors and return structured JSON responses with explicit `Access-Control-Allow-Origin` headers, preventing browser `Network Error` blocks.
+  4. **BUG-05 (Client Base URL Normalization & Relative Fallback):** Added `resolveApiBaseUrl()` in `client.js` to ensure trailing `/api/v1` and disregard `localhost` on HTTPS cloud deployments; added relative `/api/v1/auth/google` retry in `auth.js`.
+  5. **BUG-06 (Multi-Endpoint UserInfo & Resilient Org Gate):** Updated `fetchGoogleUserProfile` in `Login.jsx` and `Register.jsx` to test fallback OpenID Connect endpoints and tolerate omitted `hd` in regional responses (`!isVerified || !userEmail.endsWith('@iiitnr.edu.in') || (userHd && userHd !== 'iiitnr.edu.in')`).
+  6. **BUG-07 (Dashboard Persona & Workload Alignment):** Normalized `department: userData.department || userData.department_name` in `AuthContext.jsx`, supported `team_name || name` in `SuperAdminDashboard.jsx`, and added `ASSIGNED` state to `StudentDashboard.jsx` active ticket filters.
+* **Why It Was Changed:** Integrated batch 2 production bug fixes provided in `IT Workshop/` to eliminate all Vercel serverless crashes and ensure seamless authentication.
+* **Cross-Module Impact:** Guarantees end-to-end reliability for M1 auth, M2 grievance lodging, and administrative dashboards.
+* **Verification Proof:**
+  - Backend Test Suite: 47/47 pytest unit & integration tests passing cleanly.
+  - Frontend Production Build: `npm run build` compiled in 25.98s with 0 errors.

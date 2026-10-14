@@ -59,7 +59,7 @@ export default function StudentDashboard() {
   }, [studentEmail]);
 
   const activeTickets = tickets.filter(
-    (t) => t.status === 'SUBMITTED' || t.status === 'IN_PROGRESS' || t.status === 'ESCALATED'
+    (t) => t.status === 'SUBMITTED' || t.status === 'ASSIGNED' || t.status === 'IN_PROGRESS' || t.status === 'ESCALATED'
   );
   const resolvedTickets = tickets.filter(
     (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
@@ -123,6 +123,8 @@ export default function StudentDashboard() {
     switch (status) {
       case 'SUBMITTED':
         return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'ASSIGNED':
+        return 'bg-purple-50 text-purple-700 border-purple-200 font-semibold';
       case 'IN_PROGRESS':
         return 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse';
       case 'ESCALATED':

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, loginWithGoogle, registerUser, fetchMe } from '../api/auth';
+import React, { createContext, useContext, useState } from 'react';
+import { loginUser, loginWithGoogle, registerUser } from '../api/auth';
 
 /**
  * Institutional IIIT-NR Personas for Role-Based Access & Quick Testing:
@@ -15,12 +15,13 @@ export const CAMPUS_PERSONAS = [
     role: 'STUDENT',
     roleLabel: 'Student',
     email: 'nikhil26100@iiitnr.edu.in',
-    identifier: 'Roll: 2026BCS100',
+    identifier: 'Roll: 2026CSE100',
     department: 'Computer Science & Engineering',
+    department_name: 'Computer Science & Engineering',
     avatar: '🎓',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
     targetRoute: '/submit',
-    description: 'Undergraduate student reporting campus facility issues and tracking personal complaints.'
+    description: 'Undergraduate student reporting campus facility issues and tracking personal complaints.',
   },
   {
     id: 'admin_verma',
@@ -30,10 +31,11 @@ export const CAMPUS_PERSONAS = [
     email: 'admin@iiitnr.edu.in',
     identifier: 'Staff ID: FAC-01',
     department: 'Central Facilities Management',
+    department_name: 'Central Facilities Management',
     avatar: '🛡️',
     badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
     targetRoute: '/admin',
-    description: 'Chief operational supervisor overseeing queues, workload balancing, priority overrides, and SLA governance.'
+    description: 'Chief operational supervisor overseeing queues, workload balancing, priority overrides, and SLA governance.',
   },
   {
     id: 'super_admin',
@@ -43,10 +45,11 @@ export const CAMPUS_PERSONAS = [
     email: 'superadmin@iiitnr.edu.in',
     identifier: 'Directorate (DIR-01)',
     department: 'Office of the Director',
+    department_name: 'Office of the Director',
     avatar: '👑',
     badgeClass: 'bg-amber-50 text-amber-800 border-amber-300',
     targetRoute: '/superadmin',
-    description: 'Supreme administrator with full authority to add/manage facility admins, purge records, and audit telemetry.'
+    description: 'Supreme administrator with full authority to add/manage facility admins, purge records, and audit telemetry.',
   },
   {
     id: 'tech_ramesh',
@@ -56,11 +59,12 @@ export const CAMPUS_PERSONAS = [
     email: 'tech.ramesh@iiitnr.edu.in',
     identifier: 'Squad Tech #1',
     department: 'Electrical Services',
+    department_name: 'Electrical Services',
     avatar: '🔧',
     badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     targetRoute: '/technician',
-    description: 'Field squad technician servicing assigned repair tickets and updating resolution notes.'
-  }
+    description: 'Field squad technician servicing assigned repair tickets and updating resolution notes.',
+  },
 ];
 
 function enrichUser(userData) {
@@ -88,8 +92,16 @@ function enrichUser(userData) {
     targetRoute = '/technician';
   }
 
+  const resolvedDept =
+    userData.department ||
+    userData.department_name ||
+    'Computer Science & Engineering';
+
   return {
     ...userData,
+    department: resolvedDept,
+    department_name: resolvedDept,
+    identifier: userData.identifier || `ID: ${(userData.email || '').split('@')[0].toUpperCase()}`,
     avatar,
     roleLabel,
     badgeClass,
@@ -100,7 +112,6 @@ function enrichUser(userData) {
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Load initial session: check persistent localStorage first, then session-scoped sessionStorage
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const persistedUser = localStorage.getItem('smart_complaint_auth_user');
@@ -116,7 +127,6 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.warn('Failed to parse cached auth user:', e);
     }
-    // No session active by default — user MUST log in
     return null;
   });
 
@@ -125,16 +135,12 @@ export function AuthProvider({ children }) {
     return localStorage.getItem('smart_complaint_remember_email') || '';
   });
 
-  /**
-   * Industry-Standard Login with Persistent Remember Me
-   */
   const login = async (email, password, rememberMe = false) => {
     const data = await loginUser(email, password, rememberMe);
     const enriched = enrichUser(data.user);
     setCurrentUser(enriched);
 
     if (rememberMe) {
-      // 30-day persistent session in localStorage
       localStorage.setItem('smart_complaint_auth_token', data.access_token);
       localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
       localStorage.setItem('smart_complaint_remember_email', email);
@@ -143,7 +149,6 @@ export function AuthProvider({ children }) {
       sessionStorage.removeItem('smart_complaint_auth_token');
       sessionStorage.removeItem('smart_complaint_auth_user');
     } else {
-      // Ephemeral tab/browser session in sessionStorage
       sessionStorage.setItem('smart_complaint_auth_token', data.access_token);
       sessionStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
 
@@ -154,9 +159,6 @@ export function AuthProvider({ children }) {
     return enriched;
   };
 
-  /**
-   * Register a new institutional user with bcrypt hash & JWT
-   */
   const register = async (registrationData) => {
     const data = await registerUser(registrationData);
     const enriched = enrichUser(data.user);
@@ -179,20 +181,15 @@ export function AuthProvider({ children }) {
     return enriched;
   };
 
-  /**
-   * Google Workspace Official SSO Login & Auto-Registration
-   * Strictly enforces @iiitnr.edu.in accounts and captures verified full real name
-   */
   const loginGoogle = async (googleData) => {
     const data = await loginWithGoogle(googleData);
     const enriched = enrichUser(data.user);
     setCurrentUser(enriched);
 
-    // 30-day persistent session
     localStorage.setItem('smart_complaint_auth_token', data.access_token);
     localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
-    localStorage.setItem('smart_complaint_remember_email', data.user.email);
-    setRememberedEmail(data.user.email);
+    localStorage.setItem('smart_complaint_remember_email', enriched.email);
+    setRememberedEmail(enriched.email);
 
     sessionStorage.removeItem('smart_complaint_auth_token');
     sessionStorage.removeItem('smart_complaint_auth_user');
@@ -200,9 +197,6 @@ export function AuthProvider({ children }) {
     return enriched;
   };
 
-  /**
-   * Quick persona switch for demonstration & testing
-   */
   const switchPersona = async (personaId) => {
     const found = CAMPUS_PERSONAS.find((p) => p.id === personaId);
     if (found) {
@@ -239,7 +233,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         currentUser,
-        currentPersona: currentUser,
+        currentPersona: currentUser || CAMPUS_PERSONAS[0],
         personas: CAMPUS_PERSONAS,
         rememberedEmail,
         login,
