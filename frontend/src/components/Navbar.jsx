@@ -24,7 +24,12 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    fetch('/health')
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+    const healthUrl = apiBase
+      ? `${apiBase.replace(/\/api\/v1\/?$/, '')}/health`
+      : '/health';
+
+    fetch(healthUrl)
       .then((res) => res.json())
       .then((data) => {
         setBackendHealthy(data.status === 'healthy');
