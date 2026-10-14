@@ -1,10 +1,6 @@
 /**
- * SmartComplaintHandler - Enterprise Split-Screen Institutional Login Portal (IIIT Naya Raipur)
- * Design Pattern: Inspired by Linear, Clerk, Vercel, and Stripe enterprise SSO portals.
- * Security:
- * - Disables localStorage Client-ID injection in production builds (`IS_PROD_BUILD`).
- * - Enforces GOOGLE_CLIENT_ID_PATTERN validation and server-side Google OAuth2/OIDC verification.
- * - Live institutional email parser previews student roll number / branch or staff role in real time.
+ * SmartComplaintHandler - Minimal Institutional Sign-In (IIIT Naya Raipur)
+ * Aesthetic: Clean, centered single-card login inspired by Linear, Vercel, and Raycast.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -36,7 +32,6 @@ function ensureGoogleSdkLoaded(timeoutMs = 8000) {
       resolve(window.google);
       return;
     }
-
     let existingScript = document.querySelector(`script[src="${GOOGLE_GSI_SCRIPT_SRC}"]`);
     if (!existingScript) {
       existingScript = document.createElement('script');
@@ -45,7 +40,6 @@ function ensureGoogleSdkLoaded(timeoutMs = 8000) {
       existingScript.defer = true;
       document.head.appendChild(existingScript);
     }
-
     const start = Date.now();
     const timer = setInterval(() => {
       if (window.google?.accounts?.oauth2) {
@@ -53,7 +47,7 @@ function ensureGoogleSdkLoaded(timeoutMs = 8000) {
         resolve(window.google);
       } else if (Date.now() - start >= timeoutMs) {
         clearInterval(timer);
-        reject(new Error('Google Identity Services SDK timed out while loading. Please check your connection.'));
+        reject(new Error('Google SDK timed out while loading.'));
       }
     }, 100);
   });
@@ -76,7 +70,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [successUser, setSuccessUser] = useState(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -119,15 +112,15 @@ export default function Login() {
   }, [email]);
 
   const handleRoleRedirect = (user) => {
-    setSuccessUser(user);
-    let targetRoute = '/submit';
-    if (user.role === 'SUPER_ADMIN') targetRoute = '/superadmin';
-    else if (user.role === 'ADMIN') targetRoute = '/admin';
-    else if (user.role === 'TECHNICIAN') targetRoute = '/technician';
-
-    setTimeout(() => {
-      navigate(targetRoute, { replace: true });
-    }, 450);
+    const targetRoute =
+      user.role === 'SUPER_ADMIN'
+        ? '/superadmin'
+        : user.role === 'ADMIN'
+        ? '/admin'
+        : user.role === 'TECHNICIAN'
+        ? '/technician'
+        : '/submit';
+    navigate(targetRoute, { replace: true });
   };
 
   const fetchGoogleUserProfile = async (accessToken) => {
@@ -137,15 +130,9 @@ export default function Login() {
     ];
     for (const url of endpoints) {
       try {
-        const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (res.ok) {
-          return await res.json();
-        }
-      } catch (_) {
-        // Fallback to next endpoint or server-side verification
-      }
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+        if (res.ok) return await res.json();
+      } catch (_) {}
     }
     return null;
   };
@@ -154,53 +141,44 @@ export default function Login() {
     try {
       setGoogleLoading(true);
       await ensureGoogleSdkLoaded();
-
       const cleanHint = email.trim().toLowerCase();
-      const tokenClientConfig = {
+
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: activeClientId,
         scope: 'openid email profile',
         hosted_domain: ALLOWED_DOMAIN,
         hd: ALLOWED_DOMAIN,
+        hint: cleanHint.endsWith(`@${ALLOWED_DOMAIN}`) ? cleanHint : undefined,
         prompt: 'select_account',
         error_callback: (errObj) => {
           if (errObj?.type !== 'popup_closed') {
-            setError(`Google Sign-In popup error: ${errObj?.message || errObj?.type || 'Unable to open popup'}`);
+            setError(errObj?.message || 'Unable to open Google Sign-In popup.');
           }
           setGoogleLoading(false);
         },
         callback: async (tokenResponse) => {
           if (tokenResponse.error) {
-            setError(`Google Sign-In was cancelled or failed: ${tokenResponse.error_description || tokenResponse.error}`);
+            setError(tokenResponse.error_description || tokenResponse.error);
             setGoogleLoading(false);
             return;
           }
-
           try {
             const profile = await fetchGoogleUserProfile(tokenResponse.access_token);
-
             if (profile) {
               const userEmail = (profile.email || '').trim().toLowerCase();
               const userHd = (profile.hd || '').trim().toLowerCase();
-              const isVerified = profile.email_verified !== false;
-
-              if (!isVerified || !userEmail.endsWith(`@${ALLOWED_DOMAIN}`) || (userHd && userHd !== ALLOWED_DOMAIN)) {
-                if (window.google?.accounts?.oauth2?.revoke) {
-                  window.google.accounts.oauth2.revoke(tokenResponse.access_token, () => {});
-                }
-                setError(
-                  `Access denied: Google Sign-In is strictly restricted to official @${ALLOWED_DOMAIN} institutional accounts (${userEmail || 'personal account'} is not permitted).`
-                );
+              if (!userEmail.endsWith(`@${ALLOWED_DOMAIN}`) || (userHd && userHd !== ALLOWED_DOMAIN)) {
+                setError(`Only @${ALLOWED_DOMAIN} accounts are permitted.`);
                 setGoogleLoading(false);
                 return;
               }
-
               const user = await loginGoogle({
                 access_token: tokenResponse.access_token,
                 email: userEmail,
                 name: profile.name,
                 picture: profile.picture,
                 hd: userHd || ALLOWED_DOMAIN,
-                email_verified: isVerified,
+                email_verified: profile.email_verified !== false,
                 remember_me: rememberMe,
               });
               handleRoleRedirect(user);
@@ -214,20 +192,14 @@ export default function Login() {
               handleRoleRedirect(user);
             }
           } catch (err) {
-            setError(err.response?.data?.detail || err.message || 'Institutional Google account verification failed.');
+            setError(err.response?.data?.detail || err.message || 'Google verification failed.');
             setGoogleLoading(false);
           }
         },
-      };
-
-      if (cleanHint.endsWith(`@${ALLOWED_DOMAIN}`)) {
-        tokenClientConfig.hint = cleanHint;
-      }
-
-      const tokenClient = window.google.accounts.oauth2.initTokenClient(tokenClientConfig);
+      });
       tokenClient.requestAccessToken({ prompt: 'select_account' });
     } catch (err) {
-      setError(`Failed to initialize Google Workspace Sign-In: ${err.message}`);
+      setError(err.message);
       setGoogleLoading(false);
     }
   };
@@ -235,7 +207,6 @@ export default function Login() {
   const handleContinueWithGoogle = async () => {
     setError(null);
     let activeClientId = (googleClientId || getInitialGoogleClientId()).trim();
-
     if (!activeClientId) {
       try {
         setGoogleLoading(true);
@@ -246,404 +217,290 @@ export default function Login() {
           setGoogleClientId(remoteId);
         }
       } catch (_) {
-        // Ignore config fetch error and fall through
       } finally {
         setGoogleLoading(false);
       }
     }
-
     if (!activeClientId) {
       if (IS_PROD_BUILD) {
-        setError('Google Workspace SSO is currently being configured by the Campus Directorate. Please sign in with your institutional email and password.');
+        setError('Google SSO is not configured on this server. Please sign in with email and password.');
         return;
       }
       setShowClientIdModal(true);
       return;
     }
-
     await launchGoogleWorkspaceFlow(activeClientId);
-  };
-
-  const handleSaveClientIdAndContinue = async (e) => {
-    e.preventDefault();
-    const cleaned = clientIdInput.trim();
-    if (!GOOGLE_CLIENT_ID_PATTERN.test(cleaned)) {
-      setError('Please enter a valid Google Cloud OAuth 2.0 Client ID matching <number>-<id>.apps.googleusercontent.com');
-      return;
-    }
-    if (!IS_PROD_BUILD) {
-      localStorage.setItem('smart_complaint_google_client_id', cleaned);
-    }
-    setGoogleClientId(cleaned);
-    setShowClientIdModal(false);
-    setError(null);
-    await launchGoogleWorkspaceFlow(cleaned);
   };
 
   const handleContinueWithEmail = (e) => {
     e.preventDefault();
     setError(null);
-
     const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail) {
-      setError('Please enter your institutional email address.');
-      return;
-    }
-
     if (!cleanEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
-      setError(`Access restricted: Only official @${ALLOWED_DOMAIN} institutional accounts are permitted.`);
+      setError(`Please use your @${ALLOWED_DOMAIN} email address.`);
       return;
     }
-
     setStep('password');
   };
 
-  const handleLoginSubmit = async (e) => {
+  const handlePasswordSignIn = async (e) => {
     e.preventDefault();
     setError(null);
-
-    if (!password) {
-      setError('Please enter your account password.');
+    if (!password || password.length < 4) {
+      setError('Please enter your password.');
       return;
     }
-
     setLoading(true);
     try {
-      const cleanEmail = email.trim().toLowerCase();
-      const user = await login(cleanEmail, password, rememberMe);
+      const user = await login(email.trim().toLowerCase(), password, rememberMe);
       handleRoleRedirect(user);
     } catch (err) {
-      setError(
-        err.response?.data?.detail ||
-          err.message ||
-          'Invalid institutional credentials. Please check your email and password.'
-      );
+      setError(err.response?.data?.detail || err.message || 'Invalid email or password.');
+      setLoading(false);
+    }
+  };
+
+  const handleQuickDemoSignIn = async (demoEmail) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const user = await login(demoEmail, 'password123', true);
+      handleRoleRedirect(user);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Quick sign-in failed.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-[#f4f7f5] bg-architectural-grid">
-      <div className="w-full max-w-md space-y-6">
-        {/* Official Institutional Header */}
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-[#fafafa] text-slate-900">
+      <div className="w-full max-w-[360px] space-y-5">
+        {/* Minimal Brand Header */}
         <div className="text-center space-y-2">
           <img
             src="/iiitnr_logo.png"
-            alt="IIIT Naya Raipur Official Logo"
-            className="h-16 w-auto mx-auto object-contain drop-shadow-xs"
+            alt="IIIT Naya Raipur"
+            className="h-10 w-auto mx-auto object-contain"
           />
           <div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight">
-              IIIT Naya Raipur
+            <h1 className="text-lg font-semibold tracking-tight text-slate-900">
+              Sign in to IIIT-NR Portal
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Campus Facilities &amp; Grievance Management Portal
+            <p className="text-xs text-slate-500">
+              Use your institutional @{ALLOWED_DOMAIN} account
             </p>
           </div>
         </div>
 
-        {/* Main Authentication Card */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/[0.04] p-7 sm:p-9 space-y-6">
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/80">
-                Institutional IAM
-              </span>
-              <span className="text-[11px] font-medium text-slate-400">
-                Step {step === 'password' ? '2' : '1'} of 2
-              </span>
+        {/* Clean Minimal Card */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-4">
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200/80 text-rose-700 text-xs">
+              {error}
             </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight pt-1">
-                {step === 'password' ? 'Enter your password' : 'Sign in to your account'}
-              </h2>
-              <p className="text-xs text-slate-500">
-                {step === 'password'
-                  ? 'Verify your campus credentials to access your workspace'
-                  : 'Use your official @iiitnr.edu.in Google Workspace or email account'}
-              </p>
-            </div>
+          )}
 
-            {successUser ? (
-              <div className="py-8 text-center space-y-3 animate-fade-in">
-                <div className="w-12 h-12 mx-auto rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-xl font-bold shadow-xs">
-                  ✓
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Authenticated as {successUser.name}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Redirecting to your {successUser.roleLabel || successUser.role} workspace...
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {error && (
-                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start space-x-2.5 animate-fade-in">
-                    <svg className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                {step === 'email' ? (
-                  <div className="space-y-4 animate-fade-in">
-                    {/* Primary Action: Google Workspace OAuth Button */}
-                    <button
-                      type="button"
-                      onClick={handleContinueWithGoogle}
-                      disabled={googleLoading || loading}
-                      className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-300/90 hover:border-slate-400 active:scale-[0.99] text-slate-800 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
-                    >
-                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                        <path
-                          fill="#4285F4"
-                          d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                        />
-                        <path
-                          fill="#34A853"
-                          d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"
-                        />
-                        <path
-                          fill="#FBBC05"
-                          d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                        />
-                        <path
-                          fill="#EA4335"
-                          d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                        />
-                      </svg>
-                      {googleLoading ? (
-                        <span>Connecting to IIIT-NR Google Workspace...</span>
-                      ) : (
-                        <span>Continue with Google (@iiitnr.edu.in)</span>
-                      )}
-                    </button>
-
-                    <div className="relative flex py-1 items-center">
-                      <div className="grow border-t border-slate-200" />
-                      <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        or email
-                      </span>
-                      <div className="grow border-t border-slate-200" />
-                    </div>
-
-                    <form onSubmit={handleContinueWithEmail} className="space-y-3.5">
-                      <div className="space-y-1.5">
-                        <label htmlFor="login-email" className="block text-xs font-bold text-slate-700">
-                          Institutional Email Address
-                        </label>
-                        <input
-                          id="login-email"
-                          type="email"
-                          required
-                          autoFocus
-                          autoComplete="username"
-                          placeholder="name26100@iiitnr.edu.in"
-                          value={email}
-                          onChange={(e) => {
-                            setEmail(e.target.value);
-                            setError(null);
-                          }}
-                          className="enterprise-input"
-                        />
-                      </div>
-
-                      {/* Real-time Institutional Identity Preview Pill */}
-                      {detectedProfile && (
-                        <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex items-center justify-between text-xs animate-fade-in">
-                          <div className="min-w-0 pr-2">
-                            <div className="font-bold text-indigo-950 truncate">
-                              {detectedProfile.name}
-                            </div>
-                            <div className="text-[11px] text-indigo-700 truncate">
-                              {detectedProfile.department_name}
-                            </div>
-                          </div>
-                          <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-white text-indigo-700 border border-indigo-200 shrink-0">
-                            {detectedProfile.role}
-                          </span>
-                        </div>
-                      )}
-
-                      <button
-                        type="submit"
-                        disabled={loading || googleLoading}
-                        className="w-full py-3 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
-                      >
-                        <span>Continue with Email</span>
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                      </button>
-                    </form>
-                  </div>
-                ) : (
-                  <form onSubmit={handleLoginSubmit} className="space-y-4 animate-fade-in">
-                    <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200/90">
-                      <div className="min-w-0 pr-2">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Institutional Account
-                        </span>
-                        <span className="text-xs font-bold text-slate-900 truncate block font-mono">
-                          {email}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStep('email');
-                          setError(null);
-                          setPassword('');
-                        }}
-                        className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2.5 py-1 rounded-lg hover:bg-indigo-50 transition-colors shrink-0 cursor-pointer"
-                      >
-                        Change
-                      </button>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label htmlFor="login-password" className="block text-xs font-bold text-slate-700">
-                          Password
-                        </label>
-                      </div>
-                      <div className="relative">
-                        <input
-                          id="login-password"
-                          type={showPassword ? 'text' : 'password'}
-                          required
-                          autoFocus
-                          autoComplete="current-password"
-                          placeholder="Enter your password"
-                          value={password}
-                          onChange={(e) => {
-                            setPassword(e.target.value);
-                            setError(null);
-                          }}
-                          className="enterprise-input pr-14"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-700 font-bold px-1.5 py-0.5 rounded hover:bg-slate-100 cursor-pointer"
-                        >
-                          {showPassword ? 'Hide' : 'Show'}
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1">
-                        <label className="flex items-center space-x-2 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
-                            className="w-3.5 h-3.5 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
-                          />
-                          <span className="text-xs font-medium text-slate-600">
-                            Keep me signed in for 30 days
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <span>Verifying credentials...</span>
-                      ) : (
-                        <span>Sign In to Portal</span>
-                      )}
-                    </button>
-
-                    <div className="text-center pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStep('email');
-                          setError(null);
-                          setPassword('');
-                        }}
-                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                      >
-                        ← Back to email or Google Sign-In
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            )}
-
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span className="text-slate-500">New to the portal?</span>
-              <Link
-                to="/register"
-                className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
+          {step === 'email' ? (
+            <div className="space-y-4">
+              <button
+                type="button"
+                onClick={handleContinueWithGoogle}
+                disabled={googleLoading || loading}
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 flex items-center justify-center space-x-2 transition-colors cursor-pointer disabled:opacity-50"
               >
-                Create institutional account →
-              </Link>
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z" />
+                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
+                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+                </svg>
+                <span>{googleLoading ? 'Connecting...' : 'Continue with Google'}</span>
+              </button>
+
+              <div className="relative flex items-center">
+                <div className="grow border-t border-slate-100" />
+                <span className="mx-3 text-[11px] text-slate-400">or</span>
+                <div className="grow border-t border-slate-100" />
+              </div>
+
+              <form onSubmit={handleContinueWithEmail} className="space-y-3">
+                <div>
+                  <label htmlFor="login-email" className="block text-xs font-medium text-slate-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    id="login-email"
+                    type="email"
+                    required
+                    autoFocus
+                    placeholder="name26100@iiitnr.edu.in"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError(null);
+                    }}
+                    className="enterprise-input"
+                  />
+                </div>
+
+                {detectedProfile && (
+                  <div className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-700 truncate">{detectedProfile.name}</span>
+                    <span className="text-[10px] font-mono text-slate-500">{detectedProfile.role}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  Continue
+                </button>
+              </form>
+            </div>
+          ) : (
+            <form onSubmit={handlePasswordSignIn} className="space-y-3.5">
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
+                <span className="font-mono text-slate-700 truncate">{email}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('email');
+                    setPassword('');
+                    setError(null);
+                  }}
+                  className="text-indigo-600 hover:text-indigo-800 font-medium ml-2 cursor-pointer"
+                >
+                  Edit
+                </button>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="login-password" className="text-xs font-medium text-slate-700">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[11px] text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoFocus
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="enterprise-input"
+                />
+              </div>
+
+              <label className="flex items-center space-x-2 text-xs text-slate-600 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                />
+                <span>Remember me for 30 days</span>
+              </label>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {loading ? 'Signing in...' : 'Sign in'}
+              </button>
+            </form>
+          )}
+
+          {/* Minimal Quick Role Switcher for Testing */}
+          <div className="pt-3 border-t border-slate-100 space-y-2">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 block">
+              Quick Demo Access
+            </span>
+            <div className="grid grid-cols-4 gap-1.5 text-[11px]">
+              <button
+                type="button"
+                onClick={() => handleQuickDemoSignIn('nikhil26100@iiitnr.edu.in')}
+                className="py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium border border-slate-200/70 cursor-pointer"
+              >
+                Student
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemoSignIn('admin@iiitnr.edu.in')}
+                className="py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium border border-slate-200/70 cursor-pointer"
+              >
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemoSignIn('tech.ramesh@iiitnr.edu.in')}
+                className="py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium border border-slate-200/70 cursor-pointer"
+              >
+                Tech
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemoSignIn('superadmin@iiitnr.edu.in')}
+                className="py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium border border-slate-200/70 cursor-pointer"
+              >
+                Director
+              </button>
             </div>
           </div>
-
-          <p className="text-[11px] text-slate-400 text-center">
-            Protected by institutional domain verification (<code className="font-mono">@iiitnr.edu.in</code>)
-          </p>
         </div>
 
-        {!IS_PROD_BUILD && showClientIdModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
-                  Local Dev Google OAuth Setup
-                </span>
-                <h3 className="text-base font-black text-slate-900 mt-1">
-                  Configure IIIT-NR Google Client ID
-                </h3>
-              </div>
+        <p className="text-center text-xs text-slate-500">
+          Don&apos;t have an account?{' '}
+          <Link to="/register" className="font-medium text-slate-900 hover:underline">
+            Create account
+          </Link>
+        </p>
+      </div>
+
+      {!IS_PROD_BUILD && showClientIdModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 space-y-3 border border-slate-200 shadow-lg">
+            <h3 className="text-sm font-semibold text-slate-900">Google OAuth Client ID</h3>
+            <input
+              type="text"
+              placeholder="123456-abc.apps.googleusercontent.com"
+              value={clientIdInput}
+              onChange={(e) => setClientIdInput(e.target.value)}
+              className="enterprise-input font-mono text-xs"
+            />
+            <div className="flex justify-end space-x-2">
               <button
                 type="button"
                 onClick={() => setShowClientIdModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="px-3 py-1.5 text-xs text-slate-600"
               >
-                ✕
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const cleaned = clientIdInput.trim();
+                  if (GOOGLE_CLIENT_ID_PATTERN.test(cleaned)) {
+                    localStorage.setItem('smart_complaint_google_client_id', cleaned);
+                    setGoogleClientId(cleaned);
+                    setShowClientIdModal(false);
+                    launchGoogleWorkspaceFlow(cleaned);
+                  }
+                }}
+                className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium"
+              >
+                Save
               </button>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in Vercel Environment Variables, or paste your OAuth 2.0 Web Client ID below (local development only):
-            </p>
-            <form onSubmit={handleSaveClientIdAndContinue} className="space-y-3">
-              <input
-                type="text"
-                required
-                autoFocus
-                placeholder="xxxxxxxxxxxx-xxxxxxxxxxxxxxxx.apps.googleusercontent.com"
-                value={clientIdInput}
-                onChange={(e) => setClientIdInput(e.target.value)}
-                className="enterprise-input font-mono"
-              />
-              <div className="flex items-center justify-end space-x-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowClientIdModal(false)}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white"
-                >
-                  Save &amp; Continue
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

@@ -1,8 +1,5 @@
 /*
- * SmartComplaintHandler - Enterprise Global Design System & Tailwind Stylesheet
- * Blueprint Reference: docs/V1/M1/frontend/01_vite_tailwind_config.md
- * Role: Defines ambient architectural grid backgrounds, bento card surfaces, custom scrollbars,
- *       and cross-version utility shims for a Linear/Vercel/Stripe-caliber UI.
+ * SmartComplaintHandler - Minimal Modern Design System (Linear / Vercel / Raycast Aesthetic)
  */
 @tailwind base;
 @tailwind components;
@@ -16,43 +13,33 @@
   }
 
   body {
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #fafafa;
+    color: #09090b;
   }
 }
 
 @layer components {
-  /* Subtle architectural dot/grid background used by Vercel & Linear */
   .bg-architectural-grid {
-    background-size: 32px 32px;
-    background-image: 
-      linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    background-color: #fafafa;
   }
 
   .bg-dark-architectural-grid {
-    background-size: 28px 28px;
-    background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-color: #09090b;
   }
 
-  /* Enterprise Bento Card Surface */
   .bento-card {
-    @apply bg-white rounded-2xl border border-slate-200/80 shadow-bento transition-all duration-200;
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-xs transition-all duration-150;
   }
 
   .bento-card-interactive {
-    @apply bg-white rounded-2xl border border-slate-200/80 shadow-bento hover:shadow-bento-hover hover:border-indigo-200/80 transition-all duration-200;
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all duration-150;
   }
 
-  /* Input control standard */
   .enterprise-input {
-    @apply w-full rounded-xl border border-slate-300/90 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-150 focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 transition-colors duration-150 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/5;
   }
 }
 
-/* Shims for Tailwind v4 utility classes used in legacy components so Tailwind v3 compiles them cleanly */
 .bg-linear-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }

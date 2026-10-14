@@ -1,9 +1,6 @@
 /**
- * SmartComplaintHandler - Student Self-Service Grievance Portal (IIIT Naya Raipur)
- * Blueprint Reference: V1/M2/frontend & V1/M5/frontend/04_feedback_rating.md
- * Design Pattern: Enterprise Bento KPI dashboard with interactive IIIT-NR Hostel & Room selector,
- *                 interactive Campus Map toggle, search/filter bar, live SLA countdowns,
- *                 and interactive 5-star closed-loop resolution rating modal.
+ * SmartComplaintHandler - Minimal Student Dashboard (IIIT Naya Raipur)
+ * Aesthetic: Clean Linear-style issue list with inline Hostel/Room editor modal.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
@@ -11,15 +8,11 @@ import { useAuth } from '../context/AuthContext';
 import { fetchComplaints, submitFeedback } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
-import CampusMapSelector from '../components/CampusMapSelector';
 import {
-  getHostelBuildings,
   IIITNR_MAP_UPDATED_EVENT,
   HOSTEL_FLOORS,
-  HOSTEL_WINGS,
-  IIITNR_CAMPUS_METADATA,
-  getFloorsForBuilding,
-  getWingsForBuilding,
+  getCampusBuildings,
+  getHostelBuildings,
   getRoomsForBuilding,
 } from '../data/iiitnrCampusData';
 
@@ -27,89 +20,48 @@ export default function StudentDashboard() {
   const { currentPersona, currentUser, updateProfile } = useAuth();
   const activeUser = currentUser || currentPersona;
 
+  const [allBuildings, setAllBuildings] = useState(() => getCampusBuildings());
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCampusMap, setShowCampusMap] = useState(false);
 
-  // Student Hostel & Room Residence Modal State
+  // Residence Modal
   const [isResidenceModalOpen, setIsResidenceModalOpen] = useState(false);
-  const [hostelList, setHostelList] = useState(() => getHostelBuildings());
-
-  useEffect(() => {
-    const handleMapUpdate = () => {
-      setHostelList(getHostelBuildings());
-    };
-    window.addEventListener(IIITNR_MAP_UPDATED_EVENT, handleMapUpdate);
-    return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, handleMapUpdate);
-  }, []);
-
+  const hostelsList = useMemo(() => getHostelBuildings(allBuildings), [allBuildings]);
   const [selectedHostel, setSelectedHostel] = useState(
-    activeUser?.hostel_name || hostelList[0]?.name || 'Ramanujan House (Boys Hostel 1)'
+    activeUser?.hostel_name || hostelsList[0]?.name || 'Ramanujan House (Boys Hostel)'
   );
   const [selectedFloor, setSelectedFloor] = useState('2');
-  const [selectedWing, setSelectedWing] = useState('Wing A');
-  const [selectedRoom, setSelectedRoom] = useState(
-    activeUser?.room_number || 'Wing A, Room 204'
-  );
-  const [customRoomInput, setCustomRoomInput] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState(activeUser?.room_number || 'Wing A, Room 204');
   const [savingResidence, setSavingResidence] = useState(false);
-  const [residenceSavedBanner, setResidenceSavedBanner] = useState(null);
 
-  // Rating Modal State
+  // Feedback Modal
   const [selectedTicketForFeedback, setSelectedTicketForFeedback] = useState(null);
   const [ratingScore, setRatingScore] = useState(5);
-  const [ratingHover, setRatingHover] = useState(0);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
-  const [feedbackSuccess, setFeedbackSuccess] = useState(null);
 
   const studentEmail = activeUser?.email || 'nikhil26100@iiitnr.edu.in';
 
-  const availableFloors = useMemo(
-    () => getFloorsForBuilding(selectedHostel, hostelList),
-    [selectedHostel, hostelList]
-  );
-
-  const availableWings = useMemo(
-    () => getWingsForBuilding(selectedHostel, hostelList),
-    [selectedHostel, hostelList]
-  );
+  useEffect(() => {
+    const sync = () => setAllBuildings(getCampusBuildings());
+    window.addEventListener(IIITNR_MAP_UPDATED_EVENT, sync);
+    return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, sync);
+  }, []);
 
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing, hostelList),
-    [selectedHostel, selectedFloor, selectedWing, hostelList]
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, 'Wing A', allBuildings),
+    [selectedHostel, selectedFloor, allBuildings]
   );
-
-  useEffect(() => {
-    if (activeUser?.hostel_name) {
-      setSelectedHostel(activeUser.hostel_name);
-    }
-    if (activeUser?.room_number) {
-      setSelectedRoom(activeUser.room_number);
-    }
-  }, [activeUser?.hostel_name, activeUser?.room_number]);
 
   const loadStudentTickets = async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await fetchComplaints({ student_email: studentEmail, limit: 100 });
       setTickets(data);
-    } catch (err) {
-      try {
-        const allData = await fetchComplaints({ limit: 100 });
-        const filtered = allData.filter(
-          (t) =>
-            (t.student_email && t.student_email.toLowerCase() === studentEmail.toLowerCase()) ||
-            (t.student_name && t.student_name.toLowerCase() === (activeUser?.name || '').toLowerCase())
-        );
-        setTickets(filtered);
-      } catch (_) {
-        setError('Unable to retrieve grievance records. Please ensure the campus backend is online.');
-      }
+    } catch (_) {
+      setTickets([]);
     } finally {
       setLoading(false);
     }
@@ -122,77 +74,20 @@ export default function StudentDashboard() {
   const handleSaveResidence = async (e) => {
     e.preventDefault();
     setSavingResidence(true);
-    setResidenceSavedBanner(null);
-
-    const finalRoom =
-      selectedHostel === 'Day Scholar (Off-Campus)'
-        ? 'Off-Campus Residence'
-        : customRoomInput.trim() || selectedRoom;
-
     try {
       await updateProfile({
         hostel_name: selectedHostel,
-        room_number: finalRoom,
+        room_number: selectedRoom,
       });
-      setResidenceSavedBanner(`Updated residence to ${selectedHostel} (${finalRoom})`);
-      setTimeout(() => {
-        setIsResidenceModalOpen(false);
-        setResidenceSavedBanner(null);
-      }, 900);
+      setIsResidenceModalOpen(false);
     } finally {
       setSavingResidence(false);
     }
   };
 
-  const activeTickets = tickets.filter(
-    (t) => t.status === 'SUBMITTED' || t.status === 'ASSIGNED' || t.status === 'IN_PROGRESS' || t.status === 'ESCALATED'
-  );
-  const resolvedTickets = tickets.filter(
-    (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
-  );
-
-  const ratedTickets = tickets.filter((t) => t.feedback_rating != null);
-  const avgSatisfaction =
-    ratedTickets.length > 0
-      ? (ratedTickets.reduce((sum, t) => sum + t.feedback_rating, 0) / ratedTickets.length).toFixed(1)
-      : null;
-
-  const tabFiltered =
-    activeTab === 'ACTIVE'
-      ? activeTickets
-      : activeTab === 'RESOLVED'
-      ? resolvedTickets
-      : tickets;
-
-  const displayedTickets = tabFiltered.filter((t) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      (t.tracking_code || '').toLowerCase().includes(q) ||
-      (t.title || '').toLowerCase().includes(q) ||
-      (t.location || '').toLowerCase().includes(q) ||
-      (t.department_name || '').toLowerCase().includes(q)
-    );
-  });
-
-  const handleOpenFeedback = (ticket) => {
-    setSelectedTicketForFeedback(ticket);
-    setRatingScore(ticket.feedback_rating || 5);
-    setFeedbackComments(ticket.feedback_comments || '');
-    setFeedbackSuccess(null);
-  };
-
-  const handleCloseFeedback = () => {
-    if (isSubmittingFeedback) return;
-    setSelectedTicketForFeedback(null);
-    setRatingScore(5);
-    setFeedbackComments('');
-  };
-
   const handleSubmitRating = async (e) => {
     e.preventDefault();
     if (!selectedTicketForFeedback) return;
-
     setIsSubmittingFeedback(true);
     try {
       const updated = await submitFeedback(
@@ -201,420 +96,181 @@ export default function StudentDashboard() {
         feedbackComments,
         activeUser?.name
       );
-
-      setTickets((prev) =>
-        prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t))
-      );
-
-      setFeedbackSuccess(
-        `Thank you! Your ${ratingScore}/5 rating for ${selectedTicketForFeedback.tracking_code} has been recorded.`
-      );
-      setTimeout(() => {
-        handleCloseFeedback();
-      }, 1100);
-    } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Failed to submit feedback.');
+      setTickets((prev) => prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t)));
+      setSelectedTicketForFeedback(null);
     } finally {
       setIsSubmittingFeedback(false);
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'SUBMITTED':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'ASSIGNED':
-        return 'bg-purple-50 text-purple-700 border-purple-200 font-semibold';
-      case 'IN_PROGRESS':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'ESCALATED':
-        return 'bg-rose-50 text-rose-700 border-rose-200 font-extrabold';
-      case 'RESOLVED':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold';
-      default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
-    }
-  };
+  const activeTickets = tickets.filter((t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED');
+  const resolvedTickets = tickets.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED');
 
-  const starLabels = {
-    1: '1/5 — Unsatisfactory',
-    2: '2/5 — Needs Improvement',
-    3: '3/5 — Acceptable',
-    4: '4/5 — Good Quality',
-    5: '5/5 — Outstanding Service',
-  };
+  const tabFiltered =
+    activeTab === 'ACTIVE' ? activeTickets : activeTab === 'RESOLVED' ? resolvedTickets : tickets;
 
-  const currentHostelLabel = activeUser?.hostel_name || 'Ramanujan House (Boys Hostel 1)';
+  const displayedTickets = tabFiltered.filter((t) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (t.tracking_code || '').toLowerCase().includes(q) ||
+      (t.title || '').toLowerCase().includes(q) ||
+      (t.location || '').toLowerCase().includes(q)
+    );
+  });
+
+  const currentHostelLabel = activeUser?.hostel_name || hostelsList[0]?.name || 'Ramanujan House';
   const currentRoomLabel = activeUser?.room_number || 'Wing A, Room 204';
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-12">
-      {/* Student Profile & Residence Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-slate-800">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-start sm:items-center space-x-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-3xl shadow-inner shrink-0">
-              {activeUser?.avatar || '🎓'}
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  {activeUser?.name}
-                </h1>
-                <span className="text-[10px] uppercase font-mono font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-indigo-500/25 border border-indigo-400/30 text-indigo-200">
-                  {activeUser?.roleLabel || 'Student'}
-                </span>
-              </div>
-              <p className="text-xs text-indigo-200/90 font-medium">
-                {activeUser?.identifier} • {activeUser?.department}
-              </p>
-
-              {/* Student Hostel & Room Badge + Change Trigger */}
-              <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-bold">
-                  <span>🏠 {currentHostelLabel}</span>
-                  <span>•</span>
-                  <span className="font-mono text-white">{currentRoomLabel}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsResidenceModalOpen(true)}
-                  className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-indigo-200 hover:text-white transition-all cursor-pointer"
-                >
-                  ✏️ Change Hostel / Room
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCampusMap((prev) => !prev)}
-                  className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-sky-200 hover:text-white transition-all cursor-pointer"
-                >
-                  🗺️ {showCampusMap ? 'Hide IIIT-NR Map' : 'Explore IIIT-NR Map'}
-                </button>
-              </div>
-            </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Minimal Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2.5">
+            <h1 className="text-lg font-semibold text-slate-900 tracking-tight">
+              {activeUser?.name}
+            </h1>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs text-slate-500">{activeUser?.identifier}</span>
           </div>
 
-          <div className="flex items-center space-x-3 shrink-0">
-            <Link
-              to="/submit"
-              className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Lodge New Grievance</span>
-            </Link>
+          <div className="flex items-center space-x-2 text-xs">
+            <span className="text-slate-600">
+              🏠 {currentHostelLabel.split(' (')[0]} · <strong className="font-medium text-slate-900">{currentRoomLabel}</strong>
+            </span>
             <button
-              onClick={loadStudentTickets}
-              title="Refresh Ticket History"
-              className="p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all text-xs flex items-center justify-center cursor-pointer"
+              type="button"
+              onClick={() => setIsResidenceModalOpen(true)}
+              className="text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
             >
-              <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              Change room
             </button>
           </div>
         </div>
+
+        <Link
+          to="/submit"
+          className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors"
+        >
+          + New Request
+        </Link>
       </div>
 
-      {/* Expandable IIIT Naya Raipur Interactive Campus Map & Estate Contacts */}
-      {showCampusMap && (
-        <div className="space-y-4 animate-fade-in">
-          <CampusMapSelector
-            selectedBuilding={currentHostelLabel}
-            selectedRoom={currentRoomLabel}
-            studentSavedHostel={currentHostelLabel}
-            studentSavedRoom={currentRoomLabel}
-            onSelectBuilding={(bName) => {
-              setSelectedHostel(bName);
-              setIsResidenceModalOpen(true);
-            }}
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {IIITNR_CAMPUS_METADATA.contacts.map((c) => (
-              <div
-                key={c.email}
-                className="bento-card p-4 space-y-1 text-xs border-l-4 border-l-indigo-500"
-              >
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-600 block">
-                  {c.role}
-                </span>
-                <div className="font-bold text-slate-900">{c.name}</div>
-                <div className="text-[11px] text-slate-500">{c.office}</div>
-                <div className="text-[11px] font-mono text-slate-700 pt-1">
-                  📞 {c.phone} • {c.email}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Bento Telemetry Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bento-card p-5 border-l-4 border-l-amber-500 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-              Active In-Flight
-            </span>
-            <div className="text-3xl font-black text-slate-900 mt-1">{activeTickets.length}</div>
-            <span className="text-[11px] text-slate-500 mt-0.5 block">
-              Under live SLA countdown
-            </span>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-600 text-xl font-bold">
-            ⚡
-          </div>
+      {/* Filter & Search Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex rounded-xl bg-slate-200/60 p-1 text-xs font-medium">
+          <button
+            type="button"
+            onClick={() => setActiveTab('ALL')}
+            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'ALL' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+            }`}
+          >
+            All ({tickets.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('ACTIVE')}
+            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'ACTIVE' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+            }`}
+          >
+            Active ({activeTickets.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('RESOLVED')}
+            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'RESOLVED' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+            }`}
+          >
+            Resolved ({resolvedTickets.length})
+          </button>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-emerald-500 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-              Repaired &amp; Verified
-            </span>
-            <div className="text-3xl font-black text-slate-900 mt-1">{resolvedTickets.length}</div>
-            <span className="text-[11px] text-emerald-600 font-semibold mt-0.5 block">
-              Closed with technician notes
-            </span>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/70 flex items-center justify-center text-emerald-600 text-xl font-bold">
-            ✓
-          </div>
-        </div>
-
-        <div className="bento-card p-5 border-l-4 border-l-indigo-600 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-              Satisfaction Score
-            </span>
-            <div className="text-3xl font-black text-slate-900 mt-1">
-              {avgSatisfaction ? `${avgSatisfaction} / 5.0` : '—'}
-            </div>
-            <span className="text-[11px] text-slate-500 mt-0.5 block">
-              {ratedTickets.length} rated resolution(s)
-            </span>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200/70 flex items-center justify-center text-indigo-600 text-xl font-bold">
-            ★
-          </div>
-        </div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search requests..."
+          className="enterprise-input w-full sm:w-56"
+        />
       </div>
 
-      {/* Main Grievances Section */}
-      <div className="bento-card overflow-hidden">
-        <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50/40">
-          <div>
-            <h2 className="text-lg font-black text-slate-900 tracking-tight">
-              My Campus Grievance History
-            </h2>
-            <p className="text-xs text-slate-500">
-              Live status tracking, assigned engineering squads, and resolution satisfaction feedback.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter by code, room, or title..."
-              className="enterprise-input w-full sm:w-56"
-            />
-
-            <div className="flex items-center space-x-1 p-1 bg-slate-200/70 rounded-xl">
-              <button
-                onClick={() => setActiveTab('ALL')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  activeTab === 'ALL'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                All ({tickets.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('ACTIVE')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  activeTab === 'ACTIVE'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Active ({activeTickets.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('RESOLVED')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  activeTab === 'RESOLVED'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Resolved ({resolvedTickets.length})
-              </button>
-            </div>
-          </div>
-        </div>
-
+      {/* Clean Minimal Issue List */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="py-20 text-center space-y-3">
-            <div className="w-8 h-8 mx-auto border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-medium text-slate-500">Retrieving your grievance records...</p>
-          </div>
-        ) : error ? (
-          <div className="py-16 text-center space-y-3 px-4">
-            <div className="w-12 h-12 mx-auto rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold">
-              !
-            </div>
-            <p className="text-xs font-bold text-rose-700">{error}</p>
-            <button
-              onClick={loadStudentTickets}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
-            >
-              Retry Connection
-            </button>
-          </div>
+          <div className="py-12 text-center text-xs text-slate-400">Loading requests...</div>
         ) : displayedTickets.length === 0 ? (
-          <div className="py-20 text-center space-y-4 max-w-sm mx-auto px-4">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-2xl">
-              📋
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-800">No Grievances Found</h3>
-              <p className="text-xs text-slate-500">
-                You have no complaints matching the current filter. Report any issue in{' '}
-                <strong>{currentHostelLabel}</strong> or across campus below.
-              </p>
-            </div>
+          <div className="py-14 text-center space-y-2">
+            <p className="text-xs text-slate-500">No maintenance requests found.</p>
             <Link
               to="/submit"
-              className="inline-flex items-center space-x-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+              className="inline-block text-xs font-medium text-indigo-600 hover:underline"
             >
-              <span>Lodge a Facility Grievance</span>
+              Submit a new request →
             </Link>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {displayedTickets.map((ticket) => {
               const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
-              const hasRating = ticket.feedback_rating != null;
-
               return (
                 <div
                   key={ticket.id || ticket.tracking_code}
-                  className="p-5 sm:p-6 hover:bg-slate-50/70 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-5"
+                  className="p-4 sm:px-5 hover:bg-slate-50/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
-                  <div className="space-y-2.5 flex-1 min-w-0">
+                  <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="font-mono font-bold text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200/80 transition-colors"
+                        className="font-mono font-medium text-indigo-600 hover:underline"
                       >
                         {ticket.tracking_code}
                       </Link>
-                      <PriorityBadge priority={ticket.priority} />
-                      <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${getStatusBadge(ticket.status)}`}>
-                        {ticket.status}
-                      </span>
-                      {ticket.department_name && (
-                        <span className="text-slate-600 text-[11px] font-semibold bg-slate-100 px-2.5 py-0.5 rounded-md">
-                          {ticket.department_name}
-                        </span>
-                      )}
+                      <span className="text-slate-300">·</span>
+                      <span className="font-medium text-slate-900 truncate">{ticket.title}</span>
+                      <PriorityBadge priority={ticket.priority} size="sm" />
+                    </div>
+                    <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-2">
+                      <span>{ticket.location}</span>
                       {ticket.assigned_team_name && (
-                        <span className="text-slate-500 text-[11px] font-medium">
-                          🔧 Squad: <strong className="text-slate-700">{ticket.assigned_team_name}</strong>
-                        </span>
+                        <>
+                          <span>·</span>
+                          <span>{ticket.assigned_team_name}</span>
+                        </>
                       )}
                     </div>
-
-                    <div>
-                      <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
-                        {ticket.title}
-                      </h3>
-                      <p className="text-xs text-slate-600 line-clamp-2 mt-0.5 leading-relaxed">
-                        {ticket.description}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-[11px] text-slate-400">
-                      <span className="text-slate-600 font-semibold">
-                        📍 {ticket.location}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        Logged: {new Date(ticket.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-
-                    {hasRating && (
-                      <div className="mt-2 p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs flex items-start space-x-2.5">
-                        <span className="text-amber-500 text-sm">★</span>
-                        <div className="space-y-0.5">
-                          <div className="font-bold text-amber-900">
-                            Your Rating: {ticket.feedback_rating} / 5 Stars
-                          </div>
-                          {ticket.feedback_comments && (
-                            <p className="text-amber-800 text-[11px] italic">
-                              "{ticket.feedback_comments}"
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
 
-                  <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                  <div className="flex items-center space-x-2.5 shrink-0">
                     {!isResolved ? (
-                      <div className="space-y-1 text-left sm:text-right">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
-                          SLA Target Countdown
-                        </span>
-                        <SLACountdownTimer
-                          slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
-                          priority={ticket.priority}
-                          status={ticket.status}
-                        />
-                      </div>
+                      <SLACountdownTimer
+                        slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
+                        priority={ticket.priority}
+                        status={ticket.status}
+                      />
                     ) : (
-                      <div className="space-y-1 text-left sm:text-right">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 flex items-center sm:justify-end space-x-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          <span>Verified Resolved</span>
-                        </span>
-                        <span className="text-xs font-semibold text-slate-500 block">
-                          {ticket.resolved_at
-                            ? new Date(ticket.resolved_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                            : 'Closed'}
-                        </span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedTicketForFeedback(ticket);
+                          setRatingScore(ticket.feedback_rating || 5);
+                          setFeedbackComments(ticket.feedback_comments || '');
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-medium cursor-pointer"
+                      >
+                        {ticket.feedback_rating ? `★ ${ticket.feedback_rating}/5` : '★ Rate'}
+                      </button>
                     )}
 
-                    <div className="flex items-center space-x-2 w-full sm:w-auto">
-                      <Link
-                        to={`/track?code=${ticket.tracking_code}`}
-                        className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors text-center"
-                      >
-                        Track Timeline
-                      </Link>
-
-                      {isResolved && (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenFeedback(ticket)}
-                          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
-                            hasRating
-                              ? 'bg-amber-100/80 hover:bg-amber-200 text-amber-900 border border-amber-200'
-                              : 'bg-amber-500 hover:bg-amber-600 text-white shadow-xs'
-                          }`}
-                        >
-                          <span>★</span>
-                          <span>{hasRating ? 'Update Rating' : 'Rate Repair'}</span>
-                        </button>
-                      )}
-                    </div>
+                    <Link
+                      to={`/track?code=${ticket.tracking_code}`}
+                      className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    >
+                      View
+                    </Link>
                   </div>
                 </div>
               );
@@ -623,174 +279,90 @@ export default function StudentDashboard() {
         )}
       </div>
 
-      {/* Student Hostel & Room Selection Modal */}
+      {/* Minimal Hostel & Room Modal */}
       {isResidenceModalOpen && (
         <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50"
           onClick={() => setIsResidenceModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl space-y-5 border border-slate-200"
+            className="w-full max-w-sm rounded-2xl bg-white p-5 space-y-4 border border-slate-200 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
-              <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                  IIIT Naya Raipur Student Residence
-                </span>
-                <h3 className="text-lg font-black text-slate-900 mt-1">
-                  Select Your Hostel &amp; Room Number
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Your saved hostel and room number will auto-fill whenever you lodge a maintenance grievance.
-                </p>
-              </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-900">Your Hostel &amp; Room</h3>
               <button
                 type="button"
                 onClick={() => setIsResidenceModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 text-xs"
               >
                 ✕
               </button>
             </div>
 
-            {residenceSavedBanner && (
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2">
-                <span>✓</span>
-                <span>{residenceSavedBanner}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSaveResidence} className="space-y-4">
+            <form onSubmit={handleSaveResidence} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  IIIT-NR Hostel House
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {hostelList.map((h) => {
-                    const active = selectedHostel === h.name;
-                    return (
-                      <button
-                        key={h.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedHostel(h.name);
-                          setCustomRoomInput('');
-                        }}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                          active
-                            ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-600/15'
-                            : 'border-slate-200 hover:border-slate-300 bg-white'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-900">
-                            {h.shortName}
-                          </span>
-                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
-                            {h.mapPin?.badge || h.mapZone?.badge || 'HOSTEL'}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-slate-500 block mt-0.5">
-                          {h.type || 'Student Residence'}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Hostel</label>
+                <select
+                  value={selectedHostel}
+                  onChange={(e) => setSelectedHostel(e.target.value)}
+                  className="enterprise-input"
+                >
+                  {hostelsList.map((h) => (
+                    <option key={h.id} value={h.name}>
+                      {h.name}
+                    </option>
+                  ))}
+                  <option value="Day Scholar">Day Scholar</option>
+                </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Floor
-                  </label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Floor</label>
                   <select
                     value={selectedFloor}
                     onChange={(e) => setSelectedFloor(e.target.value)}
-                    className="enterprise-input text-xs"
+                    className="enterprise-input"
                   >
-                    {availableFloors.map((f) => (
+                    {HOSTEL_FLOORS.map((f) => (
                       <option key={f.id} value={f.id}>
-                        {f.label}
+                        Floor {f.id}
                       </option>
                     ))}
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Wing
-                  </label>
-                  <select
-                    value={selectedWing}
-                    onChange={(e) => setSelectedWing(e.target.value)}
-                    className="enterprise-input text-xs"
-                  >
-                    {availableWings
-                      .filter((w) => w.id !== 'Common Area')
-                      .map((w) => (
-                        <option key={w.id} value={w.id}>
-                          {w.label}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Select Room Number
-                  </label>
-                  <select
-                    value={selectedRoom}
-                    onChange={(e) => {
-                      setSelectedRoom(e.target.value);
-                      setCustomRoomInput('');
-                    }}
-                    className="enterprise-input text-xs"
-                  >
-                    {availableRooms
-                      .filter((r) => r.includes('Room') || r.includes('Suite'))
-                      .map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Or Enter Exact Room No.
-                  </label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Room No.</label>
                   <input
                     type="text"
-                    placeholder="e.g. Wing B, Room 312"
-                    value={customRoomInput}
-                    onChange={(e) => setCustomRoomInput(e.target.value)}
-                    className="enterprise-input text-xs"
+                    list="modal-room-list"
+                    value={selectedRoom}
+                    onChange={(e) => setSelectedRoom(e.target.value)}
+                    className="enterprise-input"
                   />
+                  <datalist id="modal-room-list">
+                    {availableRooms.map((r) => (
+                      <option key={r} value={r} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+              <div className="flex justify-end space-x-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsResidenceModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                  className="px-3 py-1.5 text-xs text-slate-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingResidence}
-                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs cursor-pointer disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium cursor-pointer"
                 >
-                  {savingResidence ? 'Saving to Profile...' : 'Save Hostel & Room'}
+                  {savingResidence ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </form>
@@ -798,113 +370,58 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Closed-Loop Student Satisfaction Rating Modal */}
+      {/* Minimal Rating Modal */}
       {selectedTicketForFeedback && (
         <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
-          onClick={handleCloseFeedback}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50"
+          onClick={() => setSelectedTicketForFeedback(null)}
         >
           <div
-            className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl space-y-6 border border-slate-200"
+            className="w-full max-w-sm rounded-2xl bg-white p-5 space-y-4 border border-slate-200 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xl">⭐</span>
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                    Rate Maintenance Resolution
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-500">
-                  Ticket <strong className="font-mono text-indigo-600">{selectedTicketForFeedback.tracking_code}</strong>: {selectedTicketForFeedback.title}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleCloseFeedback}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm"
-              >
-                ✕
-              </button>
-            </div>
-
-            {feedbackSuccess ? (
-              <div className="py-8 text-center space-y-3 animate-fade-in">
-                <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold">
-                  ✓
-                </div>
-                <h4 className="text-base font-bold text-slate-800">
-                  Feedback Recorded!
-                </h4>
-                <p className="text-xs text-slate-500">{feedbackSuccess}</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitRating} className="space-y-5">
-                <div className="space-y-2 text-center py-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Select Satisfaction Score
-                  </label>
-                  <div className="flex items-center justify-center space-x-2 pt-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setRatingScore(star)}
-                        onMouseEnter={() => setRatingHover(star)}
-                        onMouseLeave={() => setRatingHover(0)}
-                        className="text-3xl sm:text-4xl transition-transform hover:scale-110 focus:outline-none cursor-pointer"
-                      >
-                        <span
-                          className={
-                            (ratingHover || ratingScore) >= star
-                              ? 'text-amber-400'
-                              : 'text-slate-200'
-                          }
-                        >
-                          ★
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="text-xs font-bold text-amber-700 h-4">
-                    {starLabels[ratingHover || ratingScore]}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Review Comments (Optional)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={feedbackComments}
-                    onChange={(e) => setFeedbackComments(e.target.value)}
-                    placeholder="Share your feedback on repair quality and technician timeliness..."
-                    className="enterprise-input resize-none"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end space-x-3 pt-2 border-t border-slate-100">
+            <h3 className="text-sm font-semibold text-slate-900">
+              Rate Resolution ({selectedTicketForFeedback.tracking_code})
+            </h3>
+            <form onSubmit={handleSubmitRating} className="space-y-3">
+              <div className="flex justify-center space-x-2 py-1">
+                {[1, 2, 3, 4, 5].map((star) => (
                   <button
+                    key={star}
                     type="button"
-                    onClick={handleCloseFeedback}
-                    className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                    onClick={() => setRatingScore(star)}
+                    className={`text-2xl cursor-pointer ${
+                      ratingScore >= star ? 'text-amber-400' : 'text-slate-200'
+                    }`}
                   >
-                    Cancel
+                    ★
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmittingFeedback}
-                    className="px-5 py-2 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl shadow-xs transition-colors disabled:opacity-60"
-                  >
-                    {isSubmittingFeedback ? 'Saving...' : 'Submit Rating'}
-                  </button>
-                </div>
-              </form>
-            )}
+                ))}
+              </div>
+              <textarea
+                rows={2}
+                value={feedbackComments}
+                onChange={(e) => setFeedbackComments(e.target.value)}
+                placeholder="Optional feedback..."
+                className="enterprise-input resize-none"
+              />
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTicketForFeedback(null)}
+                  className="px-3 py-1.5 text-xs text-slate-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingFeedback}
+                  className="px-4 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
