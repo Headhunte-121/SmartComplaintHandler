@@ -1,8 +1,68 @@
 /*
- * SmartComplaintHandler - Global Tailwind Stylesheet
+ * SmartComplaintHandler - Enterprise Global Design System & Tailwind Stylesheet
  * Blueprint Reference: docs/V1/M1/frontend/01_vite_tailwind_config.md
- * Role: Injects Tailwind CSS base, components, and utilities layers.
+ * Role: Defines ambient architectural grid backgrounds, bento card surfaces, custom scrollbars,
+ *       and cross-version utility shims for a Linear/Vercel/Stripe-caliber UI.
  */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+}
+
+@layer components {
+  /* Subtle architectural dot/grid background used by Vercel & Linear */
+  .bg-architectural-grid {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  }
+
+  .bg-dark-architectural-grid {
+    background-size: 28px 28px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  }
+
+  /* Enterprise Bento Card Surface */
+  .bento-card {
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-bento transition-all duration-200;
+  }
+
+  .bento-card-interactive {
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-bento hover:shadow-bento-hover hover:border-indigo-200/80 transition-all duration-200;
+  }
+
+  /* Input control standard */
+  .enterprise-input {
+    @apply w-full rounded-xl border border-slate-300/90 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-150 focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10;
+  }
+}
+
+/* Shims for Tailwind v4 utility classes used in legacy components so Tailwind v3 compiles them cleanly */
+.bg-linear-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+.bg-linear-to-br {
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+}
+.focus\:outline-hidden:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.backdrop-blur-xs {
+  backdrop-filter: blur(4px);
+}

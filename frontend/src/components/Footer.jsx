@@ -1,70 +1,71 @@
 /**
  * SmartComplaintHandler - Institutional Global Footer
  * Blueprint Reference: V1/M1/frontend/03_layout_and_navigation.md
- * Role: Persistent footer providing official campus emergency hotlines, service desk hours,
- *       facilities administration directory, and estate management governance notices.
+ * Role: Persistent footer providing official IIIT Naya Raipur campus emergency hotlines,
+ *       service desk hours, and estate management governance notices.
  */
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <footer className="bg-slate-950 text-slate-400 border-t border-slate-800/90 mt-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-xs">
           {/* Institutional Mission */}
           <div className="space-y-3 md:col-span-1">
-            <div className="flex items-center space-x-2 text-white font-bold text-sm">
-              <span className="text-xl">🏛️</span>
-              <span>Campus Facilities Division</span>
+            <div className="flex items-center space-x-2.5 text-white font-bold text-sm">
+              <img
+                src="/iiitnr_logo.png"
+                alt="IIIT-NR"
+                className="h-7 w-auto object-contain"
+              />
+              <span>IIIT-NR Estate Division</span>
             </div>
-            <p className="leading-relaxed text-slate-400">
-              Centralized estate maintenance and facility service desk ensuring prompt physical repair turnaround, emergency life-safety resolution, and auditable Service Level Agreements across all campus infrastructure.
+            <p className="leading-relaxed text-slate-400 text-[11px]">
+              Automated closed-loop facility maintenance and grievance routing platform for Dr. SPM International Institute of Information Technology, Naya Raipur.
             </p>
           </div>
 
           {/* Quick Portal Links */}
           <div className="space-y-2.5">
             <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">
-              Campus Service Desk
+              Service Portal
             </h4>
-            <ul className="space-y-2">
+            <ul className="space-y-2 text-[11px]">
               <li>
-                <Link to="/" className="hover:text-white transition-colors">Facilities Home</Link>
+                <Link to="/submit" className="hover:text-white transition-colors">Lodge Facility Grievance</Link>
               </li>
               <li>
-                <Link to="/submit" className="hover:text-white transition-colors">Report Maintenance Issue</Link>
+                <Link to="/student" className="hover:text-white transition-colors">Student Grievance History</Link>
               </li>
               <li>
-                <Link to="/track" className="hover:text-white transition-colors">Track Existing Grievance</Link>
+                <Link to="/track" className="hover:text-white transition-colors">Track Ticket by Code</Link>
               </li>
               <li>
-                <Link to="/admin" className="hover:text-white transition-colors">Staff Operations Console</Link>
-              </li>
-              <li>
-                <Link to="/login" className="hover:text-white transition-colors">Campus SSO Login</Link>
+                <Link to="/admin" className="hover:text-white transition-colors">Supervisor Operations Console</Link>
               </li>
             </ul>
           </div>
 
           {/* Emergency Hotlines */}
           <div className="space-y-2.5">
-            <h4 className="font-bold text-rose-400 uppercase tracking-wider text-[11px] flex items-center space-x-1">
-              <span>⚠️</span>
-              <span>24/7 Emergency Hotlines</span>
+            <h4 className="font-bold text-rose-400 uppercase tracking-wider text-[11px] flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span>24/7 Campus Emergency Desk</span>
             </h4>
-            <ul className="space-y-2">
+            <ul className="space-y-2 text-[11px]">
               <li>
-                <span className="text-slate-300 block font-semibold">⚡ Electrical Hazard & Fire</span>
-                <span className="font-mono text-slate-400">Ext 101 • +91-11-2345-0101</span>
+                <span className="text-slate-200 block font-semibold">⚡ Electrical &amp; Substation</span>
+                <span className="font-mono text-slate-400">0771-2474109 • Room 131</span>
               </li>
               <li>
-                <span className="text-slate-300 block font-semibold">🚰 Water Main Flooding</span>
-                <span className="font-mono text-slate-400">Ext 102 • +91-11-2345-0102</span>
+                <span className="text-slate-200 block font-semibold">🚰 Estate &amp; Water Works</span>
+                <span className="font-mono text-slate-400">0771-2474104 • Estate Office</span>
               </li>
               <li>
-                <span className="text-slate-300 block font-semibold">🛡️ Campus Control Room</span>
-                <span className="font-mono text-slate-400">Ext 100 (Toll-Free Inside Campus)</span>
+                <span className="text-slate-200 block font-semibold">🌐 Campus Network &amp; IT</span>
+                <span className="font-mono text-slate-400">Room 131C / 131E (IT Cell)</span>
               </li>
             </ul>
           </div>
@@ -72,32 +73,30 @@ export default function Footer() {
           {/* Administration & Office Hours */}
           <div className="space-y-2.5">
             <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">
-              Estate Office Information
+              Campus Location
             </h4>
-            <p className="leading-relaxed">
-              Ground Floor, Facilities Complex<br />
-              Administrative Block, West Campus<br />
-              Mon – Fri: 08:30 AM – 06:00 PM<br />
-              Sat: 09:00 AM – 01:00 PM
+            <p className="leading-relaxed text-[11px]">
+              Plot No. 7, Sector 24, Near Purkhoti Muktangan<br />
+              Atal Nagar – Nava Raipur, Chhattisgarh 493661<br />
+              Mon – Sat: 09:00 AM – 05:30 PM IST
             </p>
             <div className="pt-1">
-              <span className="inline-flex items-center space-x-2 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/80 text-[11px] text-slate-300">
+              <span className="inline-flex items-center space-x-2 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 text-[10px] font-mono text-emerald-400">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>Automated SLA Engine Active</span>
+                <span>SLA Watchdog Engine v1.0</span>
               </span>
             </div>
           </div>
         </div>
 
-        {/* Legal Disclaimer & Bottom Strip */}
-        <div className="mt-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-2">
-          <p>© 2026 University Facilities & Estate Management Directorate. All rights reserved.</p>
-          <div className="flex items-center space-x-4">
-            <Link to="/track" className="hover:text-slate-400 transition-colors">Service Standards</Link>
+        <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-2">
+          <p>© 2026 IIIT Naya Raipur Facilities &amp; Estate Directorate. All rights reserved.</p>
+          <div className="flex items-center space-x-4 font-mono text-[10px]">
+            <span>Vercel Serverless</span>
             <span>•</span>
-            <Link to="/developer" className="hover:text-slate-400 transition-colors">Technical Architecture</Link>
+            <span>Supabase PostgreSQL</span>
             <span>•</span>
-            <span>Internal Campus Network</span>
+            <span>Google OIDC SSO</span>
           </div>
         </div>
       </div>

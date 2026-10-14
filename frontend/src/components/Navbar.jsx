@@ -1,8 +1,7 @@
 /**
  * SmartComplaintHandler - Institutional Global Navigation Header
- * Role: Primary navigation bar providing university branding, role-tailored links,
- *       backend service heartbeat, and authenticated institutional account state.
- * Domain: Enforces strict student isolation (only Lodge Grievance, My History, Track Status).
+ * Role: Enterprise glassmorphism navigation bar providing university branding, segmented role-tailored
+ *       command links, live Supabase/FastAPI heartbeat pill, Google avatar support, and role switcher.
  */
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
@@ -13,6 +12,7 @@ export default function Navbar() {
   const {
     currentUser,
     logout,
+    openPersonaModal,
     isStudent,
     isTechnician,
     isAdmin,
@@ -44,46 +44,50 @@ export default function Navbar() {
   };
 
   const navLinkClasses = ({ isActive }) =>
-    `px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 ${
+    `px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all duration-150 flex items-center space-x-1.5 ${
       isActive
-        ? 'bg-indigo-50 text-indigo-700 shadow-2xs font-extrabold'
-        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+        ? 'bg-slate-900 text-white shadow-xs'
+        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90'
     }`;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
+    <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 shadow-2xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Institutional Brand */}
           <Link
-            to={isStudent ? '/student' : isSuperAdmin ? '/superadmin' : isAdmin ? '/admin' : '/'}
+            to={isStudent ? '/submit' : isSuperAdmin ? '/superadmin' : isAdmin ? '/admin' : '/'}
             className="flex items-center space-x-3 group"
           >
-            <img
-              src="/iiitnr_logo.png"
-              alt="IIIT Naya Raipur Logo"
-              className="h-10 w-auto object-contain group-hover:scale-105 transition-transform"
-            />
+            <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200/80 group-hover:border-indigo-200 transition-colors">
+              <img
+                src="/iiitnr_logo.png"
+                alt="IIIT Naya Raipur Logo"
+                className="h-8 w-auto object-contain group-hover:scale-105 transition-transform"
+              />
+            </div>
             <div>
-              <div className="text-sm font-black text-slate-900 tracking-tight leading-tight">
-                IIIT Naya Raipur
+              <div className="text-sm font-black text-slate-900 tracking-tight leading-tight flex items-center space-x-1.5">
+                <span>IIIT Naya Raipur</span>
+                <span className="hidden xl:inline-block text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-600 border border-indigo-200/70">
+                  Facilities
+                </span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium">
-                Campus Facilities & Grievance Portal
+                Smart Grievance &amp; SLA Desk
               </p>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links — Strictly Role Isolated */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {/* Student View: Dashboard, Lodge Grievance, Track Status */}
+          {/* Desktop Segmented Navigation Pill */}
+          <nav className="hidden md:flex items-center space-x-1 p-1 rounded-2xl bg-slate-100/70 border border-slate-200/60">
             {isStudent && (
               <>
-                <NavLink to="/student" className={navLinkClasses}>
-                  <span>Dashboard</span>
-                </NavLink>
                 <NavLink to="/submit" className={navLinkClasses}>
                   <span>Lodge Grievance</span>
+                </NavLink>
+                <NavLink to="/student" className={navLinkClasses}>
+                  <span>My History</span>
                 </NavLink>
                 <NavLink to="/track" className={navLinkClasses}>
                   <span>Track Status</span>
@@ -91,12 +95,11 @@ export default function Navbar() {
               </>
             )}
 
-            {/* Field Technician View */}
             {isTechnician && (
               <>
                 <NavLink to="/technician" className={navLinkClasses}>
                   <span>Squad Workstation</span>
-                  <span className="w-2 h-2 rounded-full bg-amber-500 ml-1" title="Assigned Queue" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Assigned Queue" />
                 </NavLink>
                 <NavLink to="/track" className={navLinkClasses}>
                   <span>Track Ticket</span>
@@ -107,12 +110,11 @@ export default function Navbar() {
               </>
             )}
 
-            {/* Facility Admin View */}
             {isAdmin && !isSuperAdmin && (
               <>
                 <NavLink to="/admin" className={navLinkClasses}>
                   <span>Operations Desk</span>
-                  <span className="w-2 h-2 rounded-full bg-purple-500 ml-1" title="Supervisor Console" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400" title="Supervisor Console" />
                 </NavLink>
                 <NavLink to="/technician" className={navLinkClasses}>
                   <span>Squad Dispatches</span>
@@ -126,44 +128,42 @@ export default function Navbar() {
               </>
             )}
 
-            {/* Super Admin View */}
             {isSuperAdmin && (
               <>
                 <NavLink to="/superadmin" className={navLinkClasses}>
-                  <span>👑 Super Admin</span>
-                  <span className="w-2 h-2 rounded-full bg-amber-500 ml-1" title="Directorate Control" />
+                  <span>👑 Directorate</span>
                 </NavLink>
                 <NavLink to="/admin" className={navLinkClasses}>
                   <span>Operations Desk</span>
                 </NavLink>
                 <NavLink to="/technician" className={navLinkClasses}>
-                  <span>Squad Workstation</span>
+                  <span>Squads</span>
                 </NavLink>
                 <NavLink to="/track" className={navLinkClasses}>
-                  <span>Audit Tracker</span>
+                  <span>Tracker</span>
                 </NavLink>
                 <NavLink to="/submit" className={navLinkClasses}>
-                  <span>Lodge Grievance</span>
+                  <span>Lodge Issue</span>
                 </NavLink>
               </>
             )}
           </nav>
 
           {/* Right Header Area: Live Heartbeat & Authenticated Account */}
-          <div className="hidden sm:flex items-center space-x-3">
+          <div className="hidden sm:flex items-center space-x-2.5">
             {/* System Health Heartbeat */}
             <div
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+              className={`hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
                 backendHealthy === true
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  ? 'bg-emerald-50/90 text-emerald-700 border-emerald-200'
                   : backendHealthy === false
                   ? 'bg-rose-50 text-rose-700 border-rose-200'
                   : 'bg-slate-50 text-slate-500 border-slate-200'
               }`}
-              title={backendHealthy ? 'FastAPI Services Online' : 'Service Desk Backend Offline'}
+              title={backendHealthy ? 'FastAPI & Supabase Connected' : 'Service Desk Backend Offline'}
             >
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-1.5 h-1.5 rounded-full ${
                   backendHealthy === true
                     ? 'bg-emerald-500 animate-pulse'
                     : backendHealthy === false
@@ -171,37 +171,56 @@ export default function Navbar() {
                     : 'bg-slate-400'
                 }`}
               />
-              <span>{backendHealthy ? 'Services Active' : 'System Offline'}</span>
+              <span>{backendHealthy ? 'Online' : 'Offline'}</span>
             </div>
 
-            {/* Authenticated User Account Card */}
             {currentUser ? (
               <div className="flex items-center space-x-2">
-                <div
-                  className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 text-left shadow-2xs select-none"
-                  title={`Logged in as ${currentUser.name} (${currentUser.roleLabel || currentUser.role})`}
+                <button
+                  type="button"
+                  onClick={openPersonaModal}
+                  className="flex items-center space-x-2.5 pl-2 pr-3 py-1.5 rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-indigo-200 text-left shadow-2xs transition-all cursor-pointer"
+                  title="Click to view or switch institutional role persona"
                 >
-                  <span className="text-xl">{currentUser.avatar || '👤'}</span>
+                  {currentUser.avatar_url ? (
+                    <img
+                      src={currentUser.avatar_url}
+                      alt={currentUser.name}
+                      className="w-7 h-7 rounded-xl object-cover border border-slate-200"
+                    />
+                  ) : (
+                    <span className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-sm">
+                      {currentUser.avatar || '👤'}
+                    </span>
+                  )}
                   <div className="leading-tight">
-                    <div className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                      <span className="truncate max-w-[120px]">{currentUser.name}</span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${currentUser.badgeClass || 'bg-slate-100'}`}>
+                    <div className="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
+                      <span className="truncate max-w-[115px]">{currentUser.name}</span>
+                      <span
+                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${
+                          currentUser.badgeClass || 'bg-slate-100 text-slate-700 border-slate-200'
+                        }`}
+                      >
                         {currentUser.roleLabel || currentUser.role}
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-400 font-mono truncate max-w-[130px]">
+                    <div className="text-[10px] text-slate-400 font-mono truncate max-w-[140px]">
                       {currentUser.email}
                     </div>
                   </div>
-                </div>
+                </button>
 
                 <button
                   onClick={handleLogout}
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all cursor-pointer"
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200/70 transition-all cursor-pointer"
                   title="Sign Out"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
                   </svg>
                 </button>
               </div>
@@ -218,9 +237,13 @@ export default function Navbar() {
           {/* Mobile Actions */}
           <div className="flex md:hidden items-center space-x-2">
             {currentUser && (
-              <span className="p-1.5 text-lg rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={openPersonaModal}
+                className="p-1.5 text-sm rounded-xl border border-slate-200 bg-white"
+              >
                 {currentUser?.avatar || '👤'}
-              </span>
+              </button>
             )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -239,27 +262,27 @@ export default function Navbar() {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-100 space-y-1 animate-fade-in">
+          <div className="md:hidden py-4 border-t border-slate-100 space-y-1.5 animate-fade-in">
             {isStudent && (
               <>
                 <NavLink
-                  to="/student"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50/50 rounded-lg hover:bg-indigo-100"
-                >
-                  Dashboard
-                </NavLink>
-                <NavLink
                   to="/submit"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
+                  className="block px-3 py-2 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-100"
                 >
                   Lodge Grievance
                 </NavLink>
                 <NavLink
+                  to="/student"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-xs font-bold text-indigo-700 bg-indigo-50/60 rounded-xl"
+                >
+                  My History
+                </NavLink>
+                <NavLink
                   to="/track"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
+                  className="block px-3 py-2 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-100"
                 >
                   Track Status
                 </NavLink>
@@ -271,14 +294,14 @@ export default function Navbar() {
                 <NavLink
                   to="/superadmin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-bold text-amber-800 bg-amber-50/60 rounded-lg hover:bg-amber-100"
+                  className="block px-3 py-2 text-xs font-bold text-amber-800 bg-amber-50/70 rounded-xl"
                 >
                   👑 Super Admin Directorate
                 </NavLink>
                 <NavLink
                   to="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-semibold text-purple-800 rounded-lg hover:bg-purple-100"
+                  className="block px-3 py-2 text-xs font-bold text-purple-800 rounded-xl hover:bg-purple-50"
                 >
                   Operations Desk
                 </NavLink>
@@ -289,7 +312,7 @@ export default function Navbar() {
               <NavLink
                 to="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-purple-800 bg-purple-50/50 rounded-lg hover:bg-purple-100"
+                className="block px-3 py-2 text-xs font-bold text-purple-800 bg-purple-50/60 rounded-xl"
               >
                 Operations Desk
               </NavLink>
@@ -299,30 +322,22 @@ export default function Navbar() {
               <NavLink
                 to="/technician"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-amber-800 bg-amber-50/50 rounded-lg hover:bg-amber-100"
+                className="block px-3 py-2 text-xs font-bold text-amber-800 bg-amber-50/60 rounded-xl"
               >
                 Squad Workstation Console
               </NavLink>
             )}
 
-            {currentUser ? (
+            {currentUser && (
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   handleLogout();
                 }}
-                className="w-full text-left px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors flex items-center space-x-2"
+                className="w-full text-left px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
               >
-                <span>Sign Out ({currentUser.name})</span>
+                Sign Out ({currentUser.name})
               </button>
-            ) : (
-              <NavLink
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
-              >
-                Institutional Login (@iiitnr.edu.in)
-              </NavLink>
             )}
           </div>
         )}

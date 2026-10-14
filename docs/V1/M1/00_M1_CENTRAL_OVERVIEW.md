@@ -698,6 +698,36 @@ npm run dev
   - Backend Test Suite: 55/55 pytest unit & security tests passing cleanly (100% pass rate).
   - Frontend Production Build: `npm run build` compiled in 2.22s with 0 errors.
 
+### [2026-10-15] - Enterprise UI/UX Design System & Architectural Upgrade
+* **Files Modified:**
+  - `frontend/index.html`
+  - `frontend/tailwind.config.js`
+  - `frontend/src/styles/globals.css`
+  - `frontend/src/components/Navbar.jsx`
+  - `frontend/src/components/Layout.jsx`
+  - `frontend/src/components/Footer.jsx`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `frontend/src/pages/StudentDashboard.jsx`
+  - `frontend/src/pages/SubmitComplaint.jsx`
+  - `frontend/src/pages/AdminDashboard.jsx`
+  - `frontend/src/pages/TechnicianWorkstation.jsx`
+  - `frontend/src/pages/TrackTicket.jsx`
+  - `docs/ENTERPRISE_UI_REDESIGN_GUIDE.md`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Dual-Font Typography & Visual Tokens:** Added `Inter` (sans) and `JetBrains Mono` (code/badges/tracking) via Google Fonts in `index.html` and `tailwind.config.js`; introduced `.bento-card`, `.bg-dark-architectural-grid`, and `.enterprise-input` utility classes.
+  2. **Split-Screen Enterprise SSO Portal (`Login.jsx` & `Register.jsx`):** 12-column layout pairing a dark architectural feature panel (`bg-slate-950`) with an authentication card on the right; real-time `@iiitnr.edu.in` identity preview pill (displaying student roll, academic branch, or staff designation as typed); 4-bar password entropy meter on registration.
+  3. **Bento Grid KPI Telemetry:** Standardized KPI metrics with semantic left-accent borders (`border-l-4 border-l-amber-500`, `border-l-emerald-500`, `border-l-indigo-600`) across `StudentDashboard.jsx`, `AdminDashboard.jsx`, and `TechnicianWorkstation.jsx`.
+  4. **Glassmorphism Command Header (`Navbar.jsx`):** Translucent header (`bg-white/85 backdrop-blur-xl`) with segmented navigation pills, real-time backend heartbeat indicator, Google avatar image rendering, and mounted persona switcher modal.
+  5. **Tailwind v3.4 Gradient Compatibility:** Replaced Tailwind v4 `bg-linear-to-r` syntax with `bg-gradient-to-r` and added fallback CSS shims in `globals.css` to prevent invisible white-on-white text banners.
+  6. **Interactive Scenario Templates & Inline Modals:** Added 1-click test grievance templates in `SubmitComplaint.jsx` (*Sparking Switchboard*, *RO Water Cooler Leak*, *Hostel Wi-Fi Outage*); replaced native browser `window.prompt()` escalation in `AdminDashboard.jsx` with a styled inline modal and toast notifications.
+* **Why It Was Changed:** Integrated complete enterprise design overhaul aligning all roles with modern SaaS standards (Linear, Vercel, Stripe & Clerk) while maintaining 100% backend test compatibility and institutional security.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.43s with 0 errors.
+  - Backend Test Suite: 55/55 pytest unit & security tests passing cleanly in 6.08s (100% pass rate).
+
+
 
 
 

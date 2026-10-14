@@ -1,8 +1,8 @@
 /**
  * SmartComplaintHandler - Field Technician Workstation
  * Blueprint Reference: V1/M4/frontend & V1/M5/frontend/03_resolution_notes_modal.md
- * Role: Operational field console for campus maintenance squads. Supports 1-click status advancement (SUBMITTED -> IN_PROGRESS),
- *       emergency hazard triage, and formal verified closure via ResolutionNotesModal.
+ * Design Pattern: Enterprise field operations console with fixed dark hero gradient,
+ *                 Bento workload counters, and 1-click work order progression.
  */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -24,15 +24,15 @@ const CAMPUS_SQUADS = [
 ];
 
 export default function TechnicianWorkstation() {
-  const { currentPersona } = useAuth();
-  const [selectedTeamId, setSelectedTeamId] = useState(currentPersona?.teamId || 1);
+  const { currentPersona, currentUser } = useAuth();
+  const activeUser = currentUser || currentPersona;
+
+  const [selectedTeamId, setSelectedTeamId] = useState(activeUser?.teamId || 1);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('ACTIVE'); // 'ACTIVE' or 'COMPLETED'
+  const [activeTab, setActiveTab] = useState('ACTIVE');
   const [actionSuccess, setActionSuccess] = useState(null);
-
-  // Resolution Modal State
   const [resolvingTicket, setResolvingTicket] = useState(null);
 
   const selectedSquad = CAMPUS_SQUADS.find((s) => s.id === Number(selectedTeamId)) || CAMPUS_SQUADS[0];
@@ -41,16 +41,14 @@ export default function TechnicianWorkstation() {
     setLoading(true);
     setError(null);
     try {
-      // Query tickets assigned to this team
       const data = await fetchComplaints({ team_id: selectedTeamId, limit: 100 });
       setTickets(data);
-    } catch (err) {
-      console.error('Failed to load squad work orders:', err);
+    } catch (_) {
       try {
         const allData = await fetchComplaints({ limit: 100 });
         const filtered = allData.filter((t) => t.assigned_team_id === Number(selectedTeamId));
         setTickets(filtered.length > 0 ? filtered : allData);
-      } catch (fallbackErr) {
+      } catch (__) {
         setError('Unable to load squad work orders. Ensure the backend service is running.');
       }
     } finally {
@@ -64,11 +62,11 @@ export default function TechnicianWorkstation() {
 
   const handleStartWork = async (ticket) => {
     try {
-      const updated = await updateTicketStatus(
+      await updateTicketStatus(
         ticket.id,
         'IN_PROGRESS',
-        `Technician ${currentPersona?.name || 'Staff'} commenced on-site diagnostics and repair work.`,
-        currentPersona?.name || 'Field Technician'
+        `Technician ${activeUser?.name || 'Staff'} commenced on-site diagnostics and repair work.`,
+        activeUser?.name || 'Field Technician'
       );
       setTickets((prev) =>
         prev.map((t) => (t.id === ticket.id ? { ...t, status: 'IN_PROGRESS' } : t))
@@ -76,7 +74,7 @@ export default function TechnicianWorkstation() {
       setActionSuccess(`Work order ${ticket.tracking_code} transitioned to IN_PROGRESS.`);
       setTimeout(() => setActionSuccess(null), 3500);
     } catch (err) {
-      alert(err.response?.data?.detail || err.message || 'Failed to update work order status.');
+      setError(err.response?.data?.detail || err.message || 'Failed to update work order status.');
     }
   };
 
@@ -84,7 +82,7 @@ export default function TechnicianWorkstation() {
     setTickets((prev) =>
       prev.map((t) => (t.id === updatedTicket.id ? { ...t, ...updatedTicket, status: 'RESOLVED' } : t))
     );
-    setActionSuccess(`Ticket ${updatedTicket.tracking_code} successfully resolved and closure notes recorded.`);
+    setActionSuccess(`Ticket ${updatedTicket.tracking_code} resolved and closure notes recorded.`);
     setTimeout(() => setActionSuccess(null), 3500);
   };
 
@@ -94,42 +92,39 @@ export default function TechnicianWorkstation() {
   const completedWorkOrders = tickets.filter(
     (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
   );
-
   const criticalOrders = activeWorkOrders.filter(
     (t) => t.priority === 'CRITICAL' || t.status === 'ESCALATED'
   );
-
   const displayedOrders = activeTab === 'ACTIVE' ? activeWorkOrders : completedWorkOrders;
 
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-12">
-      {/* Technician Station Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-slate-900 via-amber-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl">
-        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Technician Station Header (Fixed Tailwind v3 bg-gradient-to-r) */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-amber-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-slate-800">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-56 h-56 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start sm:items-center space-x-4">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-500/20 backdrop-blur-md border border-amber-500/30 flex items-center justify-center text-3xl shadow-inner shrink-0">
-              {currentPersona.avatar || '🔧'}
+              {activeUser?.avatar || '🔧'}
             </div>
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                   Field Squad Workstation
                 </h1>
-                <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/30 border border-amber-400/30 text-amber-200">
-                  {currentPersona.name} ({currentPersona.identifier || 'TECH-42'})
+                <span className="text-[10px] uppercase font-mono font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/25 border border-amber-400/30 text-amber-200">
+                  {activeUser?.name}
                 </span>
               </div>
               <p className="text-xs text-amber-200/90 font-medium">
-                Operational console for dispatch execution, repair progress logging, and verification notes.
+                On-site dispatch execution, repair progress logging, and mandatory closure verification.
               </p>
-              {/* Squad Selector */}
-              <div className="pt-2 flex items-center space-x-2 text-xs">
-                <span className="text-slate-400 font-bold">Active Squad Console:</span>
+              <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-slate-300 font-bold">Active Squad Queue:</span>
                 <select
                   value={selectedTeamId}
                   onChange={(e) => setSelectedTeamId(Number(e.target.value))}
-                  className="bg-slate-800/90 border border-slate-700 text-amber-300 font-bold rounded-xl px-3 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-amber-500/40"
+                  className="bg-slate-900/90 border border-slate-700 text-amber-300 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                 >
                   {CAMPUS_SQUADS.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -144,8 +139,7 @@ export default function TechnicianWorkstation() {
           <div className="flex items-center space-x-3 shrink-0">
             <button
               onClick={loadWorkOrders}
-              title="Refresh Work Orders"
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all text-xs font-bold flex items-center space-x-2"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all text-xs font-bold flex items-center space-x-2 cursor-pointer"
             >
               <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -156,9 +150,8 @@ export default function TechnicianWorkstation() {
         </div>
       </div>
 
-      {/* Action Notification Toast */}
       {actionSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-3 animate-fade-in shadow-xs">
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-3 animate-fade-in shadow-2xs">
           <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black">
             ✓
           </span>
@@ -166,94 +159,101 @@ export default function TechnicianWorkstation() {
         </div>
       )}
 
-      {/* Emergency Hazard Dispatch Banner */}
       {criticalOrders.length > 0 && (
-        <div className="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-pulse">
+        <div className="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3.5">
             <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-xl shrink-0 font-black shadow-md shadow-rose-600/20">
               🚨
             </div>
             <div>
               <h3 className="text-sm font-black text-rose-900 tracking-tight">
-                Emergency Priority Dispatch Warning ({criticalOrders.length} Urgent)
+                Emergency Priority Dispatch Alert ({criticalOrders.length} Critical/Escalated)
               </h3>
               <p className="text-xs text-rose-700 mt-0.5">
-                Immediate response required! Safety hazards or high-urgency incidents assigned to this squad.
+                Immediate on-site response required for life-safety or escalated incidents in your squad queue.
               </p>
             </div>
           </div>
           <button
             onClick={() => setActiveTab('ACTIVE')}
-            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all shrink-0"
+            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all shrink-0 cursor-pointer"
           >
-            Review Urgent Work Orders
+            View Urgent Work Orders
           </button>
         </div>
       )}
 
-      {/* Telemetry Metric Strip */}
+      {/* Bento Telemetry Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 text-xl font-bold">
+        <div className="bento-card p-5 border-l-4 border-l-amber-500 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Assigned Queue
+            </span>
+            <div className="text-3xl font-black text-slate-900 mt-1">{activeWorkOrders.length}</div>
+            <span className="text-[11px] text-slate-500 mt-0.5 block">{selectedSquad.name}</span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-600 text-xl font-bold">
             📋
           </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{activeWorkOrders.length}</div>
-            <div className="text-xs font-semibold text-slate-500">Active Work Orders</div>
-          </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 text-xl font-bold">
+        <div className="bento-card p-5 border-l-4 border-l-rose-500 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Critical / Escalated
+            </span>
+            <div className="text-3xl font-black text-rose-600 mt-1">{criticalOrders.length}</div>
+            <span className="text-[11px] text-slate-500 mt-0.5 block">2-hour SLA priority gate</span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200/70 flex items-center justify-center text-rose-600 text-xl font-bold">
             ⚡
           </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{criticalOrders.length}</div>
-            <div className="text-xs font-semibold text-slate-500">Critical / Escalated</div>
-          </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 text-xl font-bold">
-            ✓
-          </div>
+        <div className="bento-card p-5 border-l-4 border-l-emerald-500 flex items-center justify-between">
           <div>
-            <div className="text-2xl font-black text-slate-900">{completedWorkOrders.length}</div>
-            <div className="text-xs font-semibold text-slate-500">Completed & Documented</div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Completed Repairs
+            </span>
+            <div className="text-3xl font-black text-emerald-600 mt-1">{completedWorkOrders.length}</div>
+            <span className="text-[11px] text-slate-500 mt-0.5 block">Verified with closure notes</span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/70 flex items-center justify-center text-emerald-600 text-xl font-bold">
+            ✓
           </div>
         </div>
       </div>
 
       {/* Work Orders Roster */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-        {/* Header & Tabs */}
-        <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bento-card overflow-hidden">
+        <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/40">
           <div>
             <h2 className="text-lg font-black text-slate-900 tracking-tight">
               Squad Work Orders — {selectedSquad.name}
             </h2>
             <p className="text-xs text-slate-500">
-              Contractual repair execution queue with mandatory closure documentation.
+              Start on-site repair work or record formal resolution proof.
             </p>
           </div>
 
-          <div className="flex items-center space-x-1 p-1 bg-slate-100 rounded-xl">
+          <div className="flex items-center space-x-1 p-1 bg-slate-200/70 rounded-xl">
             <button
               onClick={() => setActiveTab('ACTIVE')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 activeTab === 'ACTIVE'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Active Queue ({activeWorkOrders.length})
             </button>
             <button
               onClick={() => setActiveTab('COMPLETED')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 activeTab === 'COMPLETED'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Completed ({completedWorkOrders.length})
@@ -261,55 +261,48 @@ export default function TechnicianWorkstation() {
           </div>
         </div>
 
-        {/* Content Body */}
         {loading ? (
           <div className="py-20 text-center space-y-3">
-            <div className="w-8 h-8 mx-auto border-3 border-amber-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-medium text-slate-500">Retrieving squad work orders from SQLite database...</p>
+            <div className="w-8 h-8 mx-auto border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs font-medium text-slate-500">Loading squad work orders...</p>
           </div>
         ) : error ? (
           <div className="py-16 text-center space-y-3 px-4">
-            <div className="w-12 h-12 mx-auto rounded-full bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold">
-              !
-            </div>
             <p className="text-xs font-bold text-rose-700">{error}</p>
             <button
               onClick={loadWorkOrders}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl"
             >
               Retry
             </button>
           </div>
         ) : displayedOrders.length === 0 ? (
-          <div className="py-20 text-center space-y-4 max-w-sm mx-auto px-4">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-2xl">
+          <div className="py-20 text-center space-y-3 max-w-sm mx-auto px-4">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-2xl">
               🔧
             </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-800">No Work Orders Found</h3>
-              <p className="text-xs text-slate-500">
-                There are currently no tickets matching this state in {selectedSquad.name}'s queue.
-              </p>
-            </div>
+            <h3 className="text-base font-bold text-slate-800">Queue Clear</h3>
+            <p className="text-xs text-slate-500">
+              No work orders in this state for {selectedSquad.name}.
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {displayedOrders.map((ticket) => {
               const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
               const isSubmitted = ticket.status === 'SUBMITTED';
-              const isInProgress = ticket.status === 'IN_PROGRESS';
+              const isInProgress = ticket.status === 'IN_PROGRESS' || ticket.status === 'ESCALATED';
 
               return (
                 <div
                   key={ticket.id || ticket.tracking_code}
-                  className="p-5 sm:p-6 hover:bg-slate-50/60 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-5"
+                  className="p-5 sm:p-6 hover:bg-slate-50/70 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-5"
                 >
                   <div className="space-y-2.5 flex-1 min-w-0">
-                    {/* Top Metadata */}
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="font-mono font-bold text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200 transition-colors"
+                        className="font-mono font-bold text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200"
                       >
                         {ticket.tracking_code}
                       </Link>
@@ -328,14 +321,12 @@ export default function TechnicianWorkstation() {
                         {ticket.status}
                       </span>
                       {ticket.student_name && (
-                        <span className="text-slate-500 text-[11px] font-medium flex items-center space-x-1">
-                          <span>Reported by:</span>
-                          <strong className="text-slate-700">{ticket.student_name}</strong>
+                        <span className="text-slate-500 text-[11px] font-medium">
+                          Reported by: <strong className="text-slate-700">{ticket.student_name}</strong>
                         </span>
                       )}
                     </div>
 
-                    {/* Title & Description */}
                     <div>
                       <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
                         {ticket.title}
@@ -345,26 +336,18 @@ export default function TechnicianWorkstation() {
                       </p>
                     </div>
 
-                    {/* Location & Logged Time */}
-                    <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-[11px] text-slate-400">
-                      <span className="flex items-center space-x-1 text-slate-600 font-medium">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span>Location: <strong>{ticket.location}</strong></span>
-                      </span>
+                    <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-[11px] text-slate-500">
+                      <span>📍 Location: <strong>{ticket.location}</strong></span>
                       <span>•</span>
                       <span>
                         Logged: {new Date(ticket.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
 
-                    {/* Resolution Notes preview if present */}
                     {ticket.resolution_notes && (
                       <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
                         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                          Audit Trail & Repair Notes:
+                          Audit Trail &amp; Repair Notes
                         </div>
                         <pre className="text-[11px] text-slate-700 font-mono whitespace-pre-wrap leading-relaxed">
                           {ticket.resolution_notes}
@@ -373,12 +356,11 @@ export default function TechnicianWorkstation() {
                     )}
                   </div>
 
-                  {/* Actions & SLA Timer */}
                   <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
                     {!isResolved ? (
                       <div className="space-y-1 text-left sm:text-right">
                         <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
-                          Contractual SLA Target
+                          SLA Target Countdown
                         </span>
                         <SLACountdownTimer
                           slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
@@ -388,28 +370,26 @@ export default function TechnicianWorkstation() {
                       </div>
                     ) : (
                       <div className="space-y-1 text-left sm:text-right">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 block flex items-center space-x-1">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 flex items-center sm:justify-end space-x-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          <span>Repaired</span>
+                          <span>Completed</span>
                         </span>
                         {ticket.feedback_rating && (
-                          <div className="text-xs font-bold text-amber-600 flex items-center space-x-1">
-                            <span>Student Review:</span>
-                            <span>{'★'.repeat(ticket.feedback_rating)} ({ticket.feedback_rating}/5)</span>
+                          <div className="text-xs font-bold text-amber-600">
+                            {'★'.repeat(ticket.feedback_rating)} ({ticket.feedback_rating}/5)
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* Field Action Buttons */}
                     <div className="flex items-center space-x-2 w-full sm:w-auto">
                       {isSubmitted && (
                         <button
                           type="button"
                           onClick={() => handleStartWork(ticket)}
-                          className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center space-x-1.5"
+                          className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                         >
-                          <span>▶ Start Repair</span>
+                          ▶ Start Repair
                         </button>
                       )}
 
@@ -417,9 +397,9 @@ export default function TechnicianWorkstation() {
                         <button
                           type="button"
                           onClick={() => setResolvingTicket(ticket)}
-                          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center space-x-1.5"
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                         >
-                          <span>✓ Resolve Ticket</span>
+                          ✓ Complete &amp; Resolve
                         </button>
                       )}
 
@@ -438,7 +418,6 @@ export default function TechnicianWorkstation() {
         )}
       </div>
 
-      {/* Mandatory Closure Resolution Modal */}
       {resolvingTicket && (
         <ResolutionNotesModal
           isOpen={!!resolvingTicket}
