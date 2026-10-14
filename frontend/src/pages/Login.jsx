@@ -56,56 +56,76 @@ export default function Login() {
     }, 600);
   };
 
-  // 1. Continue with Google Workspace SSO
-  const handleContinueWithGoogle = async () => {
+  // 1. Continue with Google Workspace (Standard Google OAuth Popup)
+  const handleContinueWithGoogle = () => {
     setError(null);
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('smart_complaint_google_client_id');
 
-    // If Google GIS client ID is configured and script is ready
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (clientId && window.google?.accounts?.id) {
-      window.google.accounts.id.initialize({
+    if (!clientId) {
+      const promptId = window.prompt(
+        'Google OAuth Setup:\nPlease enter your Google Cloud OAuth Client ID (e.g., xxxxxx.apps.googleusercontent.com):\n\nYou can also set VITE_GOOGLE_CLIENT_ID in your Vercel Environment Variables.'
+      );
+      if (promptId && promptId.trim()) {
+        localStorage.setItem('smart_complaint_google_client_id', promptId.trim());
+        window.location.reload();
+        return;
+      }
+      setError('Google Sign-In requires a Google Cloud OAuth Client ID (VITE_GOOGLE_CLIENT_ID). Please provide your Client ID or use Continue with Email.');
+      return;
+    }
+
+    if (!window.google?.accounts?.oauth2) {
+      setError('Google Identity Services SDK is initializing. Please check your internet connection and click again.');
+      return;
+    }
+
+    try {
+      setGoogleLoading(true);
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId,
-        callback: async (response) => {
+        scope: 'openid email profile',
+        hd: 'iiitnr.edu.in',
+        prompt: 'select_account',
+        callback: async (tokenResponse) => {
+          if (tokenResponse.error) {
+            setError(`Google Sign-In was cancelled or failed: ${tokenResponse.error}`);
+            setGoogleLoading(false);
+            return;
+          }
+
           try {
-            setGoogleLoading(true);
-            const user = await loginGoogle({ credential: response.credential, remember_me: true });
+            // Retrieve verified institutional profile from Google
+            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+            });
+            const profile = await userInfoRes.json();
+
+            // Strict IIIT-NR verification
+            if (!profile.email || !profile.email.toLowerCase().endsWith('@iiitnr.edu.in')) {
+              setError('Access denied: Google Sign-In is strictly restricted to official @iiitnr.edu.in institutional accounts. Personal Gmail is blocked.');
+              setGoogleLoading(false);
+              return;
+            }
+
+            // Authenticate with backend and obtain 30-day persistent session
+            const user = await loginGoogle({
+              email: profile.email,
+              name: profile.name,
+              picture: profile.picture,
+              remember_me: true,
+            });
             handleRoleRedirect(user);
           } catch (err) {
-            setError(err.response?.data?.detail || err.message || 'Google Sign-In failed.');
+            setError(err.response?.data?.detail || err.message || 'Google account verification failed.');
             setGoogleLoading(false);
           }
         },
-        hosted_domain: 'iiitnr.edu.in',
       });
-      window.google.accounts.id.prompt();
-      return;
-    }
 
-    // Direct Google Workspace authentication with the entered email
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail) {
-      setError('Please enter your @iiitnr.edu.in email address, then click Continue with Google.');
-      return;
-    }
-
-    if (!cleanEmail.endsWith('@iiitnr.edu.in')) {
-      setError('Access restricted: Only official @iiitnr.edu.in institutional accounts are permitted. Personal Gmail accounts are blocked.');
-      return;
-    }
-
-    setGoogleLoading(true);
-    try {
-      const user = await loginGoogle({
-        email: cleanEmail,
-        remember_me: true,
-      });
-      handleRoleRedirect(user);
+      // Opens the standard Google popup window!
+      tokenClient.requestAccessToken({ prompt: 'select_account' });
     } catch (err) {
-      setError(
-        err.response?.data?.detail ||
-        err.message ||
-        'Google Workspace verification failed. Ensure you are using an official @iiitnr.edu.in account.'
-      );
+      setError(`Failed to open Google popup: ${err.message}`);
       setGoogleLoading(false);
     }
   };

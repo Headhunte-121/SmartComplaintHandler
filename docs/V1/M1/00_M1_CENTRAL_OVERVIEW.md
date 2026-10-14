@@ -476,12 +476,19 @@ npm run dev
   3. **Direct Google Identity Services (GIS):** Added the official Google GIS SDK (`https://accounts.google.com/gsi/client`) to `frontend/index.html` with automated `@iiitnr.edu.in` domain restriction.
 * **Why It Was Changed:** Satisfies user feedback to match the standard layout used by modern websites (like Vercel login), offering strictly the Google and Email options without redundant popups or extra dialogs.
 * **Cross-Module Impact:** Simplifies authentication UX for all students and staff accessing M2 grievance lodging, M4 operations desk, and M5 student portal.
+
+### [2026-10-14] - Native Google OAuth Popup Trigger: Zero Pre-fill & Direct Account Chooser
+* **Files Modified:**
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Direct Google OAuth Popup (`initTokenClient`):** Upgraded `handleContinueWithGoogle` across both `Login.jsx` and `Register.jsx` to utilize `window.google.accounts.oauth2.initTokenClient` with prompt `select_account`.
+  2. **Zero Pre-fill Requirement:** Completely eliminated any requirement or prompt asking users to fill their institutional ID or email before clicking "Continue with Google". Clicking the button directly opens the native browser Google OAuth account selector centered on `accounts.google.com`.
+  3. **Automated User Profile Extraction:** Securely retrieves the authenticated user's profile from `https://www.googleapis.com/oauth2/v3/userinfo` with Bearer token, strictly verifies the `@iiitnr.edu.in` domain, extracts the official full real name and profile picture, and registers/logs in the user seamlessly with 30-day persistence.
+  4. **Client ID Fallback:** Added interactive fallback configuration for `VITE_GOOGLE_CLIENT_ID` (persisting to `localStorage`), allowing instant setup without rebuilding deployments if the environment variable is pending in Vercel.
+* **Why It Was Changed:** Addresses user feedback stating "when i click continue with google it should do the standard google popup not fill institute id thing".
+* **Cross-Module Impact:** Provides frictionless one-click single sign-on across the student grievance submission and tracking flows.
 * **Verification Proof:**
-  - Frontend Production Build: `npm run build` compiled in 1.51s with 0 errors.
-  - Backend Test Suite: 47/47 tests passed cleanly.
-
-
-
-
-
-
+  - Frontend Production Build: `npm run build` compiled successfully in 1.31s without errors.
+  - Backend Test Suite: 47/47 pytest unit & integration tests passing cleanly.
