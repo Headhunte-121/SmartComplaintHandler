@@ -103,19 +103,21 @@ export function AuthProvider({ children }) {
   // Load initial session: check persistent localStorage first, then session-scoped sessionStorage
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const persisted = localStorage.getItem('smart_complaint_auth_user');
-      if (persisted) {
-        return enrichUser(JSON.parse(persisted));
+      const persistedUser = localStorage.getItem('smart_complaint_auth_user');
+      const persistedToken = localStorage.getItem('smart_complaint_auth_token');
+      if (persistedUser && persistedToken) {
+        return enrichUser(JSON.parse(persistedUser));
       }
-      const sessioned = sessionStorage.getItem('smart_complaint_auth_user');
-      if (sessioned) {
-        return enrichUser(JSON.parse(sessioned));
+      const sessionedUser = sessionStorage.getItem('smart_complaint_auth_user');
+      const sessionedToken = sessionStorage.getItem('smart_complaint_auth_token');
+      if (sessionedUser && sessionedToken) {
+        return enrichUser(JSON.parse(sessionedUser));
       }
     } catch (e) {
       console.warn('Failed to parse cached auth user:', e);
     }
-    // Default initial user for instant interaction
-    return CAMPUS_PERSONAS[0];
+    // No session active by default — user MUST log in
+    return null;
   });
 
   const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
@@ -216,7 +218,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         currentUser,
-        currentPersona: currentUser || CAMPUS_PERSONAS[0],
+        currentPersona: currentUser,
         personas: CAMPUS_PERSONAS,
         rememberedEmail,
         login,

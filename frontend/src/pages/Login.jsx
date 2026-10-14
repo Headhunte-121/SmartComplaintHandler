@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, rememberedEmail } = useAuth();
+  const { login, rememberedEmail, currentUser } = useAuth();
 
   const [email, setEmail] = useState(rememberedEmail || '');
   const [password, setPassword] = useState('');
@@ -18,6 +18,20 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successUser, setSuccessUser] = useState(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      const redirect =
+        currentUser.role === 'SUPER_ADMIN'
+          ? '/superadmin'
+          : currentUser.role === 'ADMIN'
+          ? '/admin'
+          : currentUser.role === 'TECHNICIAN'
+          ? '/technician'
+          : '/submit';
+      navigate(redirect, { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   useEffect(() => {
     if (rememberedEmail) {

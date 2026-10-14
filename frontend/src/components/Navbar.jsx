@@ -12,7 +12,6 @@ export default function Navbar() {
   const navigate = useNavigate();
   const {
     currentUser,
-    openPersonaModal,
     logout,
     isStudent,
     isTechnician,
@@ -176,11 +175,9 @@ export default function Navbar() {
             {/* Authenticated User Account Card */}
             {currentUser ? (
               <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  onClick={openPersonaModal}
-                  className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300 transition-all text-left shadow-2xs cursor-pointer"
-                  title="Switch account persona"
+                <div
+                  className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 text-left shadow-2xs select-none"
+                  title={`Logged in as ${currentUser.name} (${currentUser.roleLabel || currentUser.role})`}
                 >
                   <span className="text-xl">{currentUser.avatar || '👤'}</span>
                   <div className="leading-tight">
@@ -194,7 +191,7 @@ export default function Navbar() {
                       {currentUser.email}
                     </div>
                   </div>
-                </button>
+                </div>
 
                 <button
                   onClick={handleLogout}
@@ -218,13 +215,11 @@ export default function Navbar() {
 
           {/* Mobile Actions */}
           <div className="flex md:hidden items-center space-x-2">
-            <button
-              onClick={openPersonaModal}
-              className="p-1.5 text-lg rounded-xl border border-slate-200"
-              title="Switch Persona"
-            >
-              {currentUser?.avatar || '👤'}
-            </button>
+            {currentUser && (
+              <span className="p-1.5 text-lg rounded-xl border border-slate-200">
+                {currentUser?.avatar || '👤'}
+              </span>
+            )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100"
@@ -308,13 +303,25 @@ export default function Navbar() {
               </NavLink>
             )}
 
-            <NavLink
-              to="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
-            >
-              Institutional Login (@iiitnr.edu.in)
-            </NavLink>
+            {currentUser ? (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full text-left px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <span>Sign Out ({currentUser.name})</span>
+              </button>
+            ) : (
+              <NavLink
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
+              >
+                Institutional Login (@iiitnr.edu.in)
+              </NavLink>
+            )}
           </div>
         )}
       </div>

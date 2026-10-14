@@ -65,6 +65,22 @@ function NotFound() {
   );
 }
 
+function RootIndexRedirect() {
+  const { currentUser } = useAuth();
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+  const redirect =
+    currentUser.role === 'STUDENT'
+      ? '/submit'
+      : currentUser.role === 'SUPER_ADMIN'
+      ? '/superadmin'
+      : currentUser.role === 'TECHNICIAN'
+      ? '/technician'
+      : '/admin';
+  return <Navigate to={redirect} replace />;
+}
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -73,19 +89,40 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Main Application Shell (With Persistent Navbar & Footer) */}
+        {/* Main Application Shell (Strictly Protected - Requires Authentication) */}
         <Route path="/" element={<Layout />}>
-          {/* Institutional Homepage */}
-          <Route index element={<Home />} />
+          {/* Index Route -> Redirects immediately to role workspace */}
+          <Route index element={<RootIndexRedirect />} />
 
           {/* Grievance Submission — Accessible to students, staff, and faculty */}
-          <Route path="submit" element={<SubmitComplaint />} />
+          <Route
+            path="submit"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN', 'SUPER_ADMIN']}>
+                <SubmitComplaint />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Public Status Tracker */}
-          <Route path="track" element={<TrackTicket />} />
+          {/* Ticket Status Tracker */}
+          <Route
+            path="track"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN', 'SUPER_ADMIN', 'TECHNICIAN']}>
+                <TrackTicket />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Student Self-Service Grievance Portal — Accessible to Students & Admins */}
-          <Route path="student" element={<StudentDashboard />} />
+          <Route
+            path="student"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN', 'SUPER_ADMIN']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Field Squad Technician Workstation — Protected for Staff & Admins */}
           <Route
@@ -118,7 +155,14 @@ export default function AppRouter() {
           />
 
           {/* Technical Architecture & Component Verification */}
-          <Route path="developer" element={<DeveloperLab />} />
+          <Route
+            path="developer"
+            element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/submit">
+                <DeveloperLab />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Catch-all 404 */}
           <Route path="*" element={<NotFound />} />

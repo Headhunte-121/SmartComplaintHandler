@@ -18,7 +18,7 @@ const DEPARTMENTS = [
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, currentUser } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,6 +32,20 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successUser, setSuccessUser] = useState(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      const redirect =
+        currentUser.role === 'SUPER_ADMIN'
+          ? '/superadmin'
+          : currentUser.role === 'ADMIN'
+          ? '/admin'
+          : currentUser.role === 'TECHNICIAN'
+          ? '/technician'
+          : '/submit';
+      navigate(redirect, { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   const handleRegister = async (e) => {
     e.preventDefault();

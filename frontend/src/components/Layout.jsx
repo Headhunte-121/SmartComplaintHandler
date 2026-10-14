@@ -4,12 +4,18 @@
  * Role: Persistent layout wrapper rendering Navbar, dynamic page Outlet, Footer, and Persona Switcher Modal.
  */
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import PersonaSwitcherModal from './PersonaSwitcherModal';
+import { useAuth } from '../context/AuthContext';
 
 export default function Layout() {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
       {/* Top Persistent Navigation Bar */}
@@ -22,9 +28,6 @@ export default function Layout() {
 
       {/* Persistent Global Footer */}
       <Footer />
-
-      {/* Global Persona Switcher Modal */}
-      <PersonaSwitcherModal />
     </div>
   );
 }
