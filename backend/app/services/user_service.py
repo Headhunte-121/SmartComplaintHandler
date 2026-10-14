@@ -28,7 +28,7 @@ from app.core.security import (
     REMEMBER_ME_EXPIRE_DAYS,
 )
 
-STUDENT_PATTERN = re.compile(r"^([a-zA-Z]+)(\d{2})(\d{2,4})@iiitnr\.edu\.in$", re.IGNORECASE)
+STUDENT_PATTERN = re.compile(r"^([a-zA-Z]+)(\d{2})(\d{2,5})@iiitnr\.edu\.in$", re.IGNORECASE)
 
 
 def resolve_user_metadata(email: str) -> Dict[str, str]:
@@ -63,12 +63,27 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
     if match:
         raw_name = match.group(1).title()
         year = match.group(2)
-        roll = match.group(3)
-        roll_no = f"20{year}BCS{roll.zfill(3)}"
+        code = match.group(3)
+
+        # IIIT-NR Institutional Branch Taxonomy:
+        # 100 -> CSE (Computer Science & Engineering)
+        # 101 -> DSAI (Data Science & Artificial Intelligence)
+        # 102 -> ECE (Electronics & Communication Engineering)
+        if code.startswith("101"):
+            dept_name = "Data Science & Artificial Intelligence"
+            dept_code = "DSAI"
+        elif code.startswith("102"):
+            dept_name = "Electronics & Communication Engineering"
+            dept_code = "ECE"
+        else:
+            dept_name = "Computer Science & Engineering"
+            dept_code = "CSE"
+
+        roll_no = f"20{year}{dept_code}{code}"
         return {
             "name": raw_name,
             "role": "STUDENT",
-            "department_name": "Computer Science & Engineering",
+            "department_name": dept_name,
             "identifier": f"Roll: {roll_no} (Batch '20{year})",
         }
 

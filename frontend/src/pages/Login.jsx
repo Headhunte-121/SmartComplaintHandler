@@ -88,8 +88,12 @@ export default function Login() {
       <div className="max-w-md w-full space-y-6">
         {/* Institutional Branding */}
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 mx-auto rounded-3xl bg-indigo-600 text-white flex items-center justify-center font-black text-3xl shadow-xl shadow-indigo-600/25 ring-4 ring-indigo-50">
-            🏛️
+          <div className="mx-auto flex justify-center mb-2">
+            <img
+              src="/iiitnr_logo.png"
+              alt="IIIT Naya Raipur Official Logo"
+              className="h-20 w-auto object-contain drop-shadow-md"
+            />
           </div>
           <div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -136,25 +140,22 @@ export default function Login() {
               {/* Email / ID Input */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Institutional Email / Student ID
+                  Institutional Email ID
                 </label>
                 <div className="relative">
                   <input
                     type="email"
                     required
                     autoFocus
-                    placeholder="name(year)(roll)@iiitnr.edu.in"
+                    placeholder="Enter your email address"
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setError(null);
                     }}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-xs font-mono text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
                   />
                 </div>
-                <span className="text-[11px] text-slate-400">
-                  Must end with <code className="text-indigo-600 font-mono">@iiitnr.edu.in</code>
-                </span>
               </div>
 
               {/* Password Input */}
@@ -235,7 +236,7 @@ export default function Login() {
 
         {/* Security Footer Notice */}
         <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-          Connected to Central Supabase PostgreSQL. Unauthorized access is monitored under institutional IT regulations.
+          Dr. Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur
         </p>
       </div>
     </div>

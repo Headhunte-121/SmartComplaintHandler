@@ -1,12 +1,14 @@
+import os
 import sys
-from pathlib import Path
 
-# Ensure backend directory is in sys.path so app packages are resolvable in serverless
-BACKEND_DIR = Path(__file__).resolve().parent.parent
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+# Ensure backend root is on sys.path
+api_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.dirname(api_dir)
+
+for path in [backend_dir, api_dir, os.getcwd()]:
+    if path and path not in sys.path:
+        sys.path.insert(0, path)
 
 from app.main import app
 
-# Expose app for Vercel Python runtime
-app = app
+handler = app

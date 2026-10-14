@@ -103,13 +103,34 @@ export default function Register() {
     }
   };
 
+  const handleEmailChange = (val) => {
+    setEmail(val);
+    setError(null);
+    const lower = val.toLowerCase().trim();
+    const match = lower.match(/^([a-z]+)(\d{2})(\d{2,5})@/);
+    if (match) {
+      const code = match[3];
+      if (code.startsWith('101')) {
+        setDepartment('Data Science & Artificial Intelligence');
+      } else if (code.startsWith('102')) {
+        setDepartment('Electronics & Communication Engineering');
+      } else if (code.startsWith('100')) {
+        setDepartment('Computer Science & Engineering');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-indigo-50/40 flex flex-col justify-center items-center px-4 py-12">
       <div className="max-w-md w-full space-y-6">
         {/* Institutional Branding */}
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 mx-auto rounded-3xl bg-indigo-600 text-white flex items-center justify-center font-black text-3xl shadow-xl shadow-indigo-600/25 ring-4 ring-indigo-50">
-            🏛️
+          <div className="mx-auto flex justify-center mb-2">
+            <img
+              src="/iiitnr_logo.png"
+              alt="IIIT Naya Raipur Official Logo"
+              className="h-20 w-auto object-contain drop-shadow-md"
+            />
           </div>
           <div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -179,13 +200,10 @@ export default function Register() {
                 <input
                   type="email"
                   required
-                  placeholder="name(year)(roll)@iiitnr.edu.in"
+                  placeholder="Enter your email address"
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setError(null);
-                  }}
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-mono text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15 transition-all"
                 />
               </div>
 
@@ -299,7 +317,7 @@ export default function Register() {
 
         {/* Security Footer Notice */}
         <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-          Connected to Central Supabase PostgreSQL.
+          Dr. Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur
         </p>
       </div>
     </div>

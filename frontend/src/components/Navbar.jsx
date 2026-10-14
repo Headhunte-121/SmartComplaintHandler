@@ -59,9 +59,11 @@ export default function Navbar() {
             to={isStudent ? '/submit' : isSuperAdmin ? '/superadmin' : isAdmin ? '/admin' : '/'}
             className="flex items-center space-x-3 group"
           >
-            <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform">
-              🏛️
-            </div>
+            <img
+              src="/iiitnr_logo.png"
+              alt="IIIT Naya Raipur Logo"
+              className="h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+            />
             <div>
               <div className="text-sm font-black text-slate-900 tracking-tight leading-tight">
                 IIIT Naya Raipur

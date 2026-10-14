@@ -14,18 +14,21 @@ from app.api.v1.router import api_router
 from app.core.database import SessionLocal
 from app.db.seed import seed_database
 
+import os
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        Base.metadata.create_all(bind=engine)
-        db = SessionLocal()
+    if not os.environ.get("VERCEL"):
         try:
-            seed_database(db)
-        finally:
-            db.close()
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning(f"Database lifespan startup notice: {e}")
+            Base.metadata.create_all(bind=engine)
+            db = SessionLocal()
+            try:
+                seed_database(db)
+            finally:
+                db.close()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Database lifespan startup notice: {e}")
     yield
 
 app = FastAPI(
