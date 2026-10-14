@@ -1,22 +1,26 @@
 """
 SmartComplaintHandler - Authentication & Super Admin Endpoints
-Role: Institutional registration, login with persistent Remember Me sessions, JWT issuance,
-      profile retrieval, and administrative actions under Super Admin authority.
+Role: Institutional registration, login with persistent Remember Me sessions,
+      Google Workspace OAuth2/OIDC SSO strictly restricted to @iiitnr.edu.in,
+      JWT issuance, profile retrieval, and Super Admin operations.
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Header, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.core.config import settings
 from app.schemas.user import (
     LoginRequest,
     RegisterRequest,
     GoogleAuthRequest,
+    GoogleAuthConfigResponse,
     AuthResponse,
     UserResponse,
     AdminCreateRequest,
     OTPRequest,
     OTPVerifyRequest,
+    IIITNR_DOMAIN,
 )
 from app.services.user_service import (
     authenticate_iiitnr_user,
@@ -34,6 +38,26 @@ from app.services.user_service import (
 router = APIRouter()
 
 
+@router.get(
+    "/config",
+    response_model=GoogleAuthConfigResponse,
+    summary="Get Public Institutional Auth & Google SSO Configuration",
+)
+def get_auth_config() -> GoogleAuthConfigResponse:
+    """
+    Returns the public Google OAuth 2.0 Client ID and mandatory @iiitnr.edu.in
+    hosted domain constraints for the frontend Google Identity Services SDK.
+    """
+    client_id = (settings.GOOGLE_CLIENT_ID or "").strip()
+    allowed_domain = (settings.GOOGLE_ALLOWED_DOMAIN or IIITNR_DOMAIN).strip().lower()
+    return GoogleAuthConfigResponse(
+        google_client_id=client_id,
+        allowed_domain=allowed_domain,
+        hosted_domain=allowed_domain,
+        google_sso_enabled=bool(client_id),
+    )
+
+
 @router.post("/send-otp", summary="Generate & Dispatch Verification OTP")
 def send_otp_endpoint(payload: OTPRequest):
     """Generate 6-digit verification OTP for institutional email."""
@@ -43,7 +67,7 @@ def send_otp_endpoint(payload: OTPRequest):
         "status": "success",
         "email": clean_email,
         "otp": otp,
-        "message": f"Verification code sent to {clean_email}."
+        "message": f"Verification code sent to {clean_email}.",
     }
 
 
@@ -55,12 +79,12 @@ def verify_otp_endpoint(payload: OTPVerifyRequest):
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification code."
+            detail="Invalid or expired verification code.",
         )
     return {
         "verified": True,
         "email": clean_email,
-        "message": "Institutional email verified successfully."
+        "message": "Institutional email verified successfully.",
     }
 
 
@@ -75,12 +99,13 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> AuthResponse:
     return authenticate_iiitnr_user(payload, db)
 
 
-@router.post("/google", response_model=AuthResponse, summary="Institutional Google Workspace SSO")
+@router.post("/google", response_model=AuthResponse, summary="Institutional Google Workspace SSO (@iiitnr.edu.in Only)")
 def google_sso(payload: GoogleAuthRequest, db: Session = Depends(get_db)) -> AuthResponse:
     """
     Authenticate or register an institutional user via official Google Workspace SSO.
-    Captures verified full real name (e.g. 'Nikhil Gavel') from Google profile,
-    strictly enforces @iiitnr.edu.in domain, and issues 30-day session token.
+    Verifies OAuth2 access_token / OIDC ID token, strictly enforces @iiitnr.edu.in
+    email and hosted domain (hd == 'iiitnr.edu.in'), captures verified full real name,
+    and issues a 30-day session token.
     """
     return authenticate_google_user(payload, db)
 
@@ -100,7 +125,7 @@ def get_me(authorization: Optional[str] = Header(None), db: Session = Depends(ge
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing or malformed Authorization header. Expected 'Bearer <token>'."
+            detail="Missing or malformed Authorization header. Expected 'Bearer <token>'.",
         )
     token = authorization.split("Bearer ")[1].strip()
     return get_current_user_from_token(token, db)
@@ -127,7 +152,7 @@ def remove_admin(user_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Staff account with ID {user_id} was not found."
+            detail=f"Staff account with ID {user_id} was not found.",
         )
     return {"message": f"Staff account #{user_id} revoked successfully."}
 

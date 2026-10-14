@@ -1,19 +1,23 @@
 /**
- * SmartComplaintHandler - Clean Institutional Login Portal
- * Modern two-step authentication matching standard Vercel layout:
+ * SmartComplaintHandler - Clean Institutional Login Portal (IIIT Naya Raipur)
+ * Production-Grade Two-Step Authentication + Google Workspace SSO (@iiitnr.edu.in Only):
  * Step 1: Identifier Screen
  *   - [ Email Address ]
- *   - [ Continue with Email ] -> validates domain and transitions to Step 2 (Password)
- *   - [ Continue with Google ] -> directly opens native Google OAuth popup (zero email pre-fill required)
+ *   - [ Continue with Email ] -> validates @iiitnr.edu.in domain and transitions to Step 2 (Password)
+ *   - [ Continue with Google (@iiitnr.edu.in) ] -> opens Google Workspace account chooser locked to
+ *     hosted_domain: 'iiitnr.edu.in', verifies hd & email_verified, revokes non-IIITNR tokens immediately,
+ *     and sends the OAuth access_token to the backend for server-side Google verification.
  * Step 2: Password Screen
  *   - Displays active institutional email with 'Change' action
  *   - [ Password ] field with show/hide toggle and Remember Me
  *   - [ Log In ] button
- *   - [ ← Use a different email ] navigation
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { fetchAuthConfig } from '../api/auth';
+
+const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -24,6 +28,12 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+
+  const [googleClientId, setGoogleClientId] = useState(
+    () => import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('smart_complaint_google_client_id') || ''
+  );
+  const [showClientIdModal, setShowClientIdModal] = useState(false);
+  const [clientIdInput, setClientIdInput] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -51,6 +61,19 @@ export default function Login() {
     }
   }, [rememberedEmail]);
 
+  // Discover Google Client ID from backend /api/v1/auth/config if not set in frontend env
+  useEffect(() => {
+    if (!googleClientId) {
+      fetchAuthConfig()
+        .then((cfg) => {
+          if (cfg?.google_client_id) {
+            setGoogleClientId(cfg.google_client_id);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [googleClientId]);
+
   const handleRoleRedirect = (user) => {
     setSuccessUser(user);
     let targetRoute = '/submit';
@@ -63,78 +86,114 @@ export default function Login() {
     }, 600);
   };
 
-  // Continue with Google Workspace: DIRECT standard Google popup (zero pre-fill required!)
-  const handleContinueWithGoogle = () => {
-    setError(null);
-    let clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('smart_complaint_google_client_id');
-
-    if (!clientId) {
-      const promptId = window.prompt(
-        'Google OAuth Setup:\nPlease enter your Google Cloud OAuth Client ID (e.g., xxxxxx.apps.googleusercontent.com):\n\nYou can also set VITE_GOOGLE_CLIENT_ID in your Vercel Environment Variables.'
-      );
-      if (promptId && promptId.trim()) {
-        clientId = promptId.trim();
-        localStorage.setItem('smart_complaint_google_client_id', clientId);
-      } else {
-        setError('Google Sign-In requires a Google Cloud OAuth Client ID (VITE_GOOGLE_CLIENT_ID). Please provide your Client ID or use Continue with Email.');
-        return;
-      }
-    }
-
+  const launchGoogleWorkspaceFlow = (activeClientId) => {
     if (!window.google?.accounts?.oauth2) {
-      setError('Google Identity Services SDK is initializing. Please check your internet connection and try again.');
+      setError('Google Identity Services SDK is still loading. Please check your internet connection and try again.');
       return;
     }
 
     try {
       setGoogleLoading(true);
-      const tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
+      const cleanHint = email.trim().toLowerCase();
+      const tokenClientConfig = {
+        client_id: activeClientId,
         scope: 'openid email profile',
-        hd: 'iiitnr.edu.in',
+        hosted_domain: ALLOWED_DOMAIN,
+        hd: ALLOWED_DOMAIN,
         prompt: 'select_account',
         callback: async (tokenResponse) => {
           if (tokenResponse.error) {
-            setError(`Google Sign-In was cancelled or failed: ${tokenResponse.error}`);
+            setError(`Google Sign-In was cancelled or failed: ${tokenResponse.error_description || tokenResponse.error}`);
             setGoogleLoading(false);
             return;
           }
 
           try {
-            // Retrieve verified institutional profile directly from Google
+            // 1. Fetch verified institutional profile from Google OIDC UserInfo endpoint
             const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
               headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
             });
+            if (!userInfoRes.ok) {
+              throw new Error('Failed to verify Google OAuth token with Google servers.');
+            }
             const profile = await userInfoRes.json();
 
-            // Strict IIIT-NR verification
-            if (!profile.email || !profile.email.toLowerCase().endsWith('@iiitnr.edu.in')) {
-              setError('Access denied: Google Sign-In is strictly restricted to official @iiitnr.edu.in institutional accounts. Personal Gmail is blocked.');
+            const userEmail = (profile.email || '').trim().toLowerCase();
+            const userHd = (profile.hd || '').trim().toLowerCase();
+            const isVerified = profile.email_verified !== false;
+
+            // 2. Strict IIIT-NR Workspace Gate (both email suffix AND Google Workspace hd claim must be iiitnr.edu.in)
+            if (!isVerified || !userEmail.endsWith(`@${ALLOWED_DOMAIN}`) || userHd !== ALLOWED_DOMAIN) {
+              if (window.google?.accounts?.oauth2?.revoke) {
+                window.google.accounts.oauth2.revoke(tokenResponse.access_token, () => {});
+              }
+              setError(
+                `Access denied: Google Sign-In is strictly restricted to official @${ALLOWED_DOMAIN} institutional accounts (${userEmail || 'personal account'} is not permitted).`
+              );
               setGoogleLoading(false);
               return;
             }
 
-            // Authenticate with backend and obtain 30-day persistent session
+            // 3. Send access_token and verified profile to backend for server-side verification & JWT issuance
             const user = await loginGoogle({
-              email: profile.email,
+              access_token: tokenResponse.access_token,
+              email: userEmail,
               name: profile.name,
               picture: profile.picture,
+              hd: userHd,
+              email_verified: isVerified,
               remember_me: true,
             });
             handleRoleRedirect(user);
           } catch (err) {
-            setError(err.response?.data?.detail || err.message || 'Google account verification failed.');
+            setError(err.response?.data?.detail || err.message || 'Institutional Google account verification failed.');
             setGoogleLoading(false);
           }
         },
-      });
+      };
 
-      // Opens the standard Google popup window!
+      if (cleanHint.endsWith(`@${ALLOWED_DOMAIN}`)) {
+        tokenClientConfig.hint = cleanHint;
+      }
+
+      const tokenClient = window.google.accounts.oauth2.initTokenClient(tokenClientConfig);
       tokenClient.requestAccessToken({ prompt: 'select_account' });
     } catch (err) {
-      setError(`Failed to open Google popup: ${err.message}`);
+      setError(`Failed to initialize Google Workspace Sign-In: ${err.message}`);
       setGoogleLoading(false);
     }
+  };
+
+  // Continue with Google Workspace (@iiitnr.edu.in only)
+  const handleContinueWithGoogle = () => {
+    setError(null);
+    const activeClientId = (
+      googleClientId ||
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      localStorage.getItem('smart_complaint_google_client_id') ||
+      ''
+    ).trim();
+
+    if (!activeClientId) {
+      setShowClientIdModal(true);
+      return;
+    }
+
+    launchGoogleWorkspaceFlow(activeClientId);
+  };
+
+  const handleSaveClientIdAndContinue = (e) => {
+    e.preventDefault();
+    const cleaned = clientIdInput.trim();
+    if (!cleaned || !cleaned.includes('.apps.googleusercontent.com')) {
+      setError('Please enter a valid Google Cloud OAuth 2.0 Client ID ending in .apps.googleusercontent.com');
+      return;
+    }
+    localStorage.setItem('smart_complaint_google_client_id', cleaned);
+    setGoogleClientId(cleaned);
+    setShowClientIdModal(false);
+    setError(null);
+    launchGoogleWorkspaceFlow(cleaned);
   };
 
   // Step 1: Submit Email -> Transition to Password Step
@@ -148,8 +207,8 @@ export default function Login() {
       return;
     }
 
-    if (!cleanEmail.endsWith('@iiitnr.edu.in')) {
-      setError('Access restricted: Only official @iiitnr.edu.in institutional accounts are permitted.');
+    if (!cleanEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
+      setError(`Access restricted: Only official @${ALLOWED_DOMAIN} institutional accounts are permitted.`);
       return;
     }
 
@@ -174,8 +233,8 @@ export default function Login() {
     } catch (err) {
       setError(
         err.response?.data?.detail ||
-        err.message ||
-        'Invalid institutional credentials. Please check your email and password.'
+          err.message ||
+          'Invalid institutional credentials. Please check your email and password.'
       );
       setLoading(false);
     }
@@ -198,7 +257,7 @@ export default function Login() {
               IIIT Naya Raipur
             </h1>
             <p className="text-xs text-slate-500 font-medium">
-              Campus Facilities & Grievance Management System
+              Campus Facilities &amp; Grievance Management System
             </p>
           </div>
         </div>
@@ -212,7 +271,7 @@ export default function Login() {
             <p className="text-xs text-slate-500">
               {step === 'password'
                 ? 'Sign in with your institutional credentials'
-                : 'Access your student or campus facilities account'}
+                : 'Restricted exclusively to official @iiitnr.edu.in accounts'}
             </p>
           </div>
 
@@ -231,13 +290,13 @@ export default function Login() {
           ) : (
             <div className="space-y-4">
               {error && (
-                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2 animate-fade-in">
-                  <span>⚠️</span>
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start space-x-2 animate-fade-in">
+                  <span className="shrink-0">⚠️</span>
                   <span>{error}</span>
                 </div>
               )}
 
-              {/* Step 1: Identifier View (Matches Vercel Layout) */}
+              {/* Step 1: Identifier View */}
               {step === 'email' ? (
                 <div className="space-y-3.5 animate-fade-in">
                   <form onSubmit={handleContinueWithEmail} className="space-y-3">
@@ -246,7 +305,7 @@ export default function Login() {
                         type="email"
                         required
                         autoFocus
-                        placeholder="Email Address"
+                        placeholder="name@iiitnr.edu.in"
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
@@ -265,14 +324,22 @@ export default function Login() {
                     </button>
                   </form>
 
-                  {/* Standard Google OAuth Button (Zero Pre-fill required) */}
+                  <div className="relative flex py-1 items-center">
+                    <div className="grow border-t border-slate-200" />
+                    <span className="shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Institutional SSO
+                    </span>
+                    <div className="grow border-t border-slate-200" />
+                  </div>
+
+                  {/* Official Google Workspace OAuth Button (@iiitnr.edu.in Only) */}
                   <button
                     type="button"
                     onClick={handleContinueWithGoogle}
                     disabled={googleLoading || loading}
                     className="w-full py-3 bg-white hover:bg-slate-50 border border-slate-300 active:scale-[0.99] text-slate-800 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
                   >
-                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                       <path
                         fill="#4285F4"
                         d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
@@ -291,14 +358,14 @@ export default function Login() {
                       />
                     </svg>
                     {googleLoading ? (
-                      <span>Opening Google Account Chooser...</span>
+                      <span>Verifying @iiitnr.edu.in Google Account...</span>
                     ) : (
-                      <span>Continue with Google</span>
+                      <span>Continue with Google (@iiitnr.edu.in)</span>
                     )}
                   </button>
                 </div>
               ) : (
-                /* Step 2: Password Screen (Triggered once user enters email) */
+                /* Step 2: Password Screen */
                 <form onSubmit={handleLoginSubmit} className="space-y-4 animate-fade-in">
                   {/* Email Summary Pill with Change Button */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
@@ -407,6 +474,60 @@ export default function Login() {
           Dr. Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur
         </p>
       </div>
+
+      {/* Clean Inline Google Client ID Configuration Modal (Shown only if VITE_GOOGLE_CLIENT_ID is not set in .env) */}
+      {showClientIdModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                  Google Workspace OAuth Setup
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-1">
+                  Configure IIIT-NR Google Client ID
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowClientIdModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Set <code className="font-mono font-bold text-slate-700">VITE_GOOGLE_CLIENT_ID</code> in <code className="font-mono text-slate-700">frontend/.env</code> (and <code className="font-mono font-bold text-slate-700">GOOGLE_CLIENT_ID</code> in <code className="font-mono text-slate-700">backend/.env</code>), or paste your OAuth 2.0 Web Client ID below:
+            </p>
+            <form onSubmit={handleSaveClientIdAndContinue} className="space-y-3">
+              <input
+                type="text"
+                required
+                autoFocus
+                placeholder="xxxxxxxxxxxx-xxxxxxxxxxxxxxxx.apps.googleusercontent.com"
+                value={clientIdInput}
+                onChange={(e) => setClientIdInput(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-mono text-slate-800 focus:border-indigo-600 focus:outline-none"
+              />
+              <div className="flex items-center justify-end space-x-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowClientIdModal(false)}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white"
+                >
+                  Save &amp; Continue with Google
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

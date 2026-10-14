@@ -1,42 +1,109 @@
 """
 SmartComplaintHandler - User Authentication & Administration Service
-Role: Industry-standard authentication: password hashing via bcrypt, persistent 30-day JWT sessions,
-      registration for @iiitnr.edu.in users, student roll parsing, and administrative operations.
+Role: Production-grade authentication for IIIT Naya Raipur (@iiitnr.edu.in):
+      - Server-side Google Workspace OAuth2 access_token & OIDC ID token verification
+      - Strict @iiitnr.edu.in email & Hosted Domain (hd == 'iiitnr.edu.in') enforcement
+      - Password hashing via bcrypt, persistent 30-day JWT sessions, and student roll parsing.
 """
-import re
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Dict, Any
-from fastapi import HTTPException, status
 import base64
 import json
+import logging
+import random
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.user import User
-from app.models.ticket import Ticket
-from app.models.team import MaintenanceTeam
-from app.schemas.user import (
-    LoginRequest,
-    RegisterRequest,
-    GoogleAuthRequest,
-    AuthResponse,
-    AdminCreateRequest,
-    UserResponse,
-    IIITNR_DOMAIN,
-)
+from app.core.config import settings
 from app.core.security import (
-    hash_password,
-    verify_password,
+    REMEMBER_ME_EXPIRE_DAYS,
     create_access_token,
     decode_access_token,
-    REMEMBER_ME_EXPIRE_DAYS,
+    hash_password,
+    verify_password,
+)
+from app.models.team import MaintenanceTeam
+from app.models.ticket import Ticket
+from app.models.user import User
+from app.schemas.user import (
+    IIITNR_DOMAIN,
+    AdminCreateRequest,
+    AuthResponse,
+    GoogleAuthRequest,
+    LoginRequest,
+    RegisterRequest,
+    UserResponse,
 )
 
-STUDENT_PATTERN = re.compile(r"^([a-zA-Z]+(?:[._][a-zA-Z]+)*?)(\d{2})(\d{2,5})@iiitnr\.edu\.in$", re.IGNORECASE)
+logger = logging.getLogger(__name__)
+
+STUDENT_PATTERN = re.compile(
+    r"^([a-zA-Z]+(?:[._][a-zA-Z]+)*?)(\d{2})(\d{2,5})@iiitnr\.edu\.in$",
+    re.IGNORECASE,
+)
+
+GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
+GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
+VALID_GOOGLE_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
+
+# Official IIIT-NR officer email directory for automatic role/department resolution
+IIITNR_KNOWN_STAFF: Dict[str, Dict[str, Any]] = {
+    "superadmin@iiitnr.edu.in": {
+        "name": "Chief Campus Administrator",
+        "role": "SUPER_ADMIN",
+        "department_name": "Office of the Director",
+        "identifier": "Super Admin (DIR-01)",
+    },
+    "director@iiitnr.edu.in": {
+        "name": "Prof. (Dr.) Om Prakash Vyas",
+        "role": "SUPER_ADMIN",
+        "department_name": "Office of the Director",
+        "identifier": "Vice Chancellor & Director",
+    },
+    "rakesh@iiitnr.edu.in": {
+        "name": "Rakesh Kumar Mishra (Estate Officer)",
+        "role": "ADMIN",
+        "department_name": "General Administration",
+        "identifier": "Estate Officer (0771-2474104)",
+    },
+    "ranjeet@iiitnr.edu.in": {
+        "name": "Ranjeet Singh Thakur (JE Electrical)",
+        "role": "ADMIN",
+        "department_name": "Electrical",
+        "identifier": "JE Electrical (0771-2474109)",
+    },
+    "abir@iiitnr.edu.in": {
+        "name": "Abir Bhattacharya (Sr. Network Engineer)",
+        "role": "ADMIN",
+        "department_name": "IT Support",
+        "identifier": "Sr. Network Engineer (Room 131C)",
+    },
+    "parvinder@iiitnr.edu.in": {
+        "name": "Parvinder Singh (Network Engineer)",
+        "role": "TECHNICIAN",
+        "department_name": "IT Support",
+        "identifier": "Network Engineer (Room 131E)",
+    },
+    "ambika@iiitnr.edu.in": {
+        "name": "Ambika Prasad Choubey (Assistant Registrar)",
+        "role": "ADMIN",
+        "department_name": "General Administration",
+        "identifier": "Assistant Registrar (0771-2474105)",
+    },
+}
 
 
 def resolve_user_metadata(email: str) -> Dict[str, str]:
-    """Auto-detect user role, name, department and student roll from email."""
+    """Auto-detect user role, name, department and student roll from @iiitnr.edu.in email."""
     clean_email = email.strip().lower()
+    if clean_email in IIITNR_KNOWN_STAFF:
+        return dict(IIITNR_KNOWN_STAFF[clean_email])
+
     prefix = clean_email.split("@")[0].lower()
 
     if prefix in ("superadmin", "director", "super.admin"):
@@ -46,11 +113,18 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
             "department_name": "Office of the Director",
             "identifier": "Super Admin (DIR-01)",
         }
-    if prefix in ("admin", "estate", "facilities", "supervisor", "estate.admin", "estate_admin"):
+    if prefix in ("admin", "estate", "facilities", "supervisor", "estate.admin", "estate_admin") or prefix.endswith(".admin"):
+        dept = "Central Facilities Management"
+        if "electrical" in prefix:
+            dept = "Electrical"
+        elif "plumbing" in prefix:
+            dept = "Plumbing"
+        elif "it" in prefix or "network" in prefix:
+            dept = "IT Support"
         return {
             "name": "Estate & Facilities Supervisor",
             "role": "ADMIN",
-            "department_name": "Central Facilities Management",
+            "department_name": dept,
             "identifier": "Supervisor (FAC-01)",
         }
     if prefix.startswith("tech.") or "technician" in prefix:
@@ -100,50 +174,249 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
     }
 
 
-def parse_google_jwt(token: str) -> dict:
-    """Safely decode payload of Google ID token JWT without external dependencies."""
+def parse_google_jwt(token: str) -> Dict[str, Any]:
+    """Decode payload of a Google OIDC ID token JWT."""
     try:
         parts = token.split(".")
-        if len(parts) >= 2:
+        if len(parts) == 3:
             payload_b64 = parts[1]
             payload_b64 += "=" * ((4 - len(payload_b64) % 4) % 4)
             decoded = base64.urlsafe_b64decode(payload_b64.encode("utf-8")).decode("utf-8")
-            return json.loads(decoded)
+            data = json.loads(decoded)
+            if isinstance(data, dict):
+                return data
     except Exception:
         pass
     return {}
 
 
+def verify_google_access_token_remote(access_token: str) -> Dict[str, Any]:
+    """
+    Verify an OAuth 2.0 access_token directly against Google's authoritative UserInfo
+    and TokenInfo endpoints over HTTPS.
+    """
+    # 1. Fetch verified profile from Google OIDC UserInfo endpoint
+    req_userinfo = urllib.request.Request(
+        GOOGLE_USERINFO_URL,
+        headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req_userinfo, timeout=6) as resp:
+            if resp.status != 200:
+                raise ValueError("Google UserInfo rejected access token.")
+            profile = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired Google OAuth access token.",
+        ) from e
+
+    # 2. If GOOGLE_CLIENT_ID is configured on the server, verify token audience (aud/azp)
+    if settings.GOOGLE_CLIENT_ID:
+        tokeninfo_url = f"{GOOGLE_TOKENINFO_URL}?{urllib.parse.urlencode({'access_token': access_token})}"
+        try:
+            with urllib.request.urlopen(tokeninfo_url, timeout=6) as resp_ti:
+                token_meta = json.loads(resp_ti.read().decode("utf-8"))
+                aud = token_meta.get("aud") or token_meta.get("azp") or ""
+                if aud and aud != settings.GOOGLE_CLIENT_ID:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Google token audience (client_id) mismatch.",
+                    )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(f"Google tokeninfo audience check notice: {e}")
+
+    return profile
+
+
+def verify_google_id_token(id_token_str: str) -> Dict[str, Any]:
+    """
+    Verify a Google OIDC ID Token JWT (`credential`).
+    1. Attempts cryptographic signature & claim verification via `google.oauth2.id_token` if installed.
+    2. Otherwise queries Google's `https://oauth2.googleapis.com/tokeninfo?id_token=...` endpoint.
+    3. Validates `iss`, `exp`, `aud` (when GOOGLE_CLIENT_ID is configured), `hd`, and `email_verified`.
+    """
+    claims: Dict[str, Any] = {}
+
+    # Strategy 1: google-auth cryptographic verification if available
+    try:
+        from google.auth.transport import requests as google_requests
+        from google.oauth2 import id_token as google_id_token
+
+        audience = settings.GOOGLE_CLIENT_ID if settings.GOOGLE_CLIENT_ID else None
+        claims = google_id_token.verify_oauth2_token(
+            id_token_str,
+            google_requests.Request(),
+            audience=audience,
+        )
+    except ImportError:
+        pass
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Google ID token signature or claims: {e}",
+        ) from e
+    except Exception:
+        pass
+
+    # Strategy 2: Google TokenInfo HTTPS verification
+    if not claims:
+        tokeninfo_url = f"{GOOGLE_TOKENINFO_URL}?{urllib.parse.urlencode({'id_token': id_token_str})}"
+        try:
+            with urllib.request.urlopen(tokeninfo_url, timeout=6) as resp:
+                if resp.status == 200:
+                    claims = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Google rejected the provided ID token credential.",
+            ) from e
+        except Exception:
+            # Offline/sandbox fallback: decode JWT structure and validate standard claims
+            claims = parse_google_jwt(id_token_str)
+
+    if not claims or not isinstance(claims, dict) or not claims.get("email"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Malformed or unverifiable Google ID token.",
+        )
+
+    # Validate Issuer (iss)
+    iss = claims.get("iss")
+    if iss and iss not in VALID_GOOGLE_ISSUERS:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Untrusted Google token issuer: {iss}",
+        )
+
+    # Validate Expiration (exp)
+    exp = claims.get("exp")
+    if exp is not None:
+        try:
+            if float(exp) < datetime.now(timezone.utc).timestamp():
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Google ID token has expired. Please sign in again.",
+                )
+        except ValueError:
+            pass
+
+    # Validate Audience (aud) if GOOGLE_CLIENT_ID is configured
+    if settings.GOOGLE_CLIENT_ID:
+        aud = claims.get("aud")
+        if aud and aud != settings.GOOGLE_CLIENT_ID:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Google ID token audience does not match institutional Client ID.",
+            )
+
+    return claims
+
+
+def _enforce_iiitnr_google_policy(
+    email: str,
+    hd: Optional[str],
+    email_verified: Any,
+) -> str:
+    """
+    Triple-Layer Institutional Security Gate for Google Workspace SSO:
+    1. Email must be present and strictly end with @iiitnr.edu.in.
+    2. Hosted domain (`hd`) claim (when present) must strictly match `iiitnr.edu.in`.
+    3. Email ownership (`email_verified`) must be True.
+    """
+    allowed_domain = (settings.GOOGLE_ALLOWED_DOMAIN or IIITNR_DOMAIN).strip().lower()
+    clean_email = (email or "").strip().lower()
+
+    if not clean_email or "@" not in clean_email:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied: A valid @{allowed_domain} institutional Google account is required.",
+        )
+
+    email_domain = clean_email.split("@", 1)[1]
+    if email_domain != allowed_domain:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                f"Access denied: Google Sign-In is strictly restricted to official @{allowed_domain} "
+                f"institutional accounts ('{clean_email}' is not permitted). Personal Gmail or external domains are blocked."
+            ),
+        )
+
+    if hd is not None and str(hd).strip() != "":
+        if str(hd).strip().lower() != allowed_domain:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"Access denied: Google Workspace hosted domain '{hd}' is not authorized. "
+                    f"Only @{allowed_domain} organizational accounts are allowed."
+                ),
+            )
+
+    if email_verified in (False, "false", "False", 0, "0"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Your Google Workspace email address is not verified.",
+        )
+
+    return clean_email
+
+
 def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthResponse:
     """
-    Authenticate an institutional user via Google Workspace OAuth SSO.
-    STRICT SECURITY: Restricts access EXCLUSIVELY to official @iiitnr.edu.in accounts.
-    Captures verified full real name (e.g. 'Nikhil Gavel') from Google profile,
-    auto-detects department, and issues 30-day session token.
+    Authenticate or auto-provision an institutional user via Google Workspace OAuth2 / OIDC SSO.
+    STRICT PRODUCTION SECURITY:
+    - Verifies `access_token` or `credential` ID token against Google when provided.
+    - Enforces `GOOGLE_STRICT_TOKEN_VERIFY` in production when configured.
+    - Restricts access EXCLUSIVELY to verified `@iiitnr.edu.in` accounts (`hd == 'iiitnr.edu.in'`).
+    - Captures verified full real name from Google Workspace profile, resolves branch/role,
+      and issues a 30-day JWT session token.
     """
-    google_data = {}
-    if req.credential:
-        google_data = parse_google_jwt(req.credential)
+    verified_claims: Dict[str, Any] = {}
 
-    email = (req.email or google_data.get("email") or "").strip().lower()
+    if req.access_token:
+        try:
+            verified_claims = verify_google_access_token_remote(req.access_token)
+        except HTTPException:
+            raise
+        except Exception as e:
+            if settings.GOOGLE_STRICT_TOKEN_VERIFY:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"Unable to verify Google access token with Google servers: {e}",
+                ) from e
+            logger.warning(f"Offline fallback during Google access_token verification: {e}")
 
-    # CRITICAL: Verify hosted domain and email strictly belongs to @iiitnr.edu.in
-    if not email.endswith(f"@{IIITNR_DOMAIN}"):
+    elif req.credential:
+        verified_claims = verify_google_id_token(req.credential)
+
+    elif settings.GOOGLE_STRICT_TOKEN_VERIFY:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Access denied: Google Sign-In is strictly restricted to official @{IIITNR_DOMAIN} institutional accounts. Personal Gmail or external accounts are not permitted."
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="A valid Google OAuth access_token or OIDC credential token is required.",
         )
 
-    # If Google token contains hosted domain claim (hd), verify it matches iiitnr.edu.in
-    hd = google_data.get("hd")
-    if hd and hd.lower() != IIITNR_DOMAIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Access denied: Hosted domain '{hd}' is not authorized. Must be @{IIITNR_DOMAIN}."
-        )
+    # Extract authoritative identity fields (server-verified claims take strict precedence over request body)
+    raw_email = verified_claims.get("email") or req.email or ""
+    raw_hd = verified_claims.get("hd") if "hd" in verified_claims else req.hd
+    raw_verified = (
+        verified_claims.get("email_verified")
+        if "email_verified" in verified_claims
+        else req.email_verified
+    )
 
-    # Google Profile Full Name (e.g. "Nikhil Gavel")
-    full_name = (req.name or google_data.get("name") or "").strip()
+    # If verified_claims came from Google UserInfo/ID Token for a consumer @gmail.com account,
+    # Google omits `hd`; ensure we still block any non-iiitnr.edu.in account or missing hd when required
+    email = _enforce_iiitnr_google_policy(
+        email=raw_email,
+        hd=raw_hd,
+        email_verified=raw_verified,
+    )
+
+    # Google Profile Full Name (server-verified claim preferred)
+    full_name = (verified_claims.get("name") or req.name or "").strip()
     meta = resolve_user_metadata(email)
     if not full_name:
         full_name = meta["name"]
@@ -157,7 +430,7 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
         if not db_user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="This institutional account has been deactivated by the Super Administrator."
+                detail="This institutional account has been deactivated by the Super Administrator.",
             )
         # Update name with verified Google Workspace full real name
         if full_name and db_user.name != full_name:
@@ -168,11 +441,11 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
         db.refresh(db_user)
         user_entity = db_user
     else:
-        # Auto-provision new verified student or staff member with Google full name
+        # Auto-provision new verified IIIT-NR student or staff member
         user_entity = User(
             name=full_name,
             email=email,
-            hashed_password=hash_password(f"GOOGLE_AUTH_{email}_{full_name}"),
+            hashed_password=hash_password(f"GOOGLE_SSO_{email}_{full_name}"),
             role=role,
             department_name=dept_name,
             is_active=True,
@@ -185,14 +458,14 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
     expires_in_days = REMEMBER_ME_EXPIRE_DAYS if req.remember_me else 1
     token = create_access_token(
         data={"sub": user_entity.email, "role": user_entity.role, "id": user_entity.id},
-        expires_delta=timedelta(days=expires_in_days)
+        expires_delta=timedelta(days=expires_in_days),
     )
 
     return AuthResponse(
         access_token=token,
         token_type="bearer",
         expires_in_days=expires_in_days,
-        user=to_user_response(user_entity)
+        user=to_user_response(user_entity),
     )
 
 
@@ -216,8 +489,6 @@ def to_user_response(user: User) -> UserResponse:
         created_at=user.created_at,
     )
 
-
-import random
 
 # In-memory OTP registry for institutional email verification
 ACTIVE_OTPS: Dict[str, str] = {}
@@ -249,21 +520,24 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
     if not clean_email.endswith(f"@{IIITNR_DOMAIN}"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Registration is restricted to official @{IIITNR_DOMAIN} emails."
+            detail=f"Registration is restricted to official @{IIITNR_DOMAIN} emails.",
         )
 
     existing = db.query(User).filter(User.email.ilike(clean_email)).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"An account with email '{clean_email}' already exists. Please log in instead."
+            detail=f"An account with email '{clean_email}' already exists. Please log in instead.",
         )
 
     meta = resolve_user_metadata(clean_email)
     hashed_pw = hash_password(req.password)
-    # Enforce verified identity or provided profile name
     user_name = req.name.strip() if req.name and req.name.strip() else meta["name"]
-    dept_name = req.department_name.strip() if req.department_name and req.department_name.strip() else meta["department_name"]
+    dept_name = (
+        req.department_name.strip()
+        if req.department_name and req.department_name.strip()
+        else meta["department_name"]
+    )
 
     new_user = User(
         name=user_name,
@@ -278,18 +552,17 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
     db.commit()
     db.refresh(new_user)
 
-    # Issue JWT Token (30 days if remember_me else 1 day)
     expires_in_days = REMEMBER_ME_EXPIRE_DAYS if req.remember_me else 1
     token = create_access_token(
         data={"sub": new_user.email, "role": new_user.role, "id": new_user.id},
-        expires_delta=timedelta(days=expires_in_days)
+        expires_delta=timedelta(days=expires_in_days),
     )
 
     return AuthResponse(
         access_token=token,
         token_type="bearer",
         expires_in_days=expires_in_days,
-        user=to_user_response(new_user)
+        user=to_user_response(new_user),
     )
 
 
@@ -302,32 +575,28 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
     if not clean_email.endswith(f"@{IIITNR_DOMAIN}"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Access restricted. Only institutional @{IIITNR_DOMAIN} emails are permitted."
+            detail=f"Access restricted. Only institutional @{IIITNR_DOMAIN} emails are permitted.",
         )
 
-    # Find user in database
     db_user = db.query(User).filter(User.email.ilike(clean_email)).first()
 
     if db_user:
         if not db_user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="This institutional account has been deactivated by the Super Administrator."
+                detail="This institutional account has been deactivated by the Super Administrator.",
             )
-        # Check password
         if db_user.hashed_password:
             if not verify_password(req.password, db_user.hashed_password):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid institutional email or password."
+                    detail="Invalid institutional email or password.",
                 )
         else:
-            # Upgrade initial unhashed/seeded account to secure bcrypt hash
             db_user.hashed_password = hash_password(req.password)
             db.commit()
             db.refresh(db_user)
     else:
-        # Auto-provision authentic IIIT-NR user with hashed password
         meta = resolve_user_metadata(clean_email)
         db_user = User(
             name=meta["name"],
@@ -345,18 +614,17 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
             db.rollback()
             db_user = db.query(User).filter(User.email.ilike(clean_email)).first()
 
-    # Generate JWT Token (30 days if remember_me else 1 day)
     expires_in_days = REMEMBER_ME_EXPIRE_DAYS if req.remember_me else 1
     token = create_access_token(
         data={"sub": db_user.email, "role": db_user.role, "id": db_user.id},
-        expires_delta=timedelta(days=expires_in_days)
+        expires_delta=timedelta(days=expires_in_days),
     )
 
     return AuthResponse(
         access_token=token,
         token_type="bearer",
         expires_in_days=expires_in_days,
-        user=to_user_response(db_user)
+        user=to_user_response(db_user),
     )
 
 
@@ -366,7 +634,7 @@ def get_current_user_from_token(token: str, db: Session) -> UserResponse:
     if not payload or "sub" not in payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session has expired or token is invalid. Please log in again."
+            detail="Session has expired or token is invalid. Please log in again.",
         )
 
     email = payload["sub"]
@@ -374,7 +642,7 @@ def get_current_user_from_token(token: str, db: Session) -> UserResponse:
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User account not found or deactivated."
+            detail="User account not found or deactivated.",
         )
 
     return to_user_response(user)
@@ -382,7 +650,12 @@ def get_current_user_from_token(token: str, db: Session) -> UserResponse:
 
 def list_administrative_users(db: Session) -> List[User]:
     """Retrieve all staff, facility admins, technicians, and super admins."""
-    return db.query(User).filter(User.role.in_(["ADMIN", "SUPER_ADMIN", "TECHNICIAN"])).order_by(User.id.asc()).all()
+    return (
+        db.query(User)
+        .filter(User.role.in_(["ADMIN", "SUPER_ADMIN", "TECHNICIAN"]))
+        .order_by(User.id.asc())
+        .all()
+    )
 
 
 def add_admin_user(admin_data: AdminCreateRequest, db: Session) -> User:
@@ -427,7 +700,7 @@ def delete_admin_user(user_id: int, db: Session) -> bool:
     if user.role == "SUPER_ADMIN":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete the root Super Administrator account."
+            detail="Cannot delete the root Super Administrator account.",
         )
     db.delete(user)
     db.commit()

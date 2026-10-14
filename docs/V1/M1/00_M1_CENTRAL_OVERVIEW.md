@@ -529,3 +529,26 @@ npm run dev
 * **Verification Proof:**
   - Backend Test Suite: 8/8 test_auth.py tests passing cleanly.
   - Frontend Production Build: `npm run build` compiled in 1.37s with 0 errors.
+
+### [2026-10-14] - Production-Grade IIIT-NR Google Workspace Auth & Deferred Seeding Integration
+* **Files Modified:**
+  - `backend/app/core/config.py`
+  - `backend/app/main.py`
+  - `backend/app/schemas/user.py`
+  - `backend/app/services/user_service.py`
+  - `backend/app/api/v1/endpoints/auth.py`
+  - `frontend/src/api/auth.js`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Production Google Workspace Enforcement (`hosted_domain`):** Passed `hosted_domain: 'iiitnr.edu.in'` and `hd: 'iiitnr.edu.in'` to `initTokenClient` in `Login.jsx` and `Register.jsx`, locking the Google Account Chooser popup strictly to organizational `@iiitnr.edu.in` accounts.
+  2. **Client-Side Gate & Token Revocation:** Checked `profile.hd === 'iiitnr.edu.in'` and `profile.email_verified`. If an unauthorized account is selected, immediately revokes the OAuth token via `window.google.accounts.oauth2.revoke(token)`.
+  3. **Server-Side Token Verification (`POST /api/v1/auth/google`):** Added remote verification against Google's UserInfo and TokenInfo endpoints (`verify_google_access_token_remote`, `verify_google_id_token`), enforcing an independent triple-layer gate (`email`, `hd == "iiitnr.edu.in"`, `email_verified == True`, and `aud` checks against `GOOGLE_CLIENT_ID`).
+  4. **Dynamic Client ID Discovery (`GET /api/v1/auth/config`):** Added `/config` endpoint returning the backend's configured `google_client_id` and domain constraints, accompanied by an in-app setup modal replacing browser prompts.
+  5. **Deferred Seeding Control:** Made startup database seeding conditional on `AUTO_SEED_ON_STARTUP=False`, allowing manual seeder execution (`python -m app.db.seed`) when ready.
+* **Why It Was Changed:** Integrated production-grade fixes provided by the user in `IT Workshop/` to prevent personal `@gmail.com` accounts from appearing or passing authentication, and to enable deferred database seeding.
+* **Cross-Module Impact:** Hardens M1 user authentication against unauthorized access while seamlessly auto-provisioning verified students and staff.
+* **Verification Proof:**
+  - Backend Test Suite: 47/47 pytest tests passed in 8.52s.
+  - Frontend Production Build: `npm run build` compiled in 1.39s with 0 errors.

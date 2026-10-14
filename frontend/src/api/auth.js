@@ -1,9 +1,15 @@
 /**
  * SmartComplaintHandler - Authentication & Administration API Client
- * Domain: Handles @iiitnr.edu.in institutional login with Remember Me, new user registration,
- *         staff listing, admin creation, and database sanitization actions under Super Admin authority.
+ * Domain: Handles @iiitnr.edu.in institutional login with Remember Me,
+ *         production Google Workspace OAuth2/OIDC SSO (@iiitnr.edu.in only),
+ *         new user registration, and Super Admin staff management.
  */
 import apiClient from './client';
+
+export async function fetchAuthConfig() {
+  const response = await apiClient.get('/auth/config');
+  return response.data;
+}
 
 export async function loginUser(email, password = 'password123', rememberMe = false) {
   const response = await apiClient.post('/auth/login', {
@@ -16,10 +22,13 @@ export async function loginUser(email, password = 'password123', rememberMe = fa
 
 export async function loginWithGoogle(googleData) {
   const response = await apiClient.post('/auth/google', {
+    access_token: googleData.access_token || undefined,
     credential: googleData.credential || undefined,
     email: googleData.email ? googleData.email.trim().toLowerCase() : undefined,
     name: googleData.name ? googleData.name.trim() : undefined,
     picture: googleData.picture || undefined,
+    hd: googleData.hd ? googleData.hd.trim().toLowerCase() : undefined,
+    email_verified: googleData.email_verified !== undefined ? Boolean(googleData.email_verified) : true,
     remember_me: googleData.remember_me !== false,
   });
   return response.data;

@@ -18,9 +18,16 @@ import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if not os.environ.get("VERCEL"):
+    # Ensure database schema exists
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Database schema initialization notice: {e}")
+
+    # Seed conditionally based on settings.AUTO_SEED_ON_STARTUP
+    if settings.AUTO_SEED_ON_STARTUP and not os.environ.get("VERCEL"):
         try:
-            Base.metadata.create_all(bind=engine)
             db = SessionLocal()
             try:
                 seed_database(db)
