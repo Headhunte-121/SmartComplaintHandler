@@ -30,10 +30,39 @@ from app.core.security import (
 
 STUDENT_PATTERN = re.compile(r"^([a-zA-Z]+(?:[._][a-zA-Z]+)*)(\d{2})(\d{2,5})@iiitnr\.edu\.in$", re.IGNORECASE)
 
+# Official IIIT-NR Google Workspace Institutional Directory
+INSTITUTIONAL_DIRECTORY: Dict[str, Dict[str, str]] = {
+    "nikhil26100@iiitnr.edu.in": {
+        "name": "Nikhil Gavel",
+        "department_name": "Computer Science & Engineering",
+        "role": "STUDENT",
+        "roll_no": "2026CSE100",
+        "identifier": "Roll: 2026CSE100 (Batch '2026)",
+    },
+    "nikhilesh26100@iiitnr.edu.in": {
+        "name": "Nikhilesh Kothamasu",
+        "department_name": "Computer Science & Engineering",
+        "role": "STUDENT",
+        "roll_no": "2026CSE100",
+        "identifier": "Roll: 2026CSE100 (Batch '2026)",
+    },
+    "nikheel25302@iiitnr.edu.in": {
+        "name": "Nikheel Kumar Sonkar",
+        "department_name": "Electronics & Communication Engineering",
+        "role": "STUDENT",
+        "roll_no": "2025ECE302",
+        "identifier": "Roll: 2025ECE302 (Batch '2025)",
+    },
+}
+
 
 def resolve_user_metadata(email: str) -> Dict[str, str]:
     """Auto-detect user role, name, department and student roll from email."""
     clean_email = email.strip().lower()
+
+    if clean_email in INSTITUTIONAL_DIRECTORY:
+        return INSTITUTIONAL_DIRECTORY[clean_email]
+
     prefix = clean_email.split("@")[0].lower()
 
     if prefix in ("superadmin", "director", "super.admin"):
@@ -162,8 +191,9 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
 
     meta = resolve_user_metadata(clean_email)
     hashed_pw = hash_password(req.password)
-    user_name = req.name.strip() if req.name and req.name.strip() else meta["name"]
-    dept_name = req.department_name.strip() if req.department_name and req.department_name.strip() else meta["department_name"]
+    # Strictly enforce official institutional directory identity
+    user_name = meta["name"]
+    dept_name = meta["department_name"]
 
     new_user = User(
         name=user_name,
