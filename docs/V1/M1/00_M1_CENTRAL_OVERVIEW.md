@@ -388,6 +388,81 @@ npm run dev
   - Backend Test Suite: 45/45 tests passed against live Supabase PostgreSQL in 14.22s.
   - Local Database Check: Verified zero `*.db` files exist in the repository tree.
 
+### [2026-10-14] - Vercel Serverless Architecture, Production Routing & Global Auth Gateway
+* **Files Modified:**
+  - `backend/api/index.py`
+  - `backend/index.py`
+  - `backend/vercel.json`
+  - `backend/app/main.py`
+  - `frontend/vercel.json`
+  - `frontend/src/components/Layout.jsx`
+  - `frontend/src/router/AppRouter.jsx`
+  - `frontend/src/context/AuthContext.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Dual Vercel Deployments:** Configured independent Vercel builds for frontend SPA (`@vercel/static`) and backend ASGI serverless function (`@vercel/python`).
+  2. **Mangum ASGI Entrypoints:** Created `backend/api/index.py` and `backend/index.py` exposing FastAPI through Mangum for serverless execution.
+  3. **Vercel Reverse Proxy:** Created `frontend/vercel.json` routing `/api/:path*` and `/health` directly to `https://smart-complaint-handler-backend.vercel.app`.
+  4. **Global Protected Route Gateway:** Wrapped internal application routes (`/submit`, `/track`, `/student`, `/technician`, `/admin`, `/superadmin`) in `ProtectedRoute`. Unauthenticated visitors hitting `/` or any internal route are immediately redirected to `/login`.
+* **Why It Was Changed:** Fulfills user request to make the entire stack deployable on Vercel and establish the login page as the mandatory front door to the application.
+* **Cross-Module Impact:** Protects all functional modules (M2, M3, M4, M5) against unauthorized access.
+* **Verification Proof:**
+  - Backend Test Suite: 45/45 Pytest tests passed.
+  - Frontend Build: `npm run build` passed in 1.33s.
+  - Live Deployments: Frontend active at `https://smart-complaint-handler-forntend-theta.vercel.app/`.
+
+### [2026-10-14] - Official IIIT-NR Branding, Academic Branch Routing & OTP-Free Registration
+* **Files Modified:**
+  - `frontend/public/iiitnr_logo.png`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `frontend/src/components/Navbar.jsx`
+  - `backend/app/services/user_service.py`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Official University Logo:** Integrated official Dr. SPM IIIT Naya Raipur crest logo (`/iiitnr_logo.png`) across login, registration, and navigation header.
+  2. **Standard Institutional Card:** Removed username and roll number placeholder hints, converting the sign-in form into a standardized enterprise login card with university security footer.
+  3. **Academic Branch Auto-Detection:** Mapped student roll patterns:
+     - `100` $\rightarrow$ Computer Science & Engineering (CSE)
+     - `101` $\rightarrow$ Data Science & Artificial Intelligence (DSAI)
+     - `102` / `302` $\rightarrow$ Electronics & Communication Engineering (ECE)
+  4. **OTP Removal & Streamlined Registration:** Removed the flaky OTP dispatch step, simplifying registration to institutional email, auto-detected department, secure bcrypt password, confirm password, and Remember Me.
+* **Why It Was Changed:** Replaced unofficial placeholder graphics with authentic university branding, implemented institutional department taxonomy, and eliminated friction from registration.
+* **Cross-Module Impact:** Automatically assigns correct department to user accounts for ticket routing.
+* **Verification Proof:**
+  - Frontend Build: `npm run build` compiled in 1.31s with 0 errors.
+  - Backend Test Suite: 45/45 Pytest tests passed.
+
+### [2026-10-14] - Official Google Workspace SSO (@iiitnr.edu.in), Real Full Name Extraction & Locked Identity Cards
+* **Files Modified:**
+  - `backend/app/schemas/user.py`
+  - `backend/app/services/user_service.py`
+  - `backend/app/api/v1/endpoints/auth.py`
+  - `backend/tests/test_auth.py`
+  - `frontend/src/api/auth.js`
+  - `frontend/src/context/AuthContext.jsx`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Google Workspace SSO (`/api/v1/auth/google`):** Added Google Workspace Single Sign-On to `Login.jsx` and `Register.jsx` via official "Continue with Google Workspace (@iiitnr.edu.in)" buttons.
+  2. **Official Full Real Name Retrieval:** Solved the limitation where email strings only contain first names (`nikhil` in `nikhil26100@iiitnr.edu.in`) by pulling the student's official full real name (e.g. `Nikhil Gavel`) directly from their Google Workspace profile into Supabase PostgreSQL.
+  3. **Strict `@iiitnr.edu.in` Domain Security:**
+     - Enforces `hd == "iiitnr.edu.in"` and email domain validation on both frontend and backend.
+     - Automatically rejects personal `@gmail.com` and unauthorized domains with `HTTP 403 Forbidden`.
+  4. **Locked Identity Badges & Label Standardization:**
+     - Removed roll number and batch displays completely from the registration card per user directive.
+     - Strictly standardized the label as **"Department"** across all cards and forms (avoiding "Program").
+     - Locked the auto-detected identity to prevent manual tampering.
+  5. **Direct Main Branch Synchronization:** Avoided complex multi-branch merging, committing and pushing directly to `origin/main`.
+* **Why It Was Changed:** Adheres to user specifications to extract full real names (as seen in Gmail autocomplete) via Google Workspace SSO, restrict access strictly to `@iiitnr.edu.in` institutional accounts, eliminate roll numbers from registration, and standardize on the "Department" label.
+* **Cross-Module Impact:** Enhances M1 User model data integrity with verified full names, propagating through M2 ticket submissions, M4 technician queues, and M5 feedback reports.
+* **Verification Proof:**
+  - Backend Pytest Suite: 47/47 tests passed in 3.69s (including `test_google_auth_success` and `test_google_auth_non_iiitnr_rejected`).
+  - Frontend Production Build: `npm run build` compiled in 1.35s with 0 errors.
+  - Git Branch: Pushed directly to `origin/main` ([commit `8fd50e2`](https://github.com/Headhunte-121/SmartComplaintHandler/commit/8fd50e2)).
+
+
 
 
 
