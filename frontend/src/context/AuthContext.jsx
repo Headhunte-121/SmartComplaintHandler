@@ -1,98 +1,185 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { loginUser } from '../api/auth';
 
 /**
- * Standard Campus Personas for Role-Based Access:
- * 1. STUDENT: Lodges complaints, tracks personal grievances, views resolutions.
- * 2. TECHNICIAN: Field staff executing repairs, starts work orders, submits resolution notes.
- * 3. ADMIN: Facility supervisor overseeing queues, workload balancing, priority overrides, and SLA breach governance.
+ * Institutional IIIT-NR Personas for Role-Based Access & Quick Demonstration:
+ * 1. STUDENT: Lodges complaints (/submit), tracks personal grievances (/student, /track). Strictly isolated from admin desks.
+ * 2. ADMIN: Facilities supervisor overseeing triage, queues, reassignment, and SLA governance (/admin).
+ * 3. SUPER_ADMIN: Directorate authority managing admins, technicians, data sanitization, and campus catalog (/superadmin).
+ * 4. TECHNICIAN: Field squad technician servicing assigned tickets (/technician).
  */
 export const CAMPUS_PERSONAS = [
   {
-    id: 'student_aarav',
-    name: 'Aarav Sharma',
+    id: 'student_nikhil',
+    name: 'Nikhil (Student)',
     role: 'STUDENT',
     roleLabel: 'Student',
-    email: 'aarav.sharma@campus.edu',
-    identifier: 'Roll: 23BCS104',
+    email: 'nikhil26100@iiitnr.edu.in',
+    identifier: 'Roll: 2026BCS100',
     department: 'Computer Science & Engineering',
-    location: 'Hostel Block B, Room 204',
     avatar: '🎓',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-    description: 'Undergraduate student reporting campus facility issues and tracking ticket status.'
+    targetRoute: '/submit',
+    description: 'Undergraduate student reporting campus facility issues and tracking personal complaints.'
+  },
+  {
+    id: 'admin_verma',
+    name: 'Dr. Sunita Verma',
+    role: 'ADMIN',
+    roleLabel: 'Facility Admin',
+    email: 'admin@iiitnr.edu.in',
+    identifier: 'Staff ID: FAC-01',
+    department: 'Central Facilities Management',
+    avatar: '🛡️',
+    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
+    targetRoute: '/admin',
+    description: 'Chief operational supervisor overseeing queues, workload balancing, priority overrides, and SLA governance.'
+  },
+  {
+    id: 'super_admin',
+    name: 'Chief Campus Administrator',
+    role: 'SUPER_ADMIN',
+    roleLabel: 'Super Admin',
+    email: 'superadmin@iiitnr.edu.in',
+    identifier: 'Directorate (DIR-01)',
+    department: 'Office of the Director',
+    avatar: '👑',
+    badgeClass: 'bg-amber-50 text-amber-800 border-amber-300',
+    targetRoute: '/superadmin',
+    description: 'Supreme administrator with full authority to add/manage facility admins, purge records, and audit telemetry.'
   },
   {
     id: 'tech_ramesh',
     name: 'Ramesh Kumar',
     role: 'TECHNICIAN',
     roleLabel: 'Field Technician',
-    email: 'ramesh.k@facilities.campus.edu',
-    identifier: 'Badge: TECH-ELEC-42',
+    email: 'tech.ramesh@iiitnr.edu.in',
+    identifier: 'Squad Tech #1',
     department: 'Electrical Services',
-    teamId: 1,
-    teamName: 'Rapid Electrical Squad 1',
     avatar: '🔧',
-    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-    description: 'Assigned field technician executing repairs, advancing tickets to IN_PROGRESS, and verifying resolution.'
-  },
-  {
-    id: 'admin_verma',
-    name: 'Dr. Sunita Verma',
-    role: 'ADMIN',
-    roleLabel: 'Chief Facility Supervisor',
-    email: 's.verma@admin.campus.edu',
-    identifier: 'Emp ID: FAC-DIR-01',
-    department: 'Central Facilities Management',
-    office: 'Administrative Block, Room 102',
-    avatar: '🛡️',
-    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
-    description: 'Chief operational supervisor with authority for squad reassignment, priority overrides, and SLA breach escalations.'
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    targetRoute: '/technician',
+    description: 'Field squad technician servicing assigned repair tickets and updating resolution notes.'
   }
 ];
+
+function enrichUser(userData) {
+  if (!userData) return null;
+  const role = userData.role || 'STUDENT';
+  let avatar = '🎓';
+  let roleLabel = 'Student';
+  let badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+  let targetRoute = '/submit';
+
+  if (role === 'SUPER_ADMIN') {
+    avatar = '👑';
+    roleLabel = 'Super Admin';
+    badgeClass = 'bg-amber-50 text-amber-800 border-amber-300';
+    targetRoute = '/superadmin';
+  } else if (role === 'ADMIN') {
+    avatar = '🛡️';
+    roleLabel = 'Facility Admin';
+    badgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
+    targetRoute = '/admin';
+  } else if (role === 'TECHNICIAN') {
+    avatar = '🔧';
+    roleLabel = 'Field Technician';
+    badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    targetRoute = '/technician';
+  }
+
+  return {
+    ...userData,
+    avatar,
+    roleLabel,
+    badgeClass,
+    targetRoute,
+  };
+}
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [currentPersona, setCurrentPersona] = useState(() => {
-    const saved = localStorage.getItem('smart_complaint_persona');
-    if (saved) {
-      const match = CAMPUS_PERSONAS.find((p) => p.id === saved);
-      if (match) return match;
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('smart_complaint_auth_user');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return enrichUser(parsed);
+      }
+    } catch (e) {
+      console.warn('Failed to parse cached auth user:', e);
     }
-    return CAMPUS_PERSONAS[0]; // Default to Student
+    // Default initial user is student Nikhil
+    return CAMPUS_PERSONAS[0];
   });
 
   const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
 
   useEffect(() => {
-    if (currentPersona) {
-      localStorage.setItem('smart_complaint_persona', currentPersona.id);
+    if (currentUser) {
+      localStorage.setItem('smart_complaint_auth_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('smart_complaint_auth_user');
     }
-  }, [currentPersona]);
+  }, [currentUser]);
 
-  const switchPersona = (personaId) => {
+  /**
+   * Perform real backend login against /api/v1/auth/login
+   */
+  const login = async (email, password = '••••••••') => {
+    const data = await loginUser(email, password);
+    const enriched = enrichUser(data);
+    setCurrentUser(enriched);
+    return enriched;
+  };
+
+  /**
+   * Switch persona shortcut
+   */
+  const switchPersona = async (personaId) => {
     const found = CAMPUS_PERSONAS.find((p) => p.id === personaId);
     if (found) {
-      setCurrentPersona(found);
+      try {
+        const backendUser = await loginUser(found.email);
+        const enriched = enrichUser(backendUser);
+        setCurrentUser(enriched);
+      } catch (e) {
+        // Fallback to local persona definition if offline
+        setCurrentUser(found);
+      }
       setIsPersonaModalOpen(false);
     }
   };
 
-  const isStudent = currentPersona.role === 'STUDENT';
-  const isTechnician = currentPersona.role === 'TECHNICIAN';
-  const isAdmin = currentPersona.role === 'ADMIN';
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('smart_complaint_auth_user');
+  };
+
+  const isStudent = currentUser?.role === 'STUDENT';
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+  const isTechnician = currentUser?.role === 'TECHNICIAN';
+  const canAccessOperations = isAdmin || isSuperAdmin;
 
   return (
     <AuthContext.Provider
       value={{
-        currentPersona,
+        currentUser,
+        currentPersona: currentUser || CAMPUS_PERSONAS[0],
         personas: CAMPUS_PERSONAS,
+        login,
+        logout,
         switchPersona,
         isPersonaModalOpen,
         openPersonaModal: () => setIsPersonaModalOpen(true),
         closePersonaModal: () => setIsPersonaModalOpen(false),
         isStudent,
+        isAdmin,
+        isSuperAdmin,
         isTechnician,
-        isAdmin
+        canAccessOperations,
       }}
     >
       {children}

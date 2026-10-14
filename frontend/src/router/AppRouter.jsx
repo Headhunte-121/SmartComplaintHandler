@@ -1,10 +1,11 @@
 /**
  * SmartComplaintHandler - Master Application Router
  * Blueprint Reference: V1/M1/frontend/04_app_router.md
- * Role: Declarative client-side routing hierarchy mapping university portal pages inside the persistent layout.
+ * Role: Declarative client-side routing hierarchy enforcing strict role-based access control (RBAC).
+ * Domain: Restricts students strictly to Lodge Grievance (/submit), My History (/student), and Tracker (/track).
  */
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Home from '../pages/Home';
 import SubmitComplaint from '../pages/SubmitComplaint';
@@ -12,8 +13,29 @@ import TrackTicket from '../pages/TrackTicket';
 import AdminDashboard from '../pages/AdminDashboard';
 import StudentDashboard from '../pages/StudentDashboard';
 import TechnicianWorkstation from '../pages/TechnicianWorkstation';
+import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import Login from '../pages/Login';
 import DeveloperLab from '../pages/DeveloperLab';
+import { useAuth } from '../context/AuthContext';
+
+/**
+ * Route protection guard checking authenticated role permissions.
+ */
+function ProtectedRoute({ children, allowedRoles, fallbackRoute = '/submit' }) {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
+    // Redirect unauthorized attempts to their default workplace
+    const redirect = currentUser.role === 'STUDENT' ? '/submit' : currentUser.role === 'SUPER_ADMIN' ? '/superadmin' : '/admin';
+    return <Navigate to={redirect} replace />;
+  }
+
+  return children;
+}
 
 function NotFound() {
   return (
@@ -50,23 +72,47 @@ export default function AppRouter() {
           {/* Institutional Homepage */}
           <Route index element={<Home />} />
 
-          {/* Grievance Submission */}
+          {/* Institutional SSO Login */}
+          <Route path="login" element={<Login />} />
+
+          {/* Grievance Submission — Accessible to students, staff, and faculty */}
           <Route path="submit" element={<SubmitComplaint />} />
 
           {/* Public Status Tracker */}
           <Route path="track" element={<TrackTicket />} />
 
-          {/* Facilities Staff Operations Console */}
-          <Route path="admin" element={<AdminDashboard />} />
-
-          {/* Student Self-Service Grievance Portal */}
+          {/* Student Self-Service Grievance Portal — Accessible to Students & Admins */}
           <Route path="student" element={<StudentDashboard />} />
 
-          {/* Field Squad Technician Workstation */}
-          <Route path="technician" element={<TechnicianWorkstation />} />
+          {/* Field Squad Technician Workstation — Protected for Staff & Admins */}
+          <Route
+            path="technician"
+            element={
+              <ProtectedRoute allowedRoles={['TECHNICIAN', 'ADMIN', 'SUPER_ADMIN']}>
+                <TechnicianWorkstation />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Campus SSO & Role Authentication */}
-          <Route path="login" element={<Login />} />
+          {/* Facilities Staff Operations Console — Strictly Protected from Students */}
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} fallbackRoute="/submit">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Super Admin Control Directorate — Strictly Protected for SUPER_ADMIN */}
+          <Route
+            path="superadmin"
+            element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/admin">
+                <SuperAdminDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Technical Architecture & Component Verification */}
           <Route path="developer" element={<DeveloperLab />} />

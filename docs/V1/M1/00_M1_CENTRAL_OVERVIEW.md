@@ -282,6 +282,46 @@ npm run dev
   - Frontend Build: `npm run build` compiled 117 modules in 1.22s with 0 errors.
   - Live API Verification: Verified student query filter (`5 tickets returned`), squad filter (`7 tickets returned`), and feedback submission (`200 OK with rating and audit trail`).
 
+### [2026-10-14] - Zero-Fake-Data Sanitization, IIIT-NR IAM Domain Authentication, Role Auto-Routing & Super Admin Directorate Console
+* **Files Modified:** 
+  - `backend/app/models/user.py`
+  - `backend/app/models/__init__.py`
+  - `backend/app/schemas/user.py`
+  - `backend/app/services/user_service.py`
+  - `backend/app/api/v1/endpoints/auth.py`
+  - `backend/app/api/v1/router.py`
+  - `backend/app/db/seed.py`
+  - `backend/tests/test_auth.py`
+  - `frontend/src/api/auth.js`
+  - `frontend/src/context/AuthContext.jsx`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/SuperAdminDashboard.jsx`
+  - `frontend/src/pages/SubmitComplaint.jsx`
+  - `frontend/src/pages/StudentDashboard.jsx`
+  - `frontend/src/components/Navbar.jsx`
+  - `frontend/src/components/PersonaSwitcherModal.jsx`
+  - `frontend/src/router/AppRouter.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Purged All Mock Data:** Cleaned SQLite database of all mock tickets (`0 tickets` in database). Removed hardcoded dummy ticket arrays from `backend/app/db/seed.py`, allowing complaints to be 100% student-generated.
+  2. **Institutional Identity & Domain Enforcement:** Implemented strict institutional authentication enforcing `@iiitnr.edu.in` institutional email format across both FastAPI Pydantic validators and React UI validation.
+  3. **Role Detection & Student Roll Parsing:**
+     - Student emails matching format `name(year)(roll)@iiitnr.edu.in` (e.g. `nikhil26100@iiitnr.edu.in`) auto-resolve to role `STUDENT`, parse roll numbers (e.g. `2026BCS100`), and automatically redirect upon login to the grievance lodging page (`/submit`).
+     - Student accounts are strictly role-isolated: navigation exposes strictly Lodge Grievance (`/submit`), My History (`/student`), and Track Status (`/track`). Direct access to `/admin` or `/superadmin` is guarded and bounces students back to `/submit`.
+     - Administrative emails (e.g. `admin@iiitnr.edu.in`) auto-resolve to `ADMIN` and auto-redirect to the Operations Desk (`/admin`).
+     - Directorate emails (e.g. `superadmin@iiitnr.edu.in`) auto-resolve to `SUPER_ADMIN` and auto-redirect to the Super Admin Directorate Console (`/superadmin`).
+  4. **Super Admin Directorate Console:** Built `frontend/src/pages/SuperAdminDashboard.jsx` at `/superadmin` equipped with:
+     - Administrator and staff management table (`GET /api/v1/auth/admins`).
+     - "Add Facility Admin" modal (`POST /api/v1/auth/admins`) allowing the Super Admin to register new admins and squad technicians with name, `@iiitnr.edu.in` email, role, department, and phone.
+     - Staff revocation action (`DELETE /api/v1/auth/admins/{id}`) with root protection.
+     - Database sanitization button (`POST /api/v1/auth/purge-tickets`) with confirmation safeguard to reset all tickets and squad counters to clean slate on demand.
+  5. **Auto-Filling Authentic Student Credentials:** `SubmitComplaint.jsx` now binds grievances to the logged-in student's real name and email; `StudentDashboard.jsx` strictly queries complaints filed by the authenticated student.
+* **Why It Was Changed:** Addresses user requirement to remove all fake dummy data, turn the platform into a real authentic web application, enforce official `@iiitnr.edu.in` institutional credentials, isolate normal students strictly to filing grievances and viewing their own history, and provide a full Super Admin console to manage facility admins.
+* **Verification Proof:**
+  - Backend Test Suite: 45/45 Pytest tests passed in 1.19s (including 6 new tests in `test_auth.py`).
+  - Frontend Compilation: `npm run build` compiled 119 modules in 1.30s with 0 errors.
+  - End-to-End Flow: Verified clean slate (0 tickets), student login as `nikhil26100@iiitnr.edu.in`, ticket creation, isolated ticket viewing, and database purge.
+
 
 
 

@@ -1,8 +1,8 @@
 /**
  * SmartComplaintHandler - Institutional Global Navigation Header
- * Blueprint Reference: V1/M1/frontend/03_layout_and_navigation.md
- * Role: Primary institutional navigation bar providing university branding, core service links,
- *       backend service heartbeat, and authenticated campus persona identity management.
+ * Role: Primary navigation bar providing university branding, role-tailored links,
+ *       backend service heartbeat, and authenticated institutional account state.
+ * Domain: Enforces strict student isolation (only Lodge Grievance, My History, Track Status).
  */
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
@@ -10,7 +10,16 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { currentPersona, openPersonaModal, isStudent, isTechnician, isAdmin } = useAuth();
+  const {
+    currentUser,
+    openPersonaModal,
+    logout,
+    isStudent,
+    isTechnician,
+    isAdmin,
+    isSuperAdmin,
+  } = useAuth();
+
   const [backendHealthy, setBackendHealthy] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -25,6 +34,11 @@ export default function Navbar() {
       });
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const navLinkClasses = ({ isActive }) =>
     `px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 ${
       isActive
@@ -37,33 +51,33 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Institutional Brand */}
-          <Link to="/" className="flex items-center space-x-3 group">
+          <Link
+            to={isStudent ? '/submit' : isSuperAdmin ? '/superadmin' : isAdmin ? '/admin' : '/'}
+            className="flex items-center space-x-3 group"
+          >
             <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform">
               🏛️
             </div>
             <div>
               <div className="text-sm font-black text-slate-900 tracking-tight leading-tight">
-                Campus Facilities Services
+                IIIT Naya Raipur
               </div>
               <p className="text-[10px] text-slate-400 font-medium">
-                Estate Management & Service Desk
+                Campus Facilities & Grievance Portal
               </p>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop Navigation Links — Strictly Role Isolated */}
           <nav className="hidden md:flex items-center space-x-1">
-            <NavLink to="/" className={navLinkClasses} end>
-              <span>Home</span>
-            </NavLink>
-
+            {/* Student View: ONLY Lodge Grievance, My History, Track Status */}
             {isStudent && (
               <>
-                <NavLink to="/student" className={navLinkClasses}>
-                  <span>My Grievances</span>
-                </NavLink>
                 <NavLink to="/submit" className={navLinkClasses}>
-                  <span>Report an Issue</span>
+                  <span>Lodge Grievance</span>
+                </NavLink>
+                <NavLink to="/student" className={navLinkClasses}>
+                  <span>My History</span>
                 </NavLink>
                 <NavLink to="/track" className={navLinkClasses}>
                   <span>Track Status</span>
@@ -71,41 +85,65 @@ export default function Navbar() {
               </>
             )}
 
+            {/* Field Technician View */}
             {isTechnician && (
               <>
                 <NavLink to="/technician" className={navLinkClasses}>
                   <span>Squad Workstation</span>
-                  <span className="w-2 h-2 rounded-full bg-amber-500 ml-1" title="Assigned Field Queue" />
-                </NavLink>
-                <NavLink to="/submit" className={navLinkClasses}>
-                  <span>Report Hazard</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 ml-1" title="Assigned Queue" />
                 </NavLink>
                 <NavLink to="/track" className={navLinkClasses}>
                   <span>Track Ticket</span>
                 </NavLink>
+                <NavLink to="/submit" className={navLinkClasses}>
+                  <span>Lodge Hazard</span>
+                </NavLink>
               </>
             )}
 
-            {isAdmin && (
+            {/* Facility Admin View */}
+            {isAdmin && !isSuperAdmin && (
               <>
                 <NavLink to="/admin" className={navLinkClasses}>
                   <span>Operations Desk</span>
-                  <span className="w-2 h-2 rounded-full bg-purple-500 ml-1" title="Chief Supervisor Authority" />
+                  <span className="w-2 h-2 rounded-full bg-purple-500 ml-1" title="Supervisor Console" />
                 </NavLink>
                 <NavLink to="/technician" className={navLinkClasses}>
-                  <span>Field Console</span>
-                </NavLink>
-                <NavLink to="/student" className={navLinkClasses}>
-                  <span>Student Portal</span>
+                  <span>Squad Dispatches</span>
                 </NavLink>
                 <NavLink to="/track" className={navLinkClasses}>
-                  <span>Tracker</span>
+                  <span>Ticket Tracker</span>
+                </NavLink>
+                <NavLink to="/submit" className={navLinkClasses}>
+                  <span>Lodge Issue</span>
+                </NavLink>
+              </>
+            )}
+
+            {/* Super Admin View */}
+            {isSuperAdmin && (
+              <>
+                <NavLink to="/superadmin" className={navLinkClasses}>
+                  <span>👑 Super Admin</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 ml-1" title="Directorate Control" />
+                </NavLink>
+                <NavLink to="/admin" className={navLinkClasses}>
+                  <span>Operations Desk</span>
+                </NavLink>
+                <NavLink to="/technician" className={navLinkClasses}>
+                  <span>Squad Workstation</span>
+                </NavLink>
+                <NavLink to="/track" className={navLinkClasses}>
+                  <span>Audit Tracker</span>
+                </NavLink>
+                <NavLink to="/submit" className={navLinkClasses}>
+                  <span>Lodge Grievance</span>
                 </NavLink>
               </>
             )}
           </nav>
 
-          {/* Right Header Area: Live Heartbeat & Persona Account */}
+          {/* Right Header Area: Live Heartbeat & Authenticated Account */}
           <div className="hidden sm:flex items-center space-x-3">
             {/* System Health Heartbeat */}
             <div
@@ -130,34 +168,47 @@ export default function Navbar() {
               <span>{backendHealthy ? 'Services Active' : 'System Offline'}</span>
             </div>
 
-            {/* Authenticated Persona Profile Button */}
-            <button
-              type="button"
-              onClick={openPersonaModal}
-              className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300 transition-all text-left shadow-2xs"
-              title="Click to switch persona or manage campus account"
-            >
-              <span className="text-xl">{currentPersona.avatar}</span>
-              <div className="leading-tight">
-                <div className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                  <span className="truncate max-w-[120px]">{currentPersona.name}</span>
-                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${currentPersona.badgeClass}`}>
-                    {currentPersona.roleLabel}
-                  </span>
-                </div>
-                <div className="text-[10px] text-slate-400 font-medium">
-                  Switch Persona / Role
-                </div>
-              </div>
-            </button>
+            {/* Authenticated User Account Card */}
+            {currentUser ? (
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={openPersonaModal}
+                  className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300 transition-all text-left shadow-2xs cursor-pointer"
+                  title="Switch account persona"
+                >
+                  <span className="text-xl">{currentUser.avatar || '👤'}</span>
+                  <div className="leading-tight">
+                    <div className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
+                      <span className="truncate max-w-[120px]">{currentUser.name}</span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${currentUser.badgeClass || 'bg-slate-100'}`}>
+                        {currentUser.roleLabel || currentUser.role}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono truncate max-w-[130px]">
+                      {currentUser.email}
+                    </div>
+                  </div>
+                </button>
 
-            {/* Login Link */}
-            <Link
-              to="/login"
-              className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200"
-            >
-              SSO Login
-            </Link>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all cursor-pointer"
+                  title="Sign Out"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
 
           {/* Mobile Actions */}
@@ -167,7 +218,7 @@ export default function Navbar() {
               className="p-1.5 text-lg rounded-xl border border-slate-200"
               title="Switch Persona"
             >
-              {currentPersona.avatar}
+              {currentUser?.avatar || '👤'}
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -187,22 +238,58 @@ export default function Navbar() {
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-slate-100 space-y-1 animate-fade-in">
-            <NavLink
-              to="/"
-              end
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
-            >
-              Home
-            </NavLink>
-
             {isStudent && (
+              <>
+                <NavLink
+                  to="/submit"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
+                >
+                  Lodge Grievance
+                </NavLink>
+                <NavLink
+                  to="/student"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50/50 rounded-lg hover:bg-indigo-100"
+                >
+                  My History
+                </NavLink>
+                <NavLink
+                  to="/track"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
+                >
+                  Track Status
+                </NavLink>
+              </>
+            )}
+
+            {isSuperAdmin && (
+              <>
+                <NavLink
+                  to="/superadmin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-bold text-amber-800 bg-amber-50/60 rounded-lg hover:bg-amber-100"
+                >
+                  👑 Super Admin Directorate
+                </NavLink>
+                <NavLink
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-semibold text-purple-800 rounded-lg hover:bg-purple-100"
+                >
+                  Operations Desk
+                </NavLink>
+              </>
+            )}
+
+            {isAdmin && !isSuperAdmin && (
               <NavLink
-                to="/student"
+                to="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50/50 rounded-lg hover:bg-indigo-100"
+                className="block px-3 py-2 text-sm font-semibold text-purple-800 bg-purple-50/50 rounded-lg hover:bg-purple-100"
               >
-                My Grievances Portal
+                Operations Desk
               </NavLink>
             )}
 
@@ -216,52 +303,12 @@ export default function Navbar() {
               </NavLink>
             )}
 
-            {isAdmin && (
-              <>
-                <NavLink
-                  to="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-semibold text-purple-800 bg-purple-50/50 rounded-lg hover:bg-purple-100"
-                >
-                  Chief Operations Desk
-                </NavLink>
-                <NavLink
-                  to="/technician"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
-                >
-                  Field Squad Console
-                </NavLink>
-                <NavLink
-                  to="/student"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
-                >
-                  Student Portal View
-                </NavLink>
-              </>
-            )}
-
-            <NavLink
-              to="/submit"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
-            >
-              Report an Issue
-            </NavLink>
-            <NavLink
-              to="/track"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
-            >
-              Track Status
-            </NavLink>
             <NavLink
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100"
             >
-              Switch Role / Campus SSO
+              Institutional Login (@iiitnr.edu.in)
             </NavLink>
           </div>
         )}

@@ -13,7 +13,7 @@ import SLACountdownTimer from '../components/SLACountdownTimer';
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
-  const { currentPersona } = useAuth();
+  const { currentPersona, currentUser } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +27,7 @@ export default function StudentDashboard() {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSuccess, setFeedbackSuccess] = useState(null);
 
-  const studentEmail = currentPersona?.email || 'aarav.sharma@campus.edu';
+  const studentEmail = currentPersona?.email || currentUser?.email || 'nikhil26100@iiitnr.edu.in';
 
   const loadStudentTickets = async () => {
     setLoading(true);
@@ -38,14 +38,14 @@ export default function StudentDashboard() {
       setTickets(data);
     } catch (err) {
       console.error('Failed to load student complaints:', err);
-      // Fallback: load all tickets and filter locally if needed
+      // Fallback: load all tickets and filter locally strictly for this student
       try {
         const allData = await fetchComplaints({ limit: 100 });
         const filtered = allData.filter(
           (t) => (t.student_email && t.student_email.toLowerCase() === studentEmail.toLowerCase()) ||
                  (t.student_name && t.student_name.toLowerCase() === (currentPersona?.name || '').toLowerCase())
         );
-        setTickets(filtered.length > 0 ? filtered : allData.slice(0, 5));
+        setTickets(filtered);
       } catch (fallbackErr) {
         setError('Unable to retrieve grievance records. Please ensure campus backend is online.');
       }

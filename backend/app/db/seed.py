@@ -12,6 +12,7 @@ from app.db.base import Base
 from app.models.department import Department
 from app.models.team import MaintenanceTeam, Team
 from app.models.ticket import Ticket
+from app.models.user import User
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -36,6 +37,49 @@ SEED_TEAMS = [
     {"id": 7, "name": "Hostel Plumbing Squad 2", "department_id": 2, "active_ticket_count": 0, "is_active": True},
 ]
 
+# Official IIIT-NR default administrative accounts
+SEED_ADMINS = [
+    {
+        "name": "Chief Campus Administrator",
+        "email": "superadmin@iiitnr.edu.in",
+        "role": "SUPER_ADMIN",
+        "department_name": "Office of the Director",
+        "phone": "+91-771-2474001",
+    },
+    {
+        "name": "Dr. Sunita Verma (Estate Lead)",
+        "email": "admin@iiitnr.edu.in",
+        "role": "ADMIN",
+        "department_name": "Central Facilities Management",
+        "department_id": 6,
+        "phone": "+91-771-2474102",
+    },
+    {
+        "name": "Er. Rajesh Sharma",
+        "email": "electrical.admin@iiitnr.edu.in",
+        "role": "ADMIN",
+        "department_name": "Electrical",
+        "department_id": 1,
+        "phone": "+91-771-2474103",
+    },
+    {
+        "name": "Er. Manoj Verma",
+        "email": "plumbing.admin@iiitnr.edu.in",
+        "role": "ADMIN",
+        "department_name": "Plumbing",
+        "department_id": 2,
+        "phone": "+91-771-2474104",
+    },
+    {
+        "name": "Ramesh Kumar (Tech Lead)",
+        "email": "tech.ramesh@iiitnr.edu.in",
+        "role": "TECHNICIAN",
+        "department_name": "Electrical",
+        "department_id": 1,
+        "phone": "+91-771-2474105",
+    },
+]
+
 # Extended catalog for team member compatibility
 CAMPUS_CATALOG = [
     {"name": "Electrical", "description": "Power grids, lighting, wiring, and substation maintenance", "squads": ["Hostel Wiring Squad", "Academic Power Crew"]},
@@ -46,171 +90,10 @@ CAMPUS_CATALOG = [
     {"name": "General Administration", "description": "Miscellaneous campus facilities, civil repairs, and general inquiries", "squads": ["Campus Infrastructure Desk"]},
 ]
 
-SEED_TICKETS = [
-    {
-        "tracking_code": "CMP-2026-E101",
-        "title": "Main electrical panel sparking in Hostel Block B",
-        "description": "The circuit breaker on the ground floor switchgear is emitting loud buzzing sounds and intermittent sparks. Poses immediate fire hazard.",
-        "location": "Hostel Block B, Basement Switchgear",
-        "priority": "CRITICAL",
-        "status": "IN_PROGRESS",
-        "department_id": 1,
-        "assigned_team_id": 1,
-        "hours_ago": 3,
-        "sla_hours": 2,
-        "student_name": "Aarav Sharma",
-        "student_email": "aarav.sharma@campus.edu",
-        "resolution_notes": "[DISPATCH] High-voltage emergency squad dispatched immediately.",
-    },
-    {
-        "tracking_code": "CMP-2026-P202",
-        "title": "Severe water leakage from ceiling in Room 204",
-        "description": "Continuous water stream leaking from the overhead bathroom pipeline damaging study desks and books.",
-        "location": "Hostel Block B, Room 204",
-        "priority": "HIGH",
-        "status": "SUBMITTED",
-        "department_id": 2,
-        "assigned_team_id": 7,
-        "hours_ago": 1,
-        "sla_hours": 6,
-        "student_name": "Aarav Sharma",
-        "student_email": "aarav.sharma@campus.edu",
-        "resolution_notes": None,
-    },
-    {
-        "tracking_code": "CMP-2026-IT303",
-        "title": "Wi-Fi access point offline in Computer Lab 3",
-        "description": "Cisco AP-302 is unpowered and students cannot access online lab repositories.",
-        "location": "Academic Block 1, Lab 3",
-        "priority": "MEDIUM",
-        "status": "IN_PROGRESS",
-        "department_id": 5,
-        "assigned_team_id": 5,
-        "hours_ago": 5,
-        "sla_hours": 24,
-        "student_name": "Priya Nair",
-        "student_email": "priya.nair@campus.edu",
-        "resolution_notes": "[INVESTIGATION] PoE switch port reboot initiated by technician.",
-    },
-    {
-        "tracking_code": "CMP-2026-C404",
-        "title": "Broken lock and jammed window hinge",
-        "description": "Study room door lock mechanism is stuck and the window hinge does not seal properly against monsoon rain.",
-        "location": "Library Reading Hall, Desk 14",
-        "priority": "LOW",
-        "status": "RESOLVED",
-        "department_id": 4,
-        "assigned_team_id": 4,
-        "hours_ago": 48,
-        "sla_hours": 72,
-        "resolved_hours_ago": 12,
-        "student_name": "Aarav Sharma",
-        "student_email": "aarav.sharma@campus.edu",
-        "resolution_notes": "[CLOSURE REPORT | Technician: M. Verma | SLA Met: True]\nWork Summary: Replaced jammed cylindrical lock barrel and realigned brass window hinge.\nParts Replaced: 1x Cylindrical brass lock, 2x 4-inch hinges",
-        "feedback_rating": 5,
-        "feedback_comments": "Door locks smoothly now and window stays shut during rain. Great work!",
-    },
-    {
-        "tracking_code": "CMP-2026-E505",
-        "title": "Tube light flickering and humming loudly in Room 204",
-        "description": "The primary tube light over the bed keeps flashing strobes and produces high-pitch electrical hum.",
-        "location": "Hostel Block B, Room 204",
-        "priority": "MEDIUM",
-        "status": "RESOLVED",
-        "department_id": 1,
-        "assigned_team_id": 1,
-        "hours_ago": 36,
-        "sla_hours": 24,
-        "resolved_hours_ago": 8,
-        "student_name": "Aarav Sharma",
-        "student_email": "aarav.sharma@campus.edu",
-        "resolution_notes": "[CLOSURE REPORT | Technician: Ramesh Kumar | SLA Met: True]\nWork Summary: Defective ballast swapped out and modern 20W LED tube batten installed.\nParts Replaced: 20W LED Batten, Electronic Choke",
-        "feedback_rating": 5,
-        "feedback_comments": "Technician Ramesh was courteous and resolved the issue within hours.",
-    },
-    {
-        "tracking_code": "CMP-2026-S606",
-        "title": "Overflowing waste bins outside Central Food Court",
-        "description": "Food court collection bins are completely full causing litter on pedestrian walkway and stray animal hazard.",
-        "location": "Central Food Court Plaza",
-        "priority": "HIGH",
-        "status": "RESOLVED",
-        "department_id": 3,
-        "assigned_team_id": 3,
-        "hours_ago": 20,
-        "sla_hours": 6,
-        "resolved_hours_ago": 16,
-        "student_name": "Rohan Patel",
-        "student_email": "rohan.p@campus.edu",
-        "resolution_notes": "[CLOSURE REPORT | Technician: S. Yadav | SLA Met: True]\nWork Summary: Replaced bin liners, disposed refuse in main compactor, and pressure-washed the stone tiles.\nParts Replaced: Heavy-duty bin liners, chemical sanitizer",
-        "feedback_rating": 4,
-        "feedback_comments": "Prompt response and cleaned up the spills well.",
-    },
-    {
-        "tracking_code": "CMP-2026-E707",
-        "title": "AC tripping circuit breaker during lectures",
-        "description": "The 5-ton packaged air conditioning unit in LH-101 trips the main feeder whenever compressor engages.",
-        "location": "Lecture Hall Complex, Room LH-101",
-        "priority": "HIGH",
-        "status": "ESCALATED",
-        "department_id": 1,
-        "assigned_team_id": 1,
-        "hours_ago": 10,
-        "sla_hours": 6,
-        "student_name": "Dr. K. Swaminathan",
-        "student_email": "k.swami@campus.edu",
-        "resolution_notes": "[ESCALATION | Supervisor: Dr. Sunita Verma | Reason: Compressor motor drawing locked rotor current (LRA); requires external OEM motor rewinding quote.]",
-    },
-    {
-        "tracking_code": "CMP-2026-P808",
-        "title": "Low water pressure on 3rd floor washrooms",
-        "description": "Water barely trickles from taps and overhead flush cisterns take 40 minutes to refill.",
-        "location": "Hostel Block A, 3rd Floor",
-        "priority": "MEDIUM",
-        "status": "SUBMITTED",
-        "department_id": 2,
-        "assigned_team_id": 2,
-        "hours_ago": 4,
-        "sla_hours": 24,
-        "student_name": "Vikram Sen",
-        "student_email": "vikram.s@campus.edu",
-        "resolution_notes": None,
-    },
-    {
-        "tracking_code": "CMP-2026-S909",
-        "title": "Sanitization and deep disinfection required in restrooms",
-        "description": "Routine monthly chemical scrub and drain descaling needed for ground floor public restrooms.",
-        "location": "Admin Block, Ground Floor",
-        "priority": "LOW",
-        "status": "IN_PROGRESS",
-        "department_id": 3,
-        "assigned_team_id": 3,
-        "hours_ago": 8,
-        "sla_hours": 72,
-        "student_name": "Staff Desk",
-        "student_email": "admin.desk@campus.edu",
-        "resolution_notes": "[WORK STARTED] Sanitation crew deployed with steam pressure washers.",
-    },
-    {
-        "tracking_code": "CMP-2026-IT910",
-        "title": "Projector HDMI interface damaged in Seminar Hall",
-        "description": "Wall-mounted HDMI extender socket has bent pins, causing pink discoloration and intermittent signal loss.",
-        "location": "Mechanical Dept Seminar Hall",
-        "priority": "HIGH",
-        "status": "SUBMITTED",
-        "department_id": 5,
-        "assigned_team_id": 5,
-        "hours_ago": 2,
-        "sla_hours": 6,
-        "student_name": "Ananya Roy",
-        "student_email": "ananya.roy@campus.edu",
-        "resolution_notes": None,
-    },
-]
-
 
 def ensure_schema() -> None:
-    """Ensure all newly added columns exist in SQLite without needing manual migration."""
+    """Ensure all newly added tables and columns exist in SQLite."""
+    Base.metadata.create_all(bind=engine)
     try:
         with engine.begin() as conn:
             res = conn.execute(text("PRAGMA table_info(tickets);"))
@@ -225,14 +108,27 @@ def ensure_schema() -> None:
             for name, col_type in cols:
                 if name not in existing:
                     conn.execute(text(f"ALTER TABLE tickets ADD COLUMN {name} {col_type};"))
+
+            res_user = conn.execute(text("PRAGMA table_info(users);"))
+            existing_user = {row[1] for row in res_user.fetchall()}
+            user_cols = [
+                ("department_name", "VARCHAR(100)"),
+                ("department_id", "INTEGER"),
+                ("phone", "VARCHAR(50)"),
+                ("is_active", "BOOLEAN DEFAULT 1"),
+                ("role", "VARCHAR(50) DEFAULT 'STUDENT'"),
+            ]
+            for name, col_type in user_cols:
+                if name not in existing_user:
+                    conn.execute(text(f"ALTER TABLE users ADD COLUMN {name} {col_type};"))
     except Exception as e:
         logger.warning(f"Schema update notice: {e}")
 
 
 def seed_database(db: Session) -> None:
     """
-    Seed initial departments, maintenance teams, and realistic campus tickets.
-    Used by FastAPI lifespan in app.main.
+    Seed initial departments, maintenance teams, and IIIT-NR administrative accounts.
+    Leaves ticket complaints empty for authentic student-driven intake.
     """
     ensure_schema()
 
@@ -284,45 +180,26 @@ def seed_database(db: Session) -> None:
             existing_teams_by_id[team.id] = team
     db.commit()
 
-    # 3. Seed realistic campus tickets idempotently
-    existing_codes = {t.tracking_code for t in db.query(Ticket.tracking_code).all()}
-    now = datetime.now(timezone.utc)
-    
-    for t_data in SEED_TICKETS:
-        code = t_data["tracking_code"]
-        if code in existing_codes:
+    # 3. Seed initial IIIT-NR administrators idempotently
+    existing_users = {u.email.lower(): u for u in db.query(User).all()}
+    for a_data in SEED_ADMINS:
+        a_email = a_data["email"].lower()
+        if a_email in existing_users:
             continue
-            
-        created = now - timedelta(hours=t_data["hours_ago"])
-        sla_dl = created + timedelta(hours=t_data["sla_hours"])
-        resolved_at = None
-        if t_data.get("resolved_hours_ago") is not None:
-            resolved_at = now - timedelta(hours=t_data["resolved_hours_ago"])
-            
-        ticket = Ticket(
-            tracking_code=code,
-            title=t_data["title"],
-            description=t_data["description"],
-            location=t_data["location"],
-            priority=t_data["priority"],
-            status=t_data["status"],
-            department_id=t_data["department_id"],
-            assigned_team_id=t_data.get("assigned_team_id"),
-            created_at=created,
-            sla_deadline=sla_dl,
-            resolved_at=resolved_at,
-            resolution_notes=t_data.get("resolution_notes"),
-            student_name=t_data.get("student_name", "Aarav Sharma"),
-            student_email=t_data.get("student_email", "aarav.sharma@campus.edu"),
-            feedback_rating=t_data.get("feedback_rating"),
-            feedback_comments=t_data.get("feedback_comments"),
-            feedback_submitted_at=(now - timedelta(hours=t_data["resolved_hours_ago"] - 1)) if t_data.get("feedback_rating") and t_data.get("resolved_hours_ago") else None,
+        admin_user = User(
+            name=a_data["name"],
+            email=a_email,
+            role=a_data["role"],
+            department_name=a_data.get("department_name"),
+            department_id=a_data.get("department_id"),
+            phone=a_data.get("phone"),
+            is_active=True,
         )
-        db.add(ticket)
-        existing_codes.add(code)
+        db.add(admin_user)
+        existing_users[a_email] = admin_user
     db.commit()
 
-    # 4. Synchronize live squad active_ticket_count
+    # 4. Synchronize live squad active_ticket_count (0 if tickets are empty)
     teams = db.query(MaintenanceTeam).all()
     for team in teams:
         team.active_ticket_count = (
@@ -338,7 +215,7 @@ def seed_database(db: Session) -> None:
 
 def seed_data() -> None:
     """
-    Populates database with starter campus departments, maintenance squads, and tickets.
+    Populates database with starter campus departments, maintenance squads, and admins.
     Guarantees idempotency via pre-insert existence checks.
     Standalone CLI runner compatible with M1 blueprint.
     """
@@ -346,7 +223,7 @@ def seed_data() -> None:
     db = SessionLocal()
     try:
         seed_database(db)
-        logger.info("Database seeding completed successfully!")
+        logger.info("Database seeding completed successfully! Zero fake tickets populated.")
     except Exception as e:
         db.rollback()
         logger.error(f"Error during database seeding: {e}", exc_info=True)
@@ -357,4 +234,5 @@ def seed_data() -> None:
 
 if __name__ == "__main__":
     seed_data()
+
 

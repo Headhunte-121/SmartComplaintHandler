@@ -64,8 +64,8 @@ export default function SubmitComplaint() {
         title: title.trim(),
         description: description.trim(),
         location: fullLocation,
-        student_name: currentPersona?.name || 'Aarav Sharma',
-        student_email: currentPersona?.email || 'aarav.sharma@campus.edu',
+        student_name: currentPersona?.name || 'Nikhil (Student)',
+        student_email: currentPersona?.email || 'nikhil26100@iiitnr.edu.in',
       });
 
       setCreatedTicket(ticket);
