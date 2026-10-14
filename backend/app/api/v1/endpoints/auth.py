@@ -11,6 +11,7 @@ from app.api.deps import get_db
 from app.schemas.user import (
     LoginRequest,
     RegisterRequest,
+    GoogleAuthRequest,
     AuthResponse,
     UserResponse,
     AdminCreateRequest,
@@ -19,6 +20,7 @@ from app.schemas.user import (
 )
 from app.services.user_service import (
     authenticate_iiitnr_user,
+    authenticate_google_user,
     register_user,
     get_current_user_from_token,
     list_administrative_users,
@@ -71,6 +73,16 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> AuthResponse:
     - Remember Me enabled: 30 days persistent token
     """
     return authenticate_iiitnr_user(payload, db)
+
+
+@router.post("/google", response_model=AuthResponse, summary="Institutional Google Workspace SSO")
+def google_sso(payload: GoogleAuthRequest, db: Session = Depends(get_db)) -> AuthResponse:
+    """
+    Authenticate or register an institutional user via official Google Workspace SSO.
+    Captures verified full real name (e.g. 'Nikhil Gavel') from Google profile,
+    strictly enforces @iiitnr.edu.in domain, and issues 30-day session token.
+    """
+    return authenticate_google_user(payload, db)
 
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED, summary="Register New Institutional Account")

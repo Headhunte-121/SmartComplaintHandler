@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser, fetchMe } from '../api/auth';
+import { loginUser, loginWithGoogle, registerUser, fetchMe } from '../api/auth';
 
 /**
  * Institutional IIIT-NR Personas for Role-Based Access & Quick Testing:
@@ -180,6 +180,27 @@ export function AuthProvider({ children }) {
   };
 
   /**
+   * Google Workspace Official SSO Login & Auto-Registration
+   * Strictly enforces @iiitnr.edu.in accounts and captures verified full real name
+   */
+  const loginGoogle = async (googleData) => {
+    const data = await loginWithGoogle(googleData);
+    const enriched = enrichUser(data.user);
+    setCurrentUser(enriched);
+
+    // 30-day persistent session
+    localStorage.setItem('smart_complaint_auth_token', data.access_token);
+    localStorage.setItem('smart_complaint_auth_user', JSON.stringify(enriched));
+    localStorage.setItem('smart_complaint_remember_email', data.user.email);
+    setRememberedEmail(data.user.email);
+
+    sessionStorage.removeItem('smart_complaint_auth_token');
+    sessionStorage.removeItem('smart_complaint_auth_user');
+
+    return enriched;
+  };
+
+  /**
    * Quick persona switch for demonstration & testing
    */
   const switchPersona = async (personaId) => {
@@ -222,6 +243,7 @@ export function AuthProvider({ children }) {
         personas: CAMPUS_PERSONAS,
         rememberedEmail,
         login,
+        loginGoogle,
         register,
         logout,
         switchPersona,

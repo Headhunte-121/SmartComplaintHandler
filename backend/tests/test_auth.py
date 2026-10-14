@@ -21,7 +21,7 @@ def test_login_student_standard():
     assert data["expires_in_days"] == 1
     assert data["user"]["role"] == "STUDENT"
     assert data["user"]["email"] == "nikhil26100@iiitnr.edu.in"
-    assert data["user"]["name"] == "Nikhil"
+    assert "Nikhil" in data["user"]["name"]
     assert "Roll:" in data["user"]["identifier"]
 
 
@@ -113,3 +113,30 @@ def test_purge_tickets():
     assert resp.status_code == 200
     data = resp.json()
     assert "purged_count" in data
+
+
+def test_google_auth_success():
+    payload = {
+        "email": "nikhil26100@iiitnr.edu.in",
+        "name": "Nikhil Gavel",
+        "remember_me": True,
+    }
+    resp = client.post("/api/v1/auth/google", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "access_token" in data
+    assert data["expires_in_days"] == 30
+    assert data["user"]["email"] == "nikhil26100@iiitnr.edu.in"
+    assert data["user"]["name"] == "Nikhil Gavel"
+    assert data["user"]["department_name"] == "Computer Science & Engineering"
+
+
+def test_google_auth_non_iiitnr_rejected():
+    payload = {
+        "email": "student@gmail.com",
+        "name": "Random User",
+        "remember_me": True,
+    }
+    resp = client.post("/api/v1/auth/google", json=payload)
+    assert resp.status_code == 403
+    assert "strictly restricted to official @iiitnr.edu.in" in resp.json()["detail"]

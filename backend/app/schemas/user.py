@@ -59,6 +59,13 @@ class RegisterRequest(BaseModel):
             raise ValueError(f"Registration is restricted to official @{IIITNR_DOMAIN} accounts.")
         return v
 
+class GoogleAuthRequest(BaseModel):
+    credential: Optional[str] = Field(None, description="Google Identity Services JWT ID token")
+    email: Optional[str] = Field(None, description="Verified institutional email")
+    name: Optional[str] = Field(None, description="Full real name from Google profile")
+    picture: Optional[str] = Field(None, description="Google profile picture URL")
+    remember_me: bool = Field(True, description="Persist session for 30 days")
+
     model_config = ConfigDict(str_strip_whitespace=True)
 
 

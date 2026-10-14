@@ -14,6 +14,17 @@ export async function loginUser(email, password = 'password123', rememberMe = fa
   return response.data;
 }
 
+export async function loginWithGoogle(googleData) {
+  const response = await apiClient.post('/auth/google', {
+    credential: googleData.credential || undefined,
+    email: googleData.email ? googleData.email.trim().toLowerCase() : undefined,
+    name: googleData.name ? googleData.name.trim() : undefined,
+    picture: googleData.picture || undefined,
+    remember_me: googleData.remember_me !== false,
+  });
+  return response.data;
+}
+
 export async function sendOTP(email) {
   const response = await apiClient.post('/auth/send-otp', {
     email: email.trim().toLowerCase(),

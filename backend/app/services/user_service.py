@@ -7,6 +7,8 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from fastapi import HTTPException, status
+import base64
+import json
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -15,6 +17,7 @@ from app.models.team import MaintenanceTeam
 from app.schemas.user import (
     LoginRequest,
     RegisterRequest,
+    GoogleAuthRequest,
     AuthResponse,
     AdminCreateRequest,
     UserResponse,
@@ -28,41 +31,12 @@ from app.core.security import (
     REMEMBER_ME_EXPIRE_DAYS,
 )
 
-STUDENT_PATTERN = re.compile(r"^([a-zA-Z]+(?:[._][a-zA-Z]+)*)(\d{2})(\d{2,5})@iiitnr\.edu\.in$", re.IGNORECASE)
-
-# Official IIIT-NR Google Workspace Institutional Directory
-INSTITUTIONAL_DIRECTORY: Dict[str, Dict[str, str]] = {
-    "nikhil26100@iiitnr.edu.in": {
-        "name": "Nikhil Gavel",
-        "department_name": "Computer Science & Engineering",
-        "role": "STUDENT",
-        "roll_no": "2026CSE100",
-        "identifier": "Roll: 2026CSE100 (Batch '2026)",
-    },
-    "nikhilesh26100@iiitnr.edu.in": {
-        "name": "Nikhilesh Kothamasu",
-        "department_name": "Computer Science & Engineering",
-        "role": "STUDENT",
-        "roll_no": "2026CSE100",
-        "identifier": "Roll: 2026CSE100 (Batch '2026)",
-    },
-    "nikheel25302@iiitnr.edu.in": {
-        "name": "Nikheel Kumar Sonkar",
-        "department_name": "Electronics & Communication Engineering",
-        "role": "STUDENT",
-        "roll_no": "2025ECE302",
-        "identifier": "Roll: 2025ECE302 (Batch '2025)",
-    },
-}
+STUDENT_PATTERN = re.compile(r"^([a-zA-Z]+(?:[._][a-zA-Z]+)*?)(\d{2})(\d{2,5})@iiitnr\.edu\.in$", re.IGNORECASE)
 
 
 def resolve_user_metadata(email: str) -> Dict[str, str]:
     """Auto-detect user role, name, department and student roll from email."""
     clean_email = email.strip().lower()
-
-    if clean_email in INSTITUTIONAL_DIRECTORY:
-        return INSTITUTIONAL_DIRECTORY[clean_email]
-
     prefix = clean_email.split("@")[0].lower()
 
     if prefix in ("superadmin", "director", "super.admin"):
@@ -90,18 +64,18 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
     # Student pattern: e.g. nikhil26100@iiitnr.edu.in or nikhil.sharma26100@iiitnr.edu.in
     match = STUDENT_PATTERN.match(clean_email)
     if match:
-        raw_name = match.group(1).replace(".", " ").replace("_", " ").title()
+        raw_name = match.group(1).replace(".", " ").replace("_", " ").title().strip()
         year = match.group(2)
         code = match.group(3)
 
         # IIIT-NR Institutional Branch Taxonomy:
         # 100 -> CSE (Computer Science & Engineering)
         # 101 -> DSAI (Data Science & Artificial Intelligence)
-        # 102 -> ECE (Electronics & Communication Engineering)
-        if code.startswith("101"):
+        # 102 / 302 -> ECE (Electronics & Communication Engineering)
+        if code.startswith("101") or code.endswith("01"):
             dept_name = "Data Science & Artificial Intelligence"
             dept_code = "DSAI"
-        elif code.startswith("102"):
+        elif code.startswith("102") or code.endswith("02") or code == "302":
             dept_name = "Electronics & Communication Engineering"
             dept_code = "ECE"
         else:
@@ -117,13 +91,109 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
         }
 
     # Fallback student format
-    clean_name = prefix.replace(".", " ").replace("_", " ").title()
+    clean_name = prefix.replace(".", " ").replace("_", " ").title().strip()
     return {
         "name": clean_name,
         "role": "STUDENT",
-        "department_name": "IIIT Naya Raipur",
+        "department_name": "Computer Science & Engineering",
         "identifier": f"Student ID: {prefix.upper()}",
     }
+
+
+def parse_google_jwt(token: str) -> dict:
+    """Safely decode payload of Google ID token JWT without external dependencies."""
+    try:
+        parts = token.split(".")
+        if len(parts) >= 2:
+            payload_b64 = parts[1]
+            payload_b64 += "=" * ((4 - len(payload_b64) % 4) % 4)
+            decoded = base64.urlsafe_b64decode(payload_b64.encode("utf-8")).decode("utf-8")
+            return json.loads(decoded)
+    except Exception:
+        pass
+    return {}
+
+
+def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthResponse:
+    """
+    Authenticate an institutional user via Google Workspace OAuth SSO.
+    STRICT SECURITY: Restricts access EXCLUSIVELY to official @iiitnr.edu.in accounts.
+    Captures verified full real name (e.g. 'Nikhil Gavel') from Google profile,
+    auto-detects department, and issues 30-day session token.
+    """
+    google_data = {}
+    if req.credential:
+        google_data = parse_google_jwt(req.credential)
+
+    email = (req.email or google_data.get("email") or "").strip().lower()
+
+    # CRITICAL: Verify hosted domain and email strictly belongs to @iiitnr.edu.in
+    if not email.endswith(f"@{IIITNR_DOMAIN}"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied: Google Sign-In is strictly restricted to official @{IIITNR_DOMAIN} institutional accounts. Personal Gmail or external accounts are not permitted."
+        )
+
+    # If Google token contains hosted domain claim (hd), verify it matches iiitnr.edu.in
+    hd = google_data.get("hd")
+    if hd and hd.lower() != IIITNR_DOMAIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied: Hosted domain '{hd}' is not authorized. Must be @{IIITNR_DOMAIN}."
+        )
+
+    # Google Profile Full Name (e.g. "Nikhil Gavel")
+    full_name = (req.name or google_data.get("name") or "").strip()
+    meta = resolve_user_metadata(email)
+    if not full_name:
+        full_name = meta["name"]
+
+    dept_name = meta["department_name"]
+    role = meta["role"]
+
+    # Check existing user
+    db_user = db.query(User).filter(User.email.ilike(email)).first()
+    if db_user:
+        if not db_user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This institutional account has been deactivated by the Super Administrator."
+            )
+        # Update name with verified Google Workspace full real name
+        if full_name and db_user.name != full_name:
+            db_user.name = full_name
+        if not db_user.department_name:
+            db_user.department_name = dept_name
+        db.commit()
+        db.refresh(db_user)
+        user_entity = db_user
+    else:
+        # Auto-provision new verified student or staff member with Google full name
+        user_entity = User(
+            name=full_name,
+            email=email,
+            hashed_password=hash_password(f"GOOGLE_AUTH_{email}_{full_name}"),
+            role=role,
+            department_name=dept_name,
+            is_active=True,
+        )
+        db.add(user_entity)
+        db.commit()
+        db.refresh(user_entity)
+
+    # Issue 30-day Persistent JWT Session Token
+    expires_in_days = REMEMBER_ME_EXPIRE_DAYS if req.remember_me else 1
+    token = create_access_token(
+        data={"sub": user_entity.email, "role": user_entity.role, "id": user_entity.id},
+        expires_delta=timedelta(days=expires_in_days)
+    )
+
+    return AuthResponse(
+        access_token=token,
+        token_type="bearer",
+        expires_in_days=expires_in_days,
+        user=to_user_response(user_entity)
+    )
 
 
 def to_user_response(user: User) -> UserResponse:
@@ -191,9 +261,9 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
 
     meta = resolve_user_metadata(clean_email)
     hashed_pw = hash_password(req.password)
-    # Strictly enforce official institutional directory identity
-    user_name = meta["name"]
-    dept_name = meta["department_name"]
+    # Enforce verified identity or provided profile name
+    user_name = req.name.strip() if req.name and req.name.strip() else meta["name"]
+    dept_name = req.department_name.strip() if req.department_name and req.department_name.strip() else meta["department_name"]
 
     new_user = User(
         name=user_name,

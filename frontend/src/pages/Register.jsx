@@ -8,34 +8,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Verified Google Workspace Campus Directory Mappings
-const CAMPUS_DIRECTORY = {
-  'nikhil26100@iiitnr.edu.in': {
-    fullName: 'Nikhil Gavel',
-    department: 'Computer Science & Engineering',
-    deptCode: 'CSE',
-    rollNo: '2026CSE100',
-    batch: 'Batch 2026',
-  },
-  'nikhilesh26100@iiitnr.edu.in': {
-    fullName: 'Nikhilesh Kothamasu',
-    department: 'Computer Science & Engineering',
-    deptCode: 'CSE',
-    rollNo: '2026CSE100',
-    batch: 'Batch 2026',
-  },
-  'nikheel25302@iiitnr.edu.in': {
-    fullName: 'Nikheel Kumar Sonkar',
-    department: 'Electronics & Communication Engineering',
-    deptCode: 'ECE',
-    rollNo: '2025ECE302',
-    batch: 'Batch 2025',
-  },
-};
-
 export default function Register() {
   const navigate = useNavigate();
-  const { register, currentUser } = useAuth();
+  const { register, loginGoogle, currentUser } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,8 +20,15 @@ export default function Register() {
 
   const [departmentInfo, setDepartmentInfo] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successUser, setSuccessUser] = useState(null);
+
+  // Google Workspace SSO modal state
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [googleEmail, setGoogleEmail] = useState('');
+  const [googleName, setGoogleName] = useState('');
+  const [googleError, setGoogleError] = useState(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -62,28 +44,29 @@ export default function Register() {
     }
   }, [currentUser, navigate]);
 
-  // Derive verified official full name and academic branch from IIIT-NR institutional directory
+  // Derive verified official full name and academic department dynamically from IIIT-NR email
   const parseEmailMetadata = (rawEmail) => {
-    const clean = rawEmail.trim().toLowerCase();
+    const clean = (rawEmail || '').trim().toLowerCase();
     if (!clean.endsWith('@iiitnr.edu.in')) return null;
 
-    if (CAMPUS_DIRECTORY[clean]) {
-      return CAMPUS_DIRECTORY[clean];
-    }
-
     const prefix = clean.split('@')[0];
-    const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*)(\d{2})(\d{2,5})$/i);
+    // Student pattern: name part followed by 2-digit batch year and branch/roll code
+    // e.g. "nikhil26100", "nikhil.sharma26100", "rahul_verma26101", "nikheel25302"
+    const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*?)(\d{2})(\d{2,5})$/i);
     if (match) {
-      const rawName = match[1].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-      const year = match[2];
+      const rawName = match[1]
+        .replace(/[._]/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+        .trim();
       const code = match[3];
 
+      // Department detection: 100 -> CSE, 101 -> DSAI, 102/302 -> ECE
       let dept = 'Computer Science & Engineering';
       let deptCode = 'CSE';
-      if (code.startsWith('101')) {
+      if (code.startsWith('101') || code.endsWith('01')) {
         dept = 'Data Science & Artificial Intelligence';
         deptCode = 'DSAI';
-      } else if (code.startsWith('102')) {
+      } else if (code.startsWith('102') || code.endsWith('02') || code === '302') {
         dept = 'Electronics & Communication Engineering';
         deptCode = 'ECE';
       }
@@ -92,18 +75,27 @@ export default function Register() {
         fullName: rawName,
         department: dept,
         deptCode,
-        rollNo: `20${year}${deptCode}${code}`,
-        batch: `Batch 20${year}`,
       };
     }
 
-    const cleanName = prefix.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const cleanName = prefix
+      .replace(/[._]/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+      .trim();
+
+    let dept = 'Computer Science & Engineering';
+    if (prefix.includes('admin') || prefix.includes('estate')) {
+      dept = 'Central Facilities Management';
+    } else if (prefix.startsWith('tech')) {
+      dept = 'Electrical Maintenance';
+    } else if (prefix === 'director') {
+      dept = 'Office of the Director';
+    }
+
     return {
       fullName: cleanName,
-      department: 'IIIT Naya Raipur',
-      deptCode: 'General',
-      rollNo: `ID: ${prefix.toUpperCase()}`,
-      batch: 'Campus Staff / Scholar',
+      department: dept,
+      deptCode: 'GEN',
     };
   };
 
@@ -112,6 +104,47 @@ export default function Register() {
     setError(null);
     const parsed = parseEmailMetadata(val);
     setDepartmentInfo(parsed);
+  };
+
+  const handleRoleRedirect = (user) => {
+    setSuccessUser(user);
+    let targetRoute = '/submit';
+    if (user.role === 'SUPER_ADMIN') targetRoute = '/superadmin';
+    else if (user.role === 'ADMIN') targetRoute = '/admin';
+    else if (user.role === 'TECHNICIAN') targetRoute = '/technician';
+
+    setTimeout(() => {
+      navigate(targetRoute);
+    }, 600);
+  };
+
+  const handleGoogleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    setGoogleError(null);
+
+    const cleanEmail = googleEmail.trim().toLowerCase();
+    if (!cleanEmail.endsWith('@iiitnr.edu.in')) {
+      setGoogleError('Access restricted: Only official @iiitnr.edu.in institutional accounts are permitted. Personal Gmail accounts are blocked.');
+      return;
+    }
+
+    setGoogleLoading(true);
+    try {
+      const user = await loginGoogle({
+        email: cleanEmail,
+        name: googleName.trim() || undefined,
+        remember_me: true,
+      });
+      setIsGoogleModalOpen(false);
+      handleRoleRedirect(user);
+    } catch (err) {
+      setGoogleError(
+        err.response?.data?.detail ||
+        err.message ||
+        'Google Workspace verification failed. Ensure you are using an official @iiitnr.edu.in account.'
+      );
+      setGoogleLoading(false);
+    }
   };
 
   const handleRegister = async (e) => {
@@ -145,17 +178,7 @@ export default function Register() {
         remember_me: rememberMe,
       });
 
-      setSuccessUser(user);
-
-      // Auto-route based on role
-      let targetRoute = '/submit';
-      if (user.role === 'SUPER_ADMIN') targetRoute = '/superadmin';
-      else if (user.role === 'ADMIN') targetRoute = '/admin';
-      else if (user.role === 'TECHNICIAN') targetRoute = '/technician';
-
-      setTimeout(() => {
-        navigate(targetRoute);
-      }, 600);
+      handleRoleRedirect(user);
     } catch (err) {
       setError(
         err.response?.data?.detail ||
@@ -212,13 +235,54 @@ export default function Register() {
               </p>
             </div>
           ) : (
-            <form onSubmit={handleRegister} className="space-y-4">
-              {error && (
-                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2 animate-fade-in">
-                  <span>⚠️</span>
-                  <span>{error}</span>
-                </div>
-              )}
+            <div className="space-y-4">
+              {/* Official Google Workspace 1-Click Registration */}
+              <button
+                type="button"
+                onClick={() => {
+                  setGoogleEmail(email || '');
+                  setGoogleError(null);
+                  setIsGoogleModalOpen(true);
+                }}
+                disabled={googleLoading || loading}
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 active:scale-[0.99] text-slate-700 font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+              >
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                  />
+                </svg>
+                <span>Sign up with Google Workspace (@iiitnr.edu.in)</span>
+              </button>
+
+              <div className="relative flex items-center">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink mx-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  or register with password
+                </span>
+                <div className="flex-grow border-t border-slate-200"></div>
+              </div>
+
+              <form onSubmit={handleRegister} className="space-y-4">
+                {error && (
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2 animate-fade-in">
+                    <span>⚠️</span>
+                    <span>{error}</span>
+                  </div>
+                )}
 
               {/* Institutional Email */}
               <div className="space-y-1.5">
@@ -256,13 +320,6 @@ export default function Register() {
                         <div className="text-xs font-bold text-indigo-700">{departmentInfo.department}</div>
                       </div>
                     </div>
-
-                    {departmentInfo.rollNo && (
-                      <div className="text-[11px] font-mono text-slate-500 pt-1 border-t border-slate-200/60 flex justify-between">
-                        <span>Roll: {departmentInfo.rollNo}</span>
-                        <span>{departmentInfo.batch}</span>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -351,6 +408,7 @@ export default function Register() {
                 )}
               </button>
             </form>
+          </div>
           )}
 
           {/* Footer Navigation */}
@@ -370,6 +428,100 @@ export default function Register() {
           Dr. Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur
         </p>
       </div>
+
+      {/* Official Google Workspace Modal */}
+      {isGoogleModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-5 animate-fade-in">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">Google Workspace Registration</h3>
+                  <p className="text-[11px] text-slate-500 font-medium">IIIT Naya Raipur Verified Account</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGoogleModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start space-x-2">
+              <span className="text-sm">🔒</span>
+              <span>
+                <strong>Institutional Security Policy:</strong> Registration is strictly restricted to accounts ending with <strong>@iiitnr.edu.in</strong>. Personal Gmail accounts are blocked.
+              </span>
+            </div>
+
+            {googleError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2">
+                <span>⚠️</span>
+                <span>{googleError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleGoogleSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Institutional Email ID
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. nikhil26100@iiitnr.edu.in"
+                  value={googleEmail}
+                  onChange={(e) => setGoogleEmail(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Official Full Real Name (from Google Profile)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Nikhil Gavel"
+                  value={googleName}
+                  onChange={(e) => setGoogleName(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-3 focus:ring-indigo-600/15"
+                />
+                <p className="text-[10px] text-slate-400">
+                  Your full verified institutional name as registered on your @iiitnr.edu.in Google account.
+                </p>
+              </div>
+
+              <div className="pt-2 flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setIsGoogleModalOpen(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={googleLoading}
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/25 transition-all flex items-center justify-center space-x-2 disabled:bg-slate-300 cursor-pointer"
+                >
+                  {googleLoading ? <span>Creating...</span> : <span>Confirm & Register</span>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
