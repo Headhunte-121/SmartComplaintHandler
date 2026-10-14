@@ -614,3 +614,29 @@ npm run dev
   - Backend Test Suite: 48/48 pytest unit & integration tests passing cleanly (including 9/9 auth tests).
   - Frontend Production Build: `npm run build` compiled in 1.39s with 0 errors.
 
+### [2026-10-14] - Complete Student Experience & Dashboard UI Modernization
+* **Files Modified:**
+  - `frontend/src/pages/StudentDashboard.jsx`
+  - `frontend/src/pages/SubmitComplaint.jsx`
+  - `frontend/src/components/LiveTriageCard.jsx`
+  - `frontend/src/components/Navbar.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Student Dashboard (`StudentDashboard.jsx`):**
+     - Replaced dated, dark gradient banner and emojis (`⚡`, `✓`, `★`) with a clean, modern white card layout featuring verified institutional `@iiitnr.edu.in` identity indicators, student roll number, department badge, and designated hostel quarters.
+     - Implemented 4 crisp telemetry metric cards (Active Grievances, In-Progress Squad Repairs, Resolved & Closed, and Average Satisfaction Rating) using high-precision Lucide SVG icons.
+     - Added real-time client-side search across complaint titles, tracking codes, categories, and locations, alongside multi-tab filtering (`All`, `Active`, `In Progress`, `Resolved`).
+     - Enhanced complaint cards with one-click tracking code copying (with instant visual clipboard feedback), colored status pills with pulsing live indicators, assigned squad chips, SLA countdown timers, and direct audit timeline deep-links (`/track?code=...`).
+     - Upgraded the closed-loop satisfaction review modal with interactive Lucide star ratings, dynamic rating label feedback, and a clean submission flow.
+  2. **Grievance Intake Portal (`SubmitComplaint.jsx`):**
+     - Replaced the bureaucratic form with 6 visual interactive category cards (Electrical, Plumbing, IT Support, Carpentry, Sanitation, Civil Engineering) featuring modern icons and instant active highlights.
+     - Added an institutional verified student identity strip with auto-populated name, roll number, and hostel quarters.
+     - Enhanced building and room input selectors, smart character counters, and prominent CTA styling.
+  3. **Live AI Triage Copilot Card (`LiveTriageCard.jsx`):**
+     - Replaced the empty wireframe box with an active AI copilot card displaying real-time engine telemetry, binding SLA guarantee preview, instant auto-routing hints, and hazard severity detection.
+* **Why It Was Changed:** Addressed user feedback regarding dated and cluttered dashboard UI, aligning the entire student portal experience with modern SaaS design standards (Linear/Stripe aesthetic) and strict institutional verification.
+* **Verification Proof:**
+  - Backend Test Suite: 48/48 pytest unit & integration tests passing cleanly in 37.82s.
+  - Frontend Production Build: `npm run build` compiled in 19.24s with 0 errors.
+
+
