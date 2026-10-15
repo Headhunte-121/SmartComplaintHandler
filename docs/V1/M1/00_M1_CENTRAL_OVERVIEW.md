@@ -991,4 +991,47 @@ npm run dev
   - Frontend Production Build: `npm run build` compiled in 1.35s with 0 errors (bundle: 452.55 kB).
   - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 9.24s (100% pass rate).
 
+### [2026-10-15] - 16-Entity Pure-Vector Digital Twin, Omni-Search & Smart Auto-Detector Engine
+* **Files Modified:**
+  - `frontend/src/data/iiitnrCampusData.js`
+  - `frontend/src/components/CampusMapSelector.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **16-Entity Pure-Vector Digital Twin Engine:**
+     - Transitioned from hybrid satellite overlay to pure-vector 1:1 satellite-proportioned Digital Twin rendering in `735 x 857` coordinate space (`viewBox="-55 0 840 857"`).
+     - Fully mapped all 16 campus zones with bespoke vector geometries:
+       - `ramanujan_house`: Northern hostel with sawtooth eastern fingers, roof corridors, and twin inner green & red sports courts.
+       - `bose_house` & `bhabha_house`: Dual southwest outer/inner quadrangles with central synthetic green courts.
+       - `raman_house`: Upper-west residential cluster with 4 blocks and D-shaped courtyard lawn.
+       - `shabhari_house`: Girls hostel quadrangle with twin blue & terracotta inner courts and detached East Annex wing.
+       - `transit_hostel`: 3 stepped northeast cruciform blocks, solar parking shed, and long north pavilion wing.
+       - `academic_block`: Central white Rotunda Dome, NW-SE main spine, 4 parallel lab & department wings, North Arc, teardrop roundabout, and portico loop.
+       - `krc_library`: L-shaped Knowledge Resource Centre with reading atrium & IEEE terminal bay.
+       - `sac_mph`: White-roofed Multi-Purpose Hall & Student Activity Centre with gable trusses and entrance portico.
+       - `football_ground`: Main Football Ground (FG) with striped manicured pitch, center circle, penalty boxes, goalposts, corner flags, spectator curved track, east pavilion gallery, and 4 floodlight towers.
+       - `sports_ground`: Northwest indoor sports complex hall with diagonal footpath to Ramanujan House and north athletics field.
+       - `outdoor_courts`: West twin red courts (Basketball / Volleyball) and academic north green court (Badminton / Basketball).
+       - `old_amphitheatre`: Central open-air amphitheatre with stepped acoustic seating bowl near Canteen Rotunda plus academic north acoustic bowl.
+       - `amphitheatre`: New Amphitheatre (Amphitheatre 2) with 7 concentric stone seating tiers, circular stage lawn, NW ramp, and 3 curved NE landscaped terraces.
+       - `cafeteria_mess`: Circular Canteen Rotunda with inner skylight dome, Central Mess north & south wings, Central Auditorium Hall, and Block C1.
+       - `main_gate`: Highway Entrance Arch on Naya Raipur Marg, Union Bank ATM & security kiosk, crossroads monument plinth, and West Gate No. 2.
+       - Paved internal asphalt avenues, dashed road centerlines, and pedestrian walkway network.
+       - Boulevard avenue trees and east/southeast woodland canopies.
+  2. **Omni-Search & Smart Auto-Detector Engine:**
+     - Implemented real-time fuzzy/substring search matching building identities, specialty labs, rooms, and hostel wing/room patterns (e.g. `mana`, `raman`, `131c`, `e-101`, `idealab`, `fg`, `mess`, `atm`).
+     - Automatic camera pan & zoom centering on the detected entity `(cx, cy)`.
+     - Pulsing radar locator wave highlight on target coordinates for immediate visual identification.
+     - Auto-detection alert banner breadcrumbs with auto-selection of building and room for complaint submission.
+  3. **Digital Twin Floor & Facility Inspector Drawer:**
+     - Interactive floor selector (`Ground`, `1st`, `2nd`, `3rd`) and wing selector (`Wing A`, `Wing B`, `Common Area`).
+     - Clickable room grid displaying all detected rooms and labs for the active floor.
+     - One-click selection locking the chosen room into the complaint intake workflow.
+  4. **Super Admin Lockdown & 50-Acre Perimeter:**
+     - Strict `isSuperAdmin` authentication enforcement guarding edit mode, block repositioning, block addition, deletion, reset, and JSON export/import.
+     - 50-Acre perimeter boundary overlay with 4 geodetic survey pillars (P1–P4) with hover pulse, coordinate badges, and toggle control.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.64s with 0 errors (bundle: 479.22 kB).
+  - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 6.58s (100% pass rate).
+
+
 
