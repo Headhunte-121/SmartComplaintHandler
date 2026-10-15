@@ -568,11 +568,11 @@ export default function CampusMapSelector({
         className={isSuperAdmin && isEditMode ? 'cursor-move' : 'cursor-pointer'}
       >
         {/* Selection / Hover Pulse Halo */}
-        {(isSelected || isHovered) && (
+        {(isSelected || isHovered) && shape !== 'academic_complex' && (
           <circle
             cx={cx}
             cy={cy}
-            r={Math.max(w, h) * 0.62}
+            r={Math.max(w, h) * 0.54}
             fill="none"
             stroke={isSelected ? '#38bdf8' : '#a5b4fc'}
             strokeWidth={isSelected ? '2' : '1.2'}
@@ -1193,81 +1193,93 @@ export default function CampusMapSelector({
           </g>
         )}
 
-        {/* 13. ACADEMIC & ADMIN COMPLEX (Central Rotunda Dome, NW-SE Spine, 4 Parallel Lab Wings, North Arc) */}
+        {/* 13. ACADEMIC & ADMIN COMPLEX (Authentic Stepped Footprint & Central Dome) */}
         {shape === 'academic_complex' && (
-          <g>
-            {/* North Arc Connecting Academic Spine to KRC Library */}
-            <path
-              d="M 372,400 Q 425,385 478,432"
-              fill="none"
-              stroke="#334155"
-              strokeWidth="11"
-              strokeLinecap="round"
+          <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
+            {/* 2.5D Architectural Shadow */}
+            <polygon
+              points="-44,-40 48,-40 48,-24 44,-24 44,20 38,20 0,44 -38,20 -44,20 -44,-24"
+              fill="rgba(2,6,23,0.65)"
             />
-            <path
-              d="M 372,400 Q 425,385 478,432"
-              fill="none"
-              stroke={baseColor}
-              strokeWidth="7"
-              strokeLinecap="round"
+            {/* Main Cohesive Stepped Building Perimeter */}
+            <polygon
+              points="-46,-42 46,-42 46,-26 42,-26 42,18 36,18 0,42 -36,18 -42,18 -42,-26 -46,-26"
+              fill={baseColor}
+              fillOpacity={fillOpacity}
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+              strokeLinejoin="round"
             />
-            {/* 4 Parallel NE/SE Department & Lab Wings */}
-            {[
-              { x: 402, y: 428, len: 48, label: 'W1' },
-              { x: 414, y: 448, len: 52, label: 'W2' },
-              { x: 424, y: 486, len: 52, label: 'W3' },
-              { x: 434, y: 508, len: 48, label: 'W4' },
-            ].map((wing, i) => (
-              <g key={i} transform={`translate(${wing.x}, ${wing.y}) rotate(58)`}>
-                <rect
-                  x={-wing.len / 2}
-                  y="-7.5"
-                  width={wing.len}
-                  height="15"
-                  rx="3"
-                  fill={baseColor}
-                  fillOpacity={fillOpacity}
-                  stroke={strokeColor}
-                  strokeWidth="1.2"
-                />
-                <line
-                  x1={-wing.len / 2 + 4}
-                  y1="0"
-                  x2={wing.len / 2 - 4}
-                  y2="0"
-                  stroke="rgba(255,255,255,0.4)"
-                  strokeWidth="0.8"
-                />
-              </g>
-            ))}
-            {/* Central NW-SE Academic Spine Corridor */}
-            <g transform="translate(388, 472) rotate(-32)">
-              <rect
-                x="-14"
-                y="-65"
-                width="28"
-                height="130"
-                rx="5"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              <line x1="0" y1="-58" x2="0" y2="58" stroke="rgba(255,255,255,0.4)" strokeWidth="1" strokeDasharray="3 3" />
-            </g>
-            {/* Central White Rotunda Dome & Atrium at (392, 468) */}
+            {/* Rear North Wing Parapet Line */}
+            <line
+              x1="-44"
+              y1="-26"
+              x2="42"
+              y2="-26"
+              stroke="rgba(255,255,255,0.4)"
+              strokeWidth="1"
+            />
+            {/* Dual Inner Lightwell Courtyards */}
+            <rect
+              x="-28"
+              y="-16"
+              width="14"
+              height="20"
+              rx="2"
+              fill="#0f172a"
+              fillOpacity="0.75"
+              stroke="rgba(255,255,255,0.25)"
+              strokeWidth="0.8"
+            />
+            <rect
+              x="14"
+              y="-16"
+              width="14"
+              height="20"
+              rx="2"
+              fill="#0f172a"
+              fillOpacity="0.75"
+              stroke="rgba(255,255,255,0.25)"
+              strokeWidth="0.8"
+            />
+            {/* Front Grand Entrance Portal on the Southeast Prow */}
+            <polygon
+              points="-18,20 18,20 0,38"
+              fill={isBlueprint ? 'rgba(56,189,248,0.3)' : '#0369a1'}
+              stroke={strokeColor}
+              strokeWidth="0.9"
+            />
+            <rect
+              x="-12"
+              y="38"
+              width="24"
+              height="5"
+              rx="1.5"
+              fill="#38bdf8"
+              stroke="#ffffff"
+              strokeWidth="0.8"
+            />
+            {/* Central Rotunda White Dome & Atrium */}
             <circle
-              cx="392"
-              cy="468"
-              r="22"
+              cx="0"
+              cy="0"
+              r="17"
               fill={isBlueprint ? baseColor : '#f8fafc'}
               fillOpacity={fillOpacity}
               stroke={isSelected ? '#38bdf8' : '#0284c7'}
               strokeWidth={strokeWidth}
             />
-            <circle cx="392" cy="468" r="15" fill="none" stroke="#94a3b8" strokeWidth="1.2" strokeDasharray="3 3" />
-            <circle cx="392" cy="468" r="8" fill="#0284c7" stroke="#ffffff" strokeWidth="1.2" />
-            <circle cx="392" cy="468" r="3" fill="#ffffff" />
+            <circle
+              cx="0"
+              cy="0"
+              r="11"
+              fill="none"
+              stroke="#94a3b8"
+              strokeWidth="1.2"
+              strokeDasharray="2.5 2.5"
+            />
+            <circle cx="0" cy="0" r="5" fill="#0284c7" stroke="#ffffff" strokeWidth="1" />
+            <circle cx="0" cy="0" r="2" fill="#ffffff" />
           </g>
         )}
 
@@ -1875,16 +1887,25 @@ export default function CampusMapSelector({
                   <polyline points="330,194 426,138 472,214 376,272 330,194" strokeWidth="10.5" />
                   <polyline points="352,232 380,278" strokeWidth="9.5" />
                   <polyline points="376,272 386,278" strokeWidth="9.5" />
-                  <polyline points="22,642 142,692 338,755" />
-                  <polyline points="155,625 352,688" strokeWidth="9.5" />
-                  <polyline points="338,755 355,688 378,580" strokeWidth="14" />
-                  <polyline points="378,580 395,532 438,512 496,512" strokeWidth="11" />
-                  <polyline points="378,580 438,548 496,512" strokeWidth="11" />
+                  {/* Main Gate Entrance Boulevard to Crossroads */}
+                  <polyline points="338,755 355,688 358,582" strokeWidth="14" />
+                  {/* Crossroads to West / Canteen Road */}
+                  <polyline points="358,582 336,520 305,442 212,402" strokeWidth="11.5" />
+                  {/* Crossroads through Academic Front Road past Amphitheatre 2 */}
+                  <polyline points="358,582 405,570 458,586 505,625 555,830" strokeWidth="11" />
+                  {/* Academic Front Grand Portico Drop-Off Driveway Loop */}
+                  <path
+                    d="M 374,566 C 382,536 398,522 414,522 C 430,522 444,536 450,566"
+                    strokeWidth="11"
+                  />
+                  {/* Northeast Loop Road past KRC & MPH */}
+                  <polyline points="450,566 496,512 532,412 445,278" strokeWidth="11" />
+                  {/* Inner Western Hostel Spine Road */}
                   <polyline points="142,692 155,625 178,515 212,402 252,302" strokeWidth="11.5" />
+                  {/* Mid-West Hostel Cross Street */}
                   <polyline points="55,518 178,558" strokeWidth="9.5" />
-                  <polyline points="235,342 252,302 380,278 445,278 532,412 518,458 496,512" strokeWidth="12" />
-                  <polyline points="212,402 305,442 338,495 378,580" strokeWidth="11.5" />
-                  <polyline points="338,495 355,468 388,452" strokeWidth="8.5" />
+                  {/* Tree-Lined Northern & Eastern Main Loop Road */}
+                  <polyline points="235,342 252,302 380,278 445,278" strokeWidth="12" />
                   <polyline points="496,512 618,542" strokeWidth="11" />
                   <polyline points="648,472 555,830" strokeWidth="11" />
                 </g>
@@ -1902,23 +1923,32 @@ export default function CampusMapSelector({
                   <polyline points="352,232 380,278" strokeWidth="7" />
                   <polyline points="22,642 142,692 338,755" />
                   <polyline points="155,625 352,688" strokeWidth="7" />
-                  <polyline points="338,755 355,688 378,580" strokeWidth="11" />
-                  <polyline points="378,580 395,532 438,512 496,512" strokeWidth="8.5" />
-                  <polyline points="378,580 438,548 496,512" strokeWidth="8.5" />
+                  <polyline points="338,755 355,688 358,582" strokeWidth="11" />
+                  <polyline points="358,582 336,520 305,442 212,402" strokeWidth="8.5" />
+                  <polyline points="358,582 405,570 458,586 505,625 555,830" strokeWidth="8.5" />
+                  <path
+                    d="M 374,566 C 382,536 398,522 414,522 C 430,522 444,536 450,566"
+                    strokeWidth="8"
+                  />
+                  <polyline points="450,566 496,512 532,412 445,278" strokeWidth="8.5" />
                   <polyline points="142,692 155,625 178,515 212,402 252,302" strokeWidth="8.5" />
                   <polyline points="55,518 178,558" strokeWidth="7" />
-                  <polyline points="235,342 252,302 380,278 445,278 532,412 518,458 496,512" strokeWidth="9" />
-                  <polyline points="212,402 305,442 338,495 378,580" strokeWidth="8.5" />
-                  <polyline points="338,495 355,468 388,452" strokeWidth="6" />
+                  <polyline points="235,342 252,302 380,278 445,278" strokeWidth="9" />
                   <polyline points="496,512 618,542" strokeWidth="8.5" />
                   <polyline points="648,472 555,830" strokeWidth="8.5" />
                 </g>
 
-                {/* Roundabout Island at (416, 532) */}
-                <g transform="translate(416, 532) rotate(-28)">
-                  <ellipse cx="0" cy="0" rx="22" ry="9" fill="#15803d" stroke="#86efac" strokeWidth="1.2" />
-                  <ellipse cx="-4" cy="0" rx="10" ry="4" fill="#22c55e" fillOpacity="0.65" />
-                </g>
+                {/* Landscaped Green Island inside the Front Portico Loop */}
+                <ellipse
+                  cx="412"
+                  cy="544"
+                  rx="16"
+                  ry="9"
+                  transform="rotate(-15, 412, 544)"
+                  fill="#15803d"
+                  stroke="#86efac"
+                  strokeWidth="1.2"
+                />
 
                 {/* West Amphitheatre Parking Bay at (418, 588) */}
                 <g transform="translate(418, 588) rotate(18)">
@@ -1940,10 +1970,13 @@ export default function CampusMapSelector({
                   <polyline points="22,642 198,65" />
                   <polyline points="330,194 426,138 472,214 376,272 330,194" />
                   <polyline points="22,642 142,692 338,755" />
-                  <polyline points="338,755 355,688 378,580" />
+                  <polyline points="338,755 355,688 358,582" />
+                  <polyline points="358,582 336,520 305,442 212,402" />
+                  <polyline points="358,582 405,570 458,586 505,625 555,830" />
+                  <path d="M 374,566 C 382,536 398,522 414,522 C 430,522 444,536 450,566" />
+                  <polyline points="450,566 496,512 532,412" />
                   <polyline points="142,692 155,625 178,515 212,402 252,302" />
-                  <polyline points="235,342 252,302 380,278 445,278 532,412 518,458 496,512" />
-                  <polyline points="212,402 305,442 338,495 378,580" />
+                  <polyline points="235,342 252,302 380,278 445,278" />
                   <polyline points="496,512 618,542" />
                 </g>
 
@@ -1962,8 +1995,8 @@ export default function CampusMapSelector({
                       <polyline points="175,120 205,122" />
                       <polyline points="368,282 412,368" />
                       <polyline points="355,395 372,392 406,392 442,388 488,402" />
-                      <polyline points="338,495 392,468 478,458" />
-                      <polyline points="358,515 424,486" />
+                      {/* Rear Academic North Terrace Promenade */}
+                      <polyline points="360,422 395,418 438,422" />
                       <polyline points="332,542 268,512 188,526" />
                       <polyline points="305,442 274,472 225,475 188,526" />
                       <polyline points="232,424 218,448 225,475" />
@@ -1987,7 +2020,7 @@ export default function CampusMapSelector({
                       <polyline points="265,142 250,215 248,300" />
                       <polyline points="368,282 412,368" />
                       <polyline points="355,395 372,392 406,392 442,388 488,402" />
-                      <polyline points="338,495 392,468 478,458" />
+                      <polyline points="360,422 395,418 438,422" />
                       <polyline points="332,542 268,512 188,526" />
                       <polyline points="305,442 274,472 225,475 188,526" />
                       <polyline points="222,602 358,602" />
