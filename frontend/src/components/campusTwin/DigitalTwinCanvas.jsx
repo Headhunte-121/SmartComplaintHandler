@@ -945,10 +945,10 @@ export default function DigitalTwinCanvas({
               ))}
             </g>
 
-            {/* Academic Front Teardrop Landscaped Roundabout Island at (416, 532) */}
-            <g transform="translate(416, 532) rotate(-28)">
-              <ellipse cx="0" cy="0" rx="22" ry="9" fill="#15803d" stroke="#86efac" strokeWidth="1.2" />
-              <ellipse cx="-4" cy="0" rx="10" ry="4" fill="#22c55e" fillOpacity="0.65" />
+            {/* Academic Front Teardrop Landscaped Roundabout Island at (430, 547) */}
+            <g transform="translate(430, 547) rotate(-6)">
+              <ellipse cx="0" cy="0" rx="16" ry="6.5" fill="#15803d" stroke="#86efac" strokeWidth="1.2" />
+              <ellipse cx="-2" cy="0" rx="8" ry="3" fill="#22c55e" fillOpacity="0.65" />
             </g>
 
             {/* West Amphitheatre Parking Bay at (418, 588) */}

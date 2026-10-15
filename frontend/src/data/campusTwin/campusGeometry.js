@@ -230,26 +230,26 @@ export const CAMPUS_ROAD_POLYLINES = [
   { points: '330,194 426,138 470,214 375,272 330,194', width: 9.5 },
   { points: '352,232 380,278', width: 8.5 },
   { points: '375,272 385,278', width: 8.5 },
-  // 3. Southern Hostel Road (from Western Ave 48,592 past Bose & Bhabha to ATM 352,688)
-  { points: '48,592 145,625 352,688', width: 10.5 },
-  // 4. Main Gate Entrance Boulevard (from Main Gate 338,755 past ATM 352,688 to Central Crossroads 378,580)
-  { points: '338,755 352,688 378,580', width: 13 },
-  // 5. Academic Teardrop Roundabout Loop (wrapping around 416,532)
-  { points: '378,580 395,532 438,512 496,512', width: 10 },
-  { points: '378,580 438,548 496,512', width: 10 },
-  // 6. Inner Western Hostel Spine Road (from 145,625 between Bose/Bhabha up to FG NW 252,302)
-  { points: '145,625 178,515 212,402 252,302', width: 11 },
-  // 7. Mid-West Hostel Cross Street (between Raman House and Bose House)
+  // 3. Southern Hostel Road (from Western Ave 48,592 past Bose & Bhabha to ATM 350,688)
+  { points: '48,592 145,625 350,688', width: 10.5 },
+  // 4. Main Gate Entrance Boulevard (from Main Gate 338,755 past ATM 350,688 to Palm Park V-Fork 358,582)
+  { points: '338,755 350,688 358,582', width: 13 },
+  // 5. West Road (Left arm of V-fork past Canteen & Auditorium to North Campus)
+  { points: '358,582 342,540 330,490 305,442 252,330 212,270', width: 11 },
+  // 6. Front Sweeping Road (Right arm of V-fork past Amphitheatre 2 & East Avenue)
+  { points: '358,582 395,565 438,552 485,548 518,536 600,540 648,548', width: 11 },
+  // 7. Academic Front Drop-off Crescent Loop (wrapping around landscaped island at 430,547)
+  { points: '395,565 402,542 418,534 442,536 468,542 485,548', width: 9.5 },
+  // 8. East Road along Lab Wings Facade (to Northern Loop Road)
+  { points: '485,548 480,480 472,420 460,350 445,278', width: 10.5 },
+  // 9. Inner Western Hostel Spine Road (from 145,625 between Bose/Bhabha up to West Road 305,442)
+  { points: '145,625 178,515 212,402 305,442', width: 11 },
+  // 10. Mid-West Hostel Cross Street (between Raman House and Bose House)
   { points: '62,508 178,546', width: 8.5 },
-  // 8. Tree-Lined Northern & Eastern Main Loop Road
-  { points: '235,342 252,302 380,278 445,278 532,412 518,458 496,512', width: 11.5 },
-  // 9. Central Spine Road (between Block C1 / Auditorium / Canteen and Main Academic Building)
-  { points: '212,402 305,442 338,495 378,580', width: 11 },
-  // 10. Academic Rotunda Portico Semicircular Drop-Off Loop
-  { points: '338,495 356,472 376,483', width: 7.5 },
-  // 11. Southeast Avenue between Shabri House & New Amphitheatre Terraces
-  { points: '496,512 618,542', width: 10.5 },
-  // 12. Eastern Boundary Road
+  // 11. Tree-Lined Northern Main Loop Road
+  { points: '212,270 252,302 380,278 445,278', width: 11.5 },
+  // 12. Southeast Avenue past Shabri House & East Boundary Road
+  { points: '518,536 618,542 648,472', width: 10.5 },
   { points: '648,472 555,830', width: 10.5 },
 ];
 
@@ -267,22 +267,32 @@ export const CAMPUS_FOOTPATH_POLYLINES = [
   { points: '368,282 406,366' },
   // (E) Old Amphitheatre (374,392), North Green Court (406,392), Solar Shed & MPH Promenade
   { points: '348,398 374,392 406,392 440,388 475,396' },
-  // (F) Academic Rotunda (387,483) to KRC Library (478,458) & Shabri House (550,472)
-  { points: '338,495 387,483 478,458 542,472' },
-  // (G) Canteen (326,538) -> Auditorium (266,512) -> Mess (222,486) -> West Twin Red Courts (188,526)
+  // (F) Academic Complex Entrances & Walkways (User-annotated 1:1 ground-truth):
+  // 1. Front Twin Portico Entrance Walkways (from drop-off loop to main academic entrance)
+  { points: '416,535 418,515' },
+  { points: '426,536 422,515' },
+  // 2. Lower West Wing Walkway (to West Road)
+  { points: '336,520 366,506' },
+  // 3. Upper West Wing Walkway (to West Road)
+  { points: '318,465 346,458' },
+  // 4. East Facade Lab Wing Walkway (to East Road & KRC Library)
+  { points: '480,480 445,470' },
+  // 5. North Rear Left Walkway
+  { points: '358,421 354,402' },
+  // 6. North Rear Right Walkway (to Amphitheater IIIT)
+  { points: '403,411 400,392' },
+  // (G) Canteen (326,538) -> Auditorium (268,514) -> Mess (222,492) -> West Twin Red Courts (188,526)
   { points: '326,538 268,514 222,492 188,526' },
   // (H) Central Road (305,442) -> Auditorium Upper Hall (264,482) -> Mess North Wing (225,470)
   { points: '305,442 264,482 225,470' },
   // (I) Shopping Complex / Block C1 (232,427) -> Substation Annex (218,448) -> Mess (222,470)
   { points: '232,427 218,448 222,470' },
-  // (J) South Central Green Lawn East-West Footpath
-  { points: '222,602 358,602' },
-  // (K) Raman House Courtyard & Garden Walkways
+  // (J) Raman House Courtyard & Garden Walkways
   { points: '78,422 148,438 198,454' },
   { points: '108,392 136,390 176,376' },
-  // (L) Bose House (115,560) to Bhabha House (200,586) Courtyard Path
+  // (K) Bose House (115,560) to Bhabha House (200,586) Courtyard Path
   { points: '115,560 160,574 200,586' },
-  // (M) New Amphitheatre Stage Ramp & Woodland Trail to ATM
+  // (L) New Amphitheatre Stage Ramp & Woodland Trail to ATM
   { points: '428,555 456,580' },
   { points: '468,632 425,685 352,688' },
 ];

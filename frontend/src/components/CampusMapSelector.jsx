@@ -397,6 +397,17 @@ export default function CampusMapSelector({
             </button>
           </div>
 
+          <a
+            href="/iiitnr_gis_studio.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-2.5 py-1.5 rounded-xl bg-sky-500/15 border border-sky-400/40 text-[11px] font-bold text-sky-300 hover:bg-sky-500/25 transition-all inline-flex items-center gap-1.5 cursor-pointer no-underline"
+            title="Open Interactive GIS Studio with real Google Satellite footage and vector curb editor"
+          >
+            <span>🛰️</span>
+            <span>GIS Studio</span>
+          </a>
+
           {isSuperAdmin ? (
             <button
               type="button"
