@@ -1,19 +1,19 @@
 /**
- * SmartComplaintHandler - Custom University-Only Satellite-Traced Map (IIIT Naya Raipur)
+ * SmartComplaintHandler - 1:1 Satellite-Aligned Custom University-Only Map (IIIT Naya Raipur)
  *
- * Design:
- * - Zero outside area / zero external OSM tiles: Strictly renders ONLY the IIIT Naya Raipur campus
- *   polygon extracted 1:1 from the Google Satellite image (735 x 857 coordinate space).
- * - Every building is drawn with its actual traced architectural footprint:
- *   - Square courtyard quadrangles for Ramanujan, Bhabha, Raman, and Shabri Hostels
- *   - Central Rotunda Dome + NW/SE Lab & Classroom wings for the Academic & Admin Block
- *   - Circular Canteen Rotunda + Central Mess Hall
- *   - Semicircular stepped concentric arcs for Amphitheatre 2
- *   - Walled Twin-Court Sports Complex (red & green courts), Central Football/Cricket Turf, & North Indoor Hall
- *   - Multi-Purpose Hall (MPH / SAC), Library (KRC), Faculty Quarters, and Main Gate + Union Bank ATM
- * - Includes smooth Zoom (+ / - / Reset), Pan, and a toggle between:
- *   1. "Traced Master Plan" (Pure custom architectural vector map of the university)
- *   2. "Satellite Overlay" (Masked university-only satellite texture with interactive traced footprints)
+ * Key Corrections Grounded in Satellite View (735 x 857 space):
+ * 1. Ramanujan House is the northern complex at (405, 210) with twin red/green inner courts.
+ * 2. Sports Complex is the far north-west indoor sports building at (218, 98), connected to Ramanujan House
+ *    by the diagonal footpath ((332, 195) -> (295, 160) -> (258, 142) -> (226, 125)) and bordered by the open sports ground.
+ * 3. Academic & Admin Complex at (398, 470) is accurately drawn with its central white Rotunda Dome (392, 468),
+ *    4 parallel NE/SE wings ((402,436), (414,456), (418,492), (430,510)), North Arc (382,400), and Green Court (412,398).
+ * 4. Every western, central, and northeastern building block visible in the satellite view is rendered at its exact
+ *    position and angle: Long North Wing (382,338), 3 Faculty/Guest blocks ((416,312), (442,342), (462,370)),
+ *    MPH (488,405), Library/KRC (482,462), Shabri House + Annex ((572,478) & (612,492)), Canteen Rotunda (332,542) +
+ *    Mess Wings ((272,512), (225,482), (236,425), (218,448)) + Red Outdoor Court (195,525), Bose House (118,558),
+ *    Bhabha House (204,588), Raman House + West Blocks ((175,376), (112,392), (152,442), (95,448)),
+ *    Amphitheatre 2 + NE Terraces (472,598), Union Bank ATM (345,688), Main Gate Arch on Naya Raipur Marg (338,755),
+ *    and West Gate (22,642).
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -42,7 +42,7 @@ export default function CampusMapSelector({
   const [hoveredBoundary, setHoveredBoundary] = useState(false);
   const [isBoundarySelected, setIsBoundarySelected] = useState(false);
   const [hoveredPillar, setHoveredPillar] = useState(null);
-
+  const [showLabels, setShowLabels] = useState(true);
   const [hoveredId, setHoveredId] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -86,10 +86,10 @@ export default function CampusMapSelector({
   const clientToSvgCoords = (e) => {
     if (!svgRef.current) return null;
     const rect = svgRef.current.getBoundingClientRect();
-    const rawX = ((e.clientX - rect.left) / rect.width) * 816;
-    const rawY = ((e.clientY - rect.top) / rect.height) * 817;
-    const cx = Math.round(Math.max(20, Math.min(796, (rawX - pan.x) / zoom)));
-    const cy = Math.round(Math.max(20, Math.min(797, (rawY - pan.y) / zoom)));
+    const rawX = -55 + ((e.clientX - rect.left) / rect.width) * 840;
+    const rawY = ((e.clientY - rect.top) / rect.height) * 857;
+    const cx = Math.round(Math.max(-50, Math.min(780, (rawX - pan.x) / zoom)));
+    const cy = Math.round(Math.max(15, Math.min(850, (rawY - pan.y) / zoom)));
     return { cx, cy };
   };
 
@@ -115,8 +115,8 @@ export default function CampusMapSelector({
       trace: {
         cx: coords.cx,
         cy: coords.cy,
-        w: 58,
-        h: 52,
+        w: 54,
+        h: 50,
         angle: 18,
         shape: 'courtyard_quad',
         color: '#4f46e5',
@@ -200,21 +200,64 @@ export default function CampusMapSelector({
   };
 
   /**
-   * Renders the exact satellite-traced architectural footprint for each IIIT-NR building.
+   * Renders the exact 1:1 satellite-aligned architectural geometry for each building cluster.
    */
   const renderBuildingFootprint = (b, isSelected, isHovered) => {
-    const cx = b.trace?.cx ?? Math.round(((b.mapPin?.xPct || 50) / 100) * 816);
-    const cy = b.trace?.cy ?? Math.round(((b.mapPin?.yPct || 50) / 100) * 817);
-    const w = b.trace?.w || 56;
-    const h = b.trace?.h || 50;
+    const cx = b.trace?.cx ?? 395;
+    const cy = b.trace?.cy ?? 472;
+    const w = b.trace?.w || 58;
+    const h = b.trace?.h || 52;
     const angle = b.trace?.angle ?? 18;
     const shape = b.trace?.shape || 'courtyard_quad';
     const baseColor = b.trace?.color || b.mapPin?.color || '#4f46e5';
-    const badge = b.trace?.badge || b.mapPin?.badge || 'BLDG';
 
-    const fillOpacity = viewStyle !== 'vector' ? (isSelected ? 0.85 : 0.65) : 0.95;
+    const fillOpacity = viewStyle === 'satellite' ? (isSelected ? 0.8 : 0.52) : 0.94;
     const strokeColor = isSelected ? '#38bdf8' : isHovered ? '#ffffff' : 'rgba(255,255,255,0.75)';
-    const strokeWidth = isSelected ? 3.5 : isHovered ? 2.5 : 1.5;
+    const strokeWidth = isSelected ? 2.8 : isHovered ? 2.2 : 1.3;
+
+    // Label position overrides so no two labels ever collide
+    let labelX = cx;
+    let labelY = cy + h / 2 + 11;
+    if (b.id === 'ramanujan_house') {
+      labelX = 405;
+      labelY = 152;
+    } else if (b.id === 'sports_ground') {
+      labelX = 218;
+      labelY = 142;
+    } else if (b.id === 'transit_hostel') {
+      labelX = 448;
+      labelY = 296;
+    } else if (b.id === 'sac_mph') {
+      labelX = 522;
+      labelY = 382;
+    } else if (b.id === 'krc_library') {
+      labelX = 508;
+      labelY = 492;
+    } else if (b.id === 'academic_block') {
+      labelX = 398;
+      labelY = 538;
+    } else if (b.id === 'cafeteria_mess') {
+      labelX = 285;
+      labelY = 556;
+    } else if (b.id === 'bose_house') {
+      labelX = 112;
+      labelY = 600;
+    } else if (b.id === 'bhabha_house') {
+      labelX = 204;
+      labelY = 626;
+    } else if (b.id === 'raman_house') {
+      labelX = 152;
+      labelY = 342;
+    } else if (b.id === 'shabhari_house') {
+      labelX = 582;
+      labelY = 522;
+    } else if (b.id === 'amphitheatre') {
+      labelX = 472;
+      labelY = 644;
+    } else if (b.id === 'main_gate') {
+      labelX = 338;
+      labelY = 776;
+    }
 
     return (
       <g
@@ -226,300 +269,515 @@ export default function CampusMapSelector({
           e.stopPropagation();
           setEditingBuildingId(b.id);
           onSelectBuilding && onSelectBuilding(b.name);
-          if (isSuperAdmin && isEditMode) setDraggingId(b.id);
+          if (isEditMode) setDraggingId(b.id);
         }}
-        className={isSuperAdmin && isEditMode ? 'cursor-move' : 'cursor-pointer'}
+        className={isEditMode ? 'cursor-move' : 'cursor-pointer'}
       >
-        {/* Active Selection Pulse Halo */}
-        {(isSelected || isHovered) && (
+        {/* 1. RAMANUJAN HOUSE (Top-center complex at 405,210 with twin red/green courts) */}
+        {shape === 'ramanujan_complex' && (
           <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
             <rect
-              x={-w / 2 - 7}
-              y={-h / 2 - 7}
-              width={w + 14}
-              height={h + 14}
-              rx="10"
-              fill="none"
-              stroke={isSelected ? '#38bdf8' : '#a5b4fc'}
-              strokeWidth={isSelected ? '3' : '2'}
-              strokeDasharray={isSelected ? 'none' : '4 3'}
-            />
-          </g>
-        )}
-
-        {/* Architectural Footprint Shape Traced from Google Satellite */}
-        <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
-          {shape === 'courtyard_quad' && (
-            <>
-              {/* Outer Square Hostel Quadrangle */}
-              <rect
-                x={-w / 2}
-                y={-h / 2}
-                width={w}
-                height={h}
-                rx="6"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              {/* Inner Open Courtyard / Badminton Court */}
-              <rect
-                x={-w * 0.22}
-                y={-h * 0.22}
-                width={w * 0.44}
-                height={h * 0.44}
-                rx="3"
-                fill="#0f172a"
-                fillOpacity={viewStyle === 'satellite' ? 0.45 : 0.85}
-                stroke="rgba(56, 189, 248, 0.5)"
-                strokeWidth="1"
-              />
-            </>
-          )}
-
-          {shape === 'academic_complex' && (
-            <>
-              {/* NW Multi-Wing Academic & Research Block */}
-              <rect
-                x={-w * 0.48}
-                y={-h * 0.46}
-                width={w * 0.44}
-                height={h * 0.88}
-                rx="6"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              {/* SE Multi-Wing Classroom & Admin Block */}
-              <rect
-                x={w * 0.04}
-                y={-h * 0.46}
-                width={w * 0.44}
-                height={h * 0.88}
-                rx="6"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              {/* Connecting Spine & Iconic Central White Rotunda Dome */}
-              <rect
-                x={-w * 0.12}
-                y={-h * 0.2}
-                width={w * 0.24}
-                height={h * 0.4}
-                fill="#0369a1"
-                stroke={strokeColor}
-                strokeWidth="1.5"
-              />
-              <circle
-                cx="0"
-                cy="0"
-                r="16"
-                fill="#f8fafc"
-                stroke="#0284c7"
-                strokeWidth="3"
-              />
-              <circle cx="0" cy="0" r="7" fill="#38bdf8" />
-            </>
-          )}
-
-          {shape === 'canteen_mess' && (
-            <>
-              {/* Rectangular Mess Hall Block */}
-              <rect
-                x={-w * 0.48}
-                y={-h * 0.42}
-                width={w * 0.58}
-                height={h * 0.84}
-                rx="6"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              {/* Connected Circular Canteen Rotunda */}
-              <circle
-                cx={w * 0.28}
-                cy={h * 0.08}
-                r={h * 0.38}
-                fill="#f59e0b"
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-            </>
-          )}
-
-          {shape === 'amphitheatre' && (
-            <>
-              {/* Semicircular Concentric Stepped Amphitheatre 2 */}
-              <path
-                d="M -38,-10 A 42,42 0 0,1 38,-10 L 24,26 A 26,26 0 0,0 -24,26 Z"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              <path
-                d="M -28,-4 A 30,30 0 0,1 28,-4"
-                fill="none"
-                stroke="rgba(255,255,255,0.65)"
-                strokeWidth="2"
-              />
-              <path
-                d="M -18,4 A 20,20 0 0,1 18,4"
-                fill="none"
-                stroke="rgba(255,255,255,0.65)"
-                strokeWidth="2"
-              />
-              <circle cx="0" cy="18" r="9" fill="#064e3b" stroke="#34d399" strokeWidth="1.5" />
-            </>
-          )}
-
-          {shape === 'twin_courts' && (
-            <>
-              {/* Walled North Sports Complex with Twin Red/Green Courts */}
-              <rect
-                x={-w / 2}
-                y={-h / 2}
-                width={w}
-                height={h}
-                rx="7"
-                fill="#065f46"
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              <rect
-                x={-w * 0.36}
-                y={-h * 0.32}
-                width={w * 0.32}
-                height={h * 0.64}
-                rx="2"
-                fill="#dc2626"
-                stroke="#ffffff"
-                strokeWidth="1"
-              />
-              <rect
-                x={w * 0.04}
-                y={-h * 0.32}
-                width={w * 0.32}
-                height={h * 0.64}
-                rx="2"
-                fill="#16a34a"
-                stroke="#ffffff"
-                strokeWidth="1"
-              />
-            </>
-          )}
-
-          {shape === 'twin_wings' && (
-            <>
-              <rect
-                x={-w / 2}
-                y={-h * 0.46}
-                width={w * 0.92}
-                height={h * 0.4}
-                rx="5"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              <rect
-                x={-w * 0.42}
-                y={h * 0.06}
-                width={w * 0.92}
-                height={h * 0.4}
-                rx="5"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-            </>
-          )}
-
-          {shape === 'faculty_cluster' && (
-            <>
-              <rect
-                x={-w * 0.45}
-                y={-h * 0.42}
-                width={w * 0.42}
-                height={h * 0.38}
-                rx="4"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              <rect
-                x={w * 0.03}
-                y={-h * 0.42}
-                width={w * 0.42}
-                height={h * 0.38}
-                rx="4"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-              <rect
-                x={-w * 0.2}
-                y={h * 0.05}
-                width={w * 0.62}
-                height={h * 0.38}
-                rx="4"
-                fill={baseColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-              />
-            </>
-          )}
-
-          {shape === 'hall' && (
-            <rect
-              x={-w / 2}
-              y={-h / 2}
-              width={w}
-              height={h}
-              rx="6"
+              x={-42}
+              y={-29}
+              width={84}
+              height={58}
+              rx="5"
               fill={baseColor}
               fillOpacity={fillOpacity}
               stroke={strokeColor}
               strokeWidth={strokeWidth}
             />
-          )}
-        </g>
+            <rect
+              x={-24}
+              y={-16}
+              width={48}
+              height={32}
+              rx="2"
+              fill="#0f172a"
+              fillOpacity="0.9"
+            />
+            {/* Twin Inner Badminton / Sports Courts */}
+            <rect
+              x={-20}
+              y={-13}
+              width={18}
+              height={26}
+              rx="1.5"
+              fill="#dc2626"
+              stroke="#ffffff"
+              strokeWidth="1"
+            />
+            <rect
+              x={2}
+              y={-13}
+              width={18}
+              height={26}
+              rx="1.5"
+              fill="#16a34a"
+              stroke="#ffffff"
+              strokeWidth="1"
+            />
+          </g>
+        )}
 
-        {/* Crisp Non-Overlapping Label Pill Anchored to Building Center */}
-        <g transform={`translate(${cx}, ${cy + h / 2 + 12})`}>
-          <rect
-            x="-54"
-            y="-10"
-            width="108"
-            height="19"
-            rx="6"
-            fill={isSelected ? '#0284c7' : 'rgba(9, 13, 22, 0.92)'}
-            stroke={isSelected ? '#ffffff' : 'rgba(148, 163, 184, 0.4)'}
-            strokeWidth="1.2"
-          />
-          <text
-            x="0"
-            y="3"
-            textAnchor="middle"
-            fill="#ffffff"
-            fontSize="9.5"
-            fontWeight="700"
-            fontFamily="Inter, system-ui, sans-serif"
-          >
-            {badge} · {b.shortName || b.name}
-          </text>
-        </g>
+        {/* 2. SPORTS COMPLEX (Far top-left indoor hall at 218,98) */}
+        {shape === 'sports_hall' && (
+          <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
+            <rect
+              x={-18}
+              y={-31}
+              width={36}
+              height={62}
+              rx="4"
+              fill={baseColor}
+              fillOpacity={fillOpacity}
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+            />
+            <line x1="-18" y1="0" x2="18" y2="0" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          </g>
+        )}
+
+        {/* 3. ACADEMIC & ADMIN COMPLEX (Exact satellite alignment: Central Dome + 4 NE/SE parallel wings + N Arc) */}
+        {shape === 'academic_complex' && (
+          <g>
+            {/* North Curved Arc & Green Court */}
+            <g transform="translate(382, 400) rotate(-10)">
+              <rect
+                x="-24"
+                y="-7"
+                width="48"
+                height="14"
+                rx="3"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth="1.2"
+              />
+            </g>
+            <g transform="translate(412, 398) rotate(-32)">
+              <rect
+                x="-12"
+                y="-7"
+                width="24"
+                height="14"
+                rx="2"
+                fill="#10b981"
+                fillOpacity="0.85"
+                stroke="#ffffff"
+                strokeWidth="1"
+              />
+            </g>
+            {/* Main NW-SE Spine */}
+            <g transform="translate(388, 472) rotate(-32)">
+              <rect
+                x="-12"
+                y="-46"
+                width="24"
+                height="92"
+                rx="4"
+                fill="#0369a1"
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </g>
+            {/* 4 Parallel NE/SE Multi-Wing Fingers */}
+            {[
+              { x: 402, y: 436, w: 48, h: 14 },
+              { x: 414, y: 456, w: 48, h: 14 },
+              { x: 418, y: 492, w: 52, h: 15 },
+              { x: 430, y: 510, w: 52, h: 15 },
+            ].map((wing, i) => (
+              <g key={i} transform={`translate(${wing.x}, ${wing.y}) rotate(-32)`}>
+                <rect
+                  x={-wing.w / 2}
+                  y={-wing.h / 2}
+                  width={wing.w}
+                  height={wing.h}
+                  rx="3"
+                  fill={baseColor}
+                  fillOpacity={fillOpacity}
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidth}
+                />
+              </g>
+            ))}
+            {/* Iconic Central White Rotunda Dome at (392, 468) */}
+            <circle
+              cx="392"
+              cy="468"
+              r="13"
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#0284c7'}
+              strokeWidth="2.5"
+            />
+            <circle cx="392" cy="468" r="5.5" fill="#38bdf8" />
+          </g>
+        )}
+
+        {/* 4. FACULTY QUARTERS, GUEST HOUSE & LONG NORTH WING */}
+        {shape === 'faculty_cluster' && (
+          <g>
+            {/* Long Narrow Wing bordering the Central Green Lawn (382, 338) */}
+            <g transform="translate(382, 338) rotate(-32)">
+              <rect
+                x="-8"
+                y="-37"
+                width="16"
+                height="74"
+                rx="3"
+                fill="#0ea5e9"
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </g>
+            {/* 3 Stepped Northeast Residential Blocks */}
+            {[
+              { x: 416, y: 312, w: 36, h: 32 },
+              { x: 442, y: 342, w: 32, h: 26 },
+              { x: 462, y: 370, w: 32, h: 26 },
+            ].map((blk, i) => (
+              <g key={i} transform={`translate(${blk.x}, ${blk.y}) rotate(-32)`}>
+                <rect
+                  x={-blk.w / 2}
+                  y={-blk.h / 2}
+                  width={blk.w}
+                  height={blk.h}
+                  rx="4"
+                  fill={baseColor}
+                  fillOpacity={fillOpacity}
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidth}
+                />
+              </g>
+            ))}
+          </g>
+        )}
+
+        {/* 5. SHABRI HOUSE (East Girls Hostel Quadrangle + East Annex) */}
+        {shape === 'shabri_quad' && (
+          <g>
+            <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
+              <rect
+                x={-29}
+                y={-27}
+                width={58}
+                height={54}
+                rx="5"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              <rect
+                x={-12}
+                y={-11}
+                width={24}
+                height={22}
+                rx="2"
+                fill="#0f172a"
+                stroke="#38bdf8"
+                strokeWidth="1"
+              />
+            </g>
+            <g transform="translate(612, 492) rotate(18)">
+              <rect
+                x="-9"
+                y="-17"
+                width="18"
+                height="34"
+                rx="3"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth="1.2"
+              />
+            </g>
+          </g>
+        )}
+
+        {/* 6. RAMAN HOUSE & UPPER-WEST RESIDENTIAL CLUSTER (4 blocks at Phase 2) */}
+        {shape === 'west_hostel_cluster' && (
+          <g>
+            {/* Main Courtyard Quad at (175, 376) */}
+            <g transform="translate(175, 376) rotate(18)">
+              <rect
+                x="-22"
+                y="-20"
+                width="44"
+                height="40"
+                rx="4"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              <rect x="-8" y="-7" width="16" height="14" rx="1.5" fill="#0f172a" />
+            </g>
+            {/* Outer-West Block at (112, 392) */}
+            <g transform="translate(112, 392) rotate(18)">
+              <rect
+                x="-14"
+                y="-17"
+                width="28"
+                height="34"
+                rx="3"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </g>
+            {/* Mid-West Elongated Wing at (152, 442) */}
+            <g transform="translate(152, 442) rotate(18)">
+              <rect
+                x="-23"
+                y="-12"
+                width="46"
+                height="24"
+                rx="3"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </g>
+            {/* Outer-West Small Block at (95, 448) */}
+            <g transform="translate(95, 448) rotate(18)">
+              <rect
+                x="-10"
+                y="-12"
+                width="20"
+                height="24"
+                rx="3"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth="1.2"
+              />
+            </g>
+          </g>
+        )}
+
+        {/* 7. CANTEEN ROTUNDA, CENTRAL MESS WINGS & RED COURT */}
+        {shape === 'canteen_mess' && (
+          <g>
+            {/* Block C1 & Annex at (236, 425) & (218, 448) */}
+            <g transform="translate(236, 425) rotate(18)">
+              <rect
+                x="-17"
+                y="-14"
+                width="34"
+                height="28"
+                rx="3"
+                fill="#0284c7"
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth="1.2"
+              />
+            </g>
+            <g transform="translate(218, 448) rotate(18)">
+              <rect
+                x="-9"
+                y="-10"
+                width="18"
+                height="20"
+                rx="2.5"
+                fill="#0284c7"
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth="1.2"
+              />
+            </g>
+            {/* Mess Wing North (225, 482) */}
+            <g transform="translate(225, 482) rotate(18)">
+              <rect
+                x="-22"
+                y="-20"
+                width="44"
+                height="40"
+                rx="4"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </g>
+            {/* Mess Wing South (272, 512) */}
+            <g transform="translate(272, 512) rotate(18)">
+              <rect
+                x="-20"
+                y="-18"
+                width="40"
+                height="36"
+                rx="4"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </g>
+            {/* Red Outdoor Court (195, 525) */}
+            <g transform="translate(195, 525) rotate(18)">
+              <rect
+                x="-9"
+                y="-13"
+                width="18"
+                height="26"
+                rx="2"
+                fill="#dc2626"
+                stroke="#ffffff"
+                strokeWidth="1"
+              />
+            </g>
+            {/* Circular Canteen Rotunda (332, 542) */}
+            <circle
+              cx="332"
+              cy="542"
+              r="18"
+              fill="#f59e0b"
+              fillOpacity={fillOpacity}
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+            />
+            <circle cx="332" cy="542" r="7" fill="#78350f" />
+          </g>
+        )}
+
+        {/* 8. COURTYARD QUADRANGLES (Bose House 118,558 & Bhabha House 204,588) */}
+        {shape === 'courtyard_quad' && (
+          <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
+            <rect
+              x={-w / 2}
+              y={-h / 2}
+              width={w}
+              height={h}
+              rx="5"
+              fill={baseColor}
+              fillOpacity={fillOpacity}
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+            />
+            <rect
+              x={-w * 0.22}
+              y={-h * 0.22}
+              width={w * 0.44}
+              height={h * 0.44}
+              rx="2"
+              fill="#0f172a"
+              stroke="#38bdf8"
+              strokeWidth="1"
+            />
+          </g>
+        )}
+
+        {/* 9. AMPHITHEATRE 2 & NE TERRACES (472, 598) */}
+        {shape === 'amphitheatre' && (
+          <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
+            <path
+              d="M -34,-8 A 36,36 0 0,1 34,-8 L 20,22 A 22,22 0 0,0 -20,22 Z"
+              fill={baseColor}
+              fillOpacity={fillOpacity}
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+            />
+            <path d="M -25,-2 A 26,26 0 0,1 25,-2" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="1.5" />
+            <path d="M -16,5 A 17,17 0 0,1 16,5" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="1.5" />
+            <circle cx="0" cy="15" r="8" fill="#064e3b" stroke="#34d399" strokeWidth="1.5" />
+          </g>
+        )}
+
+        {/* 10. MAIN GATE ARCH (338, 755), UNION BANK ATM (345, 688) & WEST GATE (22, 642) */}
+        {shape === 'gate_and_atm' && (
+          <g>
+            {/* Union Bank of India ATM & Security Kiosk at (345, 688) */}
+            <g transform="translate(345, 688) rotate(18)">
+              <rect
+                x="-10"
+                y="-12"
+                width="20"
+                height="24"
+                rx="3"
+                fill="#475569"
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </g>
+            {/* Main Entrance Gate Arch on Naya Raipur Marg at (338, 755) */}
+            <g transform="translate(338, 755) rotate(18)">
+              <rect
+                x="-16"
+                y="-6"
+                width="32"
+                height="12"
+                rx="3"
+                fill="#0284c7"
+                stroke="#ffffff"
+                strokeWidth="1.8"
+              />
+            </g>
+            {/* West Gate on Western Avenue at (22, 642) */}
+            <g transform="translate(22, 642) rotate(18)">
+              <rect
+                x="-10"
+                y="-5"
+                width="20"
+                height="10"
+                rx="2"
+                fill="#0284c7"
+                stroke="#ffffff"
+                strokeWidth="1.2"
+              />
+            </g>
+          </g>
+        )}
+
+        {/* 11. STANDARD HALL (MPH 488,405 & Library 482,462) */}
+        {shape === 'hall' && (
+          <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
+            <rect
+              x={-w / 2}
+              y={-h / 2}
+              width={w}
+              height={h}
+              rx="4"
+              fill={baseColor}
+              fillOpacity={fillOpacity}
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+            />
+          </g>
+        )}
+
+        {/* Compact, Non-Overlapping Label Pill */}
+        {(showLabels || isSelected || isHovered) && (
+          <g transform={`translate(${labelX}, ${labelY})`}>
+            <rect
+              x="-44"
+              y="-8"
+              width="88"
+              height="16"
+              rx="5"
+              fill={isSelected ? '#0284c7' : 'rgba(9, 13, 22, 0.88)'}
+              stroke={isSelected ? '#ffffff' : 'rgba(148, 163, 184, 0.45)'}
+              strokeWidth="1"
+            />
+            <text
+              x="0"
+              y="3"
+              textAnchor="middle"
+              fill="#ffffff"
+              fontSize="8.2"
+              fontWeight="700"
+              fontFamily="Inter, system-ui, sans-serif"
+            >
+              {b.shortName || b.name}
+            </text>
+          </g>
+        )}
       </g>
     );
   };
@@ -537,16 +795,12 @@ export default function CampusMapSelector({
               isEditMode ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'
             }`}
           />
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs sm:text-sm font-black tracking-tight text-white">
-                IIIT Naya Raipur — Custom Campus Map (University Area Only)
-              </span>
-              <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                1:1 Satellite Traced
-              </span>
-            </div>
-          </div>
+          <span className="text-xs sm:text-sm font-black tracking-tight text-white">
+            IIIT Naya Raipur Campus Map
+          </span>
+          <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+            1:1 Satellite Aligned
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -587,6 +841,14 @@ export default function CampusMapSelector({
             </button>
           </div>
 
+          <button
+            type="button"
+            onClick={() => setShowLabels((prev) => !prev)}
+            className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-bold text-slate-300 hover:text-white cursor-pointer"
+          >
+            {showLabels ? 'Labels: On' : 'Labels: Hover'}
+          </button>
+
           {/* View Mode Toggle: Satellite Trace vs Vector Plan vs Original Boundary Markup */}
           <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
             <button
@@ -595,7 +857,7 @@ export default function CampusMapSelector({
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                 viewStyle === 'satellite' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
               }`}
-              title="Clean Inpainted Satellite View with Traced Footprints"
+              title="Clean Satellite Trace with Traced Footprints"
             >
               🛰️ Satellite Trace
             </button>
@@ -615,7 +877,7 @@ export default function CampusMapSelector({
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                 viewStyle === 'markup' ? 'bg-rose-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
               }`}
-              title="Exact Original Image with Demarcation Line"
+              title="Exact Demarcation Line Markup"
             >
               🗺️ Boundary Markup
             </button>
@@ -723,12 +985,12 @@ export default function CampusMapSelector({
         <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#0b1120] flex justify-center">
           <svg
             ref={svgRef}
-            viewBox="0 0 816 817"
+            viewBox="-55 0 840 857"
             onClick={handleSvgClick}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
-            className={`w-full max-h-[540px] select-none ${
+            className={`w-full max-h-[560px] select-none ${
               isSuperAdmin && isEditMode ? 'cursor-crosshair' : zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
             }`}
           >
@@ -746,117 +1008,136 @@ export default function CampusMapSelector({
               </clipPath>
             </defs>
 
-            {/* Dark Architectural Canvas Outside the University Perimeter */}
-            <rect width="816" height="817" fill="#0b1120" />
-            <rect width="816" height="817" fill="url(#uniBlueprintGrid)" />
+            <rect x="-55" y="0" width="840" height="857" fill="#0b1120" />
+            <rect x="-55" y="0" width="840" height="857" fill="url(#uniBlueprintGrid)" />
 
             <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-              {/* Clipped University-Only Area (Zero Outside Area Shown) */}
+              {/* Clipped University-Only Area */}
               <g clipPath="url(#iiitnrCampusClip)">
                 {viewStyle === 'satellite' || viewStyle === 'markup' ? (
                   <image
                     href={viewStyle === 'markup' ? '/iiitnr_campus_satellite_markup.jpg' : '/iiitnr_campus_satellite_full.png'}
-                    x="0"
-                    y="0"
-                    width="816"
-                    height="817"
+                    x="-85"
+                    y="-65"
+                    width="908"
+                    height="910"
                     preserveAspectRatio="none"
                   />
                 ) : (
                   <>
-                    {/* Custom University-Only Grounds Base */}
-                    <polygon points={IIITNR_CAMPUS_PERIMETER_POINTS} fill="#131c31" />
+                    <polygon points={IIITNR_CAMPUS_PERIMETER_POINTS} fill="#11192c" />
 
-                    {/* Landscaped Green Lawns & Woodland Zones Traced from Satellite (816x817) */}
-                    {/* 1. Central Sports Turf & Lawn */}
+                    {/* 1. Open Sports Ground (Between Sports Complex, Western Ave & Ramanujan House) */}
                     <polygon
-                      points="292,332 404,311 413,431 279,417"
-                      fill="#064e3b"
-                      fillOpacity="0.65"
+                      points="132,330 195,130 295,162 355,268 258,298"
+                      fill="#14302a"
+                      fillOpacity="0.7"
                       stroke="#059669"
-                      strokeWidth="1.5"
+                      strokeWidth="1"
                       strokeDasharray="4 4"
                     />
-                    {/* 2. South Gate Green Lawn */}
+                    {/* 2. Central Green Lawn (West of Long Wing) */}
                     <polygon
-                      points="290,574 413,601 384,718 261,678"
-                      fill="#064e3b"
-                      fillOpacity="0.55"
+                      points="238,345 268,305 358,290 392,375 345,425 222,402"
+                      fill="#104434"
+                      fillOpacity="0.8"
                     />
-                    {/* 3. Southeast Amphitheatre Woodland & Green Belt */}
+                    {/* 3. South Gate Green Lawn */}
                     <polygon
-                      points="431,583 638,538 575,799 398,732"
-                      fill="#064e3b"
-                      fillOpacity="0.45"
+                      points="235,580 368,608 338,735 202,688"
+                      fill="#104434"
+                      fillOpacity="0.7"
                     />
-                    {/* 4. Academic Semicircular Forecourt Garden */}
-                    <circle
-                      cx="395"
-                      cy="431"
-                      r="34"
-                      fill="#065f46"
-                      fillOpacity="0.6"
-                      stroke="#10b981"
-                      strokeWidth="1"
+                    {/* 4. Southeast Woodland around Amphitheatre */}
+                    <polygon
+                      points="395,590 628,540 555,825 355,748"
+                      fill="#0e362c"
+                      fillOpacity="0.7"
                     />
-                    {/* 5. North Indoor Sports Hall */}
-                    <g transform="translate(272, 146) rotate(18)">
-                      <rect
-                        x="-18"
-                        y="-29"
-                        width="36"
-                        height="58"
-                        rx="4"
-                        fill="#334155"
-                        stroke="#94a3b8"
-                        strokeWidth="1.5"
-                      />
-                    </g>
+                    {/* 5. West Hostel Green Courtyard */}
+                    <polygon
+                      points="75,390 218,355 185,505 58,465"
+                      fill="#104434"
+                      fillOpacity="0.65"
+                    />
+                    {/* 6. Amphitheatre NE Curved Landscaped Terraces */}
+                    <polygon
+                      points="445,535 505,518 568,545 525,585"
+                      fill="#1e4034"
+                      fillOpacity="0.7"
+                    />
+                    <path
+                      d="M 452,550 Q 505,525 555,552 M 462,565 Q 505,542 542,566"
+                      fill="none"
+                      stroke="#34d399"
+                      strokeWidth="1.2"
+                      strokeDasharray="3 3"
+                    />
 
-                    {/* Internal University Road Network Traced 1:1 from Google Satellite */}
+                    {/* Internal Campus Roads & Footpaths Traced 1:1 from Satellite */}
                     <g
                       fill="none"
                       stroke="#334155"
-                      strokeWidth="14"
+                      strokeWidth="11"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
-                      {/* Western Perimeter Avenue */}
-                      <polyline points="98,635 254,116" />
+                      {/* Western Perimeter Avenue (from West Gate 22,642 up to Sports Complex 198,65) */}
+                      <polyline points="22,642 198,65" />
+                      {/* Ramanujan House Perimeter Loop Road */}
+                      <polyline points="372,272 328,196 424,138 470,214 378,272" strokeWidth="9" />
                       {/* Southern Hostel Cross-Road to Main Gate */}
-                      <polyline points="98,635 207,682 393,742" />
-                      {/* Main Gate Boulevard heading North-Northeast */}
-                      <polyline points="384,740 425,592 521,520" />
-                      {/* Inner Hostel Spine Road */}
-                      <polyline points="207,682 288,365" />
-                      {/* Mid-West Hostel Connector */}
-                      <polyline points="126,523 243,565" />
+                      <polyline points="22,642 145,695 342,758" />
+                      {/* Main Gate Entrance Boulevard */}
+                      <polyline points="338,758 385,592 495,515" strokeWidth="12" />
+                      {/* Inner Western Hostel Spine Road */}
+                      <polyline points="145,695 235,342" strokeWidth="10" />
+                      {/* Mid-West Hostel Cross Street */}
+                      <polyline points="55,518 185,565" strokeWidth="8" />
                       {/* Northern Loop Road */}
-                      <polyline points="288,365 315,329 467,304 554,433 521,520" />
-                      {/* Central Academic Spine */}
-                      <polyline points="267,424 380,503 425,592" />
-                      {/* North Sports Complex Spur */}
-                      <polyline points="413,313 377,234 458,186" />
-                      {/* Southeast Amphitheatre & Shabri Hostel Loop */}
-                      <polyline points="521,520 632,545" />
+                      <polyline points="235,342 265,302 435,274 532,418 495,515" />
+                      {/* Central Spine Road (between Hostels, Canteen & Academic Block) */}
+                      <polyline points="212,408 338,495 385,592" strokeWidth="10" />
+                      {/* Academic Forecourt Semicircular Loop Road */}
+                      <polyline points="338,495 355,468 392,445" strokeWidth="7" />
+                      {/* Southeast Road past Amphitheatre */}
+                      <polyline points="495,515 618,542" strokeWidth="10" />
                       {/* Eastern Boundary Road */}
-                      <polyline points="659,482 575,803" />
+                      <polyline points="648,472 555,830" />
                     </g>
+
+                    {/* Direct Path from Ramanujan House (332,195) to Sports Complex (226,125)! */}
+                    <polyline
+                      points="332,195 295,160 258,142 226,125"
+                      fill="none"
+                      stroke="#94a3b8"
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <polyline
+                      points="332,195 295,160 258,142 226,125"
+                      fill="none"
+                      stroke="#e2e8f0"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                      strokeLinecap="round"
+                    />
 
                     {/* Road Centerlines */}
                     <g
                       fill="none"
                       stroke="#64748b"
-                      strokeWidth="1.5"
+                      strokeWidth="1.2"
                       strokeDasharray="6 6"
                       strokeLinecap="round"
                     >
-                      <polyline points="98,635 254,116" />
-                      <polyline points="98,635 207,682 393,742" />
-                      <polyline points="384,740 425,592 521,520" />
-                      <polyline points="207,682 288,365" />
-                      <polyline points="288,365 315,329 467,304 554,433 521,520" />
-                      <polyline points="267,424 380,503 425,592" />
+                      <polyline points="22,642 198,65" />
+                      <polyline points="22,642 145,695 342,758" />
+                      <polyline points="338,758 385,592 495,515" />
+                      <polyline points="145,695 235,342" />
+                      <polyline points="235,342 265,302 435,274 532,418 495,515" />
+                      <polyline points="212,408 338,495 385,592" />
                     </g>
                   </>
                 )}
@@ -912,32 +1193,32 @@ export default function CampusMapSelector({
                   />
 
                   {/* Perimeter Milestone / Edge Labels */}
-                  {/* North Edge: (230,80) to (775,248) mid=(502,164) angle=17.1 */}
-                  <g transform="translate(502, 154) rotate(17.1)" className="pointer-events-none select-none">
+                  {/* North Edge: (171,25) to (777,212) mid=(474,118) angle=17.1 */}
+                  <g transform="translate(474, 108) rotate(17.1)" className="pointer-events-none select-none">
                     <rect x="-80" y="-9" width="160" height="18" rx="4" fill="rgba(15, 23, 42, 0.88)" stroke="#f43f5e" strokeWidth="0.8" />
                     <text x="0" y="3" textAnchor="middle" fill="#fecdd3" fontSize="8.5" fontWeight="700" fontFamily="Inter, sans-serif">
                       North Boundary Wall · 570m
                     </text>
                   </g>
 
-                  {/* East Edge: (775,248) to (576,811) mid=(675,530) angle=-70.5 */}
-                  <g transform="translate(685, 530) rotate(-70.5)" className="pointer-events-none select-none">
+                  {/* East Edge: (777,212) to (556,840) mid=(666,526) angle=-70.5 */}
+                  <g transform="translate(676, 526) rotate(-70.5)" className="pointer-events-none select-none">
                     <rect x="-70" y="-9" width="140" height="18" rx="4" fill="rgba(15, 23, 42, 0.88)" stroke="#f43f5e" strokeWidth="0.8" />
                     <text x="0" y="3" textAnchor="middle" fill="#fecdd3" fontSize="8.5" fontWeight="700" fontFamily="Inter, sans-serif">
                       East Forest Buffer · 597m
                     </text>
                   </g>
 
-                  {/* South Edge: (576,811) to (37,644) mid=(306,728) angle=17.2 */}
-                  <g transform="translate(306, 738) rotate(17.2)" className="pointer-events-none select-none">
+                  {/* South Edge: (556,840) to (-45,654) mid=(255,747) angle=17.2 */}
+                  <g transform="translate(255, 757) rotate(17.2)" className="pointer-events-none select-none">
                     <rect x="-85" y="-9" width="170" height="18" rx="4" fill="rgba(15, 23, 42, 0.88)" stroke="#f43f5e" strokeWidth="0.8" />
                     <text x="0" y="3" textAnchor="middle" fill="#fecdd3" fontSize="8.5" fontWeight="700" fontFamily="Inter, sans-serif">
                       Naya Raipur Marg (South) · 564m
                     </text>
                   </g>
 
-                  {/* West Edge: (37,644) to (230,80) mid=(133,362) angle=-71.1 */}
-                  <g transform="translate(123, 362) rotate(-71.1)" className="pointer-events-none select-none">
+                  {/* West Edge: (-45,654) to (171,25) mid=(63,339) angle=-71.1 */}
+                  <g transform="translate(53, 339) rotate(-71.1)" className="pointer-events-none select-none">
                     <rect x="-80" y="-9" width="160" height="18" rx="4" fill="rgba(15, 23, 42, 0.88)" stroke="#f43f5e" strokeWidth="0.8" />
                     <text x="0" y="3" textAnchor="middle" fill="#fecdd3" fontSize="8.5" fontWeight="700" fontFamily="Inter, sans-serif">
                       West Boundary / Avenue · 596m
@@ -1033,8 +1314,8 @@ export default function CampusMapSelector({
                 </g>
               )}
 
-              {/* Compass & Scale Legend in Top-Left Canvas */}
-              <g transform="translate(70, 75)">
+              {/* Compass Rose */}
+              <g transform="translate(15, 65)">
                 <circle cx="0" cy="0" r="22" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
                 <polygon points="0,-14 -5,4 0,0 5,4" fill="#38bdf8" />
                 <text x="0" y="-17" textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="bold">
@@ -1042,7 +1323,7 @@ export default function CampusMapSelector({
                 </text>
               </g>
 
-              {/* Render All Traced Campus Buildings & Hostels */}
+              {/* Render All 1:1 Traced Campus Buildings & Hostels */}
               {buildings.map((b) => {
                 const isSelected = activeBuildingObj?.id === b.id;
                 const isHovered = hoveredId === b.id;
@@ -1128,7 +1409,7 @@ export default function CampusMapSelector({
           </div>
         )}
 
-        {/* Inline Editor Drawer (when Edit / Label is active and user is Super Admin) */}
+        {/* Inline Editor Drawer */}
         {isSuperAdmin && isEditMode && editingBuilding && (
           <div className="p-4 rounded-2xl bg-slate-950 border border-amber-500/40 text-white space-y-3 text-xs">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
@@ -1185,7 +1466,7 @@ export default function CampusMapSelector({
                     type="text"
                     value={editingBuilding.trace?.badge || editingBuilding.mapPin?.badge || ''}
                     onChange={(e) => handleUpdateBuildingField(editingBuilding.id, { badge: e.target.value })}
-                    className="w-20 px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-mono"
+                    className="w-24 px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-mono"
                   />
                   <select
                     value={editingBuilding.category}

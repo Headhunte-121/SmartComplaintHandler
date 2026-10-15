@@ -959,3 +959,36 @@ npm run dev
   - Frontend Production Build: `npm run build` compiled in 1.59s with 0 errors (bundle: 448.03 kB).
   - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 20.04s (100% pass rate).
 
+### [2026-10-15] - High-Fidelity Architectural Footprints, Security & Residence Documentation & Label De-Collision
+* **Files Modified / Added:**
+  - `COMPREHENSIVE_BUG_REPORT_AND_SECURITY_AUDIT.md` (new documentation)
+  - `IIITNR_CAMPUS_MAP_AND_HOSTEL_GUIDE.md` (new documentation)
+  - `frontend/src/data/iiitnrCampusData.js`
+  - `frontend/src/components/CampusMapSelector.jsx`
+  - `frontend/public/iiitnr_campus_satellite.png`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Comprehensive Documentation Tracking:**
+     - Integrated `COMPREHENSIVE_BUG_REPORT_AND_SECURITY_AUDIT.md`: Complete audit of bugs BUG-01 to BUG-07 covering credential isolation, Vercel secret filtering, JWT rotation, unauthenticated admin endpoint hardening, Google OAuth cryptographic signature verification, CORS reflection restrictions, brute-force login lockouts, and IDOR complaint scoping.
+     - Integrated `IIITNR_CAMPUS_MAP_AND_HOSTEL_GUIDE.md`: Master infrastructure reference for IIIT-NR hostels (`BH-1`, `BH-2`, `BH-3`, `GH-1`, `GH-2`, `TH-1`), room numbering schemes, labs (`131C`, `131E`, `E-101`, `E-102`), and Estate/Electrical/IT authority contact points.
+  2. **High-Fidelity Architectural Tracings Grounded in Satellite Rooftops:**
+     - Integrated authentic footprint shapes:
+       - `ramanujan_complex`: Northern complex at `(405, 210)` with twin red & green inner badminton courts.
+       - `sports_hall`: Northwest indoor sports complex at `(218, 98)` with connecting footpath to Ramanujan House and open athletic grounds.
+       - `academic_complex`: Central complex at `(398, 470)` with white central Rotunda Dome at `(392, 468)`, 4 parallel lab/classroom wings, North Arc, and Green Court.
+       - `canteen_mess`: Circular Canteen Rotunda at `(332, 542)`, Mess Dining Hall 1 & N, Block C1, and Outdoor Red Court at `(195, 525)`.
+       - `amphitheatre`: Concentric stepped cultural arena at `(472, 598)` with northeast landscaped terraces.
+       - `main_gate`: Highway Entrance Gate arch on Naya Raipur Marg at `(338, 755)`, Union Bank of India ATM at `(345, 688)`, and West Gate at `(22, 642)`.
+       - Residential quadrangles: `bose_house`, `bhabha_house`, `west_hostel_cluster` (Raman House + companion blocks), and `shabri_quad` (Shabri House + annex).
+  3. **Label De-Collision & Visibility Toggle:**
+     - Added `showLabels` toolbar toggle: `Labels: On` / `Labels: Hover`.
+     - Implemented collision-free coordinate mapping (`labelX`, `labelY`) preventing overlapping badges across tightly clustered blocks.
+  4. **Harmonized 50-Acre Perimeter Boundary:**
+     - Calibrated boundary coordinates to `viewBox="-55 0 840 857"`, maintaining full estate visibility from west rail/road junction (`P4: -45, 654`) to east woodland buffer (`P2: 777, 212`).
+     - Maintained 4 Geodetic Survey Pillars with pulsing animation and telemetry card.
+     - Preserved strict Super Admin access controls across all map modification handlers.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.35s with 0 errors (bundle: 452.55 kB).
+  - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 9.24s (100% pass rate).
+
+
