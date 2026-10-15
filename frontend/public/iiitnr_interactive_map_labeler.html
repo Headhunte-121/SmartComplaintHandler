@@ -121,11 +121,15 @@
 
     /* Layout */
     main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 450px;
-      position: relative;
+      flex: 1 1 0%;
+      min-height: 0;
       height: calc(100vh - 54px);
+      max-height: calc(100vh - 54px);
+      display: grid;
+      grid-template-columns: 1fr 460px;
+      grid-template-rows: 100%;
+      position: relative;
+      overflow: hidden;
     }
     @media (max-width: 1100px) {
       main { grid-template-columns: 1fr; }
@@ -302,13 +306,19 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      max-height: 100%;
+      min-height: 0;
       overflow: hidden;
       z-index: 100;
     }
     .sidebar-tabs {
+      flex-shrink: 0;
       display: flex;
       border-bottom: 1px solid var(--border);
       background: #020617;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
     .sidebar-tab {
       flex: 1;
@@ -328,12 +338,44 @@
       background: rgba(2, 132, 199, 0.1);
     }
     .sidebar-body {
-      flex: 1;
-      overflow-y: auto;
+      flex: 1 1 0%;
+      min-height: 0;
+      max-height: 100%;
+      overflow-y: auto !important;
+      overflow-x: hidden;
       padding: 14px;
       display: flex;
       flex-direction: column;
       gap: 12px;
+      overscroll-behavior: contain;
+    }
+
+    /* Visible High-Contrast Modern Scrollbar */
+    .sidebar-body, .sidebar, #pin-chips, #building-polygons-list, #building-courtyards-list, #building-entrances-list {
+      scrollbar-width: thin;
+      scrollbar-color: #38bdf8 #090d16;
+    }
+    .sidebar-body::-webkit-scrollbar,
+    .sidebar::-webkit-scrollbar,
+    #pin-chips::-webkit-scrollbar,
+    #building-polygons-list::-webkit-scrollbar,
+    #building-courtyards-list::-webkit-scrollbar,
+    #building-entrances-list::-webkit-scrollbar {
+      width: 8px;
+    }
+    .sidebar-body::-webkit-scrollbar-track,
+    .sidebar::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    .sidebar-body::-webkit-scrollbar-thumb,
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #38bdf8;
+      border-radius: 4px;
+      border: 1px solid #0f172a;
+    }
+    .sidebar-body::-webkit-scrollbar-thumb:hover,
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: #7dd3fc;
     }
 
     /* Card styling */
@@ -635,6 +677,26 @@
             </div>
           </div>
 
+          <!-- NESTED SUB-SECTION: INNER COURTYARDS & ATRIUMS -->
+          <div style="margin-top:10px;padding:10px;background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.22);border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h4 style="margin:0;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px;color:#a7f3d0;">
+                <span>🌿 Inner Courtyards &amp; Quads</span>
+                <span id="courtyard-count-pill" style="font-size:10px;color:#34d399;">0 Courtyards</span>
+              </h4>
+              <div style="display:flex;gap:4px;">
+                <button class="btn emerald" style="padding:3px 8px;font-size:10px;" onclick="startDrawCourtyardForSelectedBuilding()">+ Draw Courtyard</button>
+                <button class="btn" style="padding:3px 6px;font-size:10px;background:#1e293b;" onclick="startCutCourtyardHole()" title="Cut an inner open-air atrium hole into an existing roof wing">✂️ Cut Hole</button>
+              </div>
+            </div>
+            <p style="font-size:10px;color:var(--muted);margin:4px 0 6px;line-height:1.35;">
+              Draw open-air green courtyards, sports quads, or inner atriums inside this building.
+            </p>
+            <div id="building-courtyards-list" style="display:flex;flex-direction:column;gap:5px;max-height:150px;overflow-y:auto;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
           <!-- NESTED SUB-SECTION: BUILDING ENTRANCES -->
           <div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -759,126 +821,783 @@
   <script>
     // --- Ground-Truth IIIT Naya Raipur Authentic Campus Entities ---
     const INITIAL_BUILDINGS = [
-      {
-        id: 'academic_block',
-        name: 'Academic & Administrative Block',
-        shortName: 'Academic Block',
-        badge: 'ACAD',
-        category: 'ACADEMIC',
-        color: '#0284c7',
-        mapPin: { lat: 21.12836, lng: 81.76615 },
-        wings: ['Main Building', 'East Lab Wings', 'Directorate Wing'],
-        floors: ['G', '1', '2', '3'],
-        roomsPerFloor: 20,
-        customRooms: ['Smart E-Classroom E-101', 'Smart E-Classroom E-102', 'Lecture Hall LH-1', 'VLSI Lab', 'IDEA Lab', 'Room 131C (Data Centre)', 'Room 131E (NOC)', 'Estate Office', 'Registrar Office', 'Board Room'],
-        description: 'Iconic central academic rotunda dome and classroom/laboratory complex',
-        polygons: [],
-        entrances: [
-          { id: 'ent_acad_main', name: 'Front Main Portico Entrance', lat: 21.12805, lng: 81.76610 },
-          { id: 'ent_acad_west', name: 'West Wing Entrance', lat: 21.12830, lng: 81.76565 }
+    {
+        "id": "academic_block",
+        "name": "Academic & Administrative Block",
+        "shortName": "Academic Block",
+        "badge": "ACAD",
+        "category": "ACADEMIC",
+        "color": "#0284c7",
+        "mapPin": {
+            "lat": 21.12836,
+            "lng": 81.76615
+        },
+        "wings": [
+            "Main Building",
+            "East Lab Wings",
+            "Directorate Wing"
+        ],
+        "floors": [
+            "G",
+            "1",
+            "2",
+            "3"
+        ],
+        "roomsPerFloor": 20,
+        "customRooms": [
+            "Smart E-Classroom E-101",
+            "Smart E-Classroom E-102",
+            "Lecture Hall LH-1",
+            "VLSI Lab",
+            "IDEA Lab",
+            "Room 131C (Data Centre)",
+            "Room 131E (NOC)",
+            "Estate Office",
+            "Registrar Office",
+            "Board Room"
+        ],
+        "description": "Iconic central academic rotunda dome and classroom/laboratory complex",
+        "polygons": [
+            {
+                "id": "wing_1792073780860",
+                "name": "Academic Block Wing #1",
+                "color": "#0284c7",
+                "fillOpacity": 0.45,
+                "latlngs": [
+                    [
+                        21.128016425421734,
+                        81.7660501599312
+                    ],
+                    [
+                        21.128073952232114,
+                        81.76613330841066
+                    ],
+                    [
+                        21.128048940578147,
+                        81.76615744829179
+                    ],
+                    [
+                        21.128091460387356,
+                        81.76624596118928
+                    ],
+                    [
+                        21.128128977855937,
+                        81.76624596118928
+                    ],
+                    [
+                        21.128206513927577,
+                        81.76637202501298
+                    ],
+                    [
+                        21.12817149764217,
+                        81.76640421152116
+                    ],
+                    [
+                        21.12821901974178,
+                        81.76647663116456
+                    ],
+                    [
+                        21.128261539502187,
+                        81.76647394895555
+                    ],
+                    [
+                        21.128334073182984,
+                        81.76658928394319
+                    ],
+                    [
+                        21.12843411958107,
+                        81.76652759313585
+                    ],
+                    [
+                        21.12837909407049,
+                        81.76643908023836
+                    ],
+                    [
+                        21.128491646229385,
+                        81.766374707222
+                    ],
+                    [
+                        21.128531664754174,
+                        81.76643908023836
+                    ],
+                    [
+                        21.12864421679726,
+                        81.76637202501298
+                    ],
+                    [
+                        21.128591692521113,
+                        81.7663049697876
+                    ],
+                    [
+                        21.12866672719561,
+                        81.76627814769746
+                    ],
+                    [
+                        21.12872175259944,
+                        81.766374707222
+                    ],
+                    [
+                        21.1285241612816,
+                        81.76649272441864
+                    ],
+                    [
+                        21.128579186738342,
+                        81.76657855510713
+                    ],
+                    [
+                        21.128796787208117,
+                        81.76643908023836
+                    ],
+                    [
+                        21.128771775676128,
+                        81.76639616489412
+                    ],
+                    [
+                        21.12885181256369,
+                        81.76634520292284
+                    ],
+                    [
+                        21.128801789514014,
+                        81.76627546548845
+                    ],
+                    [
+                        21.12887182177883,
+                        81.7662137746811
+                    ],
+                    [
+                        21.128609200615223,
+                        81.7657256126404
+                    ],
+                    [
+                        21.128561678640683,
+                        81.76574975252153
+                    ],
+                    [
+                        21.128514156650905,
+                        81.76575243473054
+                    ],
+                    [
+                        21.128476639279786,
+                        81.765653192997
+                    ],
+                    [
+                        21.128361585949204,
+                        81.76572293043137
+                    ],
+                    [
+                        21.128436620740164,
+                        81.76588118076326
+                    ],
+                    [
+                        21.12838475629564,
+                        81.76590699702503
+                    ],
+                    [
+                        21.128354117083216,
+                        81.76584463566543
+                    ],
+                    [
+                        21.12823943216431,
+                        81.76591336727144
+                    ],
+                    [
+                        21.128269446109964,
+                        81.76597639918329
+                    ],
+                    [
+                        21.128166980109636,
+                        81.76604479551315
+                    ],
+                    [
+                        21.12812696148639,
+                        81.76597036421299
+                    ],
+                    [
+                        21.128015034342216,
+                        81.76603339612485
+                    ]
+                ]
+            }
+        ],
+        "entrances": [
+            {
+                "id": "ent_acad_main",
+                "name": "Front Main Portico Entrance",
+                "lat": 21.128164,
+                "lng": 81.766357
+            },
+            {
+                "id": "ent_acad_west",
+                "name": "West Wing Entrance",
+                "lat": 21.128375,
+                "lng": 81.765889
+            }
         ]
-      },
-      {
-        id: 'auditorium_hall',
-        name: 'Central Campus Auditorium',
-        shortName: 'Auditorium',
-        badge: 'AUD',
-        category: 'AMENITY',
-        color: '#e11d48',
-        mapPin: { lat: 21.12815, lng: 81.76480 },
-        wings: ['Main Hall', 'Balcony'],
-        floors: ['G', '1'],
-        roomsPerFloor: 6,
-        customRooms: ['Main Acoustic Auditorium Hall (800 Seater)', 'Green Room 1', 'Green Room 2', 'AV Control Booth'],
-        description: 'Main campus auditorium located west of the central spine',
-        polygons: [],
-        entrances: [
-          { id: 'ent_audi_front', name: 'Auditorium Front Plaza Entrance', lat: 21.12800, lng: 81.76485 }
+    },
+    {
+        "id": "auditorium_hall",
+        "name": "Central Campus Auditorium",
+        "shortName": "Auditorium",
+        "badge": "AUD",
+        "category": "AMENITY",
+        "color": "#e11d48",
+        "mapPin": {
+            "lat": 21.12824,
+            "lng": 81.765339
+        },
+        "wings": [
+            "Main Hall",
+            "Balcony"
+        ],
+        "floors": [
+            "G",
+            "1"
+        ],
+        "roomsPerFloor": 6,
+        "customRooms": [
+            "Main Acoustic Auditorium Hall (800 Seater)",
+            "Green Room 1",
+            "Green Room 2",
+            "AV Control Booth"
+        ],
+        "description": "Main campus auditorium located west of the central spine",
+        "polygons": [
+            {
+                "id": "wing_1792074374091",
+                "name": "Auditorium Wing #1",
+                "color": "#e11d48",
+                "fillOpacity": 0.45,
+                "latlngs": [
+                    [
+                        21.128064671514963,
+                        81.76537013277192
+                    ],
+                    [
+                        21.128020881663236,
+                        81.76540231252027
+                    ],
+                    [
+                        21.12808281302117,
+                        81.76551628246224
+                    ],
+                    [
+                        21.128124726147714,
+                        81.76548343230249
+                    ],
+                    [
+                        21.128149123335337,
+                        81.76554376933058
+                    ],
+                    [
+                        21.128210429071093,
+                        81.76551225999368
+                    ],
+                    [
+                        21.128240456360995,
+                        81.7655699153761
+                    ],
+                    [
+                        21.128289250694106,
+                        81.76553974686206
+                    ],
+                    [
+                        21.12834930523592,
+                        81.76564567186695
+                    ],
+                    [
+                        21.12850131818611,
+                        81.76555650714762
+                    ],
+                    [
+                        21.12843188019117,
+                        81.7654519229656
+                    ],
+                    [
+                        21.128477546623934,
+                        81.76542778815437
+                    ],
+                    [
+                        21.12844251484115,
+                        81.76534935001783
+                    ],
+                    [
+                        21.12847629623648,
+                        81.76532521520659
+                    ],
+                    [
+                        21.12846128261618,
+                        81.76529370586968
+                    ],
+                    [
+                        21.12851269604628,
+                        81.76525877983454
+                    ],
+                    [
+                        21.12844763702994,
+                        81.76514346906973
+                    ],
+                    [
+                        21.12840259615574,
+                        81.76516760388095
+                    ],
+                    [
+                        21.128372568898662,
+                        81.76513408330979
+                    ],
+                    [
+                        21.128048524362594,
+                        81.76533386591393
+                    ]
+                ]
+            }
+        ],
+        "entrances": [
+            {
+                "id": "ent_audi_front",
+                "name": "Auditorium Front Plaza Entrance",
+                "lat": 21.12841,
+                "lng": 81.765606
+            },
+            {
+                "id": "ent_1792074395963",
+                "name": "Auditorium Entrance Back",
+                "lat": 21.12807,
+                "lng": 81.765484
+            },
+            {
+                "id": "ent_1792074432755",
+                "name": "Auditorium Entrance Side",
+                "lat": 21.128325,
+                "lng": 81.765177
+            }
         ]
-      },
-      {
-        id: 'canteen_block',
-        name: 'Canteen IIIT Naya Raipur (Circular Rotunda & Arcade)',
-        shortName: 'Canteen',
-        badge: 'CANTEEN',
-        category: 'AMENITY',
-        color: '#f59e0b',
-        mapPin: { lat: 21.12782, lng: 81.76495 },
-        wings: ['Circular Rotunda', 'Open-Air Seating Arcade'],
-        floors: ['G'],
-        roomsPerFloor: 6,
-        customRooms: ['Dining Hall', 'Kitchen', 'Night Canteen Counter', 'Beverage Counter', 'Water Point'],
-        description: 'Iconic circular canteen rotunda with curved dining arcade',
-        polygons: [],
-        entrances: [
-          { id: 'ent_canteen_entry', name: 'Canteen Arcade Entry', lat: 21.12775, lng: 81.76510 }
+    },
+    {
+        "id": "canteen_block",
+        "name": "Canteen IIIT Naya Raipur (Circular Rotunda & Arcade)",
+        "shortName": "Canteen",
+        "badge": "CANTEEN",
+        "category": "AMENITY",
+        "color": "#f59e0b",
+        "mapPin": {
+            "lat": 21.127927,
+            "lng": 81.765653
+        },
+        "wings": [
+            "Circular Rotunda",
+            "Open-Air Seating Arcade"
+        ],
+        "floors": [
+            "G"
+        ],
+        "roomsPerFloor": 6,
+        "customRooms": [
+            "Dining Hall",
+            "Kitchen",
+            "Night Canteen Counter",
+            "Beverage Counter",
+            "Water Point"
+        ],
+        "description": "Iconic circular canteen rotunda with curved dining arcade",
+        "polygons": [
+            {
+                "id": "wing_1792075246395",
+                "name": "Canteen Wing #1",
+                "color": "#f59e0b",
+                "fillOpacity": 0.45,
+                "latlngs": [
+                    [
+                        21.127807389963753,
+                        81.76571454854013
+                    ],
+                    [
+                        21.12783740691083,
+                        81.76575377584956
+                    ],
+                    [
+                        21.127887435142448,
+                        81.76578629763601
+                    ],
+                    [
+                        21.127918713296303,
+                        81.76579367370442
+                    ],
+                    [
+                        21.12796467670952,
+                        81.76578864456215
+                    ],
+                    [
+                        21.128006262642558,
+                        81.76576953382167
+                    ],
+                    [
+                        21.128029585395925,
+                        81.76574438810394
+                    ],
+                    [
+                        21.128059417577536,
+                        81.76570616662951
+                    ],
+                    [
+                        21.12806992654608,
+                        81.76565788686291
+                    ],
+                    [
+                        21.128066296450097,
+                        81.76560424268018
+                    ],
+                    [
+                        21.12805222602864,
+                        81.76557976752129
+                    ],
+                    [
+                        21.128029713351523,
+                        81.76558580249197
+                    ],
+                    [
+                        21.12803471616894,
+                        81.76558211445435
+                    ],
+                    [
+                        21.128011133793056,
+                        81.76553718745681
+                    ],
+                    [
+                        21.127999248696714,
+                        81.76554758101851
+                    ],
+                    [
+                        21.127979685167908,
+                        81.76550935952997
+                    ],
+                    [
+                        21.127955921774785,
+                        81.76546040921221
+                    ],
+                    [
+                        21.127922778088518,
+                        81.76547784357197
+                    ],
+                    [
+                        21.127915273856633,
+                        81.76546376197372
+                    ],
+                    [
+                        21.127794893418347,
+                        81.76553148775584
+                    ],
+                    [
+                        21.12780239765631,
+                        81.76554925739174
+                    ],
+                    [
+                        21.127768941259102,
+                        81.76556635647535
+                    ],
+                    [
+                        21.127819110679102,
+                        81.76565621048229
+                    ],
+                    [
+                        21.127800972097837,
+                        81.76566861569897
+                    ],
+                    [
+                        21.127821158249585,
+                        81.76570113748724
+                    ]
+                ]
+            }
+        ],
+        "entrances": [
+            {
+                "id": "ent_canteen_entry",
+                "name": "Canteen Arcade Entry",
+                "lat": 21.128031,
+                "lng": 81.765661
+            }
         ]
-      },
-      {
-        id: 'ramanujan_house',
-        name: 'Ramanujan House (Boys Hostel 1)',
-        shortName: 'Ramanujan House',
-        badge: 'BH-1',
-        category: 'HOSTEL',
-        color: '#4f46e5',
-        mapPin: { lat: 21.13080, lng: 81.76750 },
-        wings: ['Wing A', 'Wing B', 'Wing C', 'Wing D'],
-        floors: ['G', '1', '2', '3'],
-        roomsPerFloor: 24,
-        customRooms: [],
-        description: 'Boys Hostel 1 in the northeast residential sector',
-        polygons: [],
-        entrances: []
-      },
-      {
-        id: 'bhabha_house',
-        name: 'Bhabha House (Boys Hostel 2)',
-        shortName: 'Bhabha House',
-        badge: 'BH-2',
-        category: 'HOSTEL',
-        color: '#4f46e5',
-        mapPin: { lat: 21.12750, lng: 81.76430 },
-        wings: ['Wing A', 'Wing B', 'Wing C'],
-        floors: ['G', '1', '2', '3'],
-        roomsPerFloor: 24,
-        customRooms: [],
-        description: 'Boys Hostel 2 in the southwestern hostel zone',
-        polygons: [],
-        entrances: []
-      },
-      {
-        id: 'bose_house',
-        name: 'Bose House (Boys Hostel 3)',
-        shortName: 'Bose House',
-        badge: 'BH-3',
-        category: 'HOSTEL',
-        color: '#4f46e5',
-        mapPin: { lat: 21.12720, lng: 81.76490 },
-        wings: ['Wing A', 'Wing B', 'Wing C'],
-        floors: ['G', '1', '2', '3'],
-        roomsPerFloor: 24,
-        customRooms: [],
-        description: 'Boys Hostel 3 in the southwestern hostel zone',
-        polygons: [],
-        entrances: []
-      },
-      {
-        id: 'raman_house',
-        name: 'Raman House (Girls Hostel)',
-        shortName: 'Raman House',
-        badge: 'GH-1',
-        category: 'HOSTEL',
-        color: '#db2777',
-        mapPin: { lat: 21.12850, lng: 81.76820 },
-        wings: ['Wing A', 'Wing B', 'Wing C', 'Wing D'],
-        floors: ['G', '1', '2', '3'],
-        roomsPerFloor: 24,
-        customRooms: [],
-        description: 'Girls Hostel located east of the central library',
-        polygons: [],
-        entrances: []
-      }
-    ];
+    },
+    {
+        "id": "ramanujan_house",
+        "name": "Ramanujan House (Boys Hostel 1)",
+        "shortName": "Ramanujan House",
+        "badge": "BH-3",
+        "category": "HOSTEL",
+        "color": "#4f46e5",
+        "mapPin": {
+            "lat": 21.130309,
+            "lng": 81.766246
+        },
+        "wings": [
+            "Wing A",
+            "Wing B",
+            "Wing C",
+            "Wing D"
+        ],
+        "floors": [
+            "G",
+            "1",
+            "2",
+            "3"
+        ],
+        "roomsPerFloor": 24,
+        "customRooms": [],
+        "description": "Boys Hostel 1 in the northeast residential sector",
+        "polygons": [],
+        "entrances": []
+    },
+    {
+        "id": "bhabha_house",
+        "name": "Bhabha House (Boys Hostel 2)",
+        "shortName": "Bhabha House",
+        "badge": "BH-2",
+        "category": "HOSTEL",
+        "color": "#4f46e5",
+        "mapPin": {
+            "lat": 21.127835,
+            "lng": 81.764087
+        },
+        "wings": [
+            "Wing A",
+            "Wing B",
+            "Wing C"
+        ],
+        "floors": [
+            "G",
+            "1",
+            "2",
+            "3"
+        ],
+        "roomsPerFloor": 24,
+        "customRooms": [],
+        "description": "Boys Hostel 2 in the southwestern hostel zone",
+        "polygons": [],
+        "entrances": []
+    },
+    {
+        "id": "bose_house",
+        "name": "Bose House (Boys Hostel 3)",
+        "shortName": "Bose House",
+        "badge": "BH-3",
+        "category": "HOSTEL",
+        "color": "#4f46e5",
+        "mapPin": {
+            "lat": 21.127634,
+            "lng": 81.76469
+        },
+        "wings": [
+            "Wing A",
+            "Wing B",
+            "Wing C"
+        ],
+        "floors": [
+            "G",
+            "1",
+            "2",
+            "3"
+        ],
+        "roomsPerFloor": 24,
+        "customRooms": [],
+        "description": "Boys Hostel 3 in the southwestern hostel zone",
+        "polygons": [],
+        "entrances": []
+    },
+    {
+        "id": "raman_house",
+        "name": "Raman House (Girls Hostel)",
+        "shortName": "Raman House",
+        "badge": "BH-1",
+        "category": "HOSTEL",
+        "color": "#db2777",
+        "mapPin": {
+            "lat": 21.128425,
+            "lng": 81.767507
+        },
+        "wings": [
+            "Wing A",
+            "Wing B",
+            "Wing C",
+            "Wing D"
+        ],
+        "floors": [
+            "G",
+            "1",
+            "2",
+            "3"
+        ],
+        "roomsPerFloor": 24,
+        "customRooms": [],
+        "description": "Girls Hostel located east of the central library",
+        "polygons": [],
+        "entrances": []
+    },
+    {
+        "id": "bldg_1792074173914",
+        "name": "Sports Complex",
+        "shortName": "Sports Complex",
+        "badge": "SC",
+        "category": "INFRASTRUCTURE",
+        "color": "#6366f1",
+        "mapPin": {
+            "lat": 21.131072,
+            "lng": 81.764771
+        },
+        "wings": [],
+        "floors": [
+            "G",
+            "1",
+            "2",
+            "3"
+        ],
+        "roomsPerFloor": 24,
+        "customRooms": [
+            "Baksetball",
+            "Badminton"
+        ],
+        "description": "Sports Complex",
+        "polygons": [],
+        "entrances": []
+    }
+];
+
+    const INITIAL_ROADS = [
+    {
+        "id": "road_1792073671580",
+        "name": "Road #1",
+        "type": "road",
+        "width": 14,
+        "color": "#944b24",
+        "latlngs": [
+            [
+                21.12715611473351,
+                81.76592946052553
+            ],
+            [
+                21.12769167668835,
+                81.76611721515657
+            ],
+            [
+                21.12790699286887,
+                81.76633447408678
+            ],
+            [
+                21.128087090348238,
+                81.76660537719728
+            ],
+            [
+                21.12823474145145,
+                81.76697820425035
+            ],
+            [
+                21.12896800812801,
+                81.76722764968873
+            ],
+            [
+                21.12992399820547,
+                81.76648199558258
+            ],
+            [
+                21.12960366713846,
+                81.76501214504243
+            ],
+            [
+                21.12769167668835,
+                81.76434695720674
+            ],
+            [
+                21.127562280246153,
+                81.76430270075798
+            ],
+            [
+                21.12752169656443,
+                81.76429867744447
+            ],
+            [
+                21.12748731864706,
+                81.7643214762211
+            ],
+            [
+                21.12732464794021,
+                81.76479220390321
+            ],
+            [
+                21.127006010943145,
+                81.7657792568207
+            ]
+        ]
+    },
+    {
+        "id": "road_1792073935987",
+        "name": "Road #2",
+        "type": "road",
+        "width": 14,
+        "color": "#cf6126",
+        "latlngs": [
+            [
+                21.127006010943145,
+                81.7657792568207
+            ],
+            [
+                21.126979403772204,
+                81.76587246358395
+            ],
+            [
+                21.12715611473351,
+                81.76592946052553
+            ]
+        ]
+    },
+    {
+        "id": "road_1792075090626",
+        "name": "Road #3",
+        "type": "road",
+        "width": 14,
+        "color": "#ea580c",
+        "latlngs": [
+            [
+                21.12787372869427,
+                81.76630090975638
+            ],
+            [
+                21.127938068531105,
+                81.7662821971097
+            ],
+            [
+                21.128024367161498,
+                81.76629259067036
+            ],
+            [
+                21.12808721504551,
+                81.76633483546513
+            ],
+            [
+                21.128110368470992,
+                81.76638177411175
+            ],
+            [
+                21.12813100508059,
+                81.76643910633325
+            ],
+            [
+                21.128134444515247,
+                81.76650280880153
+            ],
+            [
+                21.128119436072545,
+                81.76653901862564
+            ],
+            [
+                21.128101926220786,
+                81.76657824593508
+            ],
+            [
+                21.128079848804077,
+                81.76659448444083
+            ]
+        ]
+    }
+];
 
     // --- State Variables ---
     let map = null;
@@ -895,6 +1614,8 @@
     let isAddingPin = false;
     let isAddingEntrance = false;
     let isDrawingWing = false;
+    let isDrawingCourtyard = false;
+    let buildingCourtyardsLayers = {}; // courtId -> L.Polygon
     let globalEditMode = false;
 
     // --- Map Initialization ---
@@ -988,6 +1709,16 @@
             isAddingEntrance = false;
             document.getElementById('btn-add-entrance')?.classList.remove('active');
             showToast('Cancelled entrance placement');
+          }
+          if (isDrawingCourtyard) {
+            isDrawingCourtyard = false;
+            map.pm.disableDraw();
+            showToast('Cancelled courtyard drawing');
+          }
+          if (isDrawingWing) {
+            isDrawingWing = false;
+            map.pm.disableDraw();
+            showToast('Cancelled wing drawing');
           }
         }
         if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
@@ -1144,6 +1875,8 @@
       renderPinChips();
       loadSelectedBuildingIntoForm();
       renderBuildingPolygonsList();
+      renderBuildingCourtyardsList();
+      renderBuildingCourtyards();
       renderBuildingEntrancesList();
       renderBuildingEntrances(); // Refreshes tethers opacity and chip states for selected building
 
@@ -1171,6 +1904,8 @@
       document.getElementById('f-gps').textContent = `${b.mapPin?.lat?.toFixed(6)}° N, ${b.mapPin?.lng?.toFixed(6)}° E`;
 
       renderBuildingPolygonsList();
+      renderBuildingCourtyardsList();
+      renderBuildingCourtyards();
       renderBuildingEntrancesList();
     }
 
@@ -1411,6 +2146,8 @@
         }
         saveBuildingsToStorage();
         renderBuildingPolygonsList();
+      renderBuildingCourtyardsList();
+      renderBuildingCourtyards();
         renderBuildingPolygons();
         updateJsonOutput();
         updateGeometryCodeOutput();
@@ -1664,6 +2401,8 @@
           map.removeLayer(layer); // remove raw geoman layer
           renderBuildingPolygons(); // re-render with our full feature wrapper
           renderBuildingPolygonsList();
+      renderBuildingCourtyardsList();
+      renderBuildingCourtyards();
           saveBuildingsToStorage();
           updateJsonOutput();
           updateGeometryCodeOutput();
@@ -1863,9 +2602,18 @@
 
     function loadSavedRoads() {
       const saved = localStorage.getItem('iiitnr_advanced_gis_roads_v2');
-      if (!saved) return;
+      let roadDataList = [];
+      if (saved) {
+        try {
+          roadDataList = JSON.parse(saved);
+        } catch (e) {
+          roadDataList = typeof INITIAL_ROADS !== 'undefined' ? INITIAL_ROADS : [];
+        }
+      } else {
+        roadDataList = typeof INITIAL_ROADS !== 'undefined' ? INITIAL_ROADS : [];
+      }
       try {
-        const data = JSON.parse(saved);
+        const data = roadDataList;
         data.forEach(item => {
           const poly = L.polyline(item.latlngs).addTo(map);
           poly.roadData = item;
@@ -1989,6 +2737,23 @@
           });
         });
 
+        // 2.5 Courtyards
+        (b.courtyards || []).forEach(c => {
+          features.push({
+            type: 'Feature',
+            properties: {
+              entity: 'building_courtyard',
+              building_id: b.id,
+              building_name: b.name,
+              courtyard_name: c.name
+            },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [c.latlngs.map(ll => [ll[1], ll[0]])]
+            }
+          });
+        });
+
         // 3. Entrances
         (b.entrances || []).forEach(ent => {
           features.push({
@@ -2051,7 +2816,18 @@
       setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
-    window.addEventListener('DOMContentLoaded', initMap);
+    window.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      const sidebarEl = document.querySelector('.sidebar');
+      if (sidebarEl) {
+        sidebarEl.addEventListener('wheel', (e) => {
+          const activeBody = document.querySelector('.sidebar-body:not([style*="display: none"]):not([style*="display:none"])');
+          if (activeBody && !activeBody.contains(e.target)) {
+            activeBody.scrollTop += e.deltaY;
+          }
+        }, { passive: true });
+      }
+    });
   </script>
 </body>
 </html>
