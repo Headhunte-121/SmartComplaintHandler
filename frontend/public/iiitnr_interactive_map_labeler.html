@@ -3,30 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IIIT Naya Raipur — Interactive Campus Map Labeler & Hostel/Room Studio</title>
+  <title>IIIT Naya Raipur — GIS Satellite Studio & Data Form Builder</title>
+
+  <!-- Leaflet CSS & JS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
+
+  <!-- Leaflet-Geoman for GIS Vector Drawing & Editing -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css"
+  />
+  <script
+    src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"
+  ></script>
+
   <style>
     :root {
       --bg: #090d16;
-      --panel: #111827;
+      --panel: #0f172a;
       --panel-2: #1e293b;
       --border: #334155;
       --text: #f8fafc;
       --muted: #94a3b8;
-      --indigo: #4f46e5;
+      --indigo: #6366f1;
       --emerald: #10b981;
       --amber: #f59e0b;
       --rose: #f43f5e;
+      --sky: #0284c7;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -36,9 +47,12 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
+
+    /* Header */
     header {
-      padding: 14px 20px;
+      padding: 10px 18px;
       background: #020617;
       border-bottom: 1px solid var(--border);
       display: flex;
@@ -46,127 +60,211 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      z-index: 1000;
     }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .badge-live {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.35);
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #f1f5f9;
+    }
+    .brand-sub {
       font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
+      color: var(--muted);
+    }
+    .badge-sat {
+      background: rgba(2, 132, 199, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(2, 132, 199, 0.4);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
       border-radius: 999px;
       font-family: monospace;
     }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
-    button, .btn-label {
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .btn {
       background: var(--panel-2);
       color: var(--text);
       border: 1px solid var(--border);
-      padding: 8px 13px;
-      border-radius: 10px;
-      font-size: 12px;
+      padding: 6px 11px;
+      border-radius: 8px;
+      font-size: 11.5px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
-    button:hover, .btn-label:hover { border-color: #6366f1; background: #1e1b4b; }
-    button.primary { background: var(--indigo); border-color: #6366f1; }
-    button.primary:hover { background: #4338ca; }
-    button.emerald { background: #059669; border-color: #10b981; }
-    button.danger { background: rgba(244, 63, 94, 0.15); color: #fda4af; border-color: rgba(244, 63, 94, 0.35); }
+    .btn:hover { border-color: var(--indigo); background: #2e3856; }
+    .btn.active { background: var(--indigo); border-color: #818cf8; color: white; }
+    .btn.emerald { background: #059669; border-color: #10b981; }
+    .btn.emerald:hover { background: #047857; }
+    .btn.sky { background: #0284c7; border-color: #38bdf8; }
+    .btn.sky:hover { background: #0369a1; }
+    .btn.danger { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.4); color: #fda4af; }
+    .btn.danger:hover { background: rgba(244, 63, 94, 0.35); }
+
+    /* Layout */
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 410px;
-      min-height: calc(100vh - 64px);
-    }
-    @media (max-width: 980px) {
-      main { grid-template-columns: 1fr; }
-    }
-    #map-wrapper {
+      grid-template-columns: 1fr 440px;
       position: relative;
-      display: flex;
-      flex-direction: column;
-      background: #020617;
-      min-height: 520px;
+      height: calc(100vh - 57px);
+    }
+    @media (max-width: 1080px) {
+      main { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    #map-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
     }
     #leaflet-map {
-      flex: 1;
       width: 100%;
-      min-height: 520px;
-      z-index: 1;
+      height: 100%;
+      z-index: 10;
     }
-    #canvas-fallback {
-      display: none;
-      flex: 1;
-      position: relative;
-      background: radial-gradient(circle at 50% 45%, #1e293b 0%, #020617 100%);
-      overflow: hidden;
-      cursor: crosshair;
-      min-height: 520px;
-    }
-    .map-hint-bar {
+
+    /* Top HUD */
+    .hud-bar {
       position: absolute;
-      top: 12px;
-      left: 55px;
-      right: 12px;
+      top: 14px;
+      left: 65px;
       z-index: 500;
-      background: rgba(2, 6, 23, 0.88);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--border);
-      padding: 9px 14px;
+      background: rgba(2, 6, 23, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
-      font-size: 12px;
+      padding: 8px 16px;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
-      gap: 8px;
-      pointer-events: none;
+      gap: 16px;
+      font-size: 11.5px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      pointer-events: auto;
     }
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .hud-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+    .hud-val {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    /* Custom Map Marker Badges */
+    .custom-pin-marker {
+      background: rgba(15, 23, 42, 0.92);
+      border: 2px solid #6366f1;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 11px;
+      white-space: nowrap;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.1s ease;
+    }
+    .custom-pin-marker:hover {
+      transform: scale(1.05);
+    }
+    .custom-pin-marker.selected {
+      background: #4f46e5 !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+    }
+
+    /* Sidebar */
     .sidebar {
       background: var(--panel);
       border-left: 1px solid var(--border);
-      padding: 18px;
-      overflow-y: auto;
-      max-height: calc(100vh - 64px);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      height: 100%;
+      overflow: hidden;
+      z-index: 100;
     }
-    .card {
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-radius: 14px;
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: #020617;
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .sidebar-tab:hover { color: #f1f5f9; }
+    .sidebar-tab.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      background: rgba(2, 132, 199, 0.1);
+    }
+    .sidebar-body {
+      flex: 1;
+      overflow-y: auto;
       padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Card styling */
+    .card {
+      background: #0a0f1d;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-    .card h3 { font-size: 13px; font-weight: 800; color: #e2e8f0; }
-    .pin-list {
+    .card h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #e2e8f0;
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
     }
-    .pin-chip {
-      padding: 6px 10px;
-      border-radius: 9px;
-      font-size: 11px;
-      font-weight: 700;
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      cursor: pointer;
-    }
-    .pin-chip.active {
-      background: var(--indigo);
-      border-color: #818cf8;
-      color: white;
-    }
+
+    /* Form Fields */
     label {
       display: block;
       font-size: 11px;
@@ -179,7 +277,7 @@
       background: #020617;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px 10px;
+      padding: 7px 10px;
       border-radius: 8px;
       font-size: 12px;
     }
@@ -187,487 +285,915 @@
       outline: 2px solid var(--indigo);
       border-color: transparent;
     }
-    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .custom-pin-marker {
-      background: rgba(15, 23, 42, 0.94);
-      border: 2px solid #6366f1;
-      color: #fff;
-      padding: 4px 8px;
-      border-radius: 10px;
-      font-weight: 800;
-      font-size: 11px;
-      white-space: nowrap;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
+
+    .pin-chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .pin-chip {
+      padding: 5px 9px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.1s;
+    }
+    .pin-chip:hover { border-color: #6366f1; }
+    .pin-chip.active {
+      background: var(--indigo);
+      border-color: #818cf8;
+      color: white;
+    }
+
+    textarea.code-box {
+      width: 100%;
+      height: 220px;
+      background: #020617;
+      border: 1px solid var(--border);
+      color: #34d399;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 10px;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    /* Floating Layer Controls */
+    .layer-pill-box {
+      position: absolute;
+      bottom: 24px;
+      left: 20px;
+      z-index: 500;
+      background: rgba(2, 6, 23, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+    .layer-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .layer-row input {
+      accent-color: var(--indigo);
+      cursor: pointer;
+      width: auto;
+    }
+
     .toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 24px;
+      right: 24px;
       background: #059669;
       color: white;
-      padding: 10px 16px;
+      padding: 10px 18px;
       border-radius: 10px;
       font-size: 12px;
       font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       z-index: 9999;
       display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
+
   <header>
     <div class="brand">
+      <div style="font-size: 20px;">🛰️</div>
       <div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <strong style="font-size:15px;">IIIT Naya Raipur — Interactive Campus Map Labeler</strong>
-          <span class="badge-live">21.1284° N, 81.7661° E</span>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">
-          Click anywhere on the map to add a Hostel/Building pin • Drag pins to exact locations • Customize rooms &amp; Copy JSON
-        </div>
+        <div class="brand-title">IIIT Naya Raipur — GIS Satellite Studio &amp; Form Builder</div>
+        <div class="brand-sub">Real Google Satellite Footage · Drag Pins, Edit Rooms &amp; Trace Roads</div>
       </div>
+      <span class="badge-sat">Google Satellite HD</span>
     </div>
-    <div class="toolbar">
-      <button type="button" id="btn-sat" class="primary" onclick="setLayer('satellite')">🛰️ Satellite View</button>
-      <button type="button" id="btn-osm" onclick="setLayer('street')">🗺️ Street Map</button>
-      <button type="button" id="btn-grid" onclick="setLayer('blueprint')">📐 Custom Blueprint / Image</button>
-      <label class="btn-label">
-        🖼️ Upload Campus Map Image
-        <input type="file" accept="image/*" style="display:none" onchange="uploadBlueprint(event)" />
-      </label>
-      <button type="button" class="emerald" onclick="copyJsonConfig()">📋 Copy Labeled JSON</button>
+
+    <!-- Basemap Switcher -->
+    <div class="toolbar-group">
+      <button class="btn active" id="btn-bm-google-sat" onclick="switchBasemap('google-sat')">🛰️ Google Satellite</button>
+      <button class="btn" id="btn-bm-google-hyb" onclick="switchBasemap('google-hyb')">🗺️ Google Hybrid</button>
+      <button class="btn" id="btn-bm-esri" onclick="switchBasemap('esri')">Esri Imagery</button>
+      <button class="btn" id="btn-bm-offline" onclick="switchBasemap('offline')">Stitched HD Mosaic</button>
+    </div>
+
+    <!-- Primary Action Modes -->
+    <div class="toolbar-group">
+      <button class="btn emerald" id="btn-add-pin" onclick="enableAddPinMode()">📍 + Add Building Pin</button>
+      <button class="btn" id="btn-draw-road" onclick="startDraw('road')">🛣️ Draw Road</button>
+      <button class="btn" id="btn-draw-path" onclick="startDraw('path')">🚶 Draw Footpath</button>
+      <button class="btn" id="btn-edit-lines" onclick="toggleEditMode()">✏️ Edit Road Nodes</button>
+    </div>
+
+    <!-- Quick Export -->
+    <div style="display: flex; gap: 8px;">
+      <button class="btn emerald" onclick="copyJsonConfig()">📋 Copy Labeled JSON</button>
+      <button class="btn sky" onclick="downloadGeoJSON()">📥 Export GeoJSON</button>
     </div>
   </header>
 
   <main>
-    <div id="map-wrapper">
-      <div class="map-hint-bar">
-        <span>👆 <strong>Click anywhere on the map</strong> to place a new Hostel / Building pin, or <strong>drag existing pins</strong> to their exact spot at IIIT-NR!</span>
-        <span id="coord-readout" style="font-family:monospace;color:#38bdf8;">Lat: 21.1284, Lng: 81.7661</span>
-      </div>
+    <div id="map-container">
       <div id="leaflet-map"></div>
-      <div id="canvas-fallback" onclick="handleBlueprintClick(event)"></div>
+
+      <!-- Floating HUD -->
+      <div class="hud-bar">
+        <div class="hud-item">
+          <span class="hud-label">GPS Lat / Lng</span>
+          <span class="hud-val" id="hud-latlng">21.12845°, 81.76575°</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Active Entity</span>
+          <span class="hud-val" id="hud-selected-name">Academic Block</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Buildings</span>
+          <span class="hud-val" id="hud-pin-count">7 Labeled</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Traced Roads</span>
+          <span class="hud-val" id="hud-line-count">0 Lines</span>
+        </div>
+      </div>
+
+      <!-- Layer Visibility Toggles -->
+      <div class="layer-pill-box">
+        <label class="layer-row">
+          <input type="checkbox" id="chk-pins" checked onchange="togglePinsVisibility(this.checked)">
+          <span>📍 Building / Hostel Pins</span>
+        </label>
+        <label class="layer-row">
+          <input type="checkbox" id="chk-roads" checked onchange="toggleLinesVisibility('road', this.checked)">
+          <span>🛣️ Vehicular Roads (Red / Asphalt)</span>
+        </label>
+        <label class="layer-row">
+          <input type="checkbox" id="chk-paths" checked onchange="toggleLinesVisibility('path', this.checked)">
+          <span>🚶 Footpaths &amp; Entrances (Green)</span>
+        </label>
+      </div>
     </div>
 
+    <!-- Sidebar with Data Form Builder and GIS Exporters -->
     <aside class="sidebar">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h3>📍 Labeled Campus Pins (<span id="pin-count">0</span>)</h3>
-          <button type="button" onclick="addNewBlankPin()" style="padding:4px 9px;font-size:11px;">+ Add Building</button>
-        </div>
-        <div id="pin-list" class="pin-list"></div>
+      <div class="sidebar-tabs">
+        <div class="sidebar-tab active" id="tab-btn-builder" onclick="setSidebarTab('builder')">📍 Form Builder</div>
+        <div class="sidebar-tab" id="tab-btn-roads" onclick="setSidebarTab('roads')">🛣️ GIS Roads &amp; Paths</div>
+        <div class="sidebar-tab" id="tab-btn-export" onclick="setSidebarTab('export')">📦 Export &amp; JSON</div>
       </div>
 
-      <div class="card" id="editor-card">
-        <h3>✏️ Edit Selected Building / Hostel &amp; Rooms</h3>
-        <div>
-          <label>Full Building / Hostel Name</label>
-          <input type="text" id="f-name" oninput="updateSelectedPin()" placeholder="e.g. Ramanujan House (Boys Hostel 1)" />
-        </div>
-        <div class="row-2">
-          <div>
-            <label>Short Map Label</label>
-            <input type="text" id="f-short" oninput="updateSelectedPin()" placeholder="e.g. Ramanujan" />
+      <!-- TAB 1: DATA FORM BUILDER -->
+      <div class="sidebar-body" id="tab-content-builder">
+        <!-- Pin Selector Card -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>📍 Labeled Campus Buildings (<span id="pin-count">0</span>)</h3>
+            <button class="btn emerald" style="padding:4px 8px;font-size:11px;" onclick="addNewBlankPin()">+ Add Pin</button>
           </div>
-          <div>
-            <label>Badge Code</label>
-            <input type="text" id="f-badge" oninput="updateSelectedPin()" placeholder="e.g. BH-1, ACAD" />
-          </div>
+          <p style="font-size:11px;color:var(--muted);">Click any pin on the map to edit its details, or drag it to its exact spot on Google Satellite.</p>
+          <div class="pin-chip-grid" id="pin-chips"></div>
         </div>
-        <div class="row-2">
+
+        <!-- Form Builder Fields -->
+        <div class="card" id="form-builder-card">
+          <h3>✏️ Edit Building, Hostel &amp; Rooms</h3>
+          
           <div>
-            <label>Category</label>
-            <select id="f-cat" onchange="updateSelectedPin()">
-              <option value="HOSTEL">HOSTEL (Student Residence)</option>
-              <option value="ACADEMIC">ACADEMIC (Classrooms / Labs)</option>
-              <option value="AMENITY">AMENITY (Mess / SAC / Canteen)</option>
-              <option value="INFRASTRUCTURE">INFRASTRUCTURE (Sports / Gate)</option>
-            </select>
+            <label>Full Building / Hostel Name</label>
+            <input type="text" id="f-name" oninput="updateSelectedPinFromForm()" placeholder="e.g. Ramanujan House (Boys Hostel)" />
           </div>
+
+          <div class="row-2">
+            <div>
+              <label>Short Map Label</label>
+              <input type="text" id="f-short" oninput="updateSelectedPinFromForm()" placeholder="e.g. Ramanujan House" />
+            </div>
+            <div>
+              <label>Badge Code</label>
+              <input type="text" id="f-badge" oninput="updateSelectedPinFromForm()" placeholder="e.g. BH-1, ACAD, AUD" />
+            </div>
+          </div>
+
+          <div class="row-2">
+            <div>
+              <label>Category</label>
+              <select id="f-cat" onchange="updateSelectedPinFromForm()">
+                <option value="HOSTEL">HOSTEL (Residence)</option>
+                <option value="ACADEMIC">ACADEMIC (Classrooms / Labs)</option>
+                <option value="AMENITY">AMENITY (Canteen / Mess / SAC)</option>
+                <option value="INFRASTRUCTURE">INFRASTRUCTURE (Sports / Gate)</option>
+              </select>
+            </div>
+            <div>
+              <label>Rooms per Floor</label>
+              <input type="number" id="f-rpf" min="1" max="300" oninput="updateSelectedPinFromForm()" />
+            </div>
+          </div>
+
+          <div class="row-2">
+            <div>
+              <label>Wings / Blocks (comma-separated)</label>
+              <input type="text" id="f-wings" oninput="updateSelectedPinFromForm()" placeholder="Wing A, Wing B" />
+            </div>
+            <div>
+              <label>Floors (comma-separated)</label>
+              <input type="text" id="f-floors" oninput="updateSelectedPinFromForm()" placeholder="G, 1, 2, 3" />
+            </div>
+          </div>
+
           <div>
-            <label>Rooms per Floor</label>
-            <input type="number" id="f-rpf" min="1" max="300" oninput="updateSelectedPin()" />
+            <label>Specific Rooms / Labs List (comma-separated)</label>
+            <textarea id="f-custom-rooms" rows="3" oninput="updateSelectedPinFromForm()" placeholder="e.g. Smart E-Classroom E-101, VLSI Lab, IDEA Lab, Room 131C (Data Centre), Room 131E (NOC)"></textarea>
           </div>
-        </div>
-        <div class="row-2">
+
           <div>
-            <label>Wings / Blocks (comma-sep)</label>
-            <input type="text" id="f-wings" oninput="updateSelectedPin()" placeholder="Wing A, Wing B" />
+            <label>Notes / Description</label>
+            <input type="text" id="f-desc" oninput="updateSelectedPinFromForm()" placeholder="e.g. Main academic complex housing classrooms and labs" />
           </div>
-          <div>
-            <label>Floors (comma-sep)</label>
-            <input type="text" id="f-floors" oninput="updateSelectedPin()" placeholder="G, 1, 2, 3" />
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;">
+            <span id="f-gps" style="font-size:11px;font-family:monospace;color:#34d399;">21.1283° N, 81.7661° E</span>
+            <button class="btn danger" onclick="deleteSelectedPin()">🗑️ Delete Building</button>
           </div>
-        </div>
-        <div>
-          <label>Specific Rooms / Labs List (comma-separated, optional)</label>
-          <textarea id="f-custom-rooms" rows="2" oninput="updateSelectedPin()" placeholder="Leave blank for auto-numbered hostel rooms, or list specific labs/rooms (e.g. Room 101, VLSI Lab, Mess Hall)"></textarea>
-        </div>
-        <div>
-          <label>Notes / Description</label>
-          <input type="text" id="f-desc" oninput="updateSelectedPin()" placeholder="Optional notes about this building..." />
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;">
-          <span id="f-gps" style="font-size:11px;font-family:monospace;color:#34d399;"></span>
-          <button type="button" class="danger" onclick="deleteSelectedPin()">🗑️ Delete Pin</button>
         </div>
       </div>
 
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h3>📦 Exported JSON Config (Paste in Chat or App)</h3>
-          <button type="button" class="emerald" style="padding:4px 9px;font-size:11px;" onclick="copyJsonConfig()">Copy JSON</button>
+      <!-- TAB 2: GIS VECTOR ROADS & PATHS -->
+      <div class="sidebar-body" id="tab-content-roads" style="display:none;">
+        <div class="card">
+          <h3>
+            <span>🛣️ Traced Roads &amp; Footpaths</span>
+            <span style="font-size:10px;color:var(--emerald);" id="line-count-badge">0 Features</span>
+          </h3>
+          <p style="font-size:11px;color:var(--muted);line-height:1.5;">
+            Use the top toolbar to trace roads directly on the Google Satellite footage. Click to add points along the curb, double-click to finish.
+          </p>
+          <div style="display:flex;gap:8px;">
+            <button class="btn" style="flex:1;" onclick="startDraw('road')">🛣️ Trace Road</button>
+            <button class="btn" style="flex:1;" onclick="startDraw('path')">🚶 Trace Footpath</button>
+          </div>
+          <div id="vector-lines-list" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;margin-top:6px;">
+            <div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;">No custom roads drawn yet. Click "Trace Road" or "Trace Footpath" to begin tracing on Google Satellite!</div>
+          </div>
         </div>
-        <textarea id="json-output" rows="7" style="font-family:monospace;font-size:11px;color:#6ee7b7;" oninput="importFromTextarea()"></textarea>
+      </div>
+
+      <!-- TAB 3: EXPORT & JSON -->
+      <div class="sidebar-body" id="tab-content-export" style="display:none;">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>📦 Labeled Buildings &amp; Rooms JSON</h3>
+            <button class="btn emerald" style="padding:4px 8px;font-size:11px;" onclick="copyJsonConfig()">Copy JSON</button>
+          </div>
+          <p style="font-size:11px;color:var(--muted);">Full configuration of all buildings, wings, floors, and rooms.</p>
+          <textarea class="code-box" id="json-output" readonly></textarea>
+        </div>
+
+        <div class="card">
+          <h3>📥 GeoJSON Export</h3>
+          <p style="font-size:11px;color:var(--muted);">Download all pins, roads, and footpaths as standard GeoJSON for QGIS / Google Earth.</p>
+          <button class="btn sky" onclick="downloadGeoJSON()">📥 Download GeoJSON File</button>
+        </div>
       </div>
     </aside>
   </main>
 
-  <div id="toast" class="toast">✓ Copied JSON to clipboard!</div>
+  <div class="toast" id="toast">Saved to clipboard!</div>
 
   <script>
+    // --- Ground-Truth IIIT Naya Raipur Authentic Campus Entities ---
     const INITIAL_PINS = [
       {
+        id: 'academic_block',
+        name: 'Academic & Administrative Block',
+        shortName: 'Academic Block',
+        category: 'ACADEMIC',
+        wings: ['Main Building', 'East Lab Wings', 'Directorate Wing'],
+        floors: ['G', '1', '2', '3'],
+        roomsPerFloor: 20,
+        customRooms: ['Smart E-Classroom E-101', 'Smart E-Classroom E-102', 'Lecture Hall LH-1', 'VLSI Lab', 'IDEA Lab', 'Room 131C (Data Centre)', 'Room 131E (NOC)', 'Estate Office', 'Registrar Office', 'Board Room'],
+        mapPin: { lat: 21.1284, lng: 81.7661, badge: 'ACAD', color: '#0284c7' },
+        gps: '21.1284° N, 81.7661° E',
+        description: 'Iconic central academic rotunda dome and classroom/laboratory complex'
+      },
+      {
+        id: 'auditorium_hall',
+        name: 'Central Campus Auditorium',
+        shortName: 'Auditorium',
+        category: 'AMENITY',
+        wings: ['Main Hall', 'Balcony'],
+        floors: ['G', '1'],
+        roomsPerFloor: 6,
+        customRooms: ['Main Acoustic Auditorium Hall (800 Seater)', 'Green Room 1', 'Green Room 2', 'AV Control Booth'],
+        mapPin: { lat: 21.1281, lng: 81.7655, badge: 'AUD', color: '#e11d48' },
+        gps: '21.1281° N, 81.7655° E',
+        description: 'Main campus auditorium located west of the central spine'
+      },
+      {
+        id: 'canteen_block',
+        name: 'Canteen IIIT Naya Raipur (Circular Rotunda & Arcade)',
+        shortName: 'Canteen',
+        category: 'AMENITY',
+        wings: ['Circular Rotunda', 'Open-Air Seating Arcade'],
+        floors: ['G'],
+        roomsPerFloor: 6,
+        customRooms: ['Dining Hall', 'Kitchen', 'Night Canteen Counter', 'Beverage Counter', 'Water Point'],
+        mapPin: { lat: 21.1278, lng: 81.7651, badge: 'CANTEEN', color: '#f59e0b' },
+        gps: '21.1278° N, 81.7651° E',
+        description: 'Iconic circular canteen rotunda with curved dining arcade'
+      },
+      {
         id: 'ramanujan_house',
-        name: 'Ramanujan House (Boys Hostel)',
+        name: 'Ramanujan House (Boys Hostel 1)',
         shortName: 'Ramanujan House',
         category: 'HOSTEL',
-        wings: ['Wing A', 'Wing B'],
+        wings: ['Wing A', 'Wing B', 'Wing C', 'Wing D'],
         floors: ['G', '1', '2', '3'],
         roomsPerFloor: 24,
         customRooms: [],
-        mapPin: { xPct: 28, yPct: 26, lat: 21.1295, lng: 81.7652, badge: 'BH-1', color: '#4f46e5' },
-        gps: '21.1295° N, 81.7652° E',
-        description: 'Boys Hostel — drag pin or edit wings/floors/rooms'
+        mapPin: { lat: 21.1308, lng: 81.7675, badge: 'BH-1', color: '#4f46e5' },
+        gps: '21.1308° N, 81.7675° E',
+        description: 'Boys Hostel 1 located in the northeast residential sector'
       },
       {
         id: 'bhabha_house',
-        name: 'Bhabha House (Boys Hostel)',
+        name: 'Bhabha House (Boys Hostel 2)',
         shortName: 'Bhabha House',
         category: 'HOSTEL',
-        wings: ['Wing A', 'Wing B'],
+        wings: ['Wing A', 'Wing B', 'Wing C'],
         floors: ['G', '1', '2', '3'],
         roomsPerFloor: 24,
         customRooms: [],
-        mapPin: { xPct: 42, yPct: 25, lat: 21.1297, lng: 81.7659, badge: 'BH-2', color: '#4f46e5' },
-        gps: '21.1297° N, 81.7659° E',
-        description: 'Boys Hostel — drag pin or edit wings/floors/rooms'
+        mapPin: { lat: 21.1275, lng: 81.7645, badge: 'BH-2', color: '#4f46e5' },
+        gps: '21.1275° N, 81.7645° E',
+        description: 'Boys Hostel 2 in the southwestern hostel zone'
       },
       {
         id: 'bose_house',
-        name: 'Bose House (Boys Hostel)',
+        name: 'Bose House (Boys Hostel 3)',
         shortName: 'Bose House',
         category: 'HOSTEL',
-        wings: ['Wing A', 'Wing B'],
+        wings: ['Wing A', 'Wing B', 'Wing C'],
         floors: ['G', '1', '2', '3'],
         roomsPerFloor: 24,
         customRooms: [],
-        mapPin: { xPct: 56, yPct: 25, lat: 21.1298, lng: 81.7666, badge: 'BH-3', color: '#4f46e5' },
-        gps: '21.1298° N, 81.7666° E',
-        description: 'Boys Hostel — drag pin or edit wings/floors/rooms'
+        mapPin: { lat: 21.1272, lng: 81.7650, badge: 'BH-3', color: '#4f46e5' },
+        gps: '21.1272° N, 81.7650° E',
+        description: 'Boys Hostel 3 in the southwestern hostel zone'
       },
       {
         id: 'raman_house',
         name: 'Raman House (Girls Hostel)',
         shortName: 'Raman House',
         category: 'HOSTEL',
-        wings: ['Wing A', 'Wing B'],
+        wings: ['Wing A', 'Wing B', 'Wing C', 'Wing D'],
         floors: ['G', '1', '2', '3'],
         roomsPerFloor: 24,
         customRooms: [],
-        mapPin: { xPct: 74, yPct: 32, lat: 21.1290, lng: 81.7674, badge: 'GH-1', color: '#db2777' },
-        gps: '21.1290° N, 81.7674° E',
-        description: 'Girls Hostel — drag pin or edit wings/floors/rooms'
-      },
-      {
-        id: 'academic_block',
-        name: 'Academic & Administrative Block',
-        shortName: 'Academic Block',
-        category: 'ACADEMIC',
-        wings: ['Main Building'],
-        floors: ['G', '1', '2', '3'],
-        roomsPerFloor: 20,
-        customRooms: ['Smart E-Classroom E-101', 'Smart E-Classroom E-102', 'Room 131C (Data Centre)', 'Room 131E (NOC)', 'VLSI Lab', 'IDEA Lab', 'Estate Office'],
-        mapPin: { xPct: 48, yPct: 62, lat: 21.1283, lng: 81.7661, badge: 'ACAD', color: '#0284c7' },
-        gps: '21.1283° N, 81.7661° E',
-        description: 'Main Academic & Lab Block'
+        mapPin: { lat: 21.1285, lng: 81.7682, badge: 'GH-1', color: '#db2777' },
+        gps: '21.1285° N, 81.7682° E',
+        description: 'Girls Hostel located east of the central library'
       }
     ];
 
-    let pins = JSON.parse(localStorage.getItem('iiitnr_custom_campus_map_v1') || 'null') || INITIAL_PINS;
-    let selectedId = pins[0]?.id;
+    // --- State ---
     let map = null;
-    let tileLayers = {};
+    let basemaps = {};
+    let activeBasemap = 'google-sat';
+    let pins = [];
     let markersMap = {};
-    let activeMode = 'satellite';
-
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 2600);
-    }
+    let selectedPinId = null;
+    let vectorLayers = [];
+    let isAddingPin = false;
+    let editModeActive = false;
 
     function initMap() {
-      if (typeof L === 'undefined') {
-        setLayer('blueprint');
-        return;
-      }
-      map = L.map('leaflet-map').setView([21.1284, 81.7661], 17);
-      tileLayers.satellite = L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        { attribution: 'Esri Satellite • IIIT Naya Raipur' }
-      );
-      tileLayers.street = L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        { attribution: '© OpenStreetMap • IIIT Naya Raipur' }
-      );
-      tileLayers.satellite.addTo(map);
+      // Load saved pins from localStorage or defaults
+      const savedPins = localStorage.getItem('iiitnr_custom_campus_map_v1');
+      pins = savedPins ? JSON.parse(savedPins) : INITIAL_PINS;
+      selectedPinId = pins[0]?.id || null;
 
-      map.on('mousemove', (e) => {
-        document.getElementById('coord-readout').textContent =
-          `Lat: ${e.latlng.lat.toFixed(5)}, Lng: ${e.latlng.lng.toFixed(5)}`;
+      // Center map directly on IIIT Naya Raipur
+      map = L.map('leaflet-map', {
+        center: [21.1284, 81.7661],
+        zoom: 17.5,
+        maxZoom: 22,
+        zoomControl: true,
       });
 
-      map.on('click', (e) => {
+      // 1. Pure Google Satellite Footage (Crisp, unwatermarked)
+      basemaps['google-sat'] = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 22,
+        maxNativeZoom: 20,
+        attribution: 'Google Satellite Footage'
+      });
+
+      // 2. Google Hybrid (Satellite + official road lines & landmark labels)
+      basemaps['google-hyb'] = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        maxZoom: 22,
+        maxNativeZoom: 20,
+        attribution: 'Google Hybrid Satellite'
+      });
+
+      // 3. Esri World Imagery
+      basemaps['esri'] = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 20,
+        attribution: 'Esri Satellite'
+      });
+
+      // 4. Stitched Local HD Mosaic
+      basemaps['offline'] = L.imageOverlay('/iiitnr_google_satellite_z19.jpg', [
+        [21.1242166, 81.7609405],
+        [21.1325429, 81.7705535]
+      ], { opacity: 1.0 });
+
+      // Add default basemap
+      basemaps['google-sat'].addTo(map);
+
+      // Geoman vector drawing setup (starts clean, no clutter)
+      map.pm.addControls({
+        position: 'topleft',
+        drawCircle: false,
+        drawCircleMarker: false,
+        drawRectangle: true,
+        drawPolyline: true,
+        drawPolygon: true,
+        drawMarker: false,
+        editMode: true,
+        dragMode: false,
+        cutPolygon: false,
+        removalMode: true,
+      });
+
+      map.pm.setGlobalOptions({
+        snappable: true,
+        snapDistance: 12,
+        allowSelfIntersection: false,
+      });
+
+      // Map Events
+      map.on('mousemove', onMapMouseMove);
+      map.on('click', onMapClick);
+      map.on('pm:create', onVectorCreated);
+      map.on('pm:remove', onVectorRemoved);
+
+      // Render Pins and Data Form
+      renderMarkers();
+      renderPinChips();
+      loadSelectedPinIntoForm();
+      updateJsonOutput();
+      loadSavedVectors();
+    }
+
+    function switchBasemap(type) {
+      if (basemaps[activeBasemap]) {
+        map.removeLayer(basemaps[activeBasemap]);
+      }
+      activeBasemap = type;
+      if (basemaps[type]) {
+        basemaps[type].addTo(map);
+      }
+      document.querySelectorAll('.toolbar-group .btn').forEach(b => {
+        if (b.id.startsWith('btn-bm-')) b.classList.remove('active');
+      });
+      const activeBtn = document.getElementById(`btn-bm-${type}`);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function onMapMouseMove(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      document.getElementById('hud-latlng').textContent = `${lat.toFixed(5)}°, ${lng.toFixed(5)}°`;
+    }
+
+    function onMapClick(e) {
+      if (isAddingPin) {
         const lat = Number(e.latlng.lat.toFixed(5));
         const lng = Number(e.latlng.lng.toFixed(5));
-        createPinAtCoords(lat, lng, 50, 50);
-      });
-
-      renderAll();
-    }
-
-    function createPinAtCoords(lat, lng, xPct, yPct) {
-      const idx = pins.length + 1;
-      const newPin = {
-        id: 'zone_' + Date.now(),
-        name: `New IIIT-NR Building ${idx}`,
-        shortName: `Building ${idx}`,
-        category: 'HOSTEL',
-        wings: ['Wing A', 'Wing B'],
-        floors: ['G', '1', '2', '3'],
-        roomsPerFloor: 24,
-        customRooms: [],
-        mapPin: {
-          xPct,
-          yPct,
-          lat,
-          lng,
-          badge: `Z-${idx}`,
-          color: '#4f46e5'
-        },
-        gps: `${lat}° N, ${lng}° E`,
-        description: 'Custom labeled IIIT-NR building'
-      };
-      pins.push(newPin);
-      selectedId = newPin.id;
-      saveAndRender();
-      showToast(`📍 Placed "${newPin.shortName}" — label it on the right!`);
-    }
-
-    function setLayer(mode) {
-      activeMode = mode;
-      document.getElementById('btn-sat').classList.toggle('primary', mode === 'satellite');
-      document.getElementById('btn-osm').classList.toggle('primary', mode === 'street');
-      document.getElementById('btn-grid').classList.toggle('primary', mode === 'blueprint');
-
-      const leafletEl = document.getElementById('leaflet-map');
-      const blueprintEl = document.getElementById('canvas-fallback');
-
-      if (mode === 'blueprint' || !map) {
-        leafletEl.style.display = 'none';
-        blueprintEl.style.display = 'block';
-        renderBlueprintPins();
-      } else {
-        leafletEl.style.display = 'block';
-        blueprintEl.style.display = 'none';
-        if (mode === 'satellite') {
-          map.removeLayer(tileLayers.street);
-          tileLayers.satellite.addTo(map);
-        } else {
-          map.removeLayer(tileLayers.satellite);
-          tileLayers.street.addTo(map);
-        }
+        createPinAtCoords(lat, lng);
+        isAddingPin = false;
+        document.getElementById('btn-add-pin').classList.remove('active');
       }
     }
 
-    function renderLeafletMarkers() {
-      if (!map) return;
-      Object.values(markersMap).forEach((m) => map.removeLayer(m));
+    // --- Building Pin Management ---
+    function renderMarkers() {
+      // Clear existing markers
+      Object.values(markersMap).forEach(m => map.removeLayer(m));
       markersMap = {};
 
-      pins.forEach((p) => {
+      pins.forEach(p => {
         const lat = p.mapPin?.lat || 21.1284;
         const lng = p.mapPin?.lng || 81.7661;
-        const isSel = p.id === selectedId;
+        const isSel = p.id === selectedPinId;
         const badge = p.mapPin?.badge || 'PIN';
+
         const icon = L.divIcon({
           className: '',
-          html: `<div class="custom-pin-marker" style="border-color:${isSel ? '#38bdf8' : (p.mapPin?.color || '#6366f1')};background:${isSel ? '#4f46e5' : 'rgba(15,23,42,0.92)'}">
+          html: `<div class="custom-pin-marker ${isSel ? 'selected' : ''}" style="border-color:${isSel ? '#38bdf8' : (p.mapPin?.color || '#6366f1')}">
             <span style="font-family:monospace;color:#a5b4fc;margin-right:4px;">[${badge}]</span>${p.shortName || p.name}
           </div>`,
           iconAnchor: [50, 15]
         });
 
         const marker = L.marker([lat, lng], { draggable: true, icon }).addTo(map);
-        marker.on('click', () => {
-          selectedId = p.id;
-          renderAll();
+
+        marker.on('click', (ev) => {
+          L.DomEvent.stopPropagation(ev);
+          selectPin(p.id);
         });
+
         marker.on('dragend', (ev) => {
           const pos = ev.target.getLatLng();
           p.mapPin.lat = Number(pos.lat.toFixed(5));
           p.mapPin.lng = Number(pos.lng.toFixed(5));
           p.gps = `${p.mapPin.lat}° N, ${p.mapPin.lng}° E`;
-          selectedId = p.id;
-          saveAndRender();
+          selectPin(p.id);
+          savePinsToStorage();
+          showToast(`📍 Moved "${p.shortName}" to ${p.gps}`);
         });
+
         markersMap[p.id] = marker;
       });
-    }
 
-    function renderBlueprintPins() {
-      const container = document.getElementById('canvas-fallback');
-      container.innerHTML = '';
-      pins.forEach((p) => {
-        const el = document.createElement('div');
-        el.className = 'custom-pin-marker';
-        el.style.position = 'absolute';
-        el.style.left = (p.mapPin?.xPct || 50) + '%';
-        el.style.top = (p.mapPin?.yPct || 50) + '%';
-        el.style.transform = 'translate(-50%, -50%)';
-        el.style.cursor = 'pointer';
-        if (p.id === selectedId) {
-          el.style.background = '#4f46e5';
-          el.style.borderColor = '#fff';
-        }
-        el.textContent = `[${p.mapPin?.badge || 'PIN'}] ${p.shortName || p.name}`;
-        el.onclick = (e) => {
-          e.stopPropagation();
-          selectedId = p.id;
-          renderAll();
-        };
-        container.appendChild(el);
-      });
-    }
-
-    function handleBlueprintClick(e) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const xPct = Number((((e.clientX - rect.left) / rect.width) * 100).toFixed(1));
-      const yPct = Number((((e.clientY - rect.top) / rect.height) * 100).toFixed(1));
-      const lat = Number((21.1312 - (yPct / 100) * 0.0056).toFixed(5));
-      const lng = Number((81.7628 + (xPct / 100) * 0.0068).toFixed(5));
-      createPinAtCoords(lat, lng, xPct, yPct);
-    }
-
-    function uploadBlueprint(e) {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const container = document.getElementById('canvas-fallback');
-        container.style.backgroundImage = `url(${ev.target.result})`;
-        container.style.backgroundSize = 'contain';
-        container.style.backgroundRepeat = 'no-repeat';
-        container.style.backgroundPosition = 'center';
-        setLayer('blueprint');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function renderSidebar() {
       document.getElementById('pin-count').textContent = pins.length;
-      const listEl = document.getElementById('pin-list');
-      listEl.innerHTML = '';
-      pins.forEach((p) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'pin-chip' + (p.id === selectedId ? ' active' : '');
-        btn.textContent = `${p.mapPin?.badge || 'B'}: ${p.shortName || p.name}`;
-        btn.onclick = () => {
-          selectedId = p.id;
-          if (map && p.mapPin?.lat) {
-            map.panTo([p.mapPin.lat, p.mapPin.lng]);
-          }
-          renderAll();
-        };
-        listEl.appendChild(btn);
-      });
-
-      const current = pins.find((p) => p.id === selectedId) || pins[0];
-      if (current) {
-        document.getElementById('f-name').value = current.name || '';
-        document.getElementById('f-short').value = current.shortName || '';
-        document.getElementById('f-badge').value = current.mapPin?.badge || '';
-        document.getElementById('f-cat').value = current.category || 'HOSTEL';
-        document.getElementById('f-rpf').value = current.roomsPerFloor || 24;
-        document.getElementById('f-wings').value = (current.wings || []).join(', ');
-        document.getElementById('f-floors').value = (current.floors || []).map((f) => typeof f === 'string' ? f : f.id).join(', ');
-        document.getElementById('f-custom-rooms').value = (current.customRooms || []).join(', ');
-        document.getElementById('f-desc').value = current.description || '';
-        document.getElementById('f-gps').textContent = current.gps || '';
-      }
-
-      document.getElementById('json-output').value = JSON.stringify(pins, null, 2);
+      document.getElementById('hud-pin-count').textContent = `${pins.length} Labeled`;
     }
 
-    function updateSelectedPin() {
-      const current = pins.find((p) => p.id === selectedId);
-      if (!current) return;
-      current.name = document.getElementById('f-name').value;
-      current.shortName = document.getElementById('f-short').value;
-      current.category = document.getElementById('f-cat').value;
-      current.roomsPerFloor = Number(document.getElementById('f-rpf').value) || 24;
-      current.wings = document.getElementById('f-wings').value.split(',').map((s) => s.trim()).filter(Boolean);
-      current.floors = document.getElementById('f-floors').value.split(',').map((s) => s.trim()).filter(Boolean);
-      current.customRooms = document.getElementById('f-custom-rooms').value.split(',').map((s) => s.trim()).filter(Boolean);
-      current.description = document.getElementById('f-desc').value;
-      current.mapPin = current.mapPin || {};
-      current.mapPin.badge = document.getElementById('f-badge').value;
-      saveAndRender();
+    function renderPinChips() {
+      const container = document.getElementById('pin-chips');
+      if (!container) return;
+      container.innerHTML = '';
+
+      pins.forEach(p => {
+        const chip = document.createElement('div');
+        chip.className = `pin-chip ${p.id === selectedPinId ? 'active' : ''}`;
+        chip.innerHTML = `<span style="font-family:monospace;opacity:0.8;">[${p.mapPin?.badge || 'PIN'}]</span> ${p.shortName || p.name}`;
+        chip.onclick = () => selectPin(p.id);
+        container.appendChild(chip);
+      });
+    }
+
+    function selectPin(id) {
+      selectedPinId = id;
+      renderMarkers();
+      renderPinChips();
+      loadSelectedPinIntoForm();
+      const p = pins.find(x => x.id === id);
+      if (p) {
+        document.getElementById('hud-selected-name').textContent = p.shortName || p.name;
+        if (markersMap[id]) {
+          map.panTo([p.mapPin.lat, p.mapPin.lng], { animate: true, duration: 0.5 });
+        }
+      }
+    }
+
+    function loadSelectedPinIntoForm() {
+      const p = pins.find(x => x.id === selectedPinId);
+      if (!p) return;
+
+      document.getElementById('f-name').value = p.name || '';
+      document.getElementById('f-short').value = p.shortName || '';
+      document.getElementById('f-badge').value = p.mapPin?.badge || '';
+      document.getElementById('f-cat').value = p.category || 'HOSTEL';
+      document.getElementById('f-rpf').value = p.roomsPerFloor || 20;
+      document.getElementById('f-wings').value = (p.wings || []).join(', ');
+      document.getElementById('f-floors').value = (p.floors || []).join(', ');
+      document.getElementById('f-custom-rooms').value = (p.customRooms || []).join(', ');
+      document.getElementById('f-desc').value = p.description || '';
+      document.getElementById('f-gps').textContent = p.gps || `${p.mapPin?.lat}° N, ${p.mapPin?.lng}° E`;
+    }
+
+    function updateSelectedPinFromForm() {
+      const p = pins.find(x => x.id === selectedPinId);
+      if (!p) return;
+
+      p.name = document.getElementById('f-name').value;
+      p.shortName = document.getElementById('f-short').value;
+      p.category = document.getElementById('f-cat').value;
+      p.roomsPerFloor = Number(document.getElementById('f-rpf').value) || 20;
+      p.description = document.getElementById('f-desc').value;
+
+      if (!p.mapPin) p.mapPin = {};
+      p.mapPin.badge = document.getElementById('f-badge').value;
+
+      const wingsStr = document.getElementById('f-wings').value;
+      p.wings = wingsStr ? wingsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+      const floorsStr = document.getElementById('f-floors').value;
+      p.floors = floorsStr ? floorsStr.split(',').map(s => s.trim()).filter(Boolean) : ['G', '1', '2', '3'];
+
+      const customRoomsStr = document.getElementById('f-custom-rooms').value;
+      p.customRooms = customRoomsStr ? customRoomsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+      renderMarkers();
+      renderPinChips();
+      savePinsToStorage();
+      updateJsonOutput();
+    }
+
+    function enableAddPinMode() {
+      isAddingPin = true;
+      document.getElementById('btn-add-pin').classList.add('active');
+      showToast('👆 Click anywhere on Google Satellite to place your new pin!');
     }
 
     function addNewBlankPin() {
-      const center = map ? map.getCenter() : { lat: 21.1284, lng: 81.7661 };
-      createPinAtCoords(Number(center.lat.toFixed(5)), Number(center.lng.toFixed(5)), 50, 50);
+      const center = map.getCenter();
+      createPinAtCoords(Number(center.lat.toFixed(5)), Number(center.lng.toFixed(5)));
+    }
+
+    function createPinAtCoords(lat, lng) {
+      const idx = pins.length + 1;
+      const newPin = {
+        id: 'zone_' + Date.now(),
+        name: `New Campus Building ${idx}`,
+        shortName: `Building ${idx}`,
+        category: 'HOSTEL',
+        wings: ['Wing A', 'Wing B'],
+        floors: ['G', '1', '2', '3'],
+        roomsPerFloor: 24,
+        customRooms: [],
+        mapPin: { lat, lng, badge: `B-${idx}`, color: '#6366f1' },
+        gps: `${lat}° N, ${lng}° E`,
+        description: 'New building on IIIT Naya Raipur campus'
+      };
+      pins.push(newPin);
+      selectedPinId = newPin.id;
+      renderMarkers();
+      renderPinChips();
+      loadSelectedPinIntoForm();
+      savePinsToStorage();
+      updateJsonOutput();
+      setSidebarTab('builder');
+      showToast(`📍 Placed "${newPin.shortName}" — edit details on the right!`);
     }
 
     function deleteSelectedPin() {
-      if (pins.length <= 1) return;
-      pins = pins.filter((p) => p.id !== selectedId);
-      selectedId = pins[0].id;
-      saveAndRender();
+      if (!selectedPinId) return;
+      const p = pins.find(x => x.id === selectedPinId);
+      if (confirm(`Delete pin "${p?.shortName || p?.name}"?`)) {
+        pins = pins.filter(x => x.id !== selectedPinId);
+        selectedPinId = pins[0]?.id || null;
+        renderMarkers();
+        renderPinChips();
+        loadSelectedPinIntoForm();
+        savePinsToStorage();
+        updateJsonOutput();
+        showToast('Deleted building pin');
+      }
     }
 
-    function saveAndRender() {
+    function savePinsToStorage() {
       localStorage.setItem('iiitnr_custom_campus_map_v1', JSON.stringify(pins));
-      renderAll();
     }
 
-    function renderAll() {
-      renderSidebar();
-      renderLeafletMarkers();
-      renderBlueprintPins();
+    // --- GIS Vector Roads & Paths Drawing ---
+    function startDraw(type) {
+      window.activeDrawType = type;
+      setSidebarTab('roads');
+
+      map.pm.enableDraw('Line', {
+        snappable: true,
+        snapDistance: 15,
+        cursorMarker: true,
+      });
+
+      showToast(type === 'road' 
+        ? '🛣️ Click along asphalt on satellite to trace Road. Double-click to finish!' 
+        : '🚶 Click to trace Footpath. Double-click to finish!');
+    }
+
+    function toggleEditMode() {
+      editModeActive = !editModeActive;
+      const btn = document.getElementById('btn-edit-lines');
+      if (editModeActive) {
+        map.pm.enableGlobalEditMode();
+        btn.classList.add('active');
+        showToast('✏️ Edit mode ON: Click any road to drag node handles');
+      } else {
+        map.pm.disableGlobalEditMode();
+        btn.classList.remove('active');
+        showToast('Edit mode OFF');
+      }
+    }
+
+    function onVectorCreated(e) {
+      const layer = e.layer;
+      const type = window.activeDrawType || 'road';
+      const count = vectorLayers.filter(l => l.featureData?.type === type).length + 1;
+
+      layer.featureData = {
+        id: `${type}_${Date.now()}`,
+        name: type === 'road' ? `Road ${count}` : `Footpath ${count}`,
+        type: type,
+        width: type === 'road' ? 11 : 4.5
+      };
+
+      if (type === 'road') {
+        layer.setStyle({ color: '#ea580c', weight: 6, opacity: 0.9, lineCap: 'round', lineJoin: 'round' });
+      } else {
+        layer.setStyle({ color: '#10b981', weight: 4, opacity: 0.95, dashArray: '5 5', lineCap: 'round' });
+      }
+
+      vectorLayers.push(layer);
+      saveVectorsToStorage();
+      renderVectorList();
+      updateVectorCounts();
+      window.activeDrawType = null;
+      showToast(`✓ Traced ${layer.featureData.name}`);
+    }
+
+    function onVectorRemoved(e) {
+      vectorLayers = vectorLayers.filter(l => l !== e.layer);
+      saveVectorsToStorage();
+      renderVectorList();
+      updateVectorCounts();
+    }
+
+    function renderVectorList() {
+      const container = document.getElementById('vector-lines-list');
+      if (!container) return;
+      if (vectorLayers.length === 0) {
+        container.innerHTML = `<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;">No custom roads drawn yet. Click "Trace Road" or "Trace Footpath" to begin tracing on Google Satellite!</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      vectorLayers.forEach((l, idx) => {
+        const d = l.featureData || {};
+        const latlngs = l.getLatLngs ? l.getLatLngs() : [];
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:8px 10px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;font-size:11.5px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;';
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:700;">${d.name}</div>
+            <div style="font-size:10px;color:var(--muted);">${latlngs.length} nodes · ${d.type}</div>
+          </div>
+          <button class="btn danger" style="padding:2px 6px;font-size:10px;" onclick="deleteVectorLayer(${idx})">🗑️</button>
+        `;
+        div.onclick = (e) => {
+          if (e.target.tagName !== 'BUTTON') {
+            map.fitBounds(l.getBounds(), { maxZoom: 19, padding: [40, 40] });
+            l.pm.enable();
+          }
+        };
+        container.appendChild(div);
+      });
+    }
+
+    function deleteVectorLayer(idx) {
+      const l = vectorLayers[idx];
+      if (l) {
+        map.removeLayer(l);
+      }
+    }
+
+    function updateVectorCounts() {
+      const total = vectorLayers.length;
+      document.getElementById('hud-line-count').textContent = `${total} Roads / Paths`;
+      const badge = document.getElementById('line-count-badge');
+      if (badge) badge.textContent = `${total} Features`;
+    }
+
+    function saveVectorsToStorage() {
+      const data = vectorLayers.map(l => {
+        const latlngs = l.getLatLngs();
+        return {
+          id: l.featureData?.id,
+          name: l.featureData?.name,
+          type: l.featureData?.type,
+          width: l.featureData?.width,
+          coords: latlngs.map(ll => [ll.lat, ll.lng])
+        };
+      });
+      localStorage.setItem('iiitnr_gis_traced_vectors', JSON.stringify(data));
+    }
+
+    function loadSavedVectors() {
+      const saved = localStorage.getItem('iiitnr_gis_traced_vectors');
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        data.forEach(item => {
+          const poly = L.polyline(item.coords, {
+            color: item.type === 'road' ? '#ea580c' : '#10b981',
+            weight: item.type === 'road' ? 6 : 4,
+            opacity: 0.9,
+            dashArray: item.type === 'road' ? null : '5 5'
+          }).addTo(map);
+          poly.featureData = item;
+          vectorLayers.push(poly);
+        });
+        renderVectorList();
+        updateVectorCounts();
+      } catch (e) {
+        console.error('Error loading saved vectors:', e);
+      }
+    }
+
+    function togglePinsVisibility(show) {
+      Object.values(markersMap).forEach(m => {
+        if (show) map.addLayer(m);
+        else map.removeLayer(m);
+      });
+    }
+
+    function toggleLinesVisibility(type, show) {
+      vectorLayers.filter(l => l.featureData?.type === type).forEach(l => {
+        if (show) map.addLayer(l);
+        else map.removeLayer(l);
+      });
+    }
+
+    // --- JSON & GeoJSON Export ---
+    function updateJsonOutput() {
+      const el = document.getElementById('json-output');
+      if (el) el.value = JSON.stringify(pins, null, 2);
     }
 
     function copyJsonConfig() {
-      const txt = JSON.stringify(pins, null, 2);
-      navigator.clipboard?.writeText(txt);
-      showToast('✓ Copied labeled IIIT-NR Campus JSON to clipboard!');
+      const json = JSON.stringify(pins, null, 2);
+      navigator.clipboard.writeText(json).then(() => {
+        showToast('✓ Copied Labeled Campus JSON to clipboard!');
+      }).catch(() => {
+        showToast('JSON updated in panel!');
+      });
     }
 
-    function importFromTextarea() {
-      try {
-        const parsed = JSON.parse(document.getElementById('json-output').value);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          pins = parsed;
-          selectedId = pins[0].id;
-          localStorage.setItem('iiitnr_custom_campus_map_v1', JSON.stringify(pins));
-          renderLeafletMarkers();
-          renderBlueprintPins();
+    function downloadGeoJSON() {
+      const features = [];
+      // Export building pins
+      pins.forEach(p => {
+        features.push({
+          type: 'Feature',
+          properties: { ...p },
+          geometry: {
+            type: 'Point',
+            coordinates: [p.mapPin.lng, p.mapPin.lat]
+          }
+        });
+      });
+      // Export traced lines
+      vectorLayers.forEach(l => {
+        if (l.toGeoJSON) {
+          const geo = l.toGeoJSON();
+          geo.properties = { ...geo.properties, ...l.featureData };
+          features.push(geo);
         }
-      } catch (_) {}
+      });
+
+      const fc = { type: 'FeatureCollection', features };
+      const blob = new Blob([JSON.stringify(fc, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'IIIT_Naya_Raipur_Campus_GIS.geojson';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('✓ GeoJSON downloaded for QGIS / Google Earth');
+    }
+
+    // --- Sidebar Navigation ---
+    function setSidebarTab(tab) {
+      document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(`tab-btn-${tab}`).classList.add('active');
+
+      document.getElementById('tab-content-builder').style.display = tab === 'builder' ? 'flex' : 'none';
+      document.getElementById('tab-content-roads').style.display = tab === 'roads' ? 'flex' : 'none';
+      document.getElementById('tab-content-export').style.display = tab === 'export' ? 'flex' : 'none';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
     window.addEventListener('DOMContentLoaded', initMap);
