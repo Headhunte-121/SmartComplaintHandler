@@ -51,8 +51,8 @@ const LABEL_POSITIONS = {
   transit_hostel: { x: 448, y: 292 },
   sac_mph: { x: 526, y: 382 },
   krc_library: { x: 512, y: 486 },
-  academic_block: { x: 404, y: 530 },
-  old_amphitheatre: { x: 332, y: 572 },
+  academic_block: { x: 400, y: 440 },
+  old_amphitheatre: { x: 326, y: 564 },
   amphitheatre: { x: 472, y: 646 },
   cafeteria_mess: { x: 262, y: 492 },
   outdoor_courts: { x: 186, y: 500 },
@@ -1120,19 +1120,9 @@ export default function CampusMapSelector({
           </g>
         )}
 
-        {/* 11. NEW AMPHITHEATRE (Amphitheatre 2 at 468,595 - 7 Stone Tiers, Stage Lawn, Ramp & Terraces) */}
+        {/* 11. NEW AMPHITHEATRE (Amphitheatre 2 at 468,595 - 7 Stone Tiers, Stage Lawn, Ramp) */}
         {shape === 'amphitheatre' && (
           <g>
-            {/* 3 Curved NE Landscaped Terraces */}
-            <polygon
-              points="448,538 508,518 572,546 528,582"
-              fill="#065f46"
-              fillOpacity="0.65"
-              stroke="#34d399"
-              strokeWidth="0.9"
-            />
-            <path d="M 458,546 Q 512,532 555,555" fill="none" stroke="#6ee7b7" strokeWidth="0.9" />
-            <path d="M 472,560 Q 518,548 546,568" fill="none" stroke="#6ee7b7" strokeWidth="0.9" />
             {/* Main Stepped Arena Bowl at (468, 595) */}
             <g transform="translate(468, 595) rotate(35)">
               <path
@@ -1242,6 +1232,21 @@ export default function CampusMapSelector({
               stroke="rgba(255,255,255,0.25)"
               strokeWidth="0.8"
             />
+            {/* Internal Concourse Breezeway (Connecting West & East Entrances via Atrium) */}
+            <line
+              x1="-46"
+              y1="5"
+              x2="46"
+              y2="5"
+              stroke="#10b981"
+              strokeWidth="2.4"
+              strokeDasharray="2.5 1.5"
+              strokeOpacity="0.9"
+            />
+            {/* West, East & North Internal Access Portals */}
+            <rect x="-46" y="2" width="3" height="6" rx="0.8" fill="#10b981" stroke="#ffffff" strokeWidth="0.5" />
+            <rect x="43" y="2" width="3" height="6" rx="0.8" fill="#10b981" stroke="#ffffff" strokeWidth="0.5" />
+            <rect x="-5" y="-42" width="10" height="3" rx="0.8" fill="#10b981" stroke="#ffffff" strokeWidth="0.5" />
             {/* Front Grand Entrance Portal on the Southeast Prow */}
             <polygon
               points="-18,20 18,20 0,38"
@@ -1888,25 +1893,23 @@ export default function CampusMapSelector({
                   <polyline points="352,232 380,278" strokeWidth="9.5" />
                   <polyline points="376,272 386,278" strokeWidth="9.5" />
                   {/* Main Gate Entrance Boulevard to Crossroads */}
-                  <polyline points="338,755 355,688 358,582" strokeWidth="14" />
-                  {/* Crossroads to West / Canteen Road */}
-                  <polyline points="358,582 336,520 305,442 212,402" strokeWidth="11.5" />
-                  {/* Crossroads through Academic Front Road past Amphitheatre 2 */}
-                  <polyline points="358,582 405,570 458,586 505,625 555,830" strokeWidth="11" />
-                  {/* Academic Front Grand Portico Drop-Off Driveway Loop */}
-                  <path
-                    d="M 374,566 C 382,536 398,522 414,522 C 430,522 444,536 450,566"
-                    strokeWidth="11"
-                  />
-                  {/* Northeast Loop Road past KRC & MPH */}
-                  <polyline points="450,566 496,512 532,412 445,278" strokeWidth="11" />
-                  {/* Inner Western Hostel Spine Road */}
-                  <polyline points="142,692 155,625 178,515 212,402 252,302" strokeWidth="11.5" />
+                  <polyline points="338,755 350,688 358,590" strokeWidth="14" />
+                  {/* Left Arm: West Road past Canteen and Auditorium */}
+                  <polyline points="358,590 336,520 305,442 252,330 212,270" strokeWidth="11.5" />
+                  {/* Right Arm: Outer Sweeping Road past Academic Front to East */}
+                  <polyline points="358,590 385,574 420,562 460,552 495,540 530,538 600,540 648,548" strokeWidth="11" />
+                  {/* Front Grand Portico Drop-Off Driveway Loop */}
+                  <polyline points="385,574 405,536 430,528 460,528 495,540" strokeWidth="10" />
+                  {/* East Road along Academic Complex East Facade */}
+                  <polyline points="460,528 462,465 452,400 445,360 445,278" strokeWidth="11" />
+                  {/* Inner Western Hostel Spine Road to West Road */}
+                  <polyline points="142,692 155,625 178,515 212,402 305,442" strokeWidth="11.5" />
                   {/* Mid-West Hostel Cross Street */}
                   <polyline points="55,518 178,558" strokeWidth="9.5" />
-                  {/* Tree-Lined Northern & Eastern Main Loop Road */}
-                  <polyline points="235,342 252,302 380,278 445,278" strokeWidth="12" />
-                  <polyline points="496,512 618,542" strokeWidth="11" />
+                  {/* Northern Loop Road */}
+                  <polyline points="212,270 252,302 380,278 445,278" strokeWidth="12" />
+                  {/* East Avenue past Shabri House */}
+                  <polyline points="600,540 618,542 648,472" strokeWidth="11" />
                   <polyline points="648,472 555,830" strokeWidth="11" />
                 </g>
 
@@ -1923,28 +1926,25 @@ export default function CampusMapSelector({
                   <polyline points="352,232 380,278" strokeWidth="7" />
                   <polyline points="22,642 142,692 338,755" />
                   <polyline points="155,625 352,688" strokeWidth="7" />
-                  <polyline points="338,755 355,688 358,582" strokeWidth="11" />
-                  <polyline points="358,582 336,520 305,442 212,402" strokeWidth="8.5" />
-                  <polyline points="358,582 405,570 458,586 505,625 555,830" strokeWidth="8.5" />
-                  <path
-                    d="M 374,566 C 382,536 398,522 414,522 C 430,522 444,536 450,566"
-                    strokeWidth="8"
-                  />
-                  <polyline points="450,566 496,512 532,412 445,278" strokeWidth="8.5" />
-                  <polyline points="142,692 155,625 178,515 212,402 252,302" strokeWidth="8.5" />
+                  <polyline points="338,755 350,688 358,590" strokeWidth="11" />
+                  <polyline points="358,590 336,520 305,442 252,330 212,270" strokeWidth="8.5" />
+                  <polyline points="358,590 385,574 420,562 460,552 495,540 530,538 600,540 648,548" strokeWidth="8.5" />
+                  <polyline points="385,574 405,536 430,528 460,528 495,540" strokeWidth="7" />
+                  <polyline points="460,528 462,465 452,400 445,360 445,278" strokeWidth="8.5" />
+                  <polyline points="142,692 155,625 178,515 212,402 305,442" strokeWidth="8.5" />
                   <polyline points="55,518 178,558" strokeWidth="7" />
-                  <polyline points="235,342 252,302 380,278 445,278" strokeWidth="9" />
-                  <polyline points="496,512 618,542" strokeWidth="8.5" />
+                  <polyline points="212,270 252,302 380,278 445,278" strokeWidth="9" />
+                  <polyline points="600,540 618,542 648,472" strokeWidth="8.5" />
                   <polyline points="648,472 555,830" strokeWidth="8.5" />
                 </g>
 
                 {/* Landscaped Green Island inside the Front Portico Loop */}
                 <ellipse
-                  cx="412"
-                  cy="544"
-                  rx="16"
-                  ry="9"
-                  transform="rotate(-15, 412, 544)"
+                  cx="445"
+                  cy="546"
+                  rx="18"
+                  ry="7"
+                  transform="rotate(-7, 445, 546)"
                   fill="#15803d"
                   stroke="#86efac"
                   strokeWidth="1.2"
@@ -1970,14 +1970,14 @@ export default function CampusMapSelector({
                   <polyline points="22,642 198,65" />
                   <polyline points="330,194 426,138 472,214 376,272 330,194" />
                   <polyline points="22,642 142,692 338,755" />
-                  <polyline points="338,755 355,688 358,582" />
-                  <polyline points="358,582 336,520 305,442 212,402" />
-                  <polyline points="358,582 405,570 458,586 505,625 555,830" />
-                  <path d="M 374,566 C 382,536 398,522 414,522 C 430,522 444,536 450,566" />
-                  <polyline points="450,566 496,512 532,412" />
-                  <polyline points="142,692 155,625 178,515 212,402 252,302" />
-                  <polyline points="235,342 252,302 380,278 445,278" />
-                  <polyline points="496,512 618,542" />
+                  <polyline points="338,755 350,688 358,590" />
+                  <polyline points="358,590 336,520 305,442 252,330 212,270" />
+                  <polyline points="358,590 385,574 420,562 460,552 495,540 530,538 600,540 648,548" />
+                  <polyline points="385,574 405,536 430,528 460,528 495,540" />
+                  <polyline points="460,528 462,465 452,400 445,360 445,278" />
+                  <polyline points="142,692 155,625 178,515 212,402 305,442" />
+                  <polyline points="212,270 252,302 380,278 445,278" />
+                  <polyline points="600,540 618,542 648,472" />
                 </g>
 
                 {/* 6. Pedestrian Footpaths & Walkways */}
@@ -1995,6 +1995,14 @@ export default function CampusMapSelector({
                       <polyline points="175,120 205,122" />
                       <polyline points="368,282 412,368" />
                       <polyline points="355,395 372,392 406,392 442,388 488,402" />
+                      {/* Academic & Admin Complex Ground-Truth Entrances */}
+                      <polyline points="415,532 420,508" />
+                      <polyline points="429,530 424,508" />
+                      <polyline points="336,520 362,502" />
+                      <polyline points="318,465 352,470" />
+                      <polyline points="462,465 436,474" />
+                      <polyline points="365,436 365,412" />
+                      <polyline points="395,420 395,395" />
                       {/* Rear Academic North Terrace Promenade */}
                       <polyline points="360,422 395,418 438,422" />
                       <polyline points="332,542 268,512 188,526" />
@@ -2006,6 +2014,17 @@ export default function CampusMapSelector({
                       <polyline points="115,560 162,574 200,585" />
                       <polyline points="428,555 458,580" />
                       <polyline points="468,632 425,685 355,688" />
+                    </g>
+
+                    {/* Emerald Accent Layer for Academic Complex Active Access Paths */}
+                    <g fill="none" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" opacity="0.95">
+                      <polyline points="415,532 420,508" />
+                      <polyline points="429,530 424,508" />
+                      <polyline points="336,520 362,502" />
+                      <polyline points="318,465 352,470" />
+                      <polyline points="462,465 436,474" />
+                      <polyline points="365,436 365,412" />
+                      <polyline points="395,420 395,395" />
                     </g>
 
                     <g
@@ -2020,6 +2039,13 @@ export default function CampusMapSelector({
                       <polyline points="265,142 250,215 248,300" />
                       <polyline points="368,282 412,368" />
                       <polyline points="355,395 372,392 406,392 442,388 488,402" />
+                      <polyline points="415,532 420,508" />
+                      <polyline points="429,530 424,508" />
+                      <polyline points="336,520 362,502" />
+                      <polyline points="318,465 352,470" />
+                      <polyline points="462,465 436,474" />
+                      <polyline points="365,436 365,412" />
+                      <polyline points="395,420 395,395" />
                       <polyline points="360,422 395,418 438,422" />
                       <polyline points="332,542 268,512 188,526" />
                       <polyline points="305,442 274,472 225,475 188,526" />
