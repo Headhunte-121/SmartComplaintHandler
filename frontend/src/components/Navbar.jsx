@@ -2,11 +2,12 @@
  * SmartComplaintHandler - Global Navigation Header
  */
 import React, { useState, useEffect } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     currentUser,
     logout,
@@ -68,7 +69,16 @@ export default function Navbar() {
 
           {/* Segmented Navigation Pill */}
           <nav className="hidden md:flex items-center space-x-1 p-1 rounded-2xl bg-slate-100/70 border border-slate-200/60">
-            <NavLink to="/" end className={navLinkClasses}>
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all duration-150 flex items-center space-x-1.5 ${
+                  isActive || location.pathname === '/map'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90'
+                }`
+              }
+            >
               <span>Campus Map</span>
             </NavLink>
 
@@ -228,7 +238,15 @@ export default function Navbar() {
 
         {mobileMenuOpen && (
           <div className="md:hidden py-3 border-t border-slate-100 space-y-1">
-            <NavLink to="/" end onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-100">
+            <NavLink
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3 py-2 text-xs font-bold rounded-xl ${
+                location.pathname === '/' || location.pathname === '/map'
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
               Campus Map
             </NavLink>
             <NavLink to="/submit" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-100">

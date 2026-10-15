@@ -906,3 +906,26 @@ npm run dev
 * **Verification Proof:**
   - Frontend Production Build: `npm run build` compiled cleanly in 16.80s with 0 errors (bundle: 435.21 kB).
   - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 8.64s (100% pass rate).
+
+### [2026-10-15] - Campus Map Routing & Hub Restoration Fix
+* **Files Modified:**
+  - `frontend/src/router/AppRouter.jsx`
+  - `frontend/src/components/Navbar.jsx`
+  - `frontend/src/pages/Home.jsx`
+  - `frontend/src/pages/SuperAdminDashboard.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **Root Cause Identified:**
+  - In `AppRouter.jsx`, the index route was assigned `<Route index element={<RootIndexRedirect />} />`, which immediately intercepted requests to `/` and redirected users away from the Campus Map (`Home.jsx`) to their respective role workspaces (`/superadmin`, `/admin`, `/technician`, `/student`).
+  - As a result, clicking the **Campus Map** tab in the navigation bar (`to="/"`) bounced the user back to their dashboard, preventing the map from opening.
+* **What Was Changed:**
+  1. **Direct Campus Map Route Mount (`AppRouter.jsx`):**
+     - Mounted `<Home />` (the interactive Campus Map Hub) directly on `<Route index element={<Home />} />` and added an explicit alias route `<Route path="map" element={<Home />} />`.
+     - Removed the dead `RootIndexRedirect` interceptor.
+  2. **Active Tab Highlighting & Link Synchronization (`Navbar.jsx`):**
+     - Updated desktop and mobile `Campus Map` NavLinks to detect both `/` and `/map` paths using `useLocation()`.
+  3. **Direct Map Studio Shortcut for Super Admin (`SuperAdminDashboard.jsx` & `Home.jsx`):**
+     - Added a prominent `🗺️ Campus Map Studio` action button in the Directorate Console header.
+     - Added a direct `Directorate Console →` button in the `Home.jsx` header when logged in as Super Admin.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.44s with 0 errors (bundle: 441.65 kB).
+  - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 15.86s (100% pass rate).

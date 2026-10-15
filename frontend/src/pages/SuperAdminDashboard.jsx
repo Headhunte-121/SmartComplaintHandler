@@ -5,6 +5,7 @@
  *       purging ticket queues for pristine demonstration, and auditing campus facility telemetry.
  */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchAdmins, createAdmin, deleteAdmin, purgeTickets } from '../api/auth';
 import { fetchSquadWorkloads } from '../api/assignment';
@@ -157,6 +158,12 @@ export default function SuperAdminDashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/map"
+              className="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all flex items-center space-x-2"
+            >
+              <span>🗺️ Campus Map Studio</span>
+            </Link>
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all flex items-center space-x-2 cursor-pointer"

@@ -16,7 +16,7 @@ import {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { currentUser, isStudent, canAccessOperations, isTechnician } = useAuth();
+  const { currentUser, isStudent, canAccessOperations, isTechnician, isSuperAdmin } = useAuth();
   const [buildings, setBuildings] = useState(() => getCampusBuildings());
   const [trackingCode, setTrackingCode] = useState('');
   const [selectedMapBuilding, setSelectedMapBuilding] = useState(
@@ -72,6 +72,14 @@ export default function Home() {
                 className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs"
               >
                 Operations Desk →
+              </Link>
+            )}
+            {isSuperAdmin && (
+              <Link
+                to="/superadmin"
+                className="px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-300 font-bold text-xs"
+              >
+                Directorate Console →
               </Link>
             )}
             {isTechnician && (

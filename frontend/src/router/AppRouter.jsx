@@ -65,22 +65,6 @@ function NotFound() {
   );
 }
 
-function RootIndexRedirect() {
-  const { currentUser } = useAuth();
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
-  }
-  const redirect =
-    currentUser.role === 'STUDENT'
-      ? '/student'
-      : currentUser.role === 'SUPER_ADMIN'
-      ? '/superadmin'
-      : currentUser.role === 'TECHNICIAN'
-      ? '/technician'
-      : '/admin';
-  return <Navigate to={redirect} replace />;
-}
-
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -91,8 +75,9 @@ export default function AppRouter() {
 
         {/* Main Application Shell (Strictly Protected - Requires Authentication) */}
         <Route path="/" element={<Layout />}>
-          {/* Index Route -> Redirects immediately to role workspace */}
-          <Route index element={<RootIndexRedirect />} />
+          {/* Institutional Campus Map & Facility Hub */}
+          <Route index element={<Home />} />
+          <Route path="map" element={<Home />} />
 
           {/* Grievance Submission — Accessible to students, staff, and faculty */}
           <Route
