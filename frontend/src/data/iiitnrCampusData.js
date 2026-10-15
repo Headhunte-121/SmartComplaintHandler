@@ -1,58 +1,57 @@
 /**
- * SmartComplaintHandler - Dynamic & User-Labelable IIIT Naya Raipur Campus Map, Hostels & Rooms Store
- * Campus: Dr. SPM International Institute of Information Technology, Naya Raipur
- * Address: Plot No. 7, Sector 24, Near Purkhoti Muktangan, Atal Nagar – Nava Raipur, Chhattisgarh 493661
- * Coordinates: 21.1284° N, 81.7661° E
- *
- * Key Capability:
- * - Supports live in-app interactive map pinning, dragging, renaming, and custom room-range configuration!
- * - Any building, hostel, wing, floor, or room number edited in the Interactive Map Labeler is persisted
- *   in `localStorage` (`iiitnr_custom_campus_map_v1`) and broadcast via `iiitnr-campus-map-updated`
- *   so Register, StudentDashboard, SubmitComplaint, and Home update immediately without code changes.
+ * SmartComplaintHandler - Authentic IIIT Naya Raipur Georeferenced Campus Map, Hostels & Labs Store
+ * Grounded in:
+ * - Google Maps Plus Codes:
+ *   - Bhabha House: 4QH7+4PR (21.12786° N, 81.76427° E)
+ *   - Guest House / Transit Hostel: 4QH7+9WH (21.12844° N, 81.76486° E)
+ *   - Sports Ground / Phase 2: 4QH7+PM9 (21.12929° N, 81.76423° E)
+ *   - Canteen / Central Mess: 4QH8+56F (21.12794° N, 81.76555° E)
+ *   - Academic & Admin Block (D-Loop): 21.12815° N, 81.76605° E
+ * - Official IIIT-NR Building Blocks & Labs (iiitnr.ac.in/content/building-blocks)
  */
 
-export const IIITNR_CAMPUS_STORAGE_KEY = 'iiitnr_custom_campus_map_v1';
+export const IIITNR_CAMPUS_STORAGE_KEY = 'iiitnr_custom_campus_map_v2';
 export const IIITNR_MAP_UPDATED_EVENT = 'iiitnr-campus-map-updated';
 
 export const IIITNR_CAMPUS_METADATA = {
   instituteName: 'Dr. SPM IIIT Naya Raipur',
   shortName: 'IIIT Naya Raipur',
   address: 'Plot No. 7, Sector 24, Near Purkhoti Muktangan, Atal Nagar – Nava Raipur, Chhattisgarh 493661',
-  latitude: 21.1284,
-  longitude: 81.7661,
+  latitude: 21.12815,
+  longitude: 81.7655,
   campusArea: '50 Acres Residential Campus',
   osmEmbedUrl:
-    'https://www.openstreetmap.org/export/embed.html?bbox=81.7615%2C21.1250%2C81.7705%2C21.1318&layer=mapnik&marker=21.1284%2C81.7661',
+    'https://www.openstreetmap.org/export/embed.html?bbox=81.7625%2C21.1255%2C81.7685%2C21.1312&layer=mapnik&marker=21.12815%2C81.76605',
   googleMapsUrl:
-    'https://www.google.com/maps/search/?api=1&query=21.1284,81.7661',
+    'https://www.google.com/maps/place/International+Institute+of+Information+Technology,+Naya+Raipur/@21.12815,81.7655,550m/data=!3m1!1e3',
   contacts: [
     {
       role: 'Estate Officer',
       name: 'Rakesh Kumar Mishra',
       email: 'rakesh@iiitnr.edu.in',
       phone: '0771-2474104',
-      office: 'Academic Block, Ground Floor (Estate Office)',
+      office: 'Academic Block, Ground Floor',
     },
     {
       role: 'JE (Electrical)',
       name: 'Ranjeet Singh Thakur',
       email: 'ranjeet@iiitnr.edu.in',
       phone: '0771-2474109',
-      office: 'Substation & Electrical Control Room',
+      office: 'Electrical Substation & Control Room',
     },
     {
       role: 'Sr. Network Engineer',
       name: 'Abir Bhattacharya',
       email: 'abir@iiitnr.edu.in',
       phone: '0771-2474131',
-      office: 'Academic Block, Room 131C (Data Centre)',
+      office: 'Academic Block, Room 131C',
     },
     {
       role: 'Network Engineer',
       name: 'Parvinder Singh',
       email: 'parvinder@iiitnr.edu.in',
       phone: '0771-2474132',
-      office: 'Academic Block, Room 131E (NOC)',
+      office: 'Academic Block, Room 131E',
     },
   ],
 };
@@ -67,17 +66,17 @@ export const HOSTEL_FLOORS = [
 export const HOSTEL_WINGS = [
   { id: 'Wing A', label: 'Wing A / Block A' },
   { id: 'Wing B', label: 'Wing B / Block B' },
-  { id: 'Common Area', label: 'Corridor / Washroom / Common Utility' },
+  { id: 'Common Area', label: 'Corridor / Washroom / Utility' },
 ];
 
 export const HOSTEL_COMMON_ZONES = [
   'Corridor RO Water Cooler',
   'Washroom & Shower Block',
   'Common Room / TV Lounge',
-  'Badminton / TT Court',
+  'Badminton Court',
   'Staircase & Corridor Lighting',
   'Wi-Fi Ceiling Access Point',
-  'Washing Machine / Laundry Bay',
+  'Washing Machine / Laundry Area',
 ];
 
 export const DEFAULT_IIITNR_BUILDINGS = [
@@ -85,105 +84,104 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     id: 'ramanujan_house',
     name: 'Ramanujan House (Boys Hostel)',
     shortName: 'Ramanujan House',
-    type: 'Boys Hostel',
+    type: '3rd & 4th Year Boys Hostel',
     category: 'HOSTEL',
-    gender: 'Boys',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
     roomsPerFloor: 24,
     roomPrefix: 'Room ',
     customRooms: [],
-    capacity: 'Boys Residential Block',
-    amenities: ['LAN & Campus Wi-Fi', 'RO Water Coolers', 'Common Room'],
-    // Map coordinates: xPct/yPct on the interactive map canvas (0-100%) + GPS lat/lng
-    mapPin: { xPct: 24, yPct: 26, lat: 21.1296, lng: 81.7648, color: '#4f46e5', badge: 'BH-1' },
-    mapZone: { x: 110, y: 88, width: 150, height: 64, color: '#4f46e5', badge: 'BH-1' },
-    gps: '21.1296° N, 81.7648° E',
-    description: 'Boys residential house. Click "Edit / Label Map" to customize wings, floors, or exact room numbers.',
+    mapPin: { xPct: 22, yPct: 71, lat: 21.12735, lng: 81.76395, color: '#4f46e5', badge: 'RAMANUJAN' },
+    mapZone: { badge: 'RAMANUJAN', color: '#4f46e5' },
+    gps: '21.12735° N, 81.76395° E',
+    description: 'Southwest hostel block along the western campus avenue.',
   },
   {
     id: 'bhabha_house',
-    name: 'Bhabha House (Boys Hostel)',
+    name: 'Bhabha House (Hostel Block)',
     shortName: 'Bhabha House',
-    type: 'Boys Hostel',
+    type: 'Residential Hostel (4QH7+4PR)',
     category: 'HOSTEL',
-    gender: 'Boys',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
     roomsPerFloor: 24,
     roomPrefix: 'Room ',
     customRooms: [],
-    capacity: 'Boys Residential Block',
-    amenities: ['High-Speed Wi-Fi & LAN', 'RO Water Coolers', 'TT Lounge'],
-    mapPin: { xPct: 42, yPct: 24, lat: 21.1298, lng: 81.7656, color: '#4f46e5', badge: 'BH-2' },
-    mapZone: { x: 280, y: 88, width: 150, height: 64, color: '#4f46e5', badge: 'BH-2' },
-    gps: '21.1298° N, 81.7656° E',
-    description: 'Boys residential block. Fully customizable via the interactive map labeler.',
+    mapPin: { xPct: 26, yPct: 58, lat: 21.12786, lng: 81.76427, color: '#4f46e5', badge: 'BHABHA' },
+    mapZone: { badge: 'BHABHA', color: '#4f46e5' },
+    gps: '21.12786° N, 81.76427° E',
+    description: 'Georeferenced at Google Maps Plus Code 4QH7+4PR on the western residential avenue.',
   },
   {
     id: 'bose_house',
     name: 'Bose House (Boys Hostel)',
     shortName: 'Bose House',
-    type: 'Boys Hostel',
+    type: '2nd Year Boys Hostel',
     category: 'HOSTEL',
-    gender: 'Boys',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
     roomsPerFloor: 24,
     roomPrefix: 'Room ',
     customRooms: [],
-    capacity: 'Boys Residential Block',
-    amenities: ['Fiber LAN Ports', 'RO Water Coolers', 'Study Room'],
-    mapPin: { xPct: 60, yPct: 24, lat: 21.1299, lng: 81.7665, color: '#4f46e5', badge: 'BH-3' },
-    mapZone: { x: 450, y: 88, width: 150, height: 64, color: '#4f46e5', badge: 'BH-3' },
-    gps: '21.1299° N, 81.7665° E',
-    description: 'Boys hostel block in the residential zone.',
+    mapPin: { xPct: 29, yPct: 46, lat: 21.12835, lng: 81.76445, color: '#4f46e5', badge: 'BOSE' },
+    mapZone: { badge: 'BOSE', color: '#4f46e5' },
+    gps: '21.12835° N, 81.76445° E',
+    description: 'West-central boys hostel block north of Bhabha House.',
   },
   {
     id: 'raman_house',
-    name: 'Raman House (Girls Hostel)',
+    name: 'Raman House (Hostel Block)',
     shortName: 'Raman House',
-    type: 'Girls Hostel',
+    type: '1st Year Hostel Block',
     category: 'HOSTEL',
-    gender: 'Girls',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
     roomsPerFloor: 24,
     roomPrefix: 'Room ',
     customRooms: [],
-    capacity: 'Girls Residential Block',
-    amenities: ['24/7 Security', 'Dedicated Mess', 'RO Water Coolers'],
-    mapPin: { xPct: 79, yPct: 28, lat: 21.1291, lng: 81.7676, color: '#db2777', badge: 'GH-1' },
-    mapZone: { x: 640, y: 88, width: 145, height: 64, color: '#db2777', badge: 'GH-1' },
-    gps: '21.1291° N, 81.7676° E',
-    description: 'Girls residential hostel block.',
+    mapPin: { xPct: 39, yPct: 41, lat: 21.12865, lng: 81.76515, color: '#4f46e5', badge: 'RAMAN' },
+    mapZone: { badge: 'RAMAN', color: '#4f46e5' },
+    gps: '21.12865° N, 81.76515° E',
+    description: 'Inner residential block near the northern hostel court.',
   },
   {
     id: 'shabhari_house',
-    name: 'Shabhari House (Girls Hostel)',
-    shortName: 'Shabhari House',
-    type: 'Girls Hostel',
+    name: 'Shabri House (Girls Hostel)',
+    shortName: 'Shabri House',
+    type: 'Girls Residential Hostel',
     category: 'HOSTEL',
-    gender: 'Girls',
     wings: ['Wing A', 'Wing B'],
     floors: ['G', '1', '2', '3'],
     roomsPerFloor: 24,
     roomPrefix: 'Room ',
     customRooms: [],
-    capacity: 'Girls Residential Block',
-    amenities: ['24/7 Security Desk', 'Campus Wi-Fi', 'Common Lounge'],
-    mapPin: { xPct: 81, yPct: 48, lat: 21.1286, lng: 81.7679, color: '#db2777', badge: 'GH-2' },
-    mapZone: { x: 640, y: 170, width: 145, height: 64, color: '#db2777', badge: 'GH-2' },
-    gps: '21.1286° N, 81.7679° E',
+    mapPin: { xPct: 35, yPct: 68, lat: 21.12745, lng: 81.76485, color: '#db2777', badge: 'SHABRI' },
+    mapZone: { badge: 'SHABRI', color: '#db2777' },
+    gps: '21.12745° N, 81.76485° E',
     description: 'Girls residential hostel block.',
+  },
+  {
+    id: 'transit_hostel',
+    name: 'Guest House & Transit Hostel',
+    shortName: 'Guest House',
+    type: 'Guest & Transit Block (4QH7+9WH)',
+    category: 'HOSTEL',
+    wings: ['Main Block'],
+    floors: ['G', '1', '2'],
+    roomsPerFloor: 12,
+    roomPrefix: 'Suite ',
+    customRooms: [],
+    mapPin: { xPct: 35, yPct: 50, lat: 21.12844, lng: 81.76486, color: '#0d9488', badge: 'GUEST' },
+    mapZone: { badge: 'GUEST', color: '#0d9488' },
+    gps: '21.12844° N, 81.76486° E',
+    description: 'Georeferenced at Google Maps Plus Code 4QH7+9WH.',
   },
   {
     id: 'academic_block',
     name: 'Academic & Administrative Block',
     shortName: 'Academic Block',
-    type: 'Academic & Labs',
+    type: 'Classrooms, Labs & Admin',
     category: 'ACADEMIC',
-    wings: ['Main Wing'],
     floors: [
       {
         id: 'G',
@@ -192,10 +190,11 @@ export const DEFAULT_IIITNR_BUILDINGS = [
           'Smart E-Classroom E-101',
           'Lecture Hall LH-1',
           'Lecture Hall LH-2',
-          'AICTE IDEA Lab',
+          'AICTE IDEALAB',
+          '3D Printing & Fabrication Lab',
           'Estate & Facilities Office',
           'Registrar & Admin Office',
-          'Directorate Office',
+          'Directorate Secretariat',
         ],
       },
       {
@@ -205,42 +204,50 @@ export const DEFAULT_IIITNR_BUILDINGS = [
           'Room 131C — Data Centre & Server NOC',
           'Room 131E — Network Operations Center',
           'Smart E-Classroom E-102',
-          'Computer Science Lab 1',
-          'Data Science & AI Lab',
-          'Lecture Hall LH-3',
-          'Lecture Hall LH-4',
+          'Computer Programming Lab',
+          'Data Science Lab',
+          'Artificial Intelligence & Deep Learning Lab',
+          'Big Data Computing Lab',
+          'Information Security & Blockchain Lab',
+          'Networks Lab',
+          'Language Lab',
         ],
       },
       {
         id: '2',
         label: '2nd Floor',
         rooms: [
-          'VLSI & Embedded Systems Lab',
-          'IoT & Robotics Lab',
-          'RF & Microwave Comm. Lab',
+          'VLSI & Embedded Lab',
+          'IoT & Sensor Lab',
+          'Intelligent Autonomous Systems Lab',
+          'Antenna & Microwave Circuit Design Lab',
+          'Communication Lab',
+          'Electronic Circuit Lab',
+          'PCB Design Lab',
+          'Biomedical & Speech Processing Lab',
           'Faculty Cabins (2nd Floor)',
-          'Lecture Hall LH-5',
         ],
       },
       {
         id: '3',
         label: '3rd Floor',
         rooms: [
-          'Seminar Hall',
-          'PhD Research Scholars Bay',
-          'Incubation Cell',
+          'Seminar & Conference Hall',
+          'PhD & M.Tech Research Scholars Bay',
+          'IIIT-NR TBI&E Incubation Cell',
+          'Center for Applied Mathematics',
         ],
       },
     ],
-    mapPin: { xPct: 46, yPct: 68, lat: 21.1283, lng: 81.7660, color: '#0284c7', badge: 'ACAD' },
-    mapZone: { x: 250, y: 235, width: 230, height: 95, color: '#0284c7', badge: 'ACAD' },
-    gps: '21.1283° N, 81.7660° E',
-    description: 'Main academic complex housing classrooms, CSE/DSAI/ECE labs, Data Centre (131C/131E), and Estate Office.',
+    mapPin: { xPct: 54, yPct: 56, lat: 21.12815, lng: 81.76605, color: '#0284c7', badge: 'ACAD' },
+    mapZone: { badge: 'ACAD', color: '#0284c7' },
+    gps: '21.12815° N, 81.76605° E',
+    description: 'Main academic & administrative complex at the central semicircular D-loop.',
   },
   {
     id: 'krc_library',
-    name: 'Knowledge Resource Centre (Library)',
-    shortName: 'KRC Library',
+    name: 'Central Library (Knowledge Resource Centre)',
+    shortName: 'Library (KRC)',
     type: 'Library & Digital Center',
     category: 'ACADEMIC',
     floors: [
@@ -255,86 +262,90 @@ export const DEFAULT_IIITNR_BUILDINGS = [
         rooms: ['Digital Library', 'Reference Section', 'Discussion Room 1', 'Discussion Room 2'],
       },
     ],
-    mapPin: { xPct: 66, yPct: 68, lat: 21.1282, lng: 81.7668, color: '#7c3aed', badge: 'KRC' },
-    mapZone: { x: 500, y: 242, width: 120, height: 80, color: '#7c3aed', badge: 'KRC' },
-    gps: '21.1282° N, 81.7668° E',
-    description: 'Central library, reading halls, and digital resource center.',
-  },
-  {
-    id: 'sac_mph',
-    name: 'Student Activity Centre (SAC) & MPH',
-    shortName: 'SAC & MPH',
-    type: 'Student Center & Auditorium',
-    category: 'AMENITY',
-    floors: [
-      {
-        id: 'G',
-        label: 'Ground Floor',
-        rooms: ['Multi-Purpose Hall (MPH)', 'Indoor Badminton Courts', 'Stage & Audio Room'],
-      },
-      {
-        id: '1',
-        label: '1st Floor',
-        rooms: ['Student Gymnasium', 'Table Tennis & Indoor Games', 'Club & Music Rooms'],
-      },
-    ],
-    mapPin: { xPct: 22, yPct: 68, lat: 21.1285, lng: 81.7651, color: '#ea580c', badge: 'SAC' },
-    mapZone: { x: 95, y: 242, width: 135, height: 80, color: '#ea580c', badge: 'SAC' },
-    gps: '21.1285° N, 81.7651° E',
-    description: 'Auditorium, indoor sports courts, gymnasium, and student club rooms.',
+    mapPin: { xPct: 61, yPct: 49, lat: 21.12838, lng: 81.76638, color: '#7c3aed', badge: 'LIB' },
+    mapZone: { badge: 'LIB', color: '#7c3aed' },
+    gps: '21.12838° N, 81.76638° E',
+    description: 'Central library and e-resource reading halls.',
   },
   {
     id: 'cafeteria_mess',
-    name: 'Central Mess, Cafeteria & Dispensary',
+    name: 'Cafeteria, Central Mess & Shopping/ATM Block',
     shortName: 'Mess & Canteen',
-    type: 'Dining & Utilities',
+    type: 'Dining & ATM (4QH8+56F)',
     category: 'AMENITY',
     floors: [
       {
         id: 'G',
         label: 'Ground Floor',
-        rooms: ['Mess Dining Hall 1', 'Canteen / Nescafé', 'Medical Dispensary', 'ATM Kiosk'],
+        rooms: ['Central Mess Hall 1', 'Campus Canteen', 'Shopping Center Block', 'ATM Center', 'Medical Dispensary'],
       },
       {
         id: '1',
         label: '1st Floor',
-        rooms: ['Mess Dining Hall 2', 'RO Water Filtration Plant'],
+        rooms: ['Central Mess Hall 2', 'RO Water Filtration Plant'],
       },
     ],
-    mapPin: { xPct: 22, yPct: 46, lat: 21.1290, lng: 81.7650, color: '#d97706', badge: 'MESS' },
-    mapZone: { x: 95, y: 165, width: 155, height: 60, color: '#d97706', badge: 'MESS' },
-    gps: '21.1290° N, 81.7650° E',
-    description: 'Student mess halls, canteen, medical dispensary, and ATM.',
+    mapPin: { xPct: 44, yPct: 58, lat: 21.12794, lng: 81.76555, color: '#d97706', badge: 'MESS' },
+    mapZone: { badge: 'MESS', color: '#d97706' },
+    gps: '21.12794° N, 81.76555° E',
+    description: 'Georeferenced at Google Maps Plus Code 4QH8+56F between the Academic Block and Hostels.',
   },
   {
-    id: 'sports_substation',
-    name: 'Sports Complex, Amphitheater & Substation',
-    shortName: 'Sports & Grounds',
-    type: 'Grounds & Power Grid',
+    id: 'sac_mph',
+    name: 'Multi-Purpose Hall (MPH), SAC & Amphitheater',
+    shortName: 'MPH & Amphitheater',
+    type: 'Auditorium, Gym & SAC',
+    category: 'AMENITY',
+    floors: [
+      {
+        id: 'G',
+        label: 'Ground Floor',
+        rooms: ['Multi-Purpose Hall (MPH) Auditorium', 'Open-Air Amphitheater', 'Indoor Badminton Courts', 'Student Gymnasium', 'SAC Club Rooms'],
+      },
+    ],
+    mapPin: { xPct: 51, yPct: 38, lat: 21.12885, lng: 81.76585, color: '#ea580c', badge: 'MPH' },
+    mapZone: { badge: 'MPH', color: '#ea580c' },
+    gps: '21.12885° N, 81.76585° E',
+    description: 'Auditorium, Student Activity Center (SAC), and Open-Air Amphitheater north of Academic Block.',
+  },
+  {
+    id: 'sports_ground',
+    name: 'Sports Ground & Phase 2 Complex',
+    shortName: 'Sports Ground',
+    type: 'Grounds & Courts (4QH7+PM9)',
     category: 'INFRASTRUCTURE',
     floors: [
       {
         id: 'G',
-        label: 'Outdoor & Utility Grid',
-        rooms: [
-          'Open-Air Amphitheater',
-          'Basketball & Volleyball Courts',
-          'Football / Cricket Ground',
-          '33/11kV Electrical Substation',
-          'Main Gate Security Plaza',
-        ],
+        label: 'Outdoor Grounds',
+        rooms: ['Main Football & Cricket Ground', 'Basketball Court', 'Volleyball Courts', 'Outdoor Floodlights'],
       },
     ],
-    mapPin: { xPct: 48, yPct: 46, lat: 21.1292, lng: 81.7661, color: '#059669', badge: 'GROUND' },
-    mapZone: { x: 270, y: 165, width: 330, height: 55, color: '#059669', badge: 'GROUND' },
-    gps: '21.1292° N, 81.7661° E',
-    description: 'Sports grounds, open-air amphitheater, main gate, and electrical substation.',
+    mapPin: { xPct: 33, yPct: 27, lat: 21.12929, lng: 81.76423, color: '#059669', badge: 'SPORTS' },
+    mapZone: { badge: 'SPORTS', color: '#059669' },
+    gps: '21.12929° N, 81.76423° E',
+    description: 'Georeferenced at Google Maps Plus Code 4QH7+PM9 in the northwest campus sector.',
+  },
+  {
+    id: 'staff_quarters',
+    name: 'Staff Quarters, Director Bungalow & Main Gate',
+    shortName: 'Staff Quarters & Gate',
+    type: 'Faculty Housing & Gate',
+    category: 'INFRASTRUCTURE',
+    floors: [
+      {
+        id: 'G',
+        label: 'Campus Zone',
+        rooms: ['Staff Quarters Block A', 'Staff Quarters Block B', 'Director Bungalow', 'Main Gate Security Plaza', '33/11kV Electrical Substation'],
+      },
+    ],
+    mapPin: { xPct: 63, yPct: 73, lat: 21.12715, lng: 81.76655, color: '#475569', badge: 'STAFF' },
+    mapZone: { badge: 'STAFF', color: '#475569' },
+    gps: '21.12715° N, 81.76655° E',
+    description: 'Southeastern residential quarters and Main Gate entrance road.',
   },
 ];
 
-/**
- * Load user-customized IIIT-NR campus buildings from localStorage, falling back to DEFAULT_IIITNR_BUILDINGS.
- */
 export function getCampusBuildings() {
   if (typeof window === 'undefined') {
     return DEFAULT_IIITNR_BUILDINGS;
@@ -347,9 +358,7 @@ export function getCampusBuildings() {
         return parsed;
       }
     }
-  } catch (e) {
-    console.warn('Failed to parse custom campus map data:', e);
-  }
+  } catch (_) {}
   return DEFAULT_IIITNR_BUILDINGS;
 }
 
@@ -376,7 +385,6 @@ export function getNonHostelBuildings(buildings = null) {
   return list.filter((b) => b.category !== 'HOSTEL');
 }
 
-// Static exports for backward compatibility
 export const IIITNR_HOSTELS = DEFAULT_IIITNR_BUILDINGS.filter((b) => b.category === 'HOSTEL');
 export const IIITNR_ACADEMIC_BLOCKS = DEFAULT_IIITNR_BUILDINGS.filter((b) => b.category !== 'HOSTEL');
 export const ALL_IIITNR_BUILDINGS = DEFAULT_IIITNR_BUILDINGS;
@@ -400,9 +408,7 @@ export function getFloorsForBuilding(buildingNameOrId, customBuildingsList = nul
     (b) => b.id === buildingNameOrId || b.name === buildingNameOrId || b.shortName === buildingNameOrId
   );
 
-  if (!target) {
-    return HOSTEL_FLOORS;
-  }
+  if (!target) return HOSTEL_FLOORS;
 
   if (Array.isArray(target.floors) && target.floors.length > 0) {
     if (typeof target.floors[0] === 'string') {
@@ -425,7 +431,7 @@ export function getWingsForBuilding(buildingNameOrId, customBuildingsList = null
   if (target && Array.isArray(target.wings) && target.wings.length > 0) {
     return [
       ...target.wings.map((w) => ({ id: w, label: w })),
-      { id: 'Common Area', label: 'Corridor / Washroom / Common Utility' },
+      { id: 'Common Area', label: 'Corridor / Washroom / Utility' },
     ];
   }
   return HOSTEL_WINGS;
@@ -437,11 +443,8 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
     (b) => b.id === buildingNameOrId || b.name === buildingNameOrId || b.shortName === buildingNameOrId
   );
 
-  if (!target) {
-    return generateHostelRoomsForFloor(floorId, 24);
-  }
+  if (!target) return generateHostelRoomsForFloor(floorId, 24);
 
-  // If user defined explicit custom rooms list on this building
   if (Array.isArray(target.customRooms) && target.customRooms.length > 0) {
     return target.customRooms;
   }

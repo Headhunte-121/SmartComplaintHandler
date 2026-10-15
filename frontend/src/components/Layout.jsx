@@ -1,5 +1,5 @@
 /**
- * SmartComplaintHandler - Minimal Global Layout Shell
+ * SmartComplaintHandler - Global Layout Shell
  */
 import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
@@ -16,9 +16,9 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fafafa] text-slate-900 font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-slate-50 bg-architectural-grid text-slate-900 font-sans antialiased">
       <Navbar />
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Outlet />
       </main>
       <PersonaSwitcherModal />

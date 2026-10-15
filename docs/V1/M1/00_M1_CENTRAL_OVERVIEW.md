@@ -843,7 +843,38 @@ npm run dev
      - Simplified, single-column Login and Register workflows with zero promotional marketing clutter.
      - Clean, high-density Student Dashboard, Complaint Intake Form, and Live Ticket Tracking Timeline.
      - Preserved all interactive campus map editing, drag-and-drop pin positioning, room assignment, and Google Workspace SSO integration.
-* **Why It Was Changed:** Integrated user's minimal modern portal design update to deliver an ultra-clean, unbloated, fast, and authoritative university application.
 * **Verification Proof:**
   - Frontend Production Build: `npm run build` compiled cleanly in 1.34s with 0 errors (bundle: 402.81 kB).
   - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 6.30s (100% pass rate).
+
+### [2026-10-15] - Georeferenced Leaflet Map Integration & Super Admin Map Lockdown
+* **Files Modified:**
+  - `frontend/index.html`
+  - `frontend/src/components/CampusMapSelector.jsx`
+  - `frontend/src/components/Footer.jsx`
+  - `frontend/src/components/Layout.jsx`
+  - `frontend/src/components/LiveTriageCard.jsx`
+  - `frontend/src/components/Navbar.jsx`
+  - `frontend/src/data/iiitnrCampusData.js`
+  - `frontend/src/pages/Home.jsx`
+  - `frontend/src/pages/Login.jsx`
+  - `frontend/src/pages/Register.jsx`
+  - `frontend/src/pages/StudentDashboard.jsx`
+  - `frontend/src/pages/SubmitComplaint.jsx`
+  - `frontend/src/pages/TrackTicket.jsx`
+  - `frontend/src/styles/globals.css`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Georeferenced Leaflet Mapping Suite (`CampusMapSelector.jsx` & `index.html`):**
+     - Integrated live Leaflet OpenStreetMap and Esri World Imagery satellite map layers directly into the application with interactive pin markers.
+     - Provided triple-mode toggle: `🗺️ OSM Map`, `🛰️ Satellite`, and `📐 Campus Plan` (1:1 traced master plan).
+     - Enhanced landing hub (`Home.jsx`) with dynamic quick-link action bar, directory of authentic hostels, and verified Estate & Engineering contacts.
+  2. **Super Admin Map Authorization Lockdown:**
+     - Enforced strict role-based access control ensuring **ONLY Super Admins** (`currentUser.role === 'SUPER_ADMIN'`) can modify the map.
+     - Non-super admins (Students, Admins, Technicians, Anonymous visitors) can view the map, switch between OSM/Satellite/Plan modes, and click pins to select buildings, but **cannot drag pins, add pins, delete pins, edit metadata, upload custom blueprints, or apply JSON**.
+     - Hidden the `✏️ Edit / Label Map` toolbar action for all non-super admins.
+     - Guarded all editing handlers (`marker.on('dragend')`, `handleMapClick`, `addPinAt`, `handleVectorClick`, `handleVectorMouseMove`, `handleVectorMouseUp`, `handleUpdateBuildingField`, `handleDeleteBuilding`, `resetCampusBuildingsToDefault`, and JSON `Apply`) with `isSuperAdmin` checks.
+* **Why It Was Changed:** Integrated latest update package and implemented user's explicit governance requirement restricting campus map modifications strictly to Super Admins.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 18.08s with 0 errors (bundle: 431.80 kB).
+  - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 9.77s (100% pass rate).

@@ -1,6 +1,7 @@
 /**
- * SmartComplaintHandler - Minimal Institutional Registration (IIIT Naya Raipur)
- * Aesthetic: Clean, centered single-card onboarding with Hostel & Room selection.
+ * SmartComplaintHandler - Institutional Registration Portal (IIIT Naya Raipur)
+ * Rich visual design with auto-detected Roll/Branch card, IIIT-NR Hostel/Wing/Room selector,
+ * and 4-bar password strength meter — zero promotional filler advertising.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,9 +9,9 @@ import { useAuth } from '../context/AuthContext';
 import { fetchAuthConfig } from '../api/auth';
 import {
   HOSTEL_FLOORS,
+  HOSTEL_WINGS,
   getHostelBuildings,
   getRoomsForBuilding,
-  IIITNR_MAP_UPDATED_EVENT,
 } from '../data/iiitnrCampusData';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
@@ -59,27 +60,38 @@ function ensureGoogleSdkLoaded(timeoutMs = 8000) {
   });
 }
 
+function evaluatePasswordStrength(pw) {
+  if (!pw) return { score: 0, label: 'Minimum 6 characters', color: 'bg-slate-200' };
+  let score = 0;
+  if (pw.length >= 6) score += 1;
+  if (pw.length >= 10) score += 1;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score += 1;
+  if (/\d/.test(pw) || /[^A-Za-z0-9]/.test(pw)) score += 1;
+
+  const map = {
+    1: { label: 'Fair', color: 'bg-amber-500' },
+    2: { label: 'Good', color: 'bg-blue-500' },
+    3: { label: 'Strong', color: 'bg-indigo-600' },
+    4: { label: 'Excellent', color: 'bg-emerald-500' },
+  };
+  return { score, ...(map[score] || map[1]) };
+}
+
 export default function Register() {
   const navigate = useNavigate();
   const { register, loginGoogle, currentUser } = useAuth();
 
-  const [hostels, setHostels] = useState(() => getHostelBuildings());
-  useEffect(() => {
-    const sync = () => setHostels(getHostelBuildings());
-    window.addEventListener(IIITNR_MAP_UPDATED_EVENT, sync);
-    return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, sync);
-  }, []);
-
+  const hostels = useMemo(() => getHostelBuildings(), []);
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  const [selectedHostel, setSelectedHostel] = useState(
-    () => hostels[0]?.name || 'Ramanujan House (Boys Hostel)'
-  );
+  const [selectedHostel, setSelectedHostel] = useState(hostels[0]?.name || 'Ramanujan House (Boys Hostel)');
   const [selectedFloor, setSelectedFloor] = useState('2');
+  const [selectedWing, setSelectedWing] = useState('Wing A');
   const [selectedRoomNumber, setSelectedRoomNumber] = useState('Wing A, Room 204');
 
   const [googleClientId, setGoogleClientId] = useState(getInitialGoogleClientId);
@@ -91,8 +103,8 @@ export default function Register() {
   const [error, setError] = useState(null);
 
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor, 'Wing A'),
-    [selectedHostel, selectedFloor]
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing),
+    [selectedHostel, selectedFloor, selectedWing]
   );
 
   useEffect(() => {
@@ -132,10 +144,10 @@ export default function Register() {
       let dept = 'Computer Science & Engineering';
       let deptCode = 'CSE';
       if (code.startsWith('101') || code.endsWith('01')) {
-        dept = 'Data Science & AI';
+        dept = 'Data Science & Artificial Intelligence';
         deptCode = 'DSAI';
       } else if (code.startsWith('102') || code.endsWith('02') || code === '302') {
-        dept = 'Electronics & Comm.';
+        dept = 'Electronics & Communication Engineering';
         deptCode = 'ECE';
       }
       return { fullName: rawName, department: dept, deptCode, rollNo: `20${year}${deptCode}${code}` };
@@ -149,6 +161,7 @@ export default function Register() {
   };
 
   const livePreview = useMemo(() => parseEmailMetadata(email), [email]);
+  const pwStrength = useMemo(() => evaluatePasswordStrength(password), [password]);
 
   const handleContinueWithGoogle = async () => {
     setError(null);
@@ -255,27 +268,31 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-[#fafafa] text-slate-900">
-      <div className="w-full max-w-[380px] space-y-5">
-        <div className="text-center space-y-2">
-          <img
-            src="/iiitnr_logo.png"
-            alt="IIIT Naya Raipur"
-            className="h-10 w-auto mx-auto object-contain"
-          />
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-slate-50 bg-architectural-grid relative overflow-hidden">
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 w-full max-w-md space-y-6">
+        <div className="text-center space-y-2.5">
+          <div className="inline-flex p-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+            <img
+              src="/iiitnr_logo.png"
+              alt="IIIT Naya Raipur"
+              className="h-12 w-auto object-contain"
+            />
+          </div>
           <div>
-            <h1 className="text-lg font-semibold tracking-tight text-slate-900">
-              Create your IIIT-NR account
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Create IIIT-NR Account
             </h1>
-            <p className="text-xs text-slate-500">
-              {step === 'password' ? 'Select your hostel room & password' : 'Sign up with your @iiitnr.edu.in email'}
+            <p className="text-xs text-slate-500 font-medium">
+              Step {step === 'password' ? '2' : '1'} of 2 · Student &amp; Staff Onboarding
             </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-4">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/[0.04] p-7 sm:p-8 space-y-5">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200/80 text-rose-700 text-xs">
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
               {error}
             </div>
           )}
@@ -286,7 +303,7 @@ export default function Register() {
                 type="button"
                 onClick={handleContinueWithGoogle}
                 disabled={googleLoading || loading}
-                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-300/90 hover:border-slate-400 text-slate-800 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
@@ -294,19 +311,21 @@ export default function Register() {
                   <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
                   <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
                 </svg>
-                <span>{googleLoading ? 'Connecting...' : 'Sign up with Google'}</span>
+                <span>{googleLoading ? 'Connecting...' : 'Sign up with Google (@iiitnr.edu.in)'}</span>
               </button>
 
-              <div className="relative flex items-center">
-                <div className="grow border-t border-slate-100" />
-                <span className="mx-3 text-[11px] text-slate-400">or</span>
-                <div className="grow border-t border-slate-100" />
+              <div className="relative flex py-1 items-center">
+                <div className="grow border-t border-slate-200" />
+                <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  or email
+                </span>
+                <div className="grow border-t border-slate-200" />
               </div>
 
-              <form onSubmit={handleContinueWithEmail} className="space-y-3">
+              <form onSubmit={handleContinueWithEmail} className="space-y-3.5">
                 <div>
-                  <label htmlFor="register-email" className="block text-xs font-medium text-slate-700 mb-1">
-                    Institutional Email
+                  <label htmlFor="register-email" className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Institutional Email Address
                   </label>
                   <input
                     id="register-email"
@@ -324,134 +343,197 @@ export default function Register() {
                 </div>
 
                 {livePreview && (
-                  <div className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
-                    <span className="font-medium text-slate-700 truncate">
-                      {livePreview.fullName} ({livePreview.rollNo})
+                  <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between text-xs">
+                    <div className="min-w-0 pr-2">
+                      <div className="font-bold text-emerald-950 truncate">
+                        {livePreview.fullName} ({livePreview.rollNo})
+                      </div>
+                      <div className="text-[11px] text-emerald-700 truncate">
+                        {livePreview.department}
+                      </div>
+                    </div>
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-white text-emerald-700 border border-emerald-200 shrink-0">
+                      {livePreview.deptCode}
                     </span>
-                    <span className="text-[10px] font-mono text-indigo-600">{livePreview.deptCode}</span>
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-xl transition-colors cursor-pointer"
+                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
                 >
-                  Continue
+                  Continue →
                 </button>
               </form>
             </div>
           ) : (
-            <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
-              <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
-                <span className="font-mono text-slate-700 truncate">{email}</span>
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="min-w-0 pr-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Email
+                  </span>
+                  <span className="text-xs font-bold text-slate-900 truncate block font-mono">
+                    {email}
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setStep('email')}
-                  className="text-indigo-600 hover:text-indigo-800 font-medium ml-2 cursor-pointer"
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2.5 py-1 rounded-lg hover:bg-indigo-50 cursor-pointer"
                 >
-                  Edit
+                  Change
                 </button>
               </div>
 
-              {/* Minimal Hostel & Room Selection */}
-              <div className="space-y-2.5 pt-1">
+              {/* IIIT-NR Hostel & Room Assignment Box */}
+              <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
+                  🏠 Select Your Hostel &amp; Room
+                </span>
+
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Hostel
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Hostel House
                   </label>
                   <select
                     value={selectedHostel}
                     onChange={(e) => setSelectedHostel(e.target.value)}
-                    className="enterprise-input"
+                    className="enterprise-input text-xs"
                   >
                     {hostels.map((h) => (
                       <option key={h.id} value={h.name}>
                         {h.name}
                       </option>
                     ))}
-                    <option value="Day Scholar">Day Scholar</option>
+                    <option value="Day Scholar (Off-Campus)">Day Scholar</option>
                   </select>
                 </div>
 
-                {selectedHostel !== 'Day Scholar' && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Floor
-                      </label>
-                      <select
-                        value={selectedFloor}
-                        onChange={(e) => setSelectedFloor(e.target.value)}
-                        className="enterprise-input"
-                      >
-                        {HOSTEL_FLOORS.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.label}
-                          </option>
-                        ))}
-                      </select>
+                {selectedHostel !== 'Day Scholar (Off-Campus)' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                          Floor
+                        </label>
+                        <select
+                          value={selectedFloor}
+                          onChange={(e) => setSelectedFloor(e.target.value)}
+                          className="enterprise-input text-xs"
+                        >
+                          {HOSTEL_FLOORS.map((f) => (
+                            <option key={f.id} value={f.id}>
+                              {f.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                          Wing
+                        </label>
+                        <select
+                          value={selectedWing}
+                          onChange={(e) => setSelectedWing(e.target.value)}
+                          className="enterprise-input text-xs"
+                        >
+                          {HOSTEL_WINGS.slice(0, 2).map((w) => (
+                            <option key={w.id} value={w.id}>
+                              {w.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
+
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Room No.
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Room Number
                       </label>
                       <input
                         type="text"
+                        list="reg-room-options"
                         value={selectedRoomNumber}
                         onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                        placeholder="e.g. Room 204"
-                        className="enterprise-input"
+                        className="enterprise-input text-xs"
                       />
+                      <datalist id="reg-room-options">
+                        {availableRooms
+                          .filter((r) => r.includes('Room') || r.includes('Suite'))
+                          .map((r) => (
+                            <option key={r} value={r} />
+                          ))}
+                      </datalist>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Min. 6 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="enterprise-input"
-                />
-              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-700">Password</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="Minimum 6 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="enterprise-input"
+                  />
+                  <div className="mt-2 grid grid-cols-4 gap-1.5 h-1">
+                    {[1, 2, 3, 4].map((bar) => (
+                      <div
+                        key={bar}
+                        className={`rounded-full transition-all ${
+                          pwStrength.score >= bar ? pwStrength.color : 'bg-slate-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Re-enter password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="enterprise-input"
-                />
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Confirm Password
+                  </label>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="Re-enter password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="enterprise-input"
+                  />
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
               >
-                {loading ? 'Creating account...' : 'Create Account'}
+                {loading ? 'Creating Account...' : 'Complete Registration'}
               </button>
             </form>
           )}
-        </div>
 
-        <p className="text-center text-xs text-slate-500">
-          Already have an account?{' '}
-          <Link to="/login" className="font-medium text-slate-900 hover:underline">
-            Sign in
-          </Link>
-        </p>
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500">Already registered?</span>
+            <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-800">
+              Sign in →
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 /**
- * SmartComplaintHandler - Minimal Student Dashboard (IIIT Naya Raipur)
- * Aesthetic: Clean Linear-style issue list with inline Hostel/Room editor modal.
+ * SmartComplaintHandler - Student Portal (IIIT Naya Raipur)
+ * Rich Bento KPI layout with dark profile banner, Hostel/Room editor modal,
+ * expandable Campus Map, and 5-star resolution rating — zero promotional filler.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
@@ -8,9 +9,11 @@ import { useAuth } from '../context/AuthContext';
 import { fetchComplaints, submitFeedback } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
+import CampusMapSelector from '../components/CampusMapSelector';
 import {
   IIITNR_MAP_UPDATED_EVENT,
   HOSTEL_FLOORS,
+  HOSTEL_WINGS,
   getCampusBuildings,
   getHostelBuildings,
   getRoomsForBuilding,
@@ -23,22 +26,26 @@ export default function StudentDashboard() {
   const [allBuildings, setAllBuildings] = useState(() => getCampusBuildings());
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCampusMap, setShowCampusMap] = useState(false);
 
-  // Residence Modal
-  const [isResidenceModalOpen, setIsResidenceModalOpen] = useState(false);
   const hostelsList = useMemo(() => getHostelBuildings(allBuildings), [allBuildings]);
+
+  const [isResidenceModalOpen, setIsResidenceModalOpen] = useState(false);
   const [selectedHostel, setSelectedHostel] = useState(
     activeUser?.hostel_name || hostelsList[0]?.name || 'Ramanujan House (Boys Hostel)'
   );
   const [selectedFloor, setSelectedFloor] = useState('2');
+  const [selectedWing, setSelectedWing] = useState('Wing A');
   const [selectedRoom, setSelectedRoom] = useState(activeUser?.room_number || 'Wing A, Room 204');
+  const [customRoomInput, setCustomRoomInput] = useState('');
   const [savingResidence, setSavingResidence] = useState(false);
 
-  // Feedback Modal
   const [selectedTicketForFeedback, setSelectedTicketForFeedback] = useState(null);
   const [ratingScore, setRatingScore] = useState(5);
+  const [ratingHover, setRatingHover] = useState(0);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
@@ -51,17 +58,18 @@ export default function StudentDashboard() {
   }, []);
 
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor, 'Wing A', allBuildings),
-    [selectedHostel, selectedFloor, allBuildings]
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing, allBuildings),
+    [selectedHostel, selectedFloor, selectedWing, allBuildings]
   );
 
   const loadStudentTickets = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await fetchComplaints({ student_email: studentEmail, limit: 100 });
       setTickets(data);
     } catch (_) {
-      setTickets([]);
+      setError('Unable to load requests.');
     } finally {
       setLoading(false);
     }
@@ -74,10 +82,11 @@ export default function StudentDashboard() {
   const handleSaveResidence = async (e) => {
     e.preventDefault();
     setSavingResidence(true);
+    const finalRoom = customRoomInput.trim() || selectedRoom;
     try {
       await updateProfile({
         hostel_name: selectedHostel,
-        room_number: selectedRoom,
+        room_number: finalRoom,
       });
       setIsResidenceModalOpen(false);
     } finally {
@@ -105,6 +114,11 @@ export default function StudentDashboard() {
 
   const activeTickets = tickets.filter((t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED');
   const resolvedTickets = tickets.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED');
+  const ratedTickets = tickets.filter((t) => t.feedback_rating != null);
+  const avgSatisfaction =
+    ratedTickets.length > 0
+      ? (ratedTickets.reduce((sum, t) => sum + t.feedback_rating, 0) / ratedTickets.length).toFixed(1)
+      : null;
 
   const tabFiltered =
     activeTab === 'ACTIVE' ? activeTickets : activeTab === 'RESOLVED' ? resolvedTickets : tickets;
@@ -119,128 +133,228 @@ export default function StudentDashboard() {
     );
   });
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'SUBMITTED':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'ASSIGNED':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'IN_PROGRESS':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'ESCALATED':
+        return 'bg-rose-50 text-rose-700 border-rose-200';
+      case 'RESOLVED':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      default:
+        return 'bg-slate-50 text-slate-700 border-slate-200';
+    }
+  };
+
   const currentHostelLabel = activeUser?.hostel_name || hostelsList[0]?.name || 'Ramanujan House';
   const currentRoomLabel = activeUser?.room_number || 'Wing A, Room 204';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Minimal Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2.5">
-            <h1 className="text-lg font-semibold text-slate-900 tracking-tight">
-              {activeUser?.name}
-            </h1>
-            <span className="text-xs text-slate-400">·</span>
-            <span className="text-xs text-slate-500">{activeUser?.identifier}</span>
+    <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-10">
+      {/* Dark Student Profile & Residence Header */}
+      <div className="rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white p-6 sm:p-7 shadow-xl bg-dark-architectural-grid border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="flex items-start sm:items-center space-x-4">
+          <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-2xl shrink-0">
+            {activeUser?.avatar || '🎓'}
           </div>
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                {activeUser?.name}
+              </h1>
+              <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/25 border border-indigo-400/30 text-indigo-200">
+                {activeUser?.identifier}
+              </span>
+            </div>
+            <p className="text-xs text-slate-300">{activeUser?.department}</p>
 
-          <div className="flex items-center space-x-2 text-xs">
-            <span className="text-slate-600">
-              🏠 {currentHostelLabel.split(' (')[0]} · <strong className="font-medium text-slate-900">{currentRoomLabel}</strong>
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsResidenceModalOpen(true)}
-              className="text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
-            >
-              Change room
-            </button>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-bold">
+                <span>🏠 {currentHostelLabel.split(' (')[0]}</span>
+                <span>·</span>
+                <span className="font-mono text-white">{currentRoomLabel}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsResidenceModalOpen(true)}
+                className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-indigo-200 hover:text-white transition-all cursor-pointer"
+              >
+                ✏️ Change Room
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCampusMap((prev) => !prev)}
+                className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-sky-200 hover:text-white transition-all cursor-pointer"
+              >
+                🗺️ {showCampusMap ? 'Hide Map' : 'Campus Map'}
+              </button>
+            </div>
           </div>
         </div>
 
-        <Link
-          to="/submit"
-          className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors"
-        >
-          + New Request
-        </Link>
+        <div className="flex items-center space-x-2.5 shrink-0">
+          <Link
+            to="/submit"
+            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
+          >
+            + Submit Issue
+          </Link>
+          <button
+            onClick={loadStudentTickets}
+            className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all cursor-pointer"
+            title="Refresh"
+          >
+            ↻
+          </button>
+        </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-xl bg-slate-200/60 p-1 text-xs font-medium">
-          <button
-            type="button"
-            onClick={() => setActiveTab('ALL')}
-            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'ALL' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
-            }`}
-          >
-            All ({tickets.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('ACTIVE')}
-            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'ACTIVE' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
-            }`}
-          >
-            Active ({activeTickets.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('RESOLVED')}
-            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'RESOLVED' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
-            }`}
-          >
-            Resolved ({resolvedTickets.length})
-          </button>
-        </div>
-
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search requests..."
-          className="enterprise-input w-full sm:w-56"
+      {showCampusMap && (
+        <CampusMapSelector
+          selectedBuilding={currentHostelLabel}
+          selectedRoom={currentRoomLabel}
+          studentSavedHostel={currentHostelLabel}
+          studentSavedRoom={currentRoomLabel}
+          onSelectBuilding={(bName) => {
+            setSelectedHostel(bName);
+            setIsResidenceModalOpen(true);
+          }}
         />
+      )}
+
+      {/* Bento KPI Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bento-card p-5 border-l-4 border-l-amber-500 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Active Issues
+            </span>
+            <div className="text-3xl font-black text-slate-900 mt-1">{activeTickets.length}</div>
+          </div>
+          <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-600 text-lg font-bold">
+            ⚡
+          </div>
+        </div>
+
+        <div className="bento-card p-5 border-l-4 border-l-emerald-500 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Resolved
+            </span>
+            <div className="text-3xl font-black text-slate-900 mt-1">{resolvedTickets.length}</div>
+          </div>
+          <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200/70 flex items-center justify-center text-emerald-600 text-lg font-bold">
+            ✓
+          </div>
+        </div>
+
+        <div className="bento-card p-5 border-l-4 border-l-indigo-600 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Avg Rating
+            </span>
+            <div className="text-3xl font-black text-slate-900 mt-1">
+              {avgSatisfaction ? `${avgSatisfaction} / 5` : '—'}
+            </div>
+          </div>
+          <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200/70 flex items-center justify-center text-indigo-600 text-lg font-bold">
+            ★
+          </div>
+        </div>
       </div>
 
-      {/* Clean Minimal Issue List */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+      {/* Issues List Card */}
+      <div className="bento-card overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/40">
+          <h2 className="text-base font-black text-slate-900">My Requests</h2>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search code, room, title..."
+              className="enterprise-input w-full sm:w-52"
+            />
+
+            <div className="flex items-center space-x-1 p-1 bg-slate-200/70 rounded-xl">
+              <button
+                onClick={() => setActiveTab('ALL')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
+                  activeTab === 'ALL' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+                }`}
+              >
+                All ({tickets.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('ACTIVE')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
+                  activeTab === 'ACTIVE' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+                }`}
+              >
+                Active ({activeTickets.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('RESOLVED')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
+                  activeTab === 'RESOLVED' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+                }`}
+              >
+                Resolved ({resolvedTickets.length})
+              </button>
+            </div>
+          </div>
+        </div>
+
         {loading ? (
-          <div className="py-12 text-center text-xs text-slate-400">Loading requests...</div>
+          <div className="py-16 text-center text-xs text-slate-400">Loading requests...</div>
         ) : displayedTickets.length === 0 ? (
-          <div className="py-14 text-center space-y-2">
-            <p className="text-xs text-slate-500">No maintenance requests found.</p>
+          <div className="py-16 text-center space-y-3">
+            <p className="text-xs text-slate-500">No requests found.</p>
             <Link
               to="/submit"
-              className="inline-block text-xs font-medium text-indigo-600 hover:underline"
+              className="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl"
             >
-              Submit a new request →
+              + Submit Issue
             </Link>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {displayedTickets.map((ticket) => {
               const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+              const hasRating = ticket.feedback_rating != null;
+
               return (
                 <div
                   key={ticket.id || ticket.tracking_code}
-                  className="p-4 sm:px-5 hover:bg-slate-50/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="p-5 hover:bg-slate-50/70 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4"
                 >
-                  <div className="space-y-1 min-w-0">
+                  <div className="space-y-1.5 flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="font-mono font-medium text-indigo-600 hover:underline"
+                        className="font-mono font-bold text-indigo-600 bg-indigo-50/80 px-2.5 py-0.5 rounded-lg border border-indigo-200/80"
                       >
                         {ticket.tracking_code}
                       </Link>
-                      <span className="text-slate-300">·</span>
-                      <span className="font-medium text-slate-900 truncate">{ticket.title}</span>
-                      <PriorityBadge priority={ticket.priority} size="sm" />
-                    </div>
-                    <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-2">
-                      <span>{ticket.location}</span>
-                      {ticket.assigned_team_name && (
-                        <>
-                          <span>·</span>
-                          <span>{ticket.assigned_team_name}</span>
-                        </>
+                      <PriorityBadge priority={ticket.priority} />
+                      <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${getStatusBadge(ticket.status)}`}>
+                        {ticket.status}
+                      </span>
+                      {ticket.department_name && (
+                        <span className="text-slate-600 text-[11px] font-semibold bg-slate-100 px-2 py-0.5 rounded">
+                          {ticket.department_name}
+                        </span>
                       )}
+                    </div>
+
+                    <h3 className="text-sm font-bold text-slate-900">{ticket.title}</h3>
+                    <div className="text-[11px] text-slate-500">
+                      📍 {ticket.location} · {new Date(ticket.created_at).toLocaleDateString()}
                     </div>
                   </div>
 
@@ -259,17 +373,17 @@ export default function StudentDashboard() {
                           setRatingScore(ticket.feedback_rating || 5);
                           setFeedbackComments(ticket.feedback_comments || '');
                         }}
-                        className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-medium cursor-pointer"
+                        className="px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white cursor-pointer"
                       >
-                        {ticket.feedback_rating ? `★ ${ticket.feedback_rating}/5` : '★ Rate'}
+                        ★ {hasRating ? `${ticket.feedback_rating}/5` : 'Rate'}
                       </button>
                     )}
 
                     <Link
                       to={`/track?code=${ticket.tracking_code}`}
-                      className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl"
                     >
-                      View
+                      Details
                     </Link>
                   </div>
                 </div>
@@ -279,90 +393,127 @@ export default function StudentDashboard() {
         )}
       </div>
 
-      {/* Minimal Hostel & Room Modal */}
+      {/* Hostel & Room Modal */}
       {isResidenceModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
           onClick={() => setIsResidenceModalOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl bg-white p-5 space-y-4 border border-slate-200 shadow-xl"
+            className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-4 border border-slate-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-900">Your Hostel &amp; Room</h3>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-black text-slate-900">Select Your Hostel &amp; Room</h3>
               <button
                 type="button"
                 onClick={() => setIsResidenceModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-xs"
+                className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 font-bold text-xs cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveResidence} className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Hostel</label>
-                <select
-                  value={selectedHostel}
-                  onChange={(e) => setSelectedHostel(e.target.value)}
-                  className="enterprise-input"
-                >
-                  {hostelsList.map((h) => (
-                    <option key={h.id} value={h.name}>
-                      {h.name}
-                    </option>
-                  ))}
-                  <option value="Day Scholar">Day Scholar</option>
-                </select>
+            <form onSubmit={handleSaveResidence} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {hostelsList.map((h) => {
+                  const active = selectedHostel === h.name;
+                  return (
+                    <button
+                      key={h.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedHostel(h.name);
+                        setCustomRoomInput('');
+                      }}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        active ? 'border-indigo-600 bg-indigo-50/70' : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <div className="text-xs font-bold text-slate-900">{h.shortName}</div>
+                      <div className="text-[10px] text-slate-500">{h.type}</div>
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Floor</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Floor</label>
                   <select
                     value={selectedFloor}
                     onChange={(e) => setSelectedFloor(e.target.value)}
-                    className="enterprise-input"
+                    className="enterprise-input text-xs"
                   >
                     {HOSTEL_FLOORS.map((f) => (
                       <option key={f.id} value={f.id}>
-                        Floor {f.id}
+                        {f.label}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Room No.</label>
-                  <input
-                    type="text"
-                    list="modal-room-list"
-                    value={selectedRoom}
-                    onChange={(e) => setSelectedRoom(e.target.value)}
-                    className="enterprise-input"
-                  />
-                  <datalist id="modal-room-list">
-                    {availableRooms.map((r) => (
-                      <option key={r} value={r} />
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Wing</label>
+                  <select
+                    value={selectedWing}
+                    onChange={(e) => setSelectedWing(e.target.value)}
+                    className="enterprise-input text-xs"
+                  >
+                    {HOSTEL_WINGS.slice(0, 2).map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.label}
+                      </option>
                     ))}
-                  </datalist>
+                  </select>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Room Number</label>
+                  <select
+                    value={selectedRoom}
+                    onChange={(e) => {
+                      setSelectedRoom(e.target.value);
+                      setCustomRoomInput('');
+                    }}
+                    className="enterprise-input text-xs"
+                  >
+                    {availableRooms
+                      .filter((r) => r.includes('Room') || r.includes('Suite'))
+                      .map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Or Custom Room</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Wing B, Room 312"
+                    value={customRoomInput}
+                    onChange={(e) => setCustomRoomInput(e.target.value)}
+                    className="enterprise-input text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsResidenceModalOpen(false)}
-                  className="px-3 py-1.5 text-xs text-slate-600"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingResidence}
-                  className="px-4 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium cursor-pointer"
+                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl cursor-pointer"
                 >
-                  {savingResidence ? 'Saving...' : 'Save'}
+                  {savingResidence ? 'Saving...' : 'Save Room'}
                 </button>
               </div>
             </form>
@@ -370,55 +521,57 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Minimal Rating Modal */}
+      {/* Rating Modal */}
       {selectedTicketForFeedback && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
           onClick={() => setSelectedTicketForFeedback(null)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl bg-white p-5 space-y-4 border border-slate-200 shadow-xl"
+            className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4 border border-slate-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-slate-900">
-              Rate Resolution ({selectedTicketForFeedback.tracking_code})
+            <h3 className="text-base font-black text-slate-900">
+              Rate Repair ({selectedTicketForFeedback.tracking_code})
             </h3>
-            <form onSubmit={handleSubmitRating} className="space-y-3">
-              <div className="flex justify-center space-x-2 py-1">
+            <form onSubmit={handleSubmitRating} className="space-y-4">
+              <div className="flex justify-center space-x-2 py-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     type="button"
                     onClick={() => setRatingScore(star)}
-                    className={`text-2xl cursor-pointer ${
-                      ratingScore >= star ? 'text-amber-400' : 'text-slate-200'
-                    }`}
+                    onMouseEnter={() => setRatingHover(star)}
+                    onMouseLeave={() => setRatingHover(0)}
+                    className="text-3xl cursor-pointer"
                   >
-                    ★
+                    <span className={(ratingHover || ratingScore) >= star ? 'text-amber-400' : 'text-slate-200'}>
+                      ★
+                    </span>
                   </button>
                 ))}
               </div>
               <textarea
-                rows={2}
+                rows={3}
                 value={feedbackComments}
                 onChange={(e) => setFeedbackComments(e.target.value)}
-                placeholder="Optional feedback..."
+                placeholder="Optional comments..."
                 className="enterprise-input resize-none"
               />
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setSelectedTicketForFeedback(null)}
-                  className="px-3 py-1.5 text-xs text-slate-600"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingFeedback}
-                  className="px-4 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium"
+                  className="px-5 py-2 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl"
                 >
-                  Submit
+                  Submit Rating
                 </button>
               </div>
             </form>

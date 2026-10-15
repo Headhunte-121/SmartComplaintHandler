@@ -1,5 +1,5 @@
 /*
- * SmartComplaintHandler - Minimal Modern Design System (Linear / Vercel / Raycast Aesthetic)
+ * SmartComplaintHandler - Global Design System & Tailwind Stylesheet
  */
 @tailwind base;
 @tailwind components;
@@ -13,30 +13,36 @@
   }
 
   body {
-    background-color: #fafafa;
-    color: #09090b;
+    background-color: #f8fafc;
+    color: #0f172a;
   }
 }
 
 @layer components {
   .bg-architectural-grid {
-    background-color: #fafafa;
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
   }
 
   .bg-dark-architectural-grid {
-    background-color: #09090b;
+    background-size: 28px 28px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   }
 
   .bento-card {
-    @apply bg-white rounded-2xl border border-slate-200/80 shadow-xs transition-all duration-150;
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-bento transition-all duration-200;
   }
 
   .bento-card-interactive {
-    @apply bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all duration-150;
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-bento hover:shadow-bento-hover hover:border-indigo-200/80 transition-all duration-200;
   }
 
   .enterprise-input {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 transition-colors duration-150 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/5;
+    @apply w-full rounded-xl border border-slate-300/90 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-150 focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10;
   }
 }
 
