@@ -492,6 +492,10 @@
           <span class="hud-label">Roads / Walkways</span>
           <span class="hud-val" id="hud-road-count">0 Traced</span>
         </div>
+        <div class="hud-item" style="border-left: 1px solid rgba(255,255,255,0.15); padding-left: 12px;">
+          <span class="hud-label" style="color: #a5b4fc;">Live Navigation</span>
+          <span class="hud-val" style="color: #c7d2fe; font-size: 11px;">⌨️ WASD / Arrows to Pan (Shift = 2x)</span>
+        </div>
       </div>
     </div>
 
@@ -923,6 +927,48 @@
       loadSavedRoads();
       updateJsonOutput();
       updateGeometryCodeOutput();
+
+      // --- Smooth WASD & Arrow Key Continuous Panning Loop (Works even while marking/tracing!) ---
+      const keysDown = {};
+      window.addEventListener('keydown', (e) => {
+        // Don't pan if focused in an input/textarea/select
+        const activeTag = document.activeElement?.tagName;
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
+
+        const k = e.key.toLowerCase();
+        if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
+          keysDown[k] = true;
+          if (k !== 'shift') e.preventDefault();
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        delete keysDown[k];
+      });
+
+      window.addEventListener('blur', () => {
+        for (const k in keysDown) delete keysDown[k];
+      });
+
+      function runKeyboardPanLoop() {
+        if (map) {
+          let dx = 0;
+          let dy = 0;
+          const speed = keysDown['shift'] ? 24 : 10;
+
+          if (keysDown['w'] || keysDown['arrowup']) dy -= speed;
+          if (keysDown['s'] || keysDown['arrowdown']) dy += speed;
+          if (keysDown['a'] || keysDown['arrowleft']) dx -= speed;
+          if (keysDown['d'] || keysDown['arrowright']) dx += speed;
+
+          if (dx !== 0 || dy !== 0) {
+            map.panBy([dx, dy], { animate: false });
+          }
+        }
+        requestAnimationFrame(runKeyboardPanLoop);
+      }
+      requestAnimationFrame(runKeyboardPanLoop);
     }
 
     function switchBasemap(type) {
@@ -1171,8 +1217,23 @@
             direction: 'top'
           });
 
+          // Interactive popup directly on the polygon with 1-click Delete Wing & Edit
+          poly.bindPopup(`
+            <div style="min-width: 170px; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;">
+              <div style="font-weight: 800; font-size: 13px; color: ${color}; margin-bottom: 2px;">
+                ${b.shortName || b.name}
+              </div>
+              <div style="font-size: 11px; color: #cbd5e1; margin-bottom: 8px;">
+                ${polyData.name} (${(polyData.latlngs || []).length} vertices)
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn sky" style="padding: 4px 8px; font-size: 10.5px;" onclick="focusAndEditPolygon('${polyData.id}')">✏️ Edit</button>
+                <button class="btn danger" style="padding: 4px 8px; font-size: 10.5px;" onclick="deleteWingPolygon('${polyData.id}')">🗑️ Delete Wing</button>
+              </div>
+            </div>
+          `);
+
           poly.on('click', (ev) => {
-            L.DomEvent.stopPropagation(ev);
             selectBuilding(b.id);
             setSidebarTab('builder');
           });
@@ -1227,7 +1288,7 @@
           </div>
           <div style="display:flex;gap:4px;">
             <button class="btn sky" style="padding:2px 7px;font-size:10px;" onclick="focusAndEditPolygon('${p.id}')">✏️ Edit</button>
-            <button class="btn danger" style="padding:2px 7px;font-size:10px;" onclick="deleteWingPolygon('${p.id}')">🗑️</button>
+            <button class="btn danger" style="padding:2px 7px;font-size:10px;" onclick="deleteWingPolygon('${p.id}')">🗑️ Delete</button>
           </div>
         `;
         container.appendChild(div);
@@ -1255,19 +1316,35 @@
       }
     }
 
-    function deleteWingPolygon(polyId) {
-      const b = buildings.find(x => x.id === selectedBuildingId);
-      if (!b) return;
-      b.polygons = (b.polygons || []).filter(p => p.id !== polyId);
-      if (buildingPolygonsLayers[polyId]) {
-        map.removeLayer(buildingPolygonsLayers[polyId]);
-        delete buildingPolygonsLayers[polyId];
+    function deleteWingPolygon(polyId, askConfirm = true) {
+      let targetB = null;
+      let targetPoly = null;
+      for (const b of buildings) {
+        if (b.polygons) {
+          const p = b.polygons.find(x => x.id === polyId);
+          if (p) {
+            targetB = b;
+            targetPoly = p;
+            break;
+          }
+        }
       }
-      saveBuildingsToStorage();
-      renderBuildingPolygonsList();
-      updateJsonOutput();
-      updateGeometryCodeOutput();
-      showToast('Deleted wing polygon');
+
+      if (!targetB || !targetPoly) return;
+
+      if (!askConfirm || confirm(`Delete wing "${targetPoly.name}" from "${targetB.shortName}"?`)) {
+        targetB.polygons = targetB.polygons.filter(p => p.id !== polyId);
+        if (buildingPolygonsLayers[polyId]) {
+          map.removeLayer(buildingPolygonsLayers[polyId]);
+          delete buildingPolygonsLayers[polyId];
+        }
+        saveBuildingsToStorage();
+        renderBuildingPolygonsList();
+        renderBuildingPolygons();
+        updateJsonOutput();
+        updateGeometryCodeOutput();
+        showToast(`🗑️ Deleted wing "${targetPoly.name}"`);
+      }
     }
 
     // --- Building Entrances System ---
@@ -1460,6 +1537,29 @@
     }
 
     function onGeomanVectorRemoved(e) {
+      // 1. Check if user removed a building wing polygon via Geoman trash tool
+      for (const b of buildings) {
+        if (b.polygons) {
+          const found = b.polygons.find(p => buildingPolygonsLayers[p.id] === e.layer);
+          if (found) {
+            deleteWingPolygon(found.id, false);
+            return;
+          }
+        }
+      }
+
+      // 2. Check if user removed an entrance marker
+      for (const b of buildings) {
+        if (b.entrances) {
+          const foundEnt = b.entrances.find(ent => entranceMarkersMap[ent.id] === e.layer);
+          if (foundEnt) {
+            deleteEntrance(foundEnt.id);
+            return;
+          }
+        }
+      }
+
+      // 3. Otherwise remove from roads/paths
       roadLayers = roadLayers.filter(l => l !== e.layer);
       saveRoadsToStorage();
       renderRoadsList();
