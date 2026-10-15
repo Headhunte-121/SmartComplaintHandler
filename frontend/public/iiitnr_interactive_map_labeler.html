@@ -242,19 +242,57 @@
       background: #6366f1;
     }
 
-    /* Entrance Pin */
-    .gis-entrance-marker {
-      background: rgba(15, 23, 42, 0.92);
+    /* Entrance Pin (Branded by Parent Building) */
+    .gis-entrance-anchor {
+      background: none !important;
+      border: none !important;
+    }
+    .gis-entrance-chip {
+      background: rgba(15, 23, 42, 0.94);
       border: 1.5px solid #10b981;
-      color: #34d399;
-      padding: 2px 6px;
-      border-radius: 6px;
+      color: #f8fafc;
+      padding: 2px 7px 2px 4px;
+      border-radius: 999px;
       font-size: 10px;
-      font-weight: 800;
+      font-weight: 700;
       white-space: nowrap;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.5);
-      cursor: grab;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.55);
+      cursor: pointer;
       user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.2s ease;
+    }
+    .gis-entrance-chip:hover {
+      transform: scale(1.06);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+    }
+    .gis-entrance-chip.selected {
+      border-width: 2px;
+      box-shadow: 0 0 14px rgba(255, 255, 255, 0.4), 0 4px 12px rgba(0,0,0,0.7);
+    }
+    .gis-ent-badge {
+      font-size: 8.5px;
+      font-family: monospace;
+      font-weight: 800;
+      color: #020617;
+      padding: 1px 4px;
+      border-radius: 999px;
+      line-height: 1.2;
+    }
+    .gis-ent-icon {
+      font-size: 10.5px;
+      line-height: 1;
+    }
+    .gis-ent-name {
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+    .btn.emerald.active {
+      background: #047857;
+      border-color: #34d399;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
     }
 
     /* Sidebar */
@@ -518,12 +556,14 @@
           <div class="pin-chip-grid" id="pin-chips"></div>
         </div>
 
-        <!-- Selected Building Details Form -->
+        <!-- Unified Building Entity Card (Details + Wings + Entrances) -->
         <div class="card" id="form-builder-card">
-          <h3>
-            <span>✏️ Building Details</span>
-            <span id="selected-badge-tag" style="font-size:10px;color:#38bdf8;font-family:monospace;">[ACAD]</span>
-          </h3>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>
+              <span>🏢 Building Profile</span>
+              <span id="selected-badge-tag" style="font-size:10px;color:#38bdf8;font-family:monospace;">[ACAD]</span>
+            </h3>
+          </div>
 
           <div>
             <label>Full Building / Hostel Name</label>
@@ -578,43 +618,44 @@
             <input type="text" id="f-desc" oninput="updateSelectedBuildingFromForm()" placeholder="e.g. Central rotunda dome and classroom complex" />
           </div>
 
-          <div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;">
-            <span id="f-gps" style="font-size:11px;font-family:monospace;color:#34d399;">21.1284° N, 81.7661° E</span>
-            <button class="btn danger" onclick="deleteSelectedBuilding()">🗑️ Delete Building</button>
+          <!-- NESTED SUB-SECTION: ATTACHED WING POLYGONS -->
+          <div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h4 style="margin:0;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px;color:#f8fafc;">
+                <span>🏛️ Attached Wing Polygons</span>
+                <span id="wing-count-pill" style="font-size:10px;color:var(--sky);">0 Attached</span>
+              </h4>
+              <button class="btn sky" style="padding:3px 8px;font-size:10px;" onclick="startDrawWingForSelectedBuilding()">+ Draw Wing</button>
+            </div>
+            <p style="font-size:10px;color:var(--muted);margin:4px 0 6px;line-height:1.35;">
+              Trace the physical wings &amp; roof contours of this building on Google Satellite.
+            </p>
+            <div id="building-polygons-list" style="display:flex;flex-direction:column;gap:5px;max-height:150px;overflow-y:auto;">
+              <!-- Dynamically populated -->
+            </div>
           </div>
-        </div>
 
-        <!-- ATTACHED POLYGONS / WINGS SECTION -->
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h3>
-              <span>🏛️ Attached Wing Polygons</span>
-              <span id="wing-count-pill" style="font-size:10px;color:var(--emerald);">0 Attached</span>
-            </h3>
-            <button class="btn sky" onclick="startDrawWingForSelectedBuilding()">+ Draw Wing Polygon</button>
+          <!-- NESTED SUB-SECTION: BUILDING ENTRANCES -->
+          <div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h4 style="margin:0;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px;color:#f8fafc;">
+                <span>🚪 Ingress &amp; Building Entrances</span>
+                <span id="entrance-count-pill" style="font-size:10px;color:var(--emerald);">0 Entrances</span>
+              </h4>
+              <button class="btn emerald" id="btn-add-entrance" style="padding:3px 8px;font-size:10px;" onclick="enableAddEntranceMode()">+ Mark Entrance</button>
+            </div>
+            <p style="font-size:10px;color:var(--muted);margin:4px 0 6px;line-height:1.35;">
+              Mark the doorways, porticos, or gates entering this specific building.
+            </p>
+            <div id="building-entrances-list" style="display:flex;flex-direction:column;gap:5px;max-height:150px;overflow-y:auto;">
+              <!-- Dynamically populated -->
+            </div>
           </div>
-          <p style="font-size:10.5px;color:var(--muted);line-height:1.4;">
-            Trace each wing, courtyard, or hall on Google Satellite. The polygon will be attached directly to this building!
-          </p>
-          <div id="building-polygons-list" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
 
-        <!-- BUILDING ENTRANCES SECTION -->
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h3>
-              <span>🚪 Building Entrances / Doors</span>
-              <span id="entrance-count-pill" style="font-size:10px;color:var(--emerald);">0 Entrances</span>
-            </h3>
-            <button class="btn emerald" onclick="enableAddEntranceMode()">+ Mark Entrance</button>
-          </div>
-          <p style="font-size:10.5px;color:var(--muted);line-height:1.4;">
-            Mark the exact entrance doors or porticos on the satellite image.
-          </p>
-          <div id="building-entrances-list" style="display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;">
-            <!-- Dynamically populated -->
+          <!-- BUILDING FOOTER: COORDINATES & COMPLETE REMOVAL -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:8px;border-top:1px solid rgba(255,255,255,0.08);">
+            <span id="f-gps" style="font-size:10.5px;font-family:monospace;color:#34d399;">21.1284° N, 81.7661° E</span>
+            <button class="btn danger" style="padding:4px 10px;font-size:11px;" onclick="deleteSelectedBuilding()">🗑️ Delete Entire Building</button>
           </div>
         </div>
       </div>
@@ -848,6 +889,7 @@
     let selectedRoadId = null;
     let markersMap = {};
     let entranceMarkersMap = {};
+    let entranceTethersMap = {};     // entId -> L.Polyline (dashed leader line to parent building pin)
     let buildingPolygonsLayers = {}; // polyId -> L.Polygon
     let roadLayers = [];             // Array of L.Polyline
     let isAddingPin = false;
@@ -936,6 +978,18 @@
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
 
         const k = e.key.toLowerCase();
+        if (e.key === 'Escape') {
+          if (isAddingPin) {
+            isAddingPin = false;
+            document.getElementById('btn-add-pin')?.classList.remove('active');
+            showToast('Cancelled building placement');
+          }
+          if (isAddingEntrance) {
+            isAddingEntrance = false;
+            document.getElementById('btn-add-entrance')?.classList.remove('active');
+            showToast('Cancelled entrance placement');
+          }
+        }
         if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
           keysDown[k] = true;
           if (k !== 'shift') e.preventDefault();
@@ -995,12 +1049,13 @@
         const lng = Number(e.latlng.lng.toFixed(6));
         createBuildingAtCoords(lat, lng);
         isAddingPin = false;
-        document.getElementById('btn-add-pin').classList.remove('active');
+        document.getElementById('btn-add-pin')?.classList.remove('active');
       } else if (isAddingEntrance) {
         const lat = Number(e.latlng.lat.toFixed(6));
         const lng = Number(e.latlng.lng.toFixed(6));
         addEntranceToSelectedBuilding(lat, lng);
         isAddingEntrance = false;
+        document.getElementById('btn-add-entrance')?.classList.remove('active');
       }
     }
 
@@ -1040,10 +1095,24 @@
           selectBuilding(b.id);
         });
 
+        marker.on('drag', (ev) => {
+          const pos = ev.target.getLatLng();
+          (b.entrances || []).forEach(e => {
+            if (entranceTethersMap[e.id]) {
+              entranceTethersMap[e.id].setLatLngs([[pos.lat, pos.lng], [e.lat, e.lng]]);
+            }
+          });
+        });
+
         marker.on('dragend', (ev) => {
           const pos = ev.target.getLatLng();
           b.mapPin.lat = Number(pos.lat.toFixed(6));
           b.mapPin.lng = Number(pos.lng.toFixed(6));
+          (b.entrances || []).forEach(e => {
+            if (entranceTethersMap[e.id]) {
+              entranceTethersMap[e.id].setLatLngs([[b.mapPin.lat, b.mapPin.lng], [e.lat, e.lng]]);
+            }
+          });
           selectBuilding(b.id);
           saveBuildingsToStorage();
           showToast(`📍 Moved "${b.shortName}" to ${b.mapPin.lat}°, ${b.mapPin.lng}°`);
@@ -1076,6 +1145,7 @@
       loadSelectedBuildingIntoForm();
       renderBuildingPolygonsList();
       renderBuildingEntrancesList();
+      renderBuildingEntrances(); // Refreshes tethers opacity and chip states for selected building
 
       const b = buildings.find(x => x.id === id);
       if (b) {
@@ -1174,13 +1244,14 @@
     function deleteSelectedBuilding() {
       if (!selectedBuildingId) return;
       const b = buildings.find(x => x.id === selectedBuildingId);
-      if (confirm(`Delete building "${b?.shortName || b?.name}" and all its attached wings?`)) {
+      if (confirm(`Delete building "${b?.shortName || b?.name}" along with all its attached wings and entrances?`)) {
         // Remove attached polygon layers from map
         (b.polygons || []).forEach(p => {
           if (buildingPolygonsLayers[p.id]) map.removeLayer(buildingPolygonsLayers[p.id]);
         });
         (b.entrances || []).forEach(e => {
           if (entranceMarkersMap[e.id]) map.removeLayer(entranceMarkersMap[e.id]);
+          if (entranceTethersMap[e.id]) map.removeLayer(entranceTethersMap[e.id]);
         });
 
         buildings = buildings.filter(x => x.id !== selectedBuildingId);
@@ -1192,7 +1263,7 @@
         loadSelectedBuildingIntoForm();
         saveBuildingsToStorage();
         updateJsonOutput();
-        showToast('Deleted building');
+        showToast('Deleted building and attached features');
       }
     }
 
@@ -1347,28 +1418,90 @@
       }
     }
 
-    // --- Building Entrances System ---
+    // --- Building Entrances System (Nested within Building) ---
     function renderBuildingEntrances() {
       Object.values(entranceMarkersMap).forEach(m => map.removeLayer(m));
       entranceMarkersMap = {};
+      Object.values(entranceTethersMap).forEach(t => map.removeLayer(t));
+      entranceTethersMap = {};
 
       buildings.forEach(b => {
+        const isParentSel = b.id === selectedBuildingId;
+        const color = b.color || '#10b981';
+        const badge = b.badge || 'PIN';
+        const pinLat = b.mapPin?.lat || 21.1284;
+        const pinLng = b.mapPin?.lng || 81.7661;
+
         (b.entrances || []).forEach(ent => {
+          // 1. Visual dashed leader / tether line connecting building pin to entrance door
+          const tether = L.polyline([[pinLat, pinLng], [ent.lat, ent.lng]], {
+            color: color,
+            weight: isParentSel ? 2 : 1.2,
+            dashArray: '3, 5',
+            opacity: isParentSel ? 0.9 : 0.45,
+            interactive: false
+          }).addTo(map);
+          entranceTethersMap[ent.id] = tether;
+
+          // 2. Entrance marker chip branded with parent building badge & color
           const icon = L.divIcon({
-            className: '',
-            html: `<div class="gis-entrance-marker">🚪 ${ent.name}</div>`,
-            iconAnchor: [30, 10]
+            className: 'gis-entrance-anchor',
+            html: `
+              <div class="gis-entrance-chip ${isParentSel ? 'selected' : ''}" style="border-color:${color};">
+                <span class="gis-ent-badge" style="background:${color};">${badge}</span>
+                <span class="gis-ent-icon">🚪</span>
+                <span class="gis-ent-name">${ent.name}</span>
+              </div>
+            `,
+            iconAnchor: [12, 12]
           });
 
           const marker = L.marker([ent.lat, ent.lng], { draggable: true, icon }).addTo(map);
+
+          marker.on('click', (ev) => {
+            L.DomEvent.stopPropagation(ev);
+            selectBuilding(b.id);
+            setSidebarTab('builder');
+            highlightEntranceInSidebar(ent.id);
+          });
+
+          marker.on('drag', (ev) => {
+            const pos = ev.target.getLatLng();
+            if (entranceTethersMap[ent.id]) {
+              entranceTethersMap[ent.id].setLatLngs([[b.mapPin.lat, b.mapPin.lng], [pos.lat, pos.lng]]);
+            }
+          });
 
           marker.on('dragend', (ev) => {
             const pos = ev.target.getLatLng();
             ent.lat = Number(pos.lat.toFixed(6));
             ent.lng = Number(pos.lng.toFixed(6));
+            if (entranceTethersMap[ent.id]) {
+              entranceTethersMap[ent.id].setLatLngs([[b.mapPin.lat, b.mapPin.lng], [ent.lat, ent.lng]]);
+            }
             saveBuildingsToStorage();
             updateJsonOutput();
+            renderBuildingEntrancesList();
+            showToast(`🚪 Moved entrance for "${b.shortName}"`);
           });
+
+          marker.bindPopup(`
+            <div style="min-width: 175px; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;">
+              <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: ${color}; font-weight: 800;">
+                [${badge}] Part of ${b.shortName || b.name}
+              </div>
+              <div style="font-size: 12px; font-weight: 700; color: #ffffff; margin: 3px 0 6px;">
+                🚪 ${ent.name}
+              </div>
+              <div style="font-size: 10px; color: #94a3b8; margin-bottom: 8px; font-family: monospace;">
+                ${ent.lat.toFixed(6)}° N, ${ent.lng.toFixed(6)}° E
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn sky" style="padding: 3px 8px; font-size: 10px;" onclick="focusEntrance('${b.id}', '${ent.id}')">✏️ Focus In Building</button>
+                <button class="btn danger" style="padding: 3px 8px; font-size: 10px;" onclick="deleteEntrance('${ent.id}')">🗑️ Delete</button>
+              </div>
+            </div>
+          `);
 
           entranceMarkersMap[ent.id] = marker;
         });
@@ -1379,6 +1512,8 @@
       const b = buildings.find(x => x.id === selectedBuildingId);
       if (!b) return;
       isAddingEntrance = true;
+      const btn = document.getElementById('btn-add-entrance');
+      if (btn) btn.classList.add('active');
       showToast(`🚪 Click on Google Satellite to place entrance door for "${b.shortName}"!`);
     }
 
@@ -1411,23 +1546,55 @@
       document.getElementById('entrance-count-pill').textContent = `${ents.length} Entrances`;
 
       if (ents.length === 0) {
-        container.innerHTML = `<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px;">No entrance doors marked. Click "+ Mark Entrance" to place a door on the map.</div>`;
+        container.innerHTML = `<div style="font-size:10.5px;color:var(--muted);text-align:center;padding:10px;border:1px dashed rgba(255,255,255,0.08);border-radius:6px;">No entrances marked for ${b.shortName}. Click "+ Mark Entrance" to place a door or gate.</div>`;
         return;
       }
 
       container.innerHTML = '';
-      ents.forEach((e, idx) => {
+      ents.forEach((e) => {
         const div = document.createElement('div');
         div.className = 'sub-item-card';
+        div.id = `ent-item-${e.id}`;
+        div.style.transition = 'background 0.3s ease, border-color 0.3s ease';
         div.innerHTML = `
-          <div style="flex:1;">
-            <input type="text" value="${e.name}" style="background:transparent;border:none;color:#fff;font-weight:700;font-size:11px;padding:0;" onchange="renameEntrance('${e.id}', this.value)" />
-            <div style="font-size:10px;color:var(--muted);">${e.lat.toFixed(5)}°, ${e.lng.toFixed(5)}°</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span style="font-size:9.5px;font-family:monospace;font-weight:800;color:${b.color || '#38bdf8'};">[${b.badge || 'PIN'}]</span>
+              <input type="text" value="${e.name}" style="background:transparent;border:none;color:#fff;font-weight:700;font-size:11px;padding:0;width:100%;outline:none;" onchange="renameEntrance('${e.id}', this.value)" title="Click to rename entrance" />
+            </div>
+            <div style="font-size:9.5px;color:var(--muted);margin-top:2px;">${e.lat.toFixed(5)}°, ${e.lng.toFixed(5)}° · Attached to ${b.shortName}</div>
           </div>
-          <button class="btn danger" style="padding:2px 6px;font-size:10px;" onclick="deleteEntrance('${e.id}')">🗑️</button>
+          <div style="display:flex;gap:4px;flex-shrink:0;">
+            <button class="btn sky" style="padding:2px 6px;font-size:10px;" title="Focus on map" onclick="focusEntrance('${b.id}', '${e.id}')">🎯</button>
+            <button class="btn danger" style="padding:2px 6px;font-size:10px;" title="Delete entrance" onclick="deleteEntrance('${e.id}')">🗑️</button>
+          </div>
         `;
         container.appendChild(div);
       });
+    }
+
+    function focusEntrance(bId, entId) {
+      selectBuilding(bId);
+      setSidebarTab('builder');
+      const b = buildings.find(x => x.id === bId);
+      const ent = (b?.entrances || []).find(x => x.id === entId);
+      if (ent) {
+        map.flyTo([ent.lat, ent.lng], 20, { duration: 0.8 });
+        highlightEntranceInSidebar(entId);
+      }
+    }
+
+    function highlightEntranceInSidebar(entId) {
+      const el = document.getElementById(`ent-item-${entId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        el.style.borderColor = 'var(--emerald)';
+        el.style.background = 'rgba(16, 185, 129, 0.18)';
+        setTimeout(() => {
+          el.style.borderColor = '';
+          el.style.background = '';
+        }, 1800);
+      }
     }
 
     function renameEntrance(entId, newName) {
@@ -1443,17 +1610,21 @@
     }
 
     function deleteEntrance(entId) {
-      const b = buildings.find(x => x.id === selectedBuildingId);
+      const b = buildings.find(x => x.id === selectedBuildingId) || buildings.find(b => (b.entrances || []).some(e => e.id === entId));
       if (!b) return;
       b.entrances = (b.entrances || []).filter(e => e.id !== entId);
       if (entranceMarkersMap[entId]) {
         map.removeLayer(entranceMarkersMap[entId]);
         delete entranceMarkersMap[entId];
       }
+      if (entranceTethersMap[entId]) {
+        map.removeLayer(entranceTethersMap[entId]);
+        delete entranceTethersMap[entId];
+      }
       saveBuildingsToStorage();
       renderBuildingEntrancesList();
       updateJsonOutput();
-      showToast('Deleted entrance');
+      showToast(`🗑️ Deleted entrance from "${b.shortName || b.name}"`);
     }
 
     // --- GIS Vector Roads & Footpaths with Width Controls ---
