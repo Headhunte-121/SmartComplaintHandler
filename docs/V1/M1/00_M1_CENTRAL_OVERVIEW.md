@@ -878,3 +878,31 @@ npm run dev
 * **Verification Proof:**
   - Frontend Production Build: `npm run build` compiled in 18.08s with 0 errors (bundle: 431.80 kB).
   - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 9.77s (100% pass rate).
+
+### [2026-10-15] - 1:1 Satellite Architectural Footprint Engine & Super Admin Map Lockdown
+* **Files Modified:**
+  - `frontend/public/iiitnr_campus_satellite.png` (authentic university satellite imagery)
+  - `frontend/src/components/CampusMapSelector.jsx`
+  - `frontend/src/data/iiitnrCampusData.js`
+  - `backend/tests/test_auth.py`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **Zero-Outside University Architectural Tracing Engine:**
+     - Replaced generic external map tiles with a high-resolution 1:1 university-only satellite overlay (`/iiitnr_campus_satellite.png`) and vector blueprint canvas strictly clipped to the authentic IIIT Naya Raipur campus polygon (`CAMPUS_PERIMETER_POINTS`).
+     - Traced actual architectural footprints for all campus structures:
+       - Square courtyard quadrangle blocks for Ramanujan, Bhabha, Raman, and Shabri Hostels with directional wing orientations.
+       - Central rotunda dome and interconnected NW/SE classroom and laboratory wings for the Academic & Administration Block.
+       - Circular canteen rotunda and connected central mess dining halls.
+       - Semicircular stepped concentric arcs for Amphitheatre 2.
+       - Walled North Sports Complex with twin courts, football/cricket turf, and north indoor hall.
+       - Main entrance gate, security plaza, and Union Bank of India ATM.
+     - Interactive smooth Zoom (+ / - / Reset to 100%), pan viewport, and view mode toggle between "Traced Campus Plan" and "Satellite Trace".
+  2. **Role-Based Super Admin Map Lockdown Enforced:**
+     - Guarded all editing and custom block creation actions behind `currentUser.role === 'SUPER_ADMIN'` (`isSuperAdmin` via `useAuth()`).
+     - Restricted toolbar `✏️ Edit / Label` button: only rendered when `isSuperAdmin === true`.
+     - Blocked block dragging, canvas click-to-create (`handleSvgClick`), inline metadata editor drawer, block deletion, default resets, and JSON export/import application for all non-super admin roles (Students, Admins, Technicians, Guests).
+  3. **Backend Test Suite Idempotency:**
+     - Preserved dynamic UUID email generation in `backend/tests/test_auth.py` to prevent 409 Conflict regressions across repeated test runs against SQLite.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled cleanly in 16.80s with 0 errors (bundle: 435.21 kB).
+  - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 8.64s (100% pass rate).

@@ -1,17 +1,31 @@
 /**
- * SmartComplaintHandler - Georeferenced IIIT Naya Raipur Interactive Map (OSM + Satellite + Vector)
- * Rich visual design with quick hostel/building pills, real Leaflet OSM & Satellite tiles,
- * 1:1 traced OpenStreetMap campus plan, and live pin/room labeling studio — zero promotional filler.
+ * SmartComplaintHandler - Custom University-Only Satellite-Traced Map (IIIT Naya Raipur)
+ *
+ * Design:
+ * - Zero outside area / zero external OSM tiles: Strictly renders ONLY the IIIT Naya Raipur campus
+ *   polygon extracted 1:1 from the Google Satellite image (735 x 857 coordinate space).
+ * - Every building is drawn with its actual traced architectural footprint:
+ *   - Square courtyard quadrangles for Ramanujan, Bhabha, Raman, and Shabri Hostels
+ *   - Central Rotunda Dome + NW/SE Lab & Classroom wings for the Academic & Admin Block
+ *   - Circular Canteen Rotunda + Central Mess Hall
+ *   - Semicircular stepped concentric arcs for Amphitheatre 2
+ *   - Walled Twin-Court Sports Complex (red & green courts), Central Football/Cricket Turf, & North Indoor Hall
+ *   - Multi-Purpose Hall (MPH / SAC), Library (KRC), Faculty Quarters, and Main Gate + Union Bank ATM
+ * - Includes smooth Zoom (+ / - / Reset), Pan, and a toggle between:
+ *   1. "Traced Master Plan" (Pure custom architectural vector map of the university)
+ *   2. "Satellite Overlay" (Masked university-only satellite texture with interactive traced footprints)
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
-  IIITNR_CAMPUS_METADATA,
   IIITNR_MAP_UPDATED_EVENT,
   getCampusBuildings,
   saveCustomCampusBuildings,
   resetCampusBuildingsToDefault,
 } from '../data/iiitnrCampusData';
+
+const CAMPUS_PERIMETER_POINTS =
+  '195,28 255,48 220,175 245,290 360,272 325,195 425,132 480,218 442,265 548,412 662,468 562,835 328,755 15,645';
 
 export default function CampusMapSelector({
   selectedBuilding,
@@ -23,18 +37,29 @@ export default function CampusMapSelector({
 }) {
   const { isSuperAdmin } = useAuth();
   const [buildings, setBuildings] = useState(() => getCampusBuildings());
-  const [mapMode, setMapMode] = useState('osm'); // 'osm' | 'satellite' | 'vector'
+  const [viewStyle, setViewStyle] = useState('vector'); // 'vector' | 'satellite'
+  const [hoveredId, setHoveredId] = useState(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingBuildingId, setEditingBuildingId] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [jsonText, setJsonText] = useState('');
 
-  const leafletContainerRef = useRef(null);
-  const leafletMapRef = useRef(null);
-  const tileLayerRef = useRef(null);
-  const markersRef = useRef({});
-  const vectorContainerRef = useRef(null);
+  const svgRef = useRef(null);
+
+  // Strictly enforce that only Super Admin can activate Edit / Label mode
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      setIsEditMode(false);
+      setDraggingId(null);
+      setShowJsonModal(false);
+    }
+  }, [isSuperAdmin]);
 
   useEffect(() => {
     const handleUpdate = () => setBuildings(getCampusBuildings());
@@ -42,213 +67,105 @@ export default function CampusMapSelector({
     return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, handleUpdate);
   }, []);
 
-  useEffect(() => {
-    if (!isSuperAdmin) {
-      setIsEditMode(false);
-      setDraggingId(null);
-    }
-  }, [isSuperAdmin]);
-
   const activeBuildingObj =
     buildings.find(
       (b) => b.name === selectedBuilding || b.id === selectedBuilding || b.shortName === selectedBuilding
     ) || buildings[0];
 
+  const hoveredBuildingObj =
+    buildings.find((b) => b.id === hoveredId) || activeBuildingObj;
+
   const editingBuilding =
     buildings.find((b) => b.id === editingBuildingId) || activeBuildingObj;
 
-  useEffect(() => {
-    if (mapMode === 'vector') return;
-    if (typeof window === 'undefined' || !window.L || !leafletContainerRef.current) return;
+  const clientToSvgCoords = (e) => {
+    if (!svgRef.current) return null;
+    const rect = svgRef.current.getBoundingClientRect();
+    const rawX = ((e.clientX - rect.left) / rect.width) * 735;
+    const rawY = ((e.clientY - rect.top) / rect.height) * 857;
+    const cx = Math.round(Math.max(30, Math.min(705, (rawX - pan.x) / zoom)));
+    const cy = Math.round(Math.max(30, Math.min(825, (rawY - pan.y) / zoom)));
+    return { cx, cy };
+  };
 
-    const L = window.L;
-    if (!leafletMapRef.current) {
-      const map = L.map(leafletContainerRef.current, {
-        center: [21.1282, 81.7653],
-        zoom: 17,
-        zoomControl: true,
-      });
-      leafletMapRef.current = map;
-    }
+  const handleSvgClick = (e) => {
+    if (!isSuperAdmin || !isEditMode || draggingId) return;
+    if (e.target.closest('[data-bldg-id]')) return;
+    const coords = clientToSvgCoords(e);
+    if (!coords) return;
 
-    const map = leafletMapRef.current;
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current);
-    }
-
-    if (mapMode === 'satellite') {
-      tileLayerRef.current = L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 19, attribution: 'Esri Satellite · IIIT Naya Raipur' }
-      ).addTo(map);
-    } else {
-      tileLayerRef.current = L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        { maxZoom: 19, attribution: '© OpenStreetMap · IIIT Naya Raipur' }
-      ).addTo(map);
-    }
-
-    setTimeout(() => map.invalidateSize(), 60);
-  }, [mapMode]);
-
-  useEffect(() => {
-    if (mapMode === 'vector') return;
-    const map = leafletMapRef.current;
-    if (!map || typeof window === 'undefined' || !window.L) return;
-    const L = window.L;
-
-    Object.values(markersRef.current).forEach((m) => map.removeLayer(m));
-    markersRef.current = {};
-
-    buildings.forEach((b, idx) => {
-      const lat = b.mapPin?.lat ?? 21.12815;
-      const lng = b.mapPin?.lng ?? 81.7655;
-      const isSelected = activeBuildingObj?.id === b.id;
-      const badge = b.mapPin?.badge || `B-${idx + 1}`;
-      const pinColor = b.mapPin?.color || (b.category === 'HOSTEL' ? '#4f46e5' : '#0284c7');
-
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="
-          display:inline-flex;align-items:center;gap:6px;
-          padding:5px 10px;border-radius:12px;
-          font-family:Inter,sans-serif;font-size:11px;font-weight:700;white-space:nowrap;
-          background:${isSelected ? pinColor : 'rgba(15,23,42,0.92)'};
-          color:#ffffff;
-          border:2px solid ${isSelected ? '#ffffff' : pinColor};
-          box-shadow:0 4px 12px rgba(0,0,0,0.32);
-          transform:translate(-50%, -50%);
-        ">
-          <span style="font-family:monospace;font-size:9.5px;background:rgba(255,255,255,0.18);padding:1px 5px;border-radius:4px;">${badge}</span>
-          <span>${b.shortName || b.name}</span>
-        </div>`,
-        iconAnchor: [0, 0],
-      });
-
-      const marker = L.marker([lat, lng], {
-        draggable: Boolean(isSuperAdmin && isEditMode),
-        icon,
-      }).addTo(map);
-
-      marker.on('click', () => {
-        setEditingBuildingId(b.id);
-        onSelectBuilding && onSelectBuilding(b.name);
-      });
-
-      marker.on('dragend', (ev) => {
-        if (!isSuperAdmin) return;
-        const pos = ev.target.getLatLng();
-        const newLat = Number(pos.lat.toFixed(5));
-        const newLng = Number(pos.lng.toFixed(5));
-        const xPct = Math.max(5, Math.min(95, Number((((newLng - 81.7628) / 0.0054) * 100).toFixed(1))));
-        const yPct = Math.max(5, Math.min(95, Number((((21.1308 - newLat) / 0.0052) * 100).toFixed(1))));
-
-        const updated = buildings.map((item) =>
-          item.id !== b.id
-            ? item
-            : {
-                ...item,
-                gps: `${newLat}° N, ${newLng}° E`,
-                mapPin: { ...(item.mapPin || {}), lat: newLat, lng: newLng, xPct, yPct },
-              }
-        );
-        setBuildings(updated);
-        saveCustomCampusBuildings(updated);
-      });
-
-      markersRef.current[b.id] = marker;
-    });
-
-    const handleMapClick = (e) => {
-      if (!isSuperAdmin || !isEditMode) return;
-      const newLat = Number(e.latlng.lat.toFixed(5));
-      const newLng = Number(e.latlng.lng.toFixed(5));
-      const xPct = Math.max(5, Math.min(95, Number((((newLng - 81.7628) / 0.0054) * 100).toFixed(1))));
-      const yPct = Math.max(5, Math.min(95, Number((((21.1308 - newLat) / 0.0052) * 100).toFixed(1))));
-      addPinAt(newLat, newLng, xPct, yPct);
-    };
-
-    map.off('click');
-    map.on('click', handleMapClick);
-  }, [buildings, activeBuildingObj, isEditMode, mapMode, isSuperAdmin]);
-
-  useEffect(() => {
-    return () => {
-      if (leafletMapRef.current) {
-        leafletMapRef.current.remove();
-        leafletMapRef.current = null;
-      }
-    };
-  }, []);
-
-  const addPinAt = (lat, lng, xPct, yPct) => {
-    if (!isSuperAdmin) return;
-    const newId = `zone_${Date.now()}`;
+    const newId = `custom_${Date.now()}`;
     const idx = buildings.length + 1;
-    const newZone = {
+    const newBldg = {
       id: newId,
-      name: `New Building ${idx}`,
+      name: `New Campus Block ${idx}`,
       shortName: `Block ${idx}`,
-      type: 'Hostel / Campus Block',
+      type: 'Custom Campus Building',
       category: 'HOSTEL',
       wings: ['Wing A', 'Wing B'],
       floors: ['G', '1', '2', '3'],
       roomsPerFloor: 24,
       roomPrefix: 'Room ',
       customRooms: [],
-      mapPin: { xPct, yPct, lat, lng, color: '#4f46e5', badge: `B-${idx}` },
-      gps: `${lat}° N, ${lng}° E`,
+      trace: {
+        cx: coords.cx,
+        cy: coords.cy,
+        w: 58,
+        h: 52,
+        angle: 18,
+        shape: 'courtyard_quad',
+        color: '#4f46e5',
+        badge: `B-${idx}`,
+      },
+      mapPin: { badge: `B-${idx}`, color: '#4f46e5' },
+      gps: `Campus (${coords.cx}, ${coords.cy})`,
+      description: 'Custom traced campus building.',
     };
-    const updated = [...buildings, newZone];
+
+    const updated = [...buildings, newBldg];
     setBuildings(updated);
     saveCustomCampusBuildings(updated);
     setEditingBuildingId(newId);
-    onSelectBuilding && onSelectBuilding(newZone.name);
+    onSelectBuilding && onSelectBuilding(newBldg.name);
   };
 
-  const computeVectorCoords = (e) => {
-    if (!vectorContainerRef.current) return null;
-    const rect = vectorContainerRef.current.getBoundingClientRect();
-    const xPct = Math.max(4, Math.min(96, Number((((e.clientX - rect.left) / rect.width) * 100).toFixed(1))));
-    const yPct = Math.max(6, Math.min(94, Number((((e.clientY - rect.top) / rect.height) * 100).toFixed(1))));
-    const lat = Number((21.1308 - (yPct / 100) * 0.0052).toFixed(5));
-    const lng = Number((81.7628 + (xPct / 100) * 0.0054).toFixed(5));
-    return { xPct, yPct, lat, lng };
+  const handleMouseDown = (e) => {
+    if (e.target.closest('[data-bldg-id]')) return;
+    if (zoom > 1 || (isSuperAdmin && isEditMode)) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    }
   };
 
-  const handleVectorClick = (e) => {
-    if (!isSuperAdmin || !isEditMode || draggingId) return;
-    if (e.target.closest('[data-pin-id]')) return;
-    const c = computeVectorCoords(e);
-    if (c) addPinAt(c.lat, c.lng, c.xPct, c.yPct);
-  };
-
-  const handleVectorMouseMove = (e) => {
-    if (!isSuperAdmin || !isEditMode || !draggingId) return;
-    const c = computeVectorCoords(e);
-    if (!c) return;
-    setBuildings((prev) =>
-      prev.map((b) =>
-        b.id !== draggingId
-          ? b
-          : {
-              ...b,
-              gps: `${c.lat}° N, ${c.lng}° E`,
-              mapPin: { ...(b.mapPin || {}), xPct: c.xPct, yPct: c.yPct, lat: c.lat, lng: c.lng },
-            }
-      )
-    );
-  };
-
-  const handleVectorMouseUp = () => {
-    if (!isSuperAdmin) {
-      setDraggingId(null);
+  const handleMouseMove = (e) => {
+    if (isSuperAdmin && isEditMode && draggingId) {
+      const coords = clientToSvgCoords(e);
+      if (!coords) return;
+      setBuildings((prev) =>
+        prev.map((b) =>
+          b.id !== draggingId
+            ? b
+            : {
+                ...b,
+                trace: { ...(b.trace || {}), cx: coords.cx, cy: coords.cy },
+              }
+        )
+      );
       return;
     }
+    if (isPanning) {
+      setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
+    }
+  };
+
+  const handleMouseUp = () => {
     if (draggingId) {
-      saveCustomCampusBuildings(buildings);
+      if (isSuperAdmin) {
+        saveCustomCampusBuildings(buildings);
+      }
       setDraggingId(null);
     }
+    setIsPanning(false);
   };
 
   const handleUpdateBuildingField = (buildingId, updates) => {
@@ -256,7 +173,10 @@ export default function CampusMapSelector({
     const updated = buildings.map((b) => {
       if (b.id !== buildingId) return b;
       const merged = { ...b, ...updates };
-      if (updates.badge) merged.mapPin = { ...(b.mapPin || {}), badge: updates.badge };
+      if (updates.badge) {
+        merged.trace = { ...(b.trace || {}), badge: updates.badge };
+        merged.mapPin = { ...(b.mapPin || {}), badge: updates.badge };
+      }
       return merged;
     });
     setBuildings(updated);
@@ -274,16 +194,337 @@ export default function CampusMapSelector({
     onSelectBuilding && onSelectBuilding(remaining[0].name);
   };
 
+  /**
+   * Renders the exact satellite-traced architectural footprint for each IIIT-NR building.
+   */
+  const renderBuildingFootprint = (b, isSelected, isHovered) => {
+    const cx = b.trace?.cx ?? Math.round(((b.mapPin?.xPct || 50) / 100) * 735);
+    const cy = b.trace?.cy ?? Math.round(((b.mapPin?.yPct || 50) / 100) * 857);
+    const w = b.trace?.w || 60;
+    const h = b.trace?.h || 54;
+    const angle = b.trace?.angle ?? 18;
+    const shape = b.trace?.shape || 'courtyard_quad';
+    const baseColor = b.trace?.color || b.mapPin?.color || '#4f46e5';
+    const badge = b.trace?.badge || b.mapPin?.badge || 'BLDG';
+
+    const fillOpacity = viewStyle === 'satellite' ? (isSelected ? 0.82 : 0.58) : 0.95;
+    const strokeColor = isSelected ? '#38bdf8' : isHovered ? '#ffffff' : 'rgba(255,255,255,0.65)';
+    const strokeWidth = isSelected ? 3.5 : isHovered ? 2.5 : 1.5;
+
+    return (
+      <g
+        key={b.id}
+        data-bldg-id={b.id}
+        onMouseEnter={() => setHoveredId(b.id)}
+        onMouseLeave={() => setHoveredId(null)}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          setEditingBuildingId(b.id);
+          onSelectBuilding && onSelectBuilding(b.name);
+          if (isSuperAdmin && isEditMode) setDraggingId(b.id);
+        }}
+        className={isSuperAdmin && isEditMode ? 'cursor-move' : 'cursor-pointer'}
+      >
+        {/* Active Selection Pulse Halo */}
+        {(isSelected || isHovered) && (
+          <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
+            <rect
+              x={-w / 2 - 7}
+              y={-h / 2 - 7}
+              width={w + 14}
+              height={h + 14}
+              rx="10"
+              fill="none"
+              stroke={isSelected ? '#38bdf8' : '#a5b4fc'}
+              strokeWidth={isSelected ? '3' : '2'}
+              strokeDasharray={isSelected ? 'none' : '4 3'}
+            />
+          </g>
+        )}
+
+        {/* Architectural Footprint Shape Traced from Google Satellite */}
+        <g transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
+          {shape === 'courtyard_quad' && (
+            <>
+              {/* Outer Square Hostel Quadrangle */}
+              <rect
+                x={-w / 2}
+                y={-h / 2}
+                width={w}
+                height={h}
+                rx="6"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              {/* Inner Open Courtyard / Badminton Court */}
+              <rect
+                x={-w * 0.22}
+                y={-h * 0.22}
+                width={w * 0.44}
+                height={h * 0.44}
+                rx="3"
+                fill="#0f172a"
+                fillOpacity={viewStyle === 'satellite' ? 0.45 : 0.85}
+                stroke="rgba(56, 189, 248, 0.5)"
+                strokeWidth="1"
+              />
+            </>
+          )}
+
+          {shape === 'academic_complex' && (
+            <>
+              {/* NW Multi-Wing Academic & Research Block */}
+              <rect
+                x={-w * 0.48}
+                y={-h * 0.46}
+                width={w * 0.44}
+                height={h * 0.88}
+                rx="6"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              {/* SE Multi-Wing Classroom & Admin Block */}
+              <rect
+                x={w * 0.04}
+                y={-h * 0.46}
+                width={w * 0.44}
+                height={h * 0.88}
+                rx="6"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              {/* Connecting Spine & Iconic Central White Rotunda Dome */}
+              <rect
+                x={-w * 0.12}
+                y={-h * 0.2}
+                width={w * 0.24}
+                height={h * 0.4}
+                fill="#0369a1"
+                stroke={strokeColor}
+                strokeWidth="1.5"
+              />
+              <circle
+                cx="0"
+                cy="0"
+                r="16"
+                fill="#f8fafc"
+                stroke="#0284c7"
+                strokeWidth="3"
+              />
+              <circle cx="0" cy="0" r="7" fill="#38bdf8" />
+            </>
+          )}
+
+          {shape === 'canteen_mess' && (
+            <>
+              {/* Rectangular Mess Hall Block */}
+              <rect
+                x={-w * 0.48}
+                y={-h * 0.42}
+                width={w * 0.58}
+                height={h * 0.84}
+                rx="6"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              {/* Connected Circular Canteen Rotunda */}
+              <circle
+                cx={w * 0.28}
+                cy={h * 0.08}
+                r={h * 0.38}
+                fill="#f59e0b"
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </>
+          )}
+
+          {shape === 'amphitheatre' && (
+            <>
+              {/* Semicircular Concentric Stepped Amphitheatre 2 */}
+              <path
+                d="M -38,-10 A 42,42 0 0,1 38,-10 L 24,26 A 26,26 0 0,0 -24,26 Z"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              <path
+                d="M -28,-4 A 30,30 0 0,1 28,-4"
+                fill="none"
+                stroke="rgba(255,255,255,0.65)"
+                strokeWidth="2"
+              />
+              <path
+                d="M -18,4 A 20,20 0 0,1 18,4"
+                fill="none"
+                stroke="rgba(255,255,255,0.65)"
+                strokeWidth="2"
+              />
+              <circle cx="0" cy="18" r="9" fill="#064e3b" stroke="#34d399" strokeWidth="1.5" />
+            </>
+          )}
+
+          {shape === 'twin_courts' && (
+            <>
+              {/* Walled North Sports Complex with Twin Red/Green Courts */}
+              <rect
+                x={-w / 2}
+                y={-h / 2}
+                width={w}
+                height={h}
+                rx="7"
+                fill="#065f46"
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              <rect
+                x={-w * 0.36}
+                y={-h * 0.32}
+                width={w * 0.32}
+                height={h * 0.64}
+                rx="2"
+                fill="#dc2626"
+                stroke="#ffffff"
+                strokeWidth="1"
+              />
+              <rect
+                x={w * 0.04}
+                y={-h * 0.32}
+                width={w * 0.32}
+                height={h * 0.64}
+                rx="2"
+                fill="#16a34a"
+                stroke="#ffffff"
+                strokeWidth="1"
+              />
+            </>
+          )}
+
+          {shape === 'twin_wings' && (
+            <>
+              <rect
+                x={-w / 2}
+                y={-h * 0.46}
+                width={w * 0.92}
+                height={h * 0.4}
+                rx="5"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              <rect
+                x={-w * 0.42}
+                y={h * 0.06}
+                width={w * 0.92}
+                height={h * 0.4}
+                rx="5"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </>
+          )}
+
+          {shape === 'faculty_cluster' && (
+            <>
+              <rect
+                x={-w * 0.45}
+                y={-h * 0.42}
+                width={w * 0.42}
+                height={h * 0.38}
+                rx="4"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              <rect
+                x={w * 0.03}
+                y={-h * 0.42}
+                width={w * 0.42}
+                height={h * 0.38}
+                rx="4"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+              <rect
+                x={-w * 0.2}
+                y={h * 0.05}
+                width={w * 0.62}
+                height={h * 0.38}
+                rx="4"
+                fill={baseColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+              />
+            </>
+          )}
+
+          {shape === 'hall' && (
+            <rect
+              x={-w / 2}
+              y={-h / 2}
+              width={w}
+              height={h}
+              rx="6"
+              fill={baseColor}
+              fillOpacity={fillOpacity}
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+            />
+          )}
+        </g>
+
+        {/* Crisp Non-Overlapping Label Pill Anchored to Building Center */}
+        <g transform={`translate(${cx}, ${cy + h / 2 + 12})`}>
+          <rect
+            x="-54"
+            y="-10"
+            width="108"
+            height="19"
+            rx="6"
+            fill={isSelected ? '#0284c7' : 'rgba(9, 13, 22, 0.92)'}
+            stroke={isSelected ? '#ffffff' : 'rgba(148, 163, 184, 0.4)'}
+            strokeWidth="1.2"
+          />
+          <text
+            x="0"
+            y="3"
+            textAnchor="middle"
+            fill="#ffffff"
+            fontSize="9.5"
+            fontWeight="700"
+            fontFamily="Inter, system-ui, sans-serif"
+          >
+            {badge} · {b.shortName || b.name}
+          </text>
+        </g>
+      </g>
+    );
+  };
+
   const hostelsList = buildings.filter((b) => b.category === 'HOSTEL');
   const otherBlocksList = buildings.filter((b) => b.category !== 'HOSTEL');
 
   return (
-    <div
-      className="rounded-3xl border border-slate-200/90 bg-white shadow-sm overflow-hidden"
-      onMouseMove={handleVectorMouseMove}
-      onMouseUp={handleVectorMouseUp}
-    >
-      {/* Dark Architectural Map Header */}
+    <div className="rounded-3xl border border-slate-200/90 bg-white shadow-sm overflow-hidden">
+      {/* Top Header Bar */}
       <div className="px-5 py-3.5 bg-slate-950 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
         <div className="flex items-center space-x-2.5">
           <span
@@ -291,15 +532,78 @@ export default function CampusMapSelector({
               isEditMode ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'
             }`}
           />
-          <span className="text-xs sm:text-sm font-black tracking-tight text-white">
-            IIIT Naya Raipur Campus Map
-          </span>
-          <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-            {activeBuildingObj?.gps || '21.1282° N, 81.7655° E'}
-          </span>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs sm:text-sm font-black tracking-tight text-white">
+                IIIT Naya Raipur — Custom Campus Map (University Area Only)
+              </span>
+              <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                1:1 Satellite Traced
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Zoom Controls */}
+          <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setZoom((z) => Math.min(2.2, Number((z + 0.25).toFixed(2))))}
+              className="px-2 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer"
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setZoom(1);
+                setPan({ x: 0, y: 0 });
+              }}
+              className="px-2 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white cursor-pointer"
+              title="Reset View"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setZoom((z) => {
+                  const next = Math.max(1, Number((z - 0.25).toFixed(2)));
+                  if (next === 1) setPan({ x: 0, y: 0 });
+                  return next;
+                });
+              }}
+              className="px-2 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer"
+              title="Zoom Out"
+            >
+              −
+            </button>
+          </div>
+
+          {/* View Mode Toggle: Traced Vector Plan vs Masked Satellite Overlay */}
+          <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setViewStyle('vector')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                viewStyle === 'vector' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📐 Traced Campus Plan
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewStyle('satellite')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                viewStyle === 'satellite' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🛰️ Satellite Trace
+            </button>
+          </div>
+
           {isSuperAdmin && (
             <button
               type="button"
@@ -313,43 +617,13 @@ export default function CampusMapSelector({
                   : 'bg-white/10 hover:bg-white/20 text-amber-300 border-amber-400/30'
               }`}
             >
-              {isEditMode ? '✓ Done Labeling' : '✏️ Edit / Label Map'}
+              {isEditMode ? '✓ Done' : '✏️ Edit / Label'}
             </button>
           )}
-
-          <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
-            <button
-              type="button"
-              onClick={() => setMapMode('osm')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                mapMode === 'osm' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              🗺️ OSM Map
-            </button>
-            <button
-              type="button"
-              onClick={() => setMapMode('satellite')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                mapMode === 'satellite' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              🛰️ Satellite
-            </button>
-            <button
-              type="button"
-              onClick={() => setMapMode('vector')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                mapMode === 'vector' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              📐 Campus Plan
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Quick Hostel & Building Pill Selector Bar */}
+      {/* Quick Hostel & Building Pill Bar */}
       <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex items-center gap-1.5 overflow-x-auto">
         {studentSavedHostel && (
           <button
@@ -376,9 +650,6 @@ export default function CampusMapSelector({
               onClick={() => {
                 setEditingBuildingId(h.id);
                 onSelectBuilding && onSelectBuilding(h.name);
-                if (leafletMapRef.current && h.mapPin?.lat) {
-                  leafletMapRef.current.panTo([h.mapPin.lat, h.mapPin.lng]);
-                }
               }}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
                 isSelected
@@ -403,9 +674,6 @@ export default function CampusMapSelector({
               onClick={() => {
                 setEditingBuildingId(b.id);
                 onSelectBuilding && onSelectBuilding(b.name);
-                if (leafletMapRef.current && b.mapPin?.lat) {
-                  leafletMapRef.current.panTo([b.mapPin.lat, b.mapPin.lng]);
-                }
               }}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
                 isSelected
@@ -419,163 +687,211 @@ export default function CampusMapSelector({
         })}
       </div>
 
-      {/* Map Viewport */}
-      <div className="bg-slate-900 p-3 sm:p-4 space-y-3">
-        <div
-          ref={leafletContainerRef}
-          style={{
-            height: '360px',
-            display: mapMode === 'vector' ? 'none' : 'block',
-          }}
-          className="w-full rounded-2xl border border-slate-800 overflow-hidden z-0"
-        />
-
-        {mapMode === 'vector' && (
-          <div
-            ref={vectorContainerRef}
-            onClick={handleVectorClick}
-            style={{ height: '360px' }}
-            className={`relative w-full rounded-2xl border overflow-hidden select-none bg-[#f1efe9] ${
-              isEditMode ? 'border-amber-400 cursor-crosshair' : 'border-slate-800'
+      {/* Main Custom University-Only SVG Map Viewport */}
+      <div className="bg-[#0b1120] p-3 sm:p-4 space-y-3">
+        <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#0b1120] flex justify-center">
+          <svg
+            ref={svgRef}
+            viewBox="0 0 735 857"
+            onClick={handleSvgClick}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            className={`w-full max-h-[540px] select-none ${
+              isSuperAdmin && isEditMode ? 'cursor-crosshair' : zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
             }`}
           >
-            {/* 1:1 Traced OpenStreetMap Geometry of IIIT Naya Raipur */}
-            <svg
-              viewBox="0 0 800 500"
-              className="absolute inset-0 w-full h-full pointer-events-none"
-              preserveAspectRatio="xMidYMid slice"
-            >
-              <polygon points="420,0 800,0 800,260 590,265" fill="#add19e" />
+            <defs>
+              <pattern id="uniBlueprintGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path
+                  d="M 32 0 L 0 0 0 32"
+                  fill="none"
+                  stroke="rgba(148, 163, 184, 0.06)"
+                  strokeWidth="1"
+                />
+              </pattern>
+              <clipPath id="iiitnrCampusClip">
+                <polygon points={CAMPUS_PERIMETER_POINTS} />
+              </clipPath>
+            </defs>
+
+            {/* Dark Architectural Canvas Outside the University Perimeter */}
+            <rect width="735" height="857" fill="#0b1120" />
+            <rect width="735" height="857" fill="url(#uniBlueprintGrid)" />
+
+            <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+              {/* Clipped University-Only Area (Zero Outside Area Shown) */}
+              <g clipPath="url(#iiitnrCampusClip)">
+                {viewStyle === 'satellite' ? (
+                  <image
+                    href="/iiitnr_campus_satellite.png"
+                    x="0"
+                    y="0"
+                    width="735"
+                    height="857"
+                    preserveAspectRatio="none"
+                  />
+                ) : (
+                  <>
+                    {/* Custom University-Only Grounds Base */}
+                    <polygon points={CAMPUS_PERIMETER_POINTS} fill="#131c31" />
+
+                    {/* Landscaped Green Lawns & Woodland Zones Traced from Satellite */}
+                    {/* 1. Central Sports Turf & Lawn */}
+                    <polygon
+                      points="240,305 365,282 375,415 225,400"
+                      fill="#064e3b"
+                      fillOpacity="0.65"
+                      stroke="#059669"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                    />
+                    {/* 2. South Gate Green Lawn */}
+                    <polygon
+                      points="238,575 375,605 342,735 205,690"
+                      fill="#064e3b"
+                      fillOpacity="0.55"
+                    />
+                    {/* 3. Southeast Amphitheatre Woodland & Green Belt */}
+                    <polygon
+                      points="395,585 625,535 555,825 358,750"
+                      fill="#064e3b"
+                      fillOpacity="0.45"
+                    />
+                    {/* 4. Academic Semicircular Forecourt Garden */}
+                    <circle
+                      cx="355"
+                      cy="415"
+                      r="38"
+                      fill="#065f46"
+                      fillOpacity="0.6"
+                      stroke="#10b981"
+                      strokeWidth="1"
+                    />
+                    {/* 5. North Indoor Sports Hall (Far Top-Left of Campus) */}
+                    <g transform="translate(218, 98) rotate(18)">
+                      <rect
+                        x="-20"
+                        y="-32"
+                        width="40"
+                        height="64"
+                        rx="4"
+                        fill="#334155"
+                        stroke="#94a3b8"
+                        strokeWidth="1.5"
+                      />
+                    </g>
+
+                    {/* Internal University Road Network Traced 1:1 from Google Satellite */}
+                    <g
+                      fill="none"
+                      stroke="#334155"
+                      strokeWidth="14"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      {/* Western Perimeter Avenue */}
+                      <polyline points="24,642 198,65" />
+                      {/* Southern Hostel Cross-Road to Main Gate */}
+                      <polyline points="24,642 145,695 352,762" />
+                      {/* Main Gate Boulevard heading North-Northeast */}
+                      <polyline points="342,760 388,595 495,515" />
+                      {/* Inner Hostel Spine Road */}
+                      <polyline points="145,695 235,342" />
+                      {/* Mid-West Hostel Connector */}
+                      <polyline points="55,518 185,565" />
+                      {/* Northern Loop Road */}
+                      <polyline points="235,342 265,302 435,274 532,418 495,515" />
+                      {/* Central Academic Spine */}
+                      <polyline points="212,408 338,495 388,595" />
+                      {/* North Sports Complex Spur */}
+                      <polyline points="375,284 335,196 425,142" />
+                      {/* Southeast Amphitheatre & Shabri Hostel Loop */}
+                      <polyline points="495,515 618,542" />
+                      {/* Eastern Boundary Road */}
+                      <polyline points="648,472 555,830" />
+                    </g>
+
+                    {/* Road Centerlines */}
+                    <g
+                      fill="none"
+                      stroke="#64748b"
+                      strokeWidth="1.5"
+                      strokeDasharray="6 6"
+                      strokeLinecap="round"
+                    >
+                      <polyline points="24,642 198,65" />
+                      <polyline points="24,642 145,695 352,762" />
+                      <polyline points="342,760 388,595 495,515" />
+                      <polyline points="145,695 235,342" />
+                      <polyline points="235,342 265,302 435,274 532,418 495,515" />
+                      <polyline points="212,408 338,495 388,595" />
+                    </g>
+                  </>
+                )}
+              </g>
+
+              {/* Glowing University Perimeter Boundary Border */}
               <polygon
-                points="235,68 485,95 628,312 548,478 58,378"
-                fill="#ffffe5"
-                stroke="#facc15"
-                strokeWidth="2"
-              />
-              <line
-                x1="15"
-                y1="380"
-                x2="245"
-                y2="0"
-                stroke="#94a3b8"
-                strokeWidth="6"
-                strokeDasharray="10 8"
-              />
-              <line x1="0" y1="405" x2="540" y2="510" stroke="#f7fabf" strokeWidth="18" />
-              <line x1="0" y1="405" x2="540" y2="510" stroke="#cbd5e1" strokeWidth="1.5" />
-              <polyline
-                points="290,0 520,270 628,308 800,305"
+                points={CAMPUS_PERIMETER_POINTS}
                 fill="none"
-                stroke="#b48ead"
+                stroke="#6366f1"
                 strokeWidth="3"
-                strokeDasharray="12 6 3 6"
+                strokeLinejoin="round"
               />
-              <g stroke="#ffffff" strokeWidth="7" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="72" y1="365" x2="225" y2="85" />
-                <line x1="185" y1="395" x2="275" y2="195" />
-                <line x1="72" y1="365" x2="365" y2="435" />
-                <line x1="115" y1="280" x2="275" y2="195" />
-                <polyline points="350,468 395,355 465,335 505,285 450,210 385,125 445,88" />
-                <polyline points="275,195 395,355" />
-                <path d="M 415,345 Q 455,310 475,335" />
-                <polyline points="505,285 528,340 610,355" />
+
+              {/* Compass & Scale Legend in Top-Left Empty Space */}
+              <g transform="translate(65, 95)">
+                <circle cx="0" cy="0" r="22" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
+                <polygon points="0,-14 -5,4 0,0 5,4" fill="#38bdf8" />
+                <text x="0" y="-17" textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="bold">
+                  N
+                </text>
               </g>
-              <g stroke="#cbd5e1" strokeWidth="1" fill="none">
-                <line x1="72" y1="365" x2="225" y2="85" />
-                <polyline points="350,468 395,355 465,335 505,285 450,210 385,125 445,88" />
-              </g>
-              <text
-                x="355"
-                y="245"
-                textAnchor="middle"
-                fill="#78716c"
-                fontSize="13"
-                fontStyle="italic"
-                fontWeight="600"
-                opacity="0.65"
-              >
-                International Institute of Information Technology Naya Raipur
-              </text>
-            </svg>
 
-            {buildings.map((b, idx) => {
-              const xPct = b.mapPin?.xPct ?? 45;
-              const yPct = b.mapPin?.yPct ?? 50;
-              const badge = b.mapPin?.badge || `B-${idx + 1}`;
-              const color = b.mapPin?.color || (b.category === 'HOSTEL' ? '#4f46e5' : '#0284c7');
-              const isSelected = activeBuildingObj?.id === b.id;
-
-              return (
-                <div
-                  key={b.id}
-                  data-pin-id={b.id}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    setEditingBuildingId(b.id);
-                    onSelectBuilding && onSelectBuilding(b.name);
-                    if (isSuperAdmin && isEditMode) setDraggingId(b.id);
-                  }}
-                  style={{
-                    left: `${xPct}%`,
-                    top: `${yPct}%`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                  className={`absolute z-10 ${isSuperAdmin && isEditMode ? 'cursor-move' : 'cursor-pointer'}`}
-                >
-                  <div
-                    style={{
-                      backgroundColor: isSelected ? color : 'rgba(15, 23, 42, 0.92)',
-                      borderColor: isSelected ? '#ffffff' : color,
-                    }}
-                    className={`px-2.5 py-1.5 rounded-xl border-2 text-xs font-bold text-white flex items-center space-x-1.5 shadow-md transition-transform ${
-                      isSelected ? 'scale-105 ring-4 ring-sky-400/30' : 'hover:scale-105'
-                    }`}
-                  >
-                    <span className="text-[9.5px] font-mono bg-white/15 px-1.5 py-0.5 rounded">
-                      {badge}
-                    </span>
-                    <span className="truncate max-w-[120px]">{b.shortName || b.name}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Selected Building Telemetry Bar */}
-        <div className="p-3 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-mono text-[10px] font-bold">
-              {activeBuildingObj?.mapPin?.badge || 'BLDG'}
-            </span>
-            <span className="font-bold text-white">{activeBuildingObj?.name}</span>
-            <span className="text-slate-500">·</span>
-            <span className="text-[11px] text-slate-400">{activeBuildingObj?.type}</span>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            {selectedRoom && (
-              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-mono text-[11px] font-bold">
-                📍 {selectedRoom}
-              </span>
-            )}
-            <a
-              href={IIITNR_CAMPUS_METADATA.googleMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-slate-200 font-semibold text-[11px]"
-            >
-              Google Maps ↗
-            </a>
-          </div>
+              {/* Render All Traced Campus Buildings & Hostels */}
+              {buildings.map((b) => {
+                const isSelected = activeBuildingObj?.id === b.id;
+                const isHovered = hoveredId === b.id;
+                return renderBuildingFootprint(b, isSelected, isHovered);
+              })}
+            </g>
+          </svg>
         </div>
 
-        {/* Inline Editor Drawer (when Edit / Label is active) */}
+        {/* Bottom Active Building Telemetry Bar */}
+        <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center space-x-2">
+              <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-mono text-[10px] font-bold">
+                {hoveredBuildingObj?.trace?.badge || hoveredBuildingObj?.mapPin?.badge || 'BLDG'}
+              </span>
+              <span className="font-black text-white text-sm">
+                {hoveredBuildingObj?.name}
+              </span>
+              <span className="text-slate-500">·</span>
+              <span className="text-[11px] text-emerald-400 font-medium">
+                {hoveredBuildingObj?.type}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              {hoveredBuildingObj?.description}
+            </p>
+          </div>
+
+          {selectedRoom && (
+            <div className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-mono text-xs font-bold shrink-0">
+              📍 {selectedRoom}
+            </div>
+          )}
+        </div>
+
+        {/* Inline Editor Drawer (when Edit / Label is active and user is Super Admin) */}
         {isSuperAdmin && isEditMode && editingBuilding && (
           <div className="p-4 rounded-2xl bg-slate-950 border border-amber-500/40 text-white space-y-3 text-xs">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
               <span className="font-bold text-amber-300">
-                Editing Pin: {editingBuilding.name} ({editingBuilding.gps})
+                Editing Building: {editingBuilding.name} (Click map to add block or drag any block)
               </span>
               <div className="flex items-center space-x-2">
                 <button
@@ -597,10 +913,10 @@ export default function CampusMapSelector({
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDeleteBuilding(editingBuilding.id)}
+                  onClick={() => isSuperAdmin && handleDeleteBuilding(editingBuilding.id)}
                   className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-400/30 text-[11px] font-bold cursor-pointer"
                 >
-                  Delete Pin
+                  Delete
                 </button>
               </div>
             </div>
@@ -621,13 +937,13 @@ export default function CampusMapSelector({
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Badge Code &amp; Category</label>
+                <label className="block text-[11px] text-slate-400 mb-1">Badge &amp; Category</label>
                 <div className="flex space-x-1.5">
                   <input
                     type="text"
-                    value={editingBuilding.mapPin?.badge || ''}
+                    value={editingBuilding.trace?.badge || editingBuilding.mapPin?.badge || ''}
                     onChange={(e) => handleUpdateBuildingField(editingBuilding.id, { badge: e.target.value })}
-                    className="w-24 px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-mono"
+                    className="w-20 px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-mono"
                   />
                   <select
                     value={editingBuilding.category}
@@ -637,7 +953,7 @@ export default function CampusMapSelector({
                     <option value="HOSTEL">Hostel</option>
                     <option value="ACADEMIC">Academic / Lab</option>
                     <option value="AMENITY">Amenity / Mess</option>
-                    <option value="INFRASTRUCTURE">Grounds / Gate</option>
+                    <option value="INFRASTRUCTURE">Sports / Gate</option>
                   </select>
                 </div>
               </div>
@@ -672,7 +988,7 @@ export default function CampusMapSelector({
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Rooms/Floor or Custom List</label>
+                <label className="block text-[11px] text-slate-400 mb-1">Custom Rooms Override</label>
                 <input
                   type="text"
                   placeholder="e.g. Room 101, Lab 202"
@@ -694,7 +1010,7 @@ export default function CampusMapSelector({
         )}
       </div>
 
-      {showJsonModal && (
+      {isSuperAdmin && showJsonModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4"
           onClick={() => setShowJsonModal(false)}
@@ -704,18 +1020,11 @@ export default function CampusMapSelector({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-black text-slate-900">Campus Map JSON</h3>
-                <p className="text-[11px] text-slate-500">
-                  {isSuperAdmin
-                    ? 'Export or import custom IIIT-NR campus layout JSON.'
-                    : 'View or copy campus JSON (Super Admin required to apply changes).'}
-                </p>
-              </div>
+              <h3 className="text-base font-black text-slate-900">Campus Map JSON</h3>
               <button
                 type="button"
                 onClick={() => setShowJsonModal(false)}
-                className="text-slate-400 hover:text-slate-700 font-bold cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 font-bold"
               >
                 ✕
               </button>
@@ -723,8 +1032,7 @@ export default function CampusMapSelector({
             <textarea
               rows={10}
               value={jsonText}
-              readOnly={!isSuperAdmin}
-              onChange={(e) => isSuperAdmin && setJsonText(e.target.value)}
+              onChange={(e) => setJsonText(e.target.value)}
               className="w-full p-3 rounded-2xl bg-slate-950 text-emerald-300 font-mono text-xs"
             />
             <div className="flex justify-end gap-2">
@@ -735,25 +1043,23 @@ export default function CampusMapSelector({
               >
                 Copy JSON
               </button>
-              {isSuperAdmin && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!isSuperAdmin) return;
-                    try {
-                      const parsed = JSON.parse(jsonText);
-                      if (Array.isArray(parsed) && parsed.length > 0) {
-                        setBuildings(parsed);
-                        saveCustomCampusBuildings(parsed);
-                        setShowJsonModal(false);
-                      }
-                    } catch (_) {}
-                  }}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
-                >
-                  Apply JSON
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isSuperAdmin) return;
+                  try {
+                    const parsed = JSON.parse(jsonText);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                      setBuildings(parsed);
+                      saveCustomCampusBuildings(parsed);
+                      setShowJsonModal(false);
+                    }
+                  } catch (_) {}
+                }}
+                className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
+              >
+                Apply JSON
+              </button>
             </div>
           </div>
         </div>
