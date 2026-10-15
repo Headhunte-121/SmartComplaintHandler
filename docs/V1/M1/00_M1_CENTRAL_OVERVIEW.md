@@ -929,3 +929,33 @@ npm run dev
 * **Verification Proof:**
   - Frontend Production Build: `npm run build` compiled in 1.44s with 0 errors (bundle: 441.65 kB).
   - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 15.86s (100% pass rate).
+
+### [2026-10-15] - Authentic 50-Acre Perimeter Boundary & Interactive Geodetic Survey Pillars
+* **Files Modified:**
+  - `frontend/src/data/iiitnrCampusData.js`
+  - `frontend/src/components/CampusMapSelector.jsx`
+  - `frontend/public/iiitnr_campus_satellite_full.png`
+  - `frontend/public/iiitnr_campus_satellite_markup.jpg`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  1. **1:1 Demarcation Line Fitting & Boundary Geometry:**
+     - Computed the exact 4-corner mathematical polygon from the user's hand-drawn red demarcation line on the Google Satellite survey image in 816 x 817 coordinate space:
+       - Northwest Corner (P1): `(230, 80)` (North Boundary Wall · Railway Corridor)
+       - Northeast Corner (P2): `(775, 248)` (North Woodland Perimeter Wall)
+       - Southeast Corner (P3): `(576, 811)` (Naya Raipur Marg - East Sector Entry)
+       - Southwest Corner (P4): `(37, 644)` (Naya Raipur Marg & West Avenue Junction)
+     - Replaced legacy internal polygon with `IIITNR_CAMPUS_PERIMETER_POINTS = '230,80 775,248 576,811 37,644'`, capturing the full 50-acre official campus estate.
+  2. **Architectural Footprints & Road Network Transform:**
+     - Computed the affine homography transform from uploaded satellite space to building footprint space and updated all 13 building positions (`trace.cx`, `trace.cy`) and internal roads to align 1:1 with satellite rooftops.
+  3. **Interactive Boundary & Geodetic Survey Pillars:**
+     - Added responsive hover and selection hitbox (`strokeWidth="28"`) on the campus perimeter with glowing neon pulse effect.
+     - Placed 4 Geodetic Survey Pillars (P1–P4) with pulsing radar rings, solid stone badges, and hover tooltip cards displaying pillar identity and sector descriptions.
+     - Placed angled perimeter milestone labels along all 4 property edges (North Wall: 570m, East Buffer: 597m, South Naya Raipur Marg: 564m, West Avenue: 596m).
+  4. **Multi-View Modes & Dynamic Telemetry:**
+     - Added 3 view options in toolbar: `🛰️ Satellite Trace` (clean inpainted satellite view), `📐 Campus Plan` (vector architectural blueprint), and `🗺️ Boundary Markup` (original demarcation image).
+     - Added `🔲 Boundary Overlay ON/OFF` toggle button.
+     - Enhanced bottom telemetry bar: hovering or clicking the boundary or any survey pillar switches the display to the 50-Acre Campus Perimeter telemetry card with dimension breakdowns and a deselect control.
+* **Verification Proof:**
+  - Frontend Production Build: `npm run build` compiled in 1.59s with 0 errors (bundle: 448.03 kB).
+  - Backend Test Suite: 56/56 pytest unit, security, and residence tests passing cleanly in 20.04s (100% pass rate).
+

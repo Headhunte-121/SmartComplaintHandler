@@ -19,13 +19,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   IIITNR_MAP_UPDATED_EVENT,
+  IIITNR_CAMPUS_PERIMETER_POINTS,
+  IIITNR_CAMPUS_BOUNDARY_CORNERS,
+  IIITNR_CAMPUS_METADATA,
   getCampusBuildings,
   saveCustomCampusBuildings,
   resetCampusBuildingsToDefault,
 } from '../data/iiitnrCampusData';
-
-const CAMPUS_PERIMETER_POINTS =
-  '195,28 255,48 220,175 245,290 360,272 325,195 425,132 480,218 442,265 548,412 662,468 562,835 328,755 15,645';
 
 export default function CampusMapSelector({
   selectedBuilding,
@@ -37,7 +37,12 @@ export default function CampusMapSelector({
 }) {
   const { isSuperAdmin } = useAuth();
   const [buildings, setBuildings] = useState(() => getCampusBuildings());
-  const [viewStyle, setViewStyle] = useState('vector'); // 'vector' | 'satellite'
+  const [viewStyle, setViewStyle] = useState('satellite'); // 'satellite' | 'vector' | 'markup'
+  const [showBoundary, setShowBoundary] = useState(true);
+  const [hoveredBoundary, setHoveredBoundary] = useState(false);
+  const [isBoundarySelected, setIsBoundarySelected] = useState(false);
+  const [hoveredPillar, setHoveredPillar] = useState(null);
+
   const [hoveredId, setHoveredId] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -81,10 +86,10 @@ export default function CampusMapSelector({
   const clientToSvgCoords = (e) => {
     if (!svgRef.current) return null;
     const rect = svgRef.current.getBoundingClientRect();
-    const rawX = ((e.clientX - rect.left) / rect.width) * 735;
-    const rawY = ((e.clientY - rect.top) / rect.height) * 857;
-    const cx = Math.round(Math.max(30, Math.min(705, (rawX - pan.x) / zoom)));
-    const cy = Math.round(Math.max(30, Math.min(825, (rawY - pan.y) / zoom)));
+    const rawX = ((e.clientX - rect.left) / rect.width) * 816;
+    const rawY = ((e.clientY - rect.top) / rect.height) * 817;
+    const cx = Math.round(Math.max(20, Math.min(796, (rawX - pan.x) / zoom)));
+    const cy = Math.round(Math.max(20, Math.min(797, (rawY - pan.y) / zoom)));
     return { cx, cy };
   };
 
@@ -198,17 +203,17 @@ export default function CampusMapSelector({
    * Renders the exact satellite-traced architectural footprint for each IIIT-NR building.
    */
   const renderBuildingFootprint = (b, isSelected, isHovered) => {
-    const cx = b.trace?.cx ?? Math.round(((b.mapPin?.xPct || 50) / 100) * 735);
-    const cy = b.trace?.cy ?? Math.round(((b.mapPin?.yPct || 50) / 100) * 857);
-    const w = b.trace?.w || 60;
-    const h = b.trace?.h || 54;
+    const cx = b.trace?.cx ?? Math.round(((b.mapPin?.xPct || 50) / 100) * 816);
+    const cy = b.trace?.cy ?? Math.round(((b.mapPin?.yPct || 50) / 100) * 817);
+    const w = b.trace?.w || 56;
+    const h = b.trace?.h || 50;
     const angle = b.trace?.angle ?? 18;
     const shape = b.trace?.shape || 'courtyard_quad';
     const baseColor = b.trace?.color || b.mapPin?.color || '#4f46e5';
     const badge = b.trace?.badge || b.mapPin?.badge || 'BLDG';
 
-    const fillOpacity = viewStyle === 'satellite' ? (isSelected ? 0.82 : 0.58) : 0.95;
-    const strokeColor = isSelected ? '#38bdf8' : isHovered ? '#ffffff' : 'rgba(255,255,255,0.65)';
+    const fillOpacity = viewStyle !== 'vector' ? (isSelected ? 0.85 : 0.65) : 0.95;
+    const strokeColor = isSelected ? '#38bdf8' : isHovered ? '#ffffff' : 'rgba(255,255,255,0.75)';
     const strokeWidth = isSelected ? 3.5 : isHovered ? 2.5 : 1.5;
 
     return (
@@ -582,27 +587,53 @@ export default function CampusMapSelector({
             </button>
           </div>
 
-          {/* View Mode Toggle: Traced Vector Plan vs Masked Satellite Overlay */}
+          {/* View Mode Toggle: Satellite Trace vs Vector Plan vs Original Boundary Markup */}
           <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
-            <button
-              type="button"
-              onClick={() => setViewStyle('vector')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                viewStyle === 'vector' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              📐 Traced Campus Plan
-            </button>
             <button
               type="button"
               onClick={() => setViewStyle('satellite')}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                viewStyle === 'satellite' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+                viewStyle === 'satellite' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
               }`}
+              title="Clean Inpainted Satellite View with Traced Footprints"
             >
               🛰️ Satellite Trace
             </button>
+            <button
+              type="button"
+              onClick={() => setViewStyle('vector')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                viewStyle === 'vector' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Architectural Vector Blueprint Plan"
+            >
+              📐 Campus Plan
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewStyle('markup')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                viewStyle === 'markup' ? 'bg-rose-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Exact Original Image with Demarcation Line"
+            >
+              🗺️ Boundary Markup
+            </button>
           </div>
+
+          {/* Interactive 50-Acre Perimeter Boundary Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowBoundary((b) => !b)}
+            className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer border ${
+              showBoundary
+                ? 'bg-rose-500/20 text-rose-300 border-rose-400/40 shadow-2xs'
+                : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+            }`}
+            title="Toggle 50-Acre Perimeter Boundary & Survey Pillars"
+          >
+            {showBoundary ? '🔲 Boundary ON' : '🔳 Boundary OFF'}
+          </button>
 
           {isSuperAdmin && (
             <button
@@ -692,7 +723,7 @@ export default function CampusMapSelector({
         <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#0b1120] flex justify-center">
           <svg
             ref={svgRef}
-            viewBox="0 0 735 857"
+            viewBox="0 0 816 817"
             onClick={handleSvgClick}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -711,35 +742,35 @@ export default function CampusMapSelector({
                 />
               </pattern>
               <clipPath id="iiitnrCampusClip">
-                <polygon points={CAMPUS_PERIMETER_POINTS} />
+                <polygon points={IIITNR_CAMPUS_PERIMETER_POINTS} />
               </clipPath>
             </defs>
 
             {/* Dark Architectural Canvas Outside the University Perimeter */}
-            <rect width="735" height="857" fill="#0b1120" />
-            <rect width="735" height="857" fill="url(#uniBlueprintGrid)" />
+            <rect width="816" height="817" fill="#0b1120" />
+            <rect width="816" height="817" fill="url(#uniBlueprintGrid)" />
 
             <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
               {/* Clipped University-Only Area (Zero Outside Area Shown) */}
               <g clipPath="url(#iiitnrCampusClip)">
-                {viewStyle === 'satellite' ? (
+                {viewStyle === 'satellite' || viewStyle === 'markup' ? (
                   <image
-                    href="/iiitnr_campus_satellite.png"
+                    href={viewStyle === 'markup' ? '/iiitnr_campus_satellite_markup.jpg' : '/iiitnr_campus_satellite_full.png'}
                     x="0"
                     y="0"
-                    width="735"
-                    height="857"
+                    width="816"
+                    height="817"
                     preserveAspectRatio="none"
                   />
                 ) : (
                   <>
                     {/* Custom University-Only Grounds Base */}
-                    <polygon points={CAMPUS_PERIMETER_POINTS} fill="#131c31" />
+                    <polygon points={IIITNR_CAMPUS_PERIMETER_POINTS} fill="#131c31" />
 
-                    {/* Landscaped Green Lawns & Woodland Zones Traced from Satellite */}
+                    {/* Landscaped Green Lawns & Woodland Zones Traced from Satellite (816x817) */}
                     {/* 1. Central Sports Turf & Lawn */}
                     <polygon
-                      points="240,305 365,282 375,415 225,400"
+                      points="292,332 404,311 413,431 279,417"
                       fill="#064e3b"
                       fillOpacity="0.65"
                       stroke="#059669"
@@ -748,33 +779,33 @@ export default function CampusMapSelector({
                     />
                     {/* 2. South Gate Green Lawn */}
                     <polygon
-                      points="238,575 375,605 342,735 205,690"
+                      points="290,574 413,601 384,718 261,678"
                       fill="#064e3b"
                       fillOpacity="0.55"
                     />
                     {/* 3. Southeast Amphitheatre Woodland & Green Belt */}
                     <polygon
-                      points="395,585 625,535 555,825 358,750"
+                      points="431,583 638,538 575,799 398,732"
                       fill="#064e3b"
                       fillOpacity="0.45"
                     />
                     {/* 4. Academic Semicircular Forecourt Garden */}
                     <circle
-                      cx="355"
-                      cy="415"
-                      r="38"
+                      cx="395"
+                      cy="431"
+                      r="34"
                       fill="#065f46"
                       fillOpacity="0.6"
                       stroke="#10b981"
                       strokeWidth="1"
                     />
-                    {/* 5. North Indoor Sports Hall (Far Top-Left of Campus) */}
-                    <g transform="translate(218, 98) rotate(18)">
+                    {/* 5. North Indoor Sports Hall */}
+                    <g transform="translate(272, 146) rotate(18)">
                       <rect
-                        x="-20"
-                        y="-32"
-                        width="40"
-                        height="64"
+                        x="-18"
+                        y="-29"
+                        width="36"
+                        height="58"
                         rx="4"
                         fill="#334155"
                         stroke="#94a3b8"
@@ -791,25 +822,25 @@ export default function CampusMapSelector({
                       strokeLinejoin="round"
                     >
                       {/* Western Perimeter Avenue */}
-                      <polyline points="24,642 198,65" />
+                      <polyline points="98,635 254,116" />
                       {/* Southern Hostel Cross-Road to Main Gate */}
-                      <polyline points="24,642 145,695 352,762" />
+                      <polyline points="98,635 207,682 393,742" />
                       {/* Main Gate Boulevard heading North-Northeast */}
-                      <polyline points="342,760 388,595 495,515" />
+                      <polyline points="384,740 425,592 521,520" />
                       {/* Inner Hostel Spine Road */}
-                      <polyline points="145,695 235,342" />
+                      <polyline points="207,682 288,365" />
                       {/* Mid-West Hostel Connector */}
-                      <polyline points="55,518 185,565" />
+                      <polyline points="126,523 243,565" />
                       {/* Northern Loop Road */}
-                      <polyline points="235,342 265,302 435,274 532,418 495,515" />
+                      <polyline points="288,365 315,329 467,304 554,433 521,520" />
                       {/* Central Academic Spine */}
-                      <polyline points="212,408 338,495 388,595" />
+                      <polyline points="267,424 380,503 425,592" />
                       {/* North Sports Complex Spur */}
-                      <polyline points="375,284 335,196 425,142" />
+                      <polyline points="413,313 377,234 458,186" />
                       {/* Southeast Amphitheatre & Shabri Hostel Loop */}
-                      <polyline points="495,515 618,542" />
+                      <polyline points="521,520 632,545" />
                       {/* Eastern Boundary Road */}
-                      <polyline points="648,472 555,830" />
+                      <polyline points="659,482 575,803" />
                     </g>
 
                     {/* Road Centerlines */}
@@ -820,28 +851,190 @@ export default function CampusMapSelector({
                       strokeDasharray="6 6"
                       strokeLinecap="round"
                     >
-                      <polyline points="24,642 198,65" />
-                      <polyline points="24,642 145,695 352,762" />
-                      <polyline points="342,760 388,595 495,515" />
-                      <polyline points="145,695 235,342" />
-                      <polyline points="235,342 265,302 435,274 532,418 495,515" />
-                      <polyline points="212,408 338,495 388,595" />
+                      <polyline points="98,635 254,116" />
+                      <polyline points="98,635 207,682 393,742" />
+                      <polyline points="384,740 425,592 521,520" />
+                      <polyline points="207,682 288,365" />
+                      <polyline points="288,365 315,329 467,304 554,433 521,520" />
+                      <polyline points="267,424 380,503 425,592" />
                     </g>
                   </>
                 )}
               </g>
 
-              {/* Glowing University Perimeter Boundary Border */}
-              <polygon
-                points={CAMPUS_PERIMETER_POINTS}
-                fill="none"
-                stroke="#6366f1"
-                strokeWidth="3"
-                strokeLinejoin="round"
-              />
+              {/* Interactive 50-Acre Perimeter Boundary */}
+              {showBoundary && (
+                <g className="transition-all duration-200">
+                  {/* Invisible wide stroke for responsive boundary hover and click */}
+                  <polygon
+                    points={IIITNR_CAMPUS_PERIMETER_POINTS}
+                    fill="none"
+                    stroke="transparent"
+                    strokeWidth="28"
+                    strokeLinejoin="round"
+                    className="cursor-pointer"
+                    onMouseEnter={() => setHoveredBoundary(true)}
+                    onMouseLeave={() => setHoveredBoundary(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsBoundarySelected((s) => !s);
+                    }}
+                  />
 
-              {/* Compass & Scale Legend in Top-Left Empty Space */}
-              <g transform="translate(65, 95)">
+                  {/* Pulsing highlight when boundary is hovered or selected */}
+                  {(hoveredBoundary || isBoundarySelected) && (
+                    <polygon
+                      points={IIITNR_CAMPUS_PERIMETER_POINTS}
+                      fill="rgba(244, 63, 94, 0.08)"
+                      stroke="#f43f5e"
+                      strokeWidth="6"
+                      strokeOpacity="0.4"
+                      strokeLinejoin="round"
+                      className="animate-pulse"
+                    />
+                  )}
+
+                  {/* Sharp perimeter line */}
+                  <polygon
+                    points={IIITNR_CAMPUS_PERIMETER_POINTS}
+                    fill="none"
+                    stroke={hoveredBoundary || isBoundarySelected ? '#f43f5e' : '#fb7185'}
+                    strokeWidth={hoveredBoundary || isBoundarySelected ? '3.5' : '2.5'}
+                    strokeDasharray={hoveredBoundary || isBoundarySelected ? 'none' : '8 6'}
+                    strokeLinejoin="round"
+                    className="cursor-pointer transition-all duration-200"
+                    onMouseEnter={() => setHoveredBoundary(true)}
+                    onMouseLeave={() => setHoveredBoundary(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsBoundarySelected((s) => !s);
+                    }}
+                  />
+
+                  {/* Perimeter Milestone / Edge Labels */}
+                  {/* North Edge: (230,80) to (775,248) mid=(502,164) angle=17.1 */}
+                  <g transform="translate(502, 154) rotate(17.1)" className="pointer-events-none select-none">
+                    <rect x="-80" y="-9" width="160" height="18" rx="4" fill="rgba(15, 23, 42, 0.88)" stroke="#f43f5e" strokeWidth="0.8" />
+                    <text x="0" y="3" textAnchor="middle" fill="#fecdd3" fontSize="8.5" fontWeight="700" fontFamily="Inter, sans-serif">
+                      North Boundary Wall · 570m
+                    </text>
+                  </g>
+
+                  {/* East Edge: (775,248) to (576,811) mid=(675,530) angle=-70.5 */}
+                  <g transform="translate(685, 530) rotate(-70.5)" className="pointer-events-none select-none">
+                    <rect x="-70" y="-9" width="140" height="18" rx="4" fill="rgba(15, 23, 42, 0.88)" stroke="#f43f5e" strokeWidth="0.8" />
+                    <text x="0" y="3" textAnchor="middle" fill="#fecdd3" fontSize="8.5" fontWeight="700" fontFamily="Inter, sans-serif">
+                      East Forest Buffer · 597m
+                    </text>
+                  </g>
+
+                  {/* South Edge: (576,811) to (37,644) mid=(306,728) angle=17.2 */}
+                  <g transform="translate(306, 738) rotate(17.2)" className="pointer-events-none select-none">
+                    <rect x="-85" y="-9" width="170" height="18" rx="4" fill="rgba(15, 23, 42, 0.88)" stroke="#f43f5e" strokeWidth="0.8" />
+                    <text x="0" y="3" textAnchor="middle" fill="#fecdd3" fontSize="8.5" fontWeight="700" fontFamily="Inter, sans-serif">
+                      Naya Raipur Marg (South) · 564m
+                    </text>
+                  </g>
+
+                  {/* West Edge: (37,644) to (230,80) mid=(133,362) angle=-71.1 */}
+                  <g transform="translate(123, 362) rotate(-71.1)" className="pointer-events-none select-none">
+                    <rect x="-80" y="-9" width="160" height="18" rx="4" fill="rgba(15, 23, 42, 0.88)" stroke="#f43f5e" strokeWidth="0.8" />
+                    <text x="0" y="3" textAnchor="middle" fill="#fecdd3" fontSize="8.5" fontWeight="700" fontFamily="Inter, sans-serif">
+                      West Boundary / Avenue · 596m
+                    </text>
+                  </g>
+
+                  {/* 4 Corner Geodetic Survey Pillars */}
+                  {IIITNR_CAMPUS_BOUNDARY_CORNERS.map((pillar, idx) => {
+                    const isHovered = hoveredPillar?.id === pillar.id;
+                    return (
+                      <g
+                        key={pillar.id}
+                        transform={`translate(${pillar.x}, ${pillar.y})`}
+                        className="cursor-pointer"
+                        onMouseEnter={() => setHoveredPillar(pillar)}
+                        onMouseLeave={() => setHoveredPillar(null)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsBoundarySelected(true);
+                          setHoveredPillar(pillar);
+                        }}
+                      >
+                        {/* Animated ping ring */}
+                        <circle
+                          cx="0"
+                          cy="0"
+                          r={isHovered ? 16 : 10}
+                          fill="#f43f5e"
+                          opacity={isHovered ? 0.45 : 0.22}
+                          className={isHovered ? 'animate-ping' : ''}
+                        />
+                        {/* Inner solid survey stone pillar */}
+                        <circle
+                          cx="0"
+                          cy="0"
+                          r="8"
+                          fill="#0f172a"
+                          stroke="#f43f5e"
+                          strokeWidth="2.2"
+                        />
+                        {/* Pillar index tag (P1, P2, P3, P4) */}
+                        <text
+                          x="0"
+                          y="3"
+                          textAnchor="middle"
+                          fill="#ffffff"
+                          fontSize="8"
+                          fontWeight="900"
+                          fontFamily="Inter, sans-serif"
+                        >
+                          P{idx + 1}
+                        </text>
+
+                        {/* Hover popup tooltip card */}
+                        {isHovered && (
+                          <g transform="translate(0, -22)" className="pointer-events-none">
+                            <rect
+                              x="-90"
+                              y="-26"
+                              width="180"
+                              height="28"
+                              rx="6"
+                              fill="#020617"
+                              stroke="#f43f5e"
+                              strokeWidth="1.2"
+                            />
+                            <text
+                              x="0"
+                              y="-13"
+                              textAnchor="middle"
+                              fill="#ffffff"
+                              fontSize="9"
+                              fontWeight="800"
+                              fontFamily="Inter, sans-serif"
+                            >
+                              {pillar.label}
+                            </text>
+                            <text
+                              x="0"
+                              y="-3"
+                              textAnchor="middle"
+                              fill="#cbd5e1"
+                              fontSize="7.5"
+                              fontFamily="Inter, sans-serif"
+                            >
+                              {pillar.subtitle}
+                            </text>
+                          </g>
+                        )}
+                      </g>
+                    );
+                  })}
+                </g>
+              )}
+
+              {/* Compass & Scale Legend in Top-Left Canvas */}
+              <g transform="translate(70, 75)">
                 <circle cx="0" cy="0" r="22" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
                 <polygon points="0,-14 -5,4 0,0 5,4" fill="#38bdf8" />
                 <text x="0" y="-17" textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="bold">
@@ -859,32 +1052,81 @@ export default function CampusMapSelector({
           </svg>
         </div>
 
-        {/* Bottom Active Building Telemetry Bar */}
-        <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-0.5">
-            <div className="flex items-center space-x-2">
-              <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-mono text-[10px] font-bold">
-                {hoveredBuildingObj?.trace?.badge || hoveredBuildingObj?.mapPin?.badge || 'BLDG'}
-              </span>
-              <span className="font-black text-white text-sm">
-                {hoveredBuildingObj?.name}
-              </span>
-              <span className="text-slate-500">·</span>
-              <span className="text-[11px] text-emerald-400 font-medium">
-                {hoveredBuildingObj?.type}
-              </span>
+        {/* Bottom Active Building / Boundary Telemetry Bar */}
+        {hoveredBoundary || isBoundarySelected || hoveredPillar ? (
+          <div className="p-3.5 rounded-2xl bg-slate-950/95 border border-rose-500/40 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+            <div className="space-y-0.5">
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-400/40 font-mono text-[10px] font-bold">
+                  {hoveredPillar ? `PILLAR P${IIITNR_CAMPUS_BOUNDARY_CORNERS.findIndex((c) => c.id === hoveredPillar.id) + 1}` : '50 ACRES'}
+                </span>
+                <span className="font-black text-white text-sm">
+                  {hoveredPillar ? hoveredPillar.label : 'IIIT Naya Raipur — 50-Acre Perimeter Boundary'}
+                </span>
+                <span className="text-slate-500">·</span>
+                <span className="text-[11px] text-rose-400 font-medium">
+                  {hoveredPillar ? hoveredPillar.subtitle : 'Official Campus Estate'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300">
+                {hoveredPillar ? (
+                  <>
+                    Geodetic Grid Coordinate: ({hoveredPillar.x}px, {hoveredPillar.y}px) · Boundary Perimeter: 2,328m
+                  </>
+                ) : (
+                  <>
+                    50 Acres Total Estate · Perimeter: 2,328m (North: 570m · East: 597m · South: 564m · West: 596m)
+                  </>
+                )}
+              </p>
             </div>
-            <p className="text-[11px] text-slate-400">
-              {hoveredBuildingObj?.description}
-            </p>
-          </div>
 
-          {selectedRoom && (
-            <div className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-mono text-xs font-bold shrink-0">
-              📍 {selectedRoom}
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/50 px-2 py-1 rounded border border-emerald-500/30">
+                ✓ 1:1 Matched to Demarcation Line
+              </span>
+              {isBoundarySelected && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBoundarySelected(false);
+                    setHoveredBoundary(false);
+                    setHoveredPillar(null);
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold cursor-pointer"
+                >
+                  ✕ Deselect
+                </button>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-mono text-[10px] font-bold">
+                  {hoveredBuildingObj?.trace?.badge || hoveredBuildingObj?.mapPin?.badge || 'BLDG'}
+                </span>
+                <span className="font-black text-white text-sm">
+                  {hoveredBuildingObj?.name}
+                </span>
+                <span className="text-slate-500">·</span>
+                <span className="text-[11px] text-emerald-400 font-medium">
+                  {hoveredBuildingObj?.type}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                {hoveredBuildingObj?.description}
+              </p>
+            </div>
+
+            {selectedRoom && (
+              <div className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-mono text-xs font-bold shrink-0">
+                📍 {selectedRoom}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Inline Editor Drawer (when Edit / Label is active and user is Super Admin) */}
         {isSuperAdmin && isEditMode && editingBuilding && (
