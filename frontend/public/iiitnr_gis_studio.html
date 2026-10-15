@@ -25,9 +25,6 @@
     src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"
   ></script>
 
-  <!-- Complete Authentic IIIT Naya Raipur 18-Building Digital Twin Preset -->
-  <script src="authenticGisPreset.js"></script>
-
   <style>
     :root {
       --bg: #090d16;
@@ -298,75 +295,6 @@
       box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
     }
 
-    /* Aesthetic GIS Multi-Polygon Styling */
-    .aesthetic-gis-polygon {
-      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.7));
-      transition: fill-opacity 0.2s ease, stroke-width 0.2s ease;
-    }
-    .aesthetic-gis-polygon:hover {
-      fill-opacity: 0.8 !important;
-      stroke: #ffffff !important;
-      stroke-width: 3px !important;
-      cursor: pointer;
-    }
-
-    /* Showcase Full-Screen Aesthetic Presentation Mode */
-    body.showcase-mode .sidebar {
-      display: none !important;
-    }
-    body.showcase-mode header {
-      background: rgba(15, 23, 42, 0.82);
-      backdrop-filter: blur(14px);
-    }
-    body.showcase-mode .hud-bar {
-      background: rgba(15, 23, 42, 0.90);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
-    }
-    .aesthetic-campus-legend {
-      position: absolute;
-      bottom: 24px;
-      left: 20px;
-      z-index: 1000;
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 12px;
-      padding: 12px 16px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
-      pointer-events: auto;
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      color: #e2e8f0;
-      max-width: 270px;
-      animation: fadeIn 0.3s ease;
-    }
-    .aesthetic-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-    }
-    .aesthetic-legend-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 3px;
-      flex-shrink: 0;
-    }
-
-    /* Map Visual FX Filters */
-    .map-fx-cyberpunk .leaflet-tile-pane {
-      filter: contrast(1.22) brightness(0.88) saturate(1.3) hue-rotate(-10deg);
-    }
-    .map-fx-blueprint .leaflet-tile-pane {
-      filter: invert(0.92) hue-rotate(185deg) saturate(2.5) contrast(1.2);
-    }
-    .map-fx-vibrant .leaflet-tile-pane {
-      filter: saturate(1.45) contrast(1.1);
-    }
-
     /* Sidebar */
     .sidebar {
       background: var(--panel);
@@ -567,12 +495,10 @@
 
     <!-- Top Tools -->
     <div class="toolbar-group">
-      <button class="btn emerald" style="background:linear-gradient(135deg, #059669, #0284c7);border-color:#38bdf8;font-weight:800;" onclick="loadAuthenticCampusPreset(true)">⚡ Auto-Fill Full Campus</button>
-      <button class="btn sky" id="btn-showcase-view" onclick="toggleShowcaseView()" title="Full-screen clean aesthetic showcase">✨ Aesthetic View</button>
-      <button class="btn" id="btn-add-pin" onclick="enableAddPinMode()">📍 + Pin</button>
-      <button class="btn" id="btn-draw-road" onclick="startDrawRoad()">🛣️ Road</button>
-      <button class="btn" id="btn-draw-path" onclick="startDrawFootpath()">🚶 Path</button>
-      <button class="btn" id="btn-edit-mode" onclick="toggleGlobalEditMode()">✏️ Edit</button>
+      <button class="btn emerald" id="btn-add-pin" onclick="enableAddPinMode()">📍 + Add Building Pin</button>
+      <button class="btn" id="btn-draw-road" onclick="startDrawRoad()">🛣️ Trace Road</button>
+      <button class="btn" id="btn-draw-path" onclick="startDrawFootpath()">🚶 Trace Footpath</button>
+      <button class="btn" id="btn-edit-mode" onclick="toggleGlobalEditMode()">✏️ Edit Vertices</button>
     </div>
 
     <!-- Quick Export -->
@@ -585,22 +511,6 @@
   <main>
     <div id="map-container">
       <div id="leaflet-map"></div>
-
-      <!-- Floating Aesthetic Campus Legend -->
-      <div class="aesthetic-campus-legend" id="campus-legend" style="display:none;">
-        <div style="font-weight:800;font-size:11.5px;color:#fff;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:6px;margin-bottom:4px;">
-          <span>🏛️ IIIT-NR Campus Master Plan</span>
-          <span style="font-size:9.5px;color:#38bdf8;">Digital Twin</span>
-        </div>
-        <div class="aesthetic-legend-item"><span class="aesthetic-legend-dot" style="background:#0284c7;"></span>Academic Complex &amp; Labs</div>
-        <div class="aesthetic-legend-item"><span class="aesthetic-legend-dot" style="background:#4f46e5;"></span>Boys Hostels (BH-1, BH-2, BH-3)</div>
-        <div class="aesthetic-legend-item"><span class="aesthetic-legend-dot" style="background:#db2777;"></span>Girls Hostels (GH-1, GH-2)</div>
-        <div class="aesthetic-legend-item"><span class="aesthetic-legend-dot" style="background:#f59e0b;"></span>Circular Canteen &amp; Dining Arcade</div>
-        <div class="aesthetic-legend-item"><span class="aesthetic-legend-dot" style="background:#e11d48;"></span>Central Auditorium (800 Seats)</div>
-        <div class="aesthetic-legend-item"><span class="aesthetic-legend-dot" style="background:#10b981;"></span>Library (KRC) &amp; Sports Complex</div>
-        <div class="aesthetic-legend-item"><span class="aesthetic-legend-dot" style="background:#334155;border:1px solid #94a3b8;"></span>Vehicular Roads &amp; Kerbs</div>
-        <div class="aesthetic-legend-item"><span class="aesthetic-legend-dot" style="background:#f8fafc;border:1px dashed #64748b;"></span>Pedestrian Footpaths</div>
-      </div>
 
       <!-- Top HUD Real-time Readouts -->
       <div class="hud-bar">
@@ -620,18 +530,9 @@
           <span class="hud-label">Roads / Walkways</span>
           <span class="hud-val" id="hud-road-count">0 Traced</span>
         </div>
-        <div class="hud-item" style="border-left: 1px solid rgba(255,255,255,0.15); padding-left: 10px;">
-          <span class="hud-label" style="color: #38bdf8;">Visual FX Filter</span>
-          <select id="map-fx-select" onchange="switchMapFx(this.value)" style="background:transparent;border:none;color:#38bdf8;font-size:10px;font-weight:700;outline:none;cursor:pointer;">
-            <option value="none">🛰️ Satellite True Color</option>
-            <option value="cyberpunk">🌆 Cyberpunk Glow</option>
-            <option value="blueprint">📐 Architectural Blueprint</option>
-            <option value="vibrant">🌿 High-Vibrance Landscape</option>
-          </select>
-        </div>
-        <div class="hud-item" style="border-left: 1px solid rgba(255,255,255,0.15); padding-left: 10px;">
+        <div class="hud-item" style="border-left: 1px solid rgba(255,255,255,0.15); padding-left: 12px;">
           <span class="hud-label" style="color: #a5b4fc;">Live Navigation</span>
-          <span class="hud-val" style="color: #c7d2fe; font-size: 11px;">⌨️ WASD to Pan (Shift = 2x)</span>
+          <span class="hud-val" style="color: #c7d2fe; font-size: 11px;">⌨️ WASD / Arrows to Pan (Shift = 2x)</span>
         </div>
       </div>
     </div>
@@ -662,30 +563,6 @@
               <span>🏢 Building Profile</span>
               <span id="selected-badge-tag" style="font-size:10px;color:#38bdf8;font-family:monospace;">[ACAD]</span>
             </h3>
-          </div>
-
-          <!-- QUICK TEMPLATE & AUTO-LABEL PICKER -->
-          <div style="background:linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(99, 102, 241, 0.15));border:1px solid rgba(56, 189, 248, 0.35);border-radius:8px;padding:9px;margin:8px 0 12px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-              <span style="font-size:11px;font-weight:800;color:#38bdf8;display:flex;align-items:center;gap:5px;">
-                <span>✨ Instant Preset &amp; Room Auto-Filler</span>
-              </span>
-              <span style="font-size:9.5px;color:var(--muted);">No typing needed!</span>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <select id="quick-preset-select" style="flex:1;font-size:10.5px;padding:4px 8px;background:#0f172a;border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:6px;outline:none;">
-                <option value="">⚡ Select Template to Auto-Fill...</option>
-                <option value="ACADEMIC_COMPLEX">🏢 Academic &amp; Admin (Labs, Classrooms, NOC)</option>
-                <option value="BOYS_HOSTEL">🏠 Boys Hostel (BH-1 / BH-2 / BH-3, Rooms 101-324)</option>
-                <option value="GIRLS_HOSTEL">🌸 Girls Hostel (Raman / Shabri, Dedicated Mess)</option>
-                <option value="LIBRARY_KRC">📚 Knowledge Resource Centre (Central Library)</option>
-                <option value="CANTEEN_FOOD">🍽️ Circular Canteen &amp; Dining Arcade</option>
-                <option value="AUDITORIUM_HALL">🎭 Central Auditorium (800 Seats &amp; Green Rooms)</option>
-                <option value="SPORTS_COMPLEX">⚽ Sports Complex, Gymnasium &amp; Courts</option>
-                <option value="CAMPUS_INFRA">🛡️ Main Gate 1, ATM &amp; 33kV Substation</option>
-              </select>
-              <button class="btn sky" style="padding:4px 10px;font-size:11px;font-weight:700;" onclick="applyQuickPreset()">Fill</button>
-            </div>
           </div>
 
           <div>
@@ -734,10 +611,6 @@
           <div>
             <label>Rooms / Labs List (comma-separated)</label>
             <textarea id="f-custom-rooms" rows="2" oninput="updateSelectedBuildingFromForm()" placeholder="e.g. Smart E-Classroom E-101, VLSI Lab, IDEA Lab, Room 131C NOC"></textarea>
-            <div style="display:flex;gap:6px;align-items:center;margin-top:5px;">
-              <button class="btn" style="flex:1;font-size:9.5px;padding:3px 6px;" onclick="generateHostelRoomSeries(24)">🔢 Auto-Generate 24 Rooms/Floor (101-324)</button>
-              <button class="btn" style="flex:1;font-size:9.5px;padding:3px 6px;" onclick="generateHostelRoomSeries(28)">🔢 Auto-Generate 28 Rooms/Floor</button>
-            </div>
           </div>
 
           <div>
@@ -884,181 +757,128 @@
   <div class="toast" id="toast">Saved to clipboard!</div>
 
   <script>
-    // --- Pre-Calibrated Building Templates for 1-Click Auto-Fill (No Manual Typing) ---
-    const BUILDING_TEMPLATES = {
-      ACADEMIC_COMPLEX: {
+    // --- Ground-Truth IIIT Naya Raipur Authentic Campus Entities ---
+    const INITIAL_BUILDINGS = [
+      {
+        id: 'academic_block',
         name: 'Academic & Administrative Block',
         shortName: 'Academic Block',
         badge: 'ACAD',
         category: 'ACADEMIC',
         color: '#0284c7',
-        wings: ['Rotunda Central Dome', 'North-West Classroom Wing', 'South-West Admin Wing', 'Northeast Lab Wings 1-4'],
+        mapPin: { lat: 21.12836, lng: 81.76615 },
+        wings: ['Main Building', 'East Lab Wings', 'Directorate Wing'],
         floors: ['G', '1', '2', '3'],
-        customRooms: [
-          'Smart E-Classroom E-101 (120-Seat AC)',
-          'Smart E-Classroom E-102 (120-Seat AC)',
-          'Lecture Halls LH-1 to LH-6',
-          'AICTE IDEA Lab & 3D Fabrication',
-          'VLSI & Embedded Systems Lab (Room 202)',
-          'IoT & Robotics Lab (Room 205)',
-          'Data Centre & Server NOC (Room 131C/131E)',
-          'Directorate Secretariat & Board Room',
-          'Estate Office (Room 104)',
-          'Registrar Office'
-        ],
-        description: 'Iconic central rotunda dome and 4-story classroom/laboratory complex'
+        roomsPerFloor: 20,
+        customRooms: ['Smart E-Classroom E-101', 'Smart E-Classroom E-102', 'Lecture Hall LH-1', 'VLSI Lab', 'IDEA Lab', 'Room 131C (Data Centre)', 'Room 131E (NOC)', 'Estate Office', 'Registrar Office', 'Board Room'],
+        description: 'Iconic central academic rotunda dome and classroom/laboratory complex',
+        polygons: [],
+        entrances: [
+          { id: 'ent_acad_main', name: 'Front Main Portico Entrance', lat: 21.12805, lng: 81.76610 },
+          { id: 'ent_acad_west', name: 'West Wing Entrance', lat: 21.12830, lng: 81.76565 }
+        ]
       },
-      BOYS_HOSTEL: {
-        name: 'Ramanujan House (Boys Hostel 1)',
-        shortName: 'Boys Hostel',
-        badge: 'BH',
-        category: 'HOSTEL',
-        color: '#4f46e5',
-        wings: ['Wing A', 'Wing B', 'Sawtooth East Wing', 'Inner Sports Courts'],
-        floors: ['G', '1', '2', '3'],
-        customRooms: [
-          'Room G-01 to G-24 (Ground Floor)',
-          'Room 101 to 124 (1st Floor)',
-          'Room 201 to 224 (2nd Floor)',
-          'Room 301 to 324 (3rd Floor)',
-          'Common Room & Table Tennis Lounge',
-          'Inner Badminton / Volleyball Court',
-          'Corridor RO Drinking Water Point',
-          'Washroom & Laundry Facility'
-        ],
-        description: '4-story student residential hostel with inner sports courtyard'
-      },
-      GIRLS_HOSTEL: {
-        name: 'Raman House (Girls Hostel 1)',
-        shortName: 'Girls Hostel',
-        badge: 'GH',
-        category: 'HOSTEL',
-        color: '#db2777',
-        wings: ['Block A (Main Quad)', 'Block B (Outer-West)', 'Block C (South Wing)', 'D-Lawn Court'],
-        floors: ['G', '1', '2', '3'],
-        customRooms: [
-          'Room G-01 to G-24',
-          'Room 101 to 124',
-          'Room 201 to 224',
-          'Room 301 to 324',
-          'Dedicated Girls Dining Mess Hall',
-          'Inner Garden Courtyard & Badminton Court',
-          'Security Desk & Warden Office',
-          'Corridor RO Purifier & Laundry'
-        ],
-        description: 'Girls residential hostel with private courtyard and dining facility'
-      },
-      LIBRARY_KRC: {
-        name: 'Knowledge Resource Centre (Central Library)',
-        shortName: 'Central Library',
-        badge: 'KRC',
-        category: 'ACADEMIC',
-        color: '#10b981',
-        wings: ['Main Reading Hall', 'Digital Library Wing', 'Periodicals Section'],
-        floors: ['G', '1', '2'],
-        customRooms: [
-          'Main Stack Area & Book Issuing Counter',
-          'Quiet Reading & Study Hall',
-          'Digital E-Library & Multimedia Lab',
-          'RFID Self-Checkout Kiosk',
-          'Group Discussion Rooms (GD-1, GD-2)',
-          'Librarian Office & Technical Processing'
-        ],
-        description: 'Multi-level campus library with high-speed digital research bay'
-      },
-      CANTEEN_FOOD: {
-        name: 'Canteen IIIT Naya Raipur (Circular Rotunda & Food Arcade)',
-        shortName: 'Canteen',
-        badge: 'CANTEEN',
-        category: 'AMENITY',
-        color: '#f59e0b',
-        wings: ['Circular Rotunda', 'Open-Air Seating Arcade', 'Kitchen Bay'],
-        floors: ['G'],
-        customRooms: [
-          'Main Rotunda Seating (250 Capacity)',
-          'Curved Shaded Arcade Dining',
-          'Hot Food & Meals Counter',
-          'Night Canteen & Snacks Counter',
-          'Beverage & Coffee Point',
-          'Chef Kitchen & Storage'
-        ],
-        description: 'Circular rotunda dining and active evening social hub'
-      },
-      AUDITORIUM_HALL: {
-        name: 'Central Campus Auditorium & Convention Centre',
+      {
+        id: 'auditorium_hall',
+        name: 'Central Campus Auditorium',
         shortName: 'Auditorium',
         badge: 'AUD',
         category: 'AMENITY',
         color: '#e11d48',
-        wings: ['Main Auditorium Hall', 'Grand Foyer & Plaza', 'Backstage Wing'],
+        mapPin: { lat: 21.12815, lng: 81.76480 },
+        wings: ['Main Hall', 'Balcony'],
         floors: ['G', '1'],
-        customRooms: [
-          'Main Acoustic Auditorium (800-Seater)',
-          'Grand Entrance Foyer & Exhibition Lobby',
-          'VIP Green Room & Dressing Suites',
-          'Audio-Visual Control & Lighting Booth',
-          'Side Stage Wings & Projection Room'
-        ],
-        description: 'State-of-the-art 800-seat acoustic hall for convocations and cultural fests'
+        roomsPerFloor: 6,
+        customRooms: ['Main Acoustic Auditorium Hall (800 Seater)', 'Green Room 1', 'Green Room 2', 'AV Control Booth'],
+        description: 'Main campus auditorium located west of the central spine',
+        polygons: [],
+        entrances: [
+          { id: 'ent_audi_front', name: 'Auditorium Front Plaza Entrance', lat: 21.12800, lng: 81.76485 }
+        ]
       },
-      SPORTS_COMPLEX: {
-        name: 'Sports Complex & Multi-Purpose Indoor Stadium',
-        shortName: 'Sports Complex',
-        badge: 'SPORTS',
-        category: 'INFRASTRUCTURE',
-        color: '#06b6d4',
-        wings: ['Indoor Stadium', 'Gymnasium Wing', 'Outdoor Courts & Pavilion'],
-        floors: ['G', '1'],
-        customRooms: [
-          'Indoor Wooden Badminton Courts (Courts 1-3)',
-          'Student Fitness Gymnasium & Weights Area',
-          'Table Tennis & Indoor Games Hall',
-          'Main Football Turf (FG) & 400m Track',
-          'Floodlit Basketball Courts 1 & 2',
-          'Sports Officer Cabin & Equipment Locker'
-        ],
-        description: 'Comprehensive campus athletic facility with indoor arena and turf field'
-      },
-      CAMPUS_INFRA: {
-        name: 'Main Security Gate No. 1, ATM & Utilities',
-        shortName: 'Main Gate & Security',
-        badge: 'GATE',
-        category: 'INFRASTRUCTURE',
-        color: '#64748b',
-        wings: ['Main Security Portal', 'ATM Kiosk Bay', '33/11kV Substation'],
+      {
+        id: 'canteen_block',
+        name: 'Canteen IIIT Naya Raipur (Circular Rotunda & Arcade)',
+        shortName: 'Canteen',
+        badge: 'CANTEEN',
+        category: 'AMENITY',
+        color: '#f59e0b',
+        mapPin: { lat: 21.12782, lng: 81.76495 },
+        wings: ['Circular Rotunda', 'Open-Air Seating Arcade'],
         floors: ['G'],
-        customRooms: [
-          'Main Security Gate No. 1 & Boom Barriers',
-          '24/7 Security Control & Visitor Registration',
-          'Union Bank of India On-Campus ATM',
-          '33/11kV Electrical Substation & DG Backup Bay',
-          'Campus Vehicle Parking Enclosure'
-        ],
-        description: 'Primary campus access control, 24/7 ATM and main power substation'
+        roomsPerFloor: 6,
+        customRooms: ['Dining Hall', 'Kitchen', 'Night Canteen Counter', 'Beverage Counter', 'Water Point'],
+        description: 'Iconic circular canteen rotunda with curved dining arcade',
+        polygons: [],
+        entrances: [
+          { id: 'ent_canteen_entry', name: 'Canteen Arcade Entry', lat: 21.12775, lng: 81.76510 }
+        ]
+      },
+      {
+        id: 'ramanujan_house',
+        name: 'Ramanujan House (Boys Hostel 1)',
+        shortName: 'Ramanujan House',
+        badge: 'BH-1',
+        category: 'HOSTEL',
+        color: '#4f46e5',
+        mapPin: { lat: 21.13080, lng: 81.76750 },
+        wings: ['Wing A', 'Wing B', 'Wing C', 'Wing D'],
+        floors: ['G', '1', '2', '3'],
+        roomsPerFloor: 24,
+        customRooms: [],
+        description: 'Boys Hostel 1 in the northeast residential sector',
+        polygons: [],
+        entrances: []
+      },
+      {
+        id: 'bhabha_house',
+        name: 'Bhabha House (Boys Hostel 2)',
+        shortName: 'Bhabha House',
+        badge: 'BH-2',
+        category: 'HOSTEL',
+        color: '#4f46e5',
+        mapPin: { lat: 21.12750, lng: 81.76430 },
+        wings: ['Wing A', 'Wing B', 'Wing C'],
+        floors: ['G', '1', '2', '3'],
+        roomsPerFloor: 24,
+        customRooms: [],
+        description: 'Boys Hostel 2 in the southwestern hostel zone',
+        polygons: [],
+        entrances: []
+      },
+      {
+        id: 'bose_house',
+        name: 'Bose House (Boys Hostel 3)',
+        shortName: 'Bose House',
+        badge: 'BH-3',
+        category: 'HOSTEL',
+        color: '#4f46e5',
+        mapPin: { lat: 21.12720, lng: 81.76490 },
+        wings: ['Wing A', 'Wing B', 'Wing C'],
+        floors: ['G', '1', '2', '3'],
+        roomsPerFloor: 24,
+        customRooms: [],
+        description: 'Boys Hostel 3 in the southwestern hostel zone',
+        polygons: [],
+        entrances: []
+      },
+      {
+        id: 'raman_house',
+        name: 'Raman House (Girls Hostel)',
+        shortName: 'Raman House',
+        badge: 'GH-1',
+        category: 'HOSTEL',
+        color: '#db2777',
+        mapPin: { lat: 21.12850, lng: 81.76820 },
+        wings: ['Wing A', 'Wing B', 'Wing C', 'Wing D'],
+        floors: ['G', '1', '2', '3'],
+        roomsPerFloor: 24,
+        customRooms: [],
+        description: 'Girls Hostel located east of the central library',
+        polygons: [],
+        entrances: []
       }
-    };
-
-    // Use authentic preset as default if available
-    const INITIAL_BUILDINGS = (window.AUTHENTIC_CAMPUS_PRESET && window.AUTHENTIC_CAMPUS_PRESET.buildings)
-      ? window.AUTHENTIC_CAMPUS_PRESET.buildings
-      : [
-          {
-            id: 'academic_block',
-            name: 'Academic & Administrative Block',
-            shortName: 'Academic Block',
-            badge: 'ACAD',
-            category: 'ACADEMIC',
-            color: '#0284c7',
-            mapPin: { lat: 21.12836, lng: 81.76615 },
-            wings: ['Rotunda Central Dome', 'North-West Classroom Wing', 'South-West Admin Wing'],
-            floors: ['G', '1', '2', '3'],
-            roomsPerFloor: 20,
-            customRooms: ['Smart E-Classroom E-101', 'Smart E-Classroom E-102', 'Lecture Hall LH-1', 'VLSI Lab', 'IDEA Lab', 'Room 131C (Data Centre)', 'Room 131E (NOC)', 'Estate Office', 'Registrar Office'],
-            description: 'Iconic central academic rotunda dome and classroom complex',
-            polygons: [],
-            entrances: [{ id: 'ent_acad_main', name: 'Front Main Portico Entrance', lat: 21.12805, lng: 81.76610 }]
-          }
-        ];
+    ];
 
     // --- State Variables ---
     let map = null;
@@ -1076,166 +896,12 @@
     let isAddingEntrance = false;
     let isDrawingWing = false;
     let globalEditMode = false;
-    let isShowcaseView = false;
-
-    // --- 1-Click Preset & Template Engine ---
-    function applyQuickPreset() {
-      const select = document.getElementById('quick-preset-select');
-      const templateKey = select.value;
-      if (!templateKey || !BUILDING_TEMPLATES[templateKey]) {
-        showToast('⚠️ Please select a template from the dropdown');
-        return;
-      }
-
-      const b = buildings.find(x => x.id === selectedBuildingId);
-      if (!b) return;
-
-      const t = BUILDING_TEMPLATES[templateKey];
-      b.name = t.name;
-      b.shortName = t.shortName;
-      b.badge = t.badge;
-      b.category = t.category;
-      b.color = t.color;
-      b.wings = [...t.wings];
-      b.floors = [...t.floors];
-      b.customRooms = [...t.customRooms];
-      b.description = t.description;
-
-      loadSelectedBuildingIntoForm();
-      renderBuildingMarkers();
-      renderPinChips();
-      renderBuildingPolygons();
-      renderBuildingEntrances();
-      saveBuildingsToStorage();
-      updateJsonOutput();
-
-      showToast(`✨ Applied "${t.shortName}" template!`);
-    }
-
-    function generateHostelRoomSeries(roomsPerFloor = 24) {
-      const b = buildings.find(x => x.id === selectedBuildingId);
-      if (!b) return;
-
-      const list = [
-        `Room G-01 to G-${roomsPerFloor} (Ground Floor)`,
-        `Room 101 to 1${roomsPerFloor} (1st Floor)`,
-        `Room 201 to 2${roomsPerFloor} (2nd Floor)`,
-        `Room 301 to 3${roomsPerFloor} (3rd Floor)`,
-        'Common Room & Table Tennis Lounge',
-        'Inner Sports Courtyard',
-        'Corridor RO Drinking Water Purifier',
-        'Washroom Block & Laundry Bay'
-      ];
-
-      b.customRooms = list;
-      document.getElementById('f-custom-rooms').value = list.join(', ');
-      saveBuildingsToStorage();
-      updateJsonOutput();
-      showToast(`🔢 Generated ${roomsPerFloor * 4} rooms for ${b.shortName}!`);
-    }
-
-    function loadPresetRoads(roadsList) {
-      roadLayers.forEach(l => map.removeLayer(l));
-      roadLayers = [];
-      (roadsList || []).forEach(rData => {
-        const poly = L.polyline(rData.latlngs).addTo(map);
-        poly.roadData = { ...rData };
-        styleRoadLayer(poly);
-        poly.on('click', () => selectRoad(rData.id));
-        poly.on('pm:edit', () => {
-          saveRoadsToStorage();
-          updateGeometryCodeOutput();
-        });
-        roadLayers.push(poly);
-      });
-      saveRoadsToStorage();
-      renderRoadsList();
-      updateGeometryCodeOutput();
-    }
-
-    function loadAuthenticCampusPreset(askConfirm = false) {
-      if (askConfirm && !confirm('Load complete authentic IIIT Naya Raipur campus model (18 buildings, 82 roof wings, 24 entrances, 35 roads/walkways)?')) {
-        return;
-      }
-
-      const preset = window.AUTHENTIC_CAMPUS_PRESET;
-      if (!preset || !preset.buildings) {
-        showToast('⚠️ Preset data not found');
-        return;
-      }
-
-      buildings = JSON.parse(JSON.stringify(preset.buildings));
-      selectedBuildingId = buildings[0]?.id || null;
-
-      loadPresetRoads(preset.roads || []);
-
-      renderBuildingMarkers();
-      renderBuildingPolygons();
-      renderBuildingEntrances();
-      renderPinChips();
-      loadSelectedBuildingIntoForm();
-      saveBuildingsToStorage();
-      updateJsonOutput();
-
-      map.flyTo([21.1284, 81.7661], 17.5, { duration: 1 });
-      showToast('✨ Loaded 18 buildings, 82 roof wings & 35 roads for IIIT Naya Raipur!');
-    }
-
-    // --- Aesthetic Showcase & Visual FX Filters ---
-    function toggleShowcaseView() {
-      isShowcaseView = !isShowcaseView;
-      document.body.classList.toggle('showcase-mode', isShowcaseView);
-      const btn = document.getElementById('btn-showcase-view');
-      const legend = document.getElementById('campus-legend');
-      if (btn) {
-        btn.innerHTML = isShowcaseView ? '✏️ Exit View' : '✨ Aesthetic View';
-        btn.classList.toggle('active', isShowcaseView);
-      }
-      if (legend) {
-        legend.style.display = isShowcaseView ? 'flex' : 'none';
-      }
-      setTimeout(() => map.invalidateSize(), 300);
-      showToast(isShowcaseView ? '✨ Full-Screen Aesthetic Showcase View' : 'Studio Editor View');
-    }
-
-    function switchMapFx(fxType) {
-      const container = document.getElementById('leaflet-map');
-      if (!container) return;
-      container.classList.remove('map-fx-cyberpunk', 'map-fx-blueprint', 'map-fx-vibrant');
-      if (fxType === 'cyberpunk') container.classList.add('map-fx-cyberpunk');
-      else if (fxType === 'blueprint') container.classList.add('map-fx-blueprint');
-      else if (fxType === 'vibrant') container.classList.add('map-fx-vibrant');
-      showToast(`Visual FX: ${fxType}`);
-    }
 
     // --- Map Initialization ---
     function initMap() {
       const savedData = localStorage.getItem('iiitnr_advanced_gis_buildings_v2');
-      const preset = window.AUTHENTIC_CAMPUS_PRESET;
-
-      // Automatically load authentic preset if no saved data, or if saved data is empty/incomplete
-      let shouldAutoLoad = false;
-      if (!savedData) {
-        shouldAutoLoad = true;
-      } else {
-        try {
-          const parsed = JSON.parse(savedData);
-          const totalPolys = parsed.reduce((sum, b) => sum + (b.polygons || []).length, 0);
-          if (parsed.length < 10 || totalPolys < 5) {
-            shouldAutoLoad = true;
-          }
-        } catch (e) {
-          shouldAutoLoad = true;
-        }
-      }
-
-      if (shouldAutoLoad && preset?.buildings) {
-        buildings = JSON.parse(JSON.stringify(preset.buildings));
-        selectedBuildingId = buildings[0]?.id || null;
-      } else {
-        buildings = savedData ? JSON.parse(savedData) : (preset?.buildings || INITIAL_BUILDINGS);
-        selectedBuildingId = buildings[0]?.id || null;
-      }
+      buildings = savedData ? JSON.parse(savedData) : INITIAL_BUILDINGS;
+      selectedBuildingId = buildings[0]?.id || null;
 
       // Create Leaflet Map centered on IIIT Naya Raipur
       map = L.map('leaflet-map', {
@@ -1608,26 +1274,18 @@
       buildingPolygonsLayers = {};
 
       buildings.forEach(b => {
-        const isSelected = b.id === selectedBuildingId;
         (b.polygons || []).forEach(polyData => {
           const color = polyData.color || b.color || '#0284c7';
           const poly = L.polygon(polyData.latlngs, {
-            color: isSelected ? '#38bdf8' : color,
+            color: color,
             fillColor: color,
-            fillOpacity: polyData.fillOpacity || (isSelected ? 0.62 : 0.48),
-            weight: isSelected ? 2.8 : 2.0,
-            className: 'aesthetic-gis-polygon'
+            fillOpacity: polyData.fillOpacity || 0.45,
+            weight: 2,
           }).addTo(map);
 
-          poly.bindTooltip(`
-            <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;">
-              <span style="font-weight:800;color:${color};">[${b.badge || 'PIN'}] ${b.shortName || b.name}</span><br/>
-              <span style="color:#cbd5e1;font-size:10px;">🏛️ ${polyData.name}</span>
-            </div>
-          `, {
+          poly.bindTooltip(`<strong>${b.shortName || b.name}</strong><br/>${polyData.name}`, {
             sticky: true,
-            direction: 'top',
-            opacity: 0.95
+            direction: 'top'
           });
 
           // Interactive popup directly on the polygon with 1-click Delete Wing & Edit
@@ -2082,12 +1740,11 @@
     function styleRoadLayer(layer) {
       const d = layer.roadData || {};
       const isRoad = d.type === 'road';
-      const width = Number(d.width) || (isRoad ? 11 : 4.5);
       layer.setStyle({
-        color: d.color || (isRoad ? '#334155' : '#e2e8f0'),
-        weight: width,
-        opacity: 0.95,
-        dashArray: isRoad ? null : '4 4',
+        color: d.color || (isRoad ? '#ea580c' : '#10b981'),
+        weight: Number(d.width) || (isRoad ? 11 : 4.5),
+        opacity: 0.92,
+        dashArray: isRoad ? null : '5 4',
         lineCap: 'round',
         lineJoin: 'round'
       });
@@ -2206,18 +1863,9 @@
 
     function loadSavedRoads() {
       const saved = localStorage.getItem('iiitnr_advanced_gis_roads_v2');
-      if (!saved) {
-        if (window.AUTHENTIC_CAMPUS_PRESET?.roads) {
-          loadPresetRoads(window.AUTHENTIC_CAMPUS_PRESET.roads);
-        }
-        return;
-      }
+      if (!saved) return;
       try {
         const data = JSON.parse(saved);
-        if (data.length === 0 && window.AUTHENTIC_CAMPUS_PRESET?.roads) {
-          loadPresetRoads(window.AUTHENTIC_CAMPUS_PRESET.roads);
-          return;
-        }
         data.forEach(item => {
           const poly = L.polyline(item.latlngs).addTo(map);
           poly.roadData = item;
