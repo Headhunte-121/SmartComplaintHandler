@@ -123,32 +123,32 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
-      {/* Dark Architectural Operations Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-slate-800">
-        <div className="absolute -top-20 -right-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+      {/* Clean White Operations Hero */}
+      <div className="rounded-3xl bg-white border border-slate-200/90 text-slate-900 p-6 sm:p-8 shadow-sm relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-green-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-1.5">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-200 text-[11px] font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-green-800 text-[11px] font-bold uppercase tracking-wider">
               <span>🛡️ Supervisory Command Desk</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Facilities Maintenance Operations Console
             </h1>
-            <p className="text-xs text-slate-300 max-w-2xl">
+            <p className="text-xs text-slate-500 max-w-2xl">
               Live queue dispatch, squad workload balancing, priority override governance, and SLA breach monitoring.
             </p>
           </div>
 
-          <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 shrink-0">
+          <div className="flex items-center space-x-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shrink-0">
             <span className="text-2xl">{activeUser?.avatar || '🛡️'}</span>
             <div className="text-left text-xs">
-              <div className="font-bold text-white flex items-center space-x-1.5">
+              <div className="font-bold text-slate-900 flex items-center space-x-1.5">
                 <span>{activeUser?.name}</span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-800 border border-green-200">
                   {activeUser?.roleLabel || activeUser?.role}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-300 font-mono mt-0.5">
+              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
                 {activeUser?.email}
               </div>
             </div>
@@ -157,18 +157,18 @@ export default function AdminDashboard() {
       </div>
 
       {toastMsg && (
-        <div className="p-4 rounded-2xl bg-[#8C906D]/15 border border-[#8C906D]/30 text-[#3C4233] text-xs font-bold flex items-center justify-between animate-fade-in shadow-2xs">
+        <div className="p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-xs font-bold flex items-center justify-between animate-fade-in shadow-2xs">
           <div className="flex items-center space-x-2.5">
-            <span className="w-5 h-5 rounded-full bg-[#687156] text-white flex items-center justify-center font-black">✓</span>
+            <span className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">✓</span>
             <span>{toastMsg}</span>
           </div>
-          <button onClick={() => setToastMsg(null)} className="text-[#3C4233] font-bold">✕</button>
+          <button onClick={() => setToastMsg(null)} className="text-green-800 font-bold">✕</button>
         </div>
       )}
 
       {/* Bento Operational Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bento-card p-5 border-l-4 border-l-slate-800 space-y-1">
+        <div className="bento-card p-5 border-l-4 border-l-slate-400 space-y-1 bg-white border border-slate-200 shadow-sm rounded-2xl">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
             Total Grievances
           </span>
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
           <span className="text-[11px] text-slate-500 block">Across all campus zones</span>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-blue-600 space-y-1">
+        <div className="bento-card p-5 border-l-4 border-l-blue-600 space-y-1 bg-white border border-slate-200 shadow-sm rounded-2xl">
           <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 block">
             Active Repairs
           </span>
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
           <span className="text-[11px] text-slate-500 block">Dispatched to field squads</span>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-rose-600 space-y-1">
+        <div className="bento-card p-5 border-l-4 border-l-rose-600 space-y-1 bg-white border border-slate-200 shadow-sm rounded-2xl">
           <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 block">
             Critical Hazards
           </span>
@@ -192,11 +192,11 @@ export default function AdminDashboard() {
           <span className="text-[11px] text-slate-500 block">2-hour SLA priority gate</span>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-[#687156] space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#687156] block">
+        <div className="bento-card p-5 border-l-4 border-l-green-600 space-y-1 bg-white border border-slate-200 shadow-sm rounded-2xl">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-green-700 block">
             Verified Closed
           </span>
-          <span className="text-3xl font-black text-[#687156] block">{resolvedCount}</span>
+          <span className="text-3xl font-black text-green-700 block">{resolvedCount}</span>
           <span className="text-[11px] text-slate-500 block">Completed with repair proof</span>
         </div>
       </div>

@@ -99,32 +99,32 @@ export default function TechnicianWorkstation() {
 
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-12">
-      {/* Technician Station Header (Fixed Tailwind v3 bg-gradient-to-r) */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-amber-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-slate-800">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-56 h-56 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+      {/* Clean White Field Squad Workstation Header */}
+      <div className="rounded-3xl bg-white border border-slate-200/90 text-slate-900 p-6 sm:p-8 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-56 h-56 bg-green-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start sm:items-center space-x-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-500/20 backdrop-blur-md border border-amber-500/30 flex items-center justify-center text-3xl shadow-inner shrink-0">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-green-50 border border-green-200 text-green-700 flex items-center justify-center text-3xl shadow-xs shrink-0">
               {activeUser?.avatar || '🔧'}
             </div>
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                   Field Squad Workstation
                 </h1>
-                <span className="text-[10px] uppercase font-mono font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/25 border border-amber-400/30 text-amber-200">
+                <span className="text-[10px] uppercase font-mono font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-green-50 border border-green-200 text-green-800">
                   {activeUser?.name}
                 </span>
               </div>
-              <p className="text-xs text-amber-200/90 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 On-site dispatch execution, repair progress logging, and mandatory closure verification.
               </p>
               <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-slate-300 font-bold">Active Squad Queue:</span>
+                <span className="text-slate-600 font-bold">Active Squad Queue:</span>
                 <select
                   value={selectedTeamId}
                   onChange={(e) => setSelectedTeamId(Number(e.target.value))}
-                  className="bg-slate-900/90 border border-slate-700 text-amber-300 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                  className="bg-white border border-slate-200 text-slate-900 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-green-500/20"
                 >
                   {CAMPUS_SQUADS.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -139,9 +139,9 @@ export default function TechnicianWorkstation() {
           <div className="flex items-center space-x-3 shrink-0">
             <button
               onClick={loadWorkOrders}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all text-xs font-bold flex items-center space-x-2 cursor-pointer"
+              className="btn-botanical-secondary"
             >
-              <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className={`w-4 h-4 text-green-600 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               <span>Refresh Queue</span>
@@ -151,8 +151,8 @@ export default function TechnicianWorkstation() {
       </div>
 
       {actionSuccess && (
-        <div className="p-4 rounded-2xl bg-[#8C906D]/15 border border-[#8C906D]/30 text-[#3C4233] text-xs font-bold flex items-center space-x-3 animate-fade-in shadow-2xs">
-          <span className="w-5 h-5 rounded-full bg-[#687156] text-white flex items-center justify-center font-black">
+        <div className="p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-xs font-bold flex items-center space-x-3 animate-fade-in shadow-2xs">
+          <span className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">
             ✓
           </span>
           <span>{actionSuccess}</span>
@@ -185,7 +185,7 @@ export default function TechnicianWorkstation() {
 
       {/* Bento Telemetry Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bento-card p-5 border-l-4 border-l-amber-500 flex items-center justify-between">
+        <div className="bento-card p-5 border-l-4 border-l-amber-500 flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-2xl">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Assigned Queue
@@ -198,7 +198,7 @@ export default function TechnicianWorkstation() {
           </div>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-rose-500 flex items-center justify-between">
+        <div className="bento-card p-5 border-l-4 border-l-rose-500 flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-2xl">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Critical / Escalated
@@ -211,15 +211,15 @@ export default function TechnicianWorkstation() {
           </div>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-[#687156] flex items-center justify-between">
+        <div className="bento-card p-5 border-l-4 border-l-green-600 flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-2xl">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Completed Repairs
             </span>
-            <div className="text-3xl font-black text-[#687156] mt-1">{completedWorkOrders.length}</div>
+            <div className="text-3xl font-black text-green-700 mt-1">{completedWorkOrders.length}</div>
             <span className="text-[11px] text-slate-500 mt-0.5 block">Verified with closure notes</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-[#8C906D]/15 border border-[#8C906D]/30 flex items-center justify-center text-[#687156] text-xl font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center text-green-700 text-xl font-bold">
             ✓
           </div>
         </div>

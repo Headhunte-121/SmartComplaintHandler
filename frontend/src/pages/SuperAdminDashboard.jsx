@@ -141,18 +141,18 @@ export default function SuperAdminDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-16">
       {/* Header Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-8 md:p-10 shadow-xl border border-indigo-900/40 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+      <div className="rounded-3xl bg-white border border-slate-200/90 text-slate-900 p-8 md:p-10 shadow-sm relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-96 h-96 bg-green-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-green-800 text-xs font-bold uppercase tracking-wider">
               <span>👑 Master Administration Console</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
               Campus Facilities Directorate
             </h1>
-            <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
               International Institute of Information Technology, Naya Raipur. Manage department staff, configure facility supervisors, and maintain system integrity.
             </p>
           </div>
@@ -160,33 +160,33 @@ export default function SuperAdminDashboard() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/superadmin/editor"
-              className="px-5 py-3 rounded-xl bg-[#A7AD89] hover:bg-[#8C906D] text-[#0A110D] font-black text-xs shadow-md shadow-[#A7AD89]/20 transition-all flex items-center space-x-2"
+              className="btn-botanical-primary"
             >
               <span>✏️ Campus &amp; Ticket Data Studio</span>
             </Link>
             <Link
               to="/map"
-              className="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all flex items-center space-x-2"
+              className="btn-botanical-moss"
             >
               <span>🗺️ Campus Map Studio</span>
             </Link>
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all flex items-center space-x-2 cursor-pointer"
+              className="btn-botanical-secondary"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
               <span>Add Facility Admin</span>
             </button>
             <button
               onClick={() => setIsPurgeConfirmOpen(true)}
-              className="px-5 py-3 rounded-xl bg-rose-900/60 hover:bg-rose-800 text-rose-200 border border-rose-700/50 font-bold text-xs transition-all flex items-center space-x-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-all flex items-center space-x-2 cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              <span>Sanitize Tickets (0 Fake Data)</span>
+              <span>Sanitize Tickets</span>
             </button>
           </div>
         </div>
@@ -194,12 +194,12 @@ export default function SuperAdminDashboard() {
 
       {/* Alerts */}
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-[#8C906D]/15 border border-[#8C906D]/30 text-[#3C4233] text-xs font-semibold flex items-center justify-between animate-fade-in">
+        <div className="p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-xs font-semibold flex items-center justify-between animate-fade-in shadow-2xs">
           <div className="flex items-center space-x-2">
             <span className="text-base">✓</span>
             <span>{successMsg}</span>
           </div>
-          <button onClick={() => setSuccessMsg(null)} className="text-[#687156] hover:text-[#3C4233] font-bold">×</button>
+          <button onClick={() => setSuccessMsg(null)} className="text-green-800 hover:text-green-900 font-bold">×</button>
         </div>
       )}
 
@@ -218,17 +218,17 @@ export default function SuperAdminDashboard() {
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Campus Staff / Admins</div>
           <div className="text-3xl font-black text-slate-900">{admins.length}</div>
-          <div className="text-[11px] text-[#687156] font-semibold">Active Institutional Accounts</div>
+          <div className="text-[11px] text-green-700 font-semibold">Active Institutional Accounts</div>
         </div>
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Facilities Departments</div>
-          <div className="text-3xl font-black text-indigo-600">{CAMPUS_DEPARTMENTS.length}</div>
+          <div className="text-3xl font-black text-green-700">{CAMPUS_DEPARTMENTS.length}</div>
           <div className="text-[11px] text-slate-500">Taxonomy Categories</div>
         </div>
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Maintenance Squads</div>
-          <div className="text-3xl font-black text-purple-600">{teams.length || 7}</div>
-          <div className="text-[11px] text-purple-600 font-semibold">Field Response Units</div>
+          <div className="text-3xl font-black text-slate-800">{teams.length || 7}</div>
+          <div className="text-[11px] text-green-700 font-semibold">Field Response Units</div>
         </div>
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Complaints</div>
@@ -241,8 +241,8 @@ export default function SuperAdminDashboard() {
       <div className="rounded-3xl border border-slate-200 bg-white shadow-xs overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/60">
           <div>
-            <h2 className="text-lg font-black text-slate-900">
-              Administrative & Supervisory Staff Directory
+            <h2 className="text-lg font-bold text-slate-900">
+              Administrative &amp; Supervisory Staff Directory
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               Authorized personnel with access to Operations Desks, Squad Dispatches, and Facilities Maintenance.
@@ -250,7 +250,7 @@ export default function SuperAdminDashboard() {
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
+            className="btn-botanical-primary self-start sm:self-auto"
           >
             <span>+ Add Admin / Staff</span>
           </button>

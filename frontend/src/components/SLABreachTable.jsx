@@ -77,7 +77,7 @@ export default function SLABreachTable({
                 {overdueCount} Overdue
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full border border-[#8C906D]/40 bg-[#8C906D]/15 px-2.5 py-0.5 text-xs font-semibold text-[#3C4233]">
+              <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-800">
                 0 Overdue
               </span>
             )}
@@ -97,7 +97,7 @@ export default function SLABreachTable({
             title="Refresh breach queue"
           >
             <svg
-              className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin text-[#687156]' : 'text-slate-500'}`}
+              className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin text-green-600' : 'text-slate-500'}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -157,8 +157,8 @@ export default function SLABreachTable({
       <div className="mt-4">
         {breaches.length === 0 && !isLoading ? (
           /* Zero-Breach Empty State Callout */
-          <div className="rounded-2xl border border-[#8C906D]/30 bg-[#8C906D]/10 p-10 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#8C906D]/20 text-[#687156]">
+          <div className="rounded-2xl border border-green-200 bg-green-50/50 p-10 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>

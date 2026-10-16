@@ -75,7 +75,7 @@ export default function PersonaSwitcherModal() {
                       {persona.roleLabel}
                     </span>
                     {isSelected && (
-                      <span className="text-[10px] font-bold text-[#3C4233] bg-[#8C906D]/20 border border-[#8C906D]/40 px-1.5 py-0.2 rounded">
+                      <span className="text-[10px] font-bold text-green-800 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded">
                         Active
                       </span>
                     )}

@@ -440,7 +440,7 @@ export default function CampusMapSelector({
               const target = buildings.find((b) => b.name === studentSavedHostel);
               if (target?.trace) panToTarget(target.trace.cx, target.trace.cy, 1.4, studentSavedRoom);
             }}
-            className="px-2.5 py-1 rounded-lg bg-[#8C906D] hover:bg-[#A7AD89] text-[#0A110D] text-[11px] font-bold shrink-0 cursor-pointer shadow-xs transition-colors"
+            className="px-2.5 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white text-[11px] font-bold shrink-0 cursor-pointer shadow-xs transition-colors"
           >
             🏠 My Room ({studentSavedHostel.split(' ')[0]} · {studentSavedRoom || 'Saved'})
           </button>
@@ -462,8 +462,8 @@ export default function CampusMapSelector({
               }}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
                 isSelected
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                  : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:text-indigo-700'
+                  ? 'bg-green-600 text-white border-green-600 shadow-2xs'
+                  : 'bg-white text-slate-700 border-slate-200 hover:border-green-300 hover:text-green-700'
               }`}
             >
               {h.shortName}
@@ -487,8 +487,8 @@ export default function CampusMapSelector({
               }}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
                 isSelected
-                  ? 'bg-sky-600 text-white border-sky-600 shadow-2xs'
-                  : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300 hover:text-sky-700'
+                  ? 'bg-green-600 text-white border-green-600 shadow-2xs'
+                  : 'bg-white text-slate-700 border-slate-200 hover:border-green-300 hover:text-green-700'
               }`}
             >
               {b.shortName}

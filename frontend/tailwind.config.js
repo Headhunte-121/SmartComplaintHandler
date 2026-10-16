@@ -1,12 +1,10 @@
 /**
  * SmartComplaintHandler - Tailwind CSS Configuration
- * Botanical Earth Tone Design System (Deep Forest Canvas & Sage Dark Mode)
- * - Sage: #A7AD89 (Primary action / highlight)
- * - Cream: #DAD0C6 (Warm secondary typography / chip)
- * - Moss: #8C906D (Accent border / subtle tone)
- * - Sand: #B69B86 (Metadata / category accent)
- * - Forest: #687156 (Elevated component border / background)
- * - Earth: #8F755E (Grounded utility accents)
+ * Clean Light Theme: Primary White & Secondary Light Green Design System
+ * - Primary Canvas: #FFFFFF / #F8FAF9 (Crisp, modern, high-contrast white base)
+ * - Secondary Accent: #16A34A / #22C55E (Fresh Light Green)
+ * - Secondary Tints: #F0FDF4 (50), #DCFCE7 (100), #BBF7D0 (200), #86EFAC (300)
+ * - Typography: #0F172A (Slate 900 Charcoal), #475569 (Slate 600 Muted)
  */
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -21,69 +19,55 @@ export default {
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       colors: {
+        // Semantic primary white and secondary green palette
+        brand: {
+          primary: '#FFFFFF',
+          secondary: '#16A34A',
+          accent: '#22C55E',
+          canvas: '#F8FAF9',
+          surface: '#FFFFFF',
+          border: '#E2E8F0',
+          charcoal: '#0F172A',
+          muted: '#475569',
+        },
+        lightgreen: {
+          50: '#F0FDF4',
+          100: '#DCFCE7',
+          200: '#BBF7D0',
+          300: '#86EFAC',
+          400: '#4ADE80',
+          500: '#22C55E',
+          600: '#16A34A',
+          700: '#15803D',
+          800: '#166534',
+          900: '#14532D',
+        },
+        // Backward compatibility mappings
         botanical: {
-          sage: '#A7AD89',
-          cream: '#DAD0C6',
-          moss: '#8C906D',
-          sand: '#B69B86',
-          forest: '#687156',
-          earth: '#8F755E',
-          deep: '#0A110D',
-          surface: '#0F1A14',
-          elevated: '#14221B',
-          linen: '#FAF7F2',
-        },
-        sage: {
-          50: '#F5F6F1',
-          100: '#E9EBE2',
-          200: '#D4D9C6',
-          300: '#BEC6AA',
-          400: '#A7AD89',
-          500: '#8C906D',
-          600: '#687156',
-          700: '#4F573F',
-          800: '#373D2C',
-          900: '#21251A',
-          950: '#0A110D',
-        },
-        cream: {
-          50: '#FAF8F5',
-          100: '#F4EFE8',
-          200: '#EAE2D7',
-          300: '#DAD0C6',
-          400: '#C8BAAD',
-          500: '#B6A494',
-        },
-        sand: {
-          300: '#CDBCAE',
-          400: '#B69B86',
-          500: '#9E826D',
-        },
-        forest: {
-          700: '#2D4536',
-          800: '#1C2E24',
-          900: '#14221B',
-          950: '#0A110D',
-        },
-        earth: {
-          400: '#A68970',
-          500: '#8F755E',
-          600: '#755E4A',
+          sage: '#16A34A',
+          cream: '#F8FAF9',
+          moss: '#22C55E',
+          sand: '#86EFAC',
+          forest: '#15803D',
+          earth: '#166534',
+          deep: '#F8FAF9',
+          surface: '#FFFFFF',
+          elevated: '#FFFFFF',
+          linen: '#0F172A',
         },
         hazard: {
-          critical: '#E06D63',
-          high: '#D9824C',
-          medium: '#D4A359',
-          low: '#8C906D',
+          critical: '#EF4444',
+          high: '#F97316',
+          medium: '#EAB308',
+          low: '#22C55E',
         },
       },
       boxShadow: {
-        '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.35)',
-        'xs': '0 1px 3px 0 rgba(0, 0, 0, 0.45), 0 1px 2px -1px rgba(0, 0, 0, 0.35)',
-        'bento': '0 8px 28px -4px rgba(0, 0, 0, 0.55), 0 1px 3px 0 rgba(167, 173, 137, 0.06)',
-        'bento-hover': '0 14px 36px -4px rgba(167, 173, 137, 0.18), 0 4px 14px -2px rgba(0, 0, 0, 0.6)',
-        'glow-sage': '0 0 28px -4px rgba(167, 173, 137, 0.45)',
-        'glow-emerald': '0 0 28px -4px rgba(167, 173, 137, 0.4)',
+        '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'xs': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
+        'bento': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03)',
+        'bento-hover': '0 10px 25px -5px rgba(22, 163, 74, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
+        'glow-green': '0 0 20px -3px rgba(34, 197, 94, 0.35)',
       },
       keyframes: {
         fadeIn: {
