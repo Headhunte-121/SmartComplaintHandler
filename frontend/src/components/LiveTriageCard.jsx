@@ -127,7 +127,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
         </div>
       )}
 
-      <div className="p-3.5 rounded-xl bg-[#070b12] border border-emerald-500/25 flex items-center justify-between gap-3">
+      <div className="p-3.5 rounded-xl bg-[#09110d] border border-[#588157]/30 flex items-center justify-between gap-3">
         <div>
           <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
             Detected Department
@@ -138,7 +138,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
         </div>
         <div className="text-right">
           <span className="text-[10px] font-mono uppercase text-slate-400 block">Target SLA</span>
-          <span className="text-xs font-mono font-semibold text-emerald-400 mt-0.5 block">
+          <span className="text-xs font-mono font-semibold text-garden-400 mt-0.5 block">
             {SLA_BY_PRIORITY[priorityKey] || '24 Hours'}
           </span>
         </div>
@@ -147,11 +147,11 @@ export default function LiveTriageCard({ title = '', description = '' }) {
       <div>
         <div className="flex items-center justify-between text-xs mb-1.5">
           <span className="text-slate-400">Match Confidence</span>
-          <span className="font-mono font-semibold text-emerald-300">{confidencePct}%</span>
+          <span className="font-mono font-semibold text-lemon-300">{confidencePct}%</span>
         </div>
-        <div className="w-full bg-[#070b12] rounded-full h-1.5 overflow-hidden border border-white/[0.06]">
+        <div className="w-full bg-[#09110d] rounded-full h-1.5 overflow-hidden border border-[#a3b18a]/[0.15]">
           <div
-            className="h-full rounded-full transition-all duration-300 bg-emerald-500"
+            className="h-full rounded-full transition-all duration-300 bg-garden-500"
             style={{ width: `${Math.max(12, confidencePct)}%` }}
           />
         </div>

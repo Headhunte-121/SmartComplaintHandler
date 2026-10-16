@@ -5,7 +5,7 @@ import React from 'react';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#05080d] text-slate-400 border-t border-white/[0.06] mt-auto">
+    <footer className="bg-[#080e0a] text-slate-400 border-t border-[#a3b18a]/[0.12] mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center space-x-2.5">
           <img
@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-slate-400">
           <span>Electrical: <span className="text-slate-300">0771-2474109</span></span>
           <span>Estate: <span className="text-slate-300">0771-2474104</span></span>
-          <span>IT NOC: <span className="text-emerald-400">Room 131C</span></span>
+          <span>IT NOC: <span className="text-[#a3b18a]">Room 131C</span></span>
         </div>
       </div>
     </footer>

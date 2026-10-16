@@ -281,13 +281,13 @@ export default function SubmitComplaint() {
               </div>
 
               {/* 3-Mode Segmented Pill Bar */}
-              <div className="inline-flex items-center p-1 rounded-lg bg-[#070b12] border border-white/[0.08] gap-1">
+              <div className="inline-flex items-center p-1 rounded-lg bg-[#09110d] border border-[#a3b18a]/[0.15] gap-1">
                 <button
                   type="button"
                   onClick={handleUseMySavedRoom}
                   className={`px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'MY_ROOM'
-                      ? 'bg-emerald-500 text-slate-950 font-semibold shadow-xs'
+                      ? 'bg-garden-500 text-white font-semibold shadow-xs'
                       : 'text-slate-400 hover:text-white font-medium'
                   }`}
                 >
@@ -298,7 +298,7 @@ export default function SubmitComplaint() {
                   onClick={() => setLocationMode('SEARCH')}
                   className={`px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'SEARCH'
-                      ? 'bg-emerald-500 text-slate-950 font-semibold shadow-xs'
+                      ? 'bg-garden-500 text-white font-semibold shadow-xs'
                       : 'text-slate-400 hover:text-white font-medium'
                   }`}
                 >
@@ -309,7 +309,7 @@ export default function SubmitComplaint() {
                   onClick={() => setLocationMode('BROWSE')}
                   className={`px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'BROWSE'
-                      ? 'bg-emerald-500 text-slate-950 font-semibold shadow-xs'
+                      ? 'bg-garden-500 text-white font-semibold shadow-xs'
                       : 'text-slate-400 hover:text-white font-medium'
                   }`}
                 >
@@ -320,7 +320,7 @@ export default function SubmitComplaint() {
 
             {/* MODE A: 1-Tap My Saved Room Card */}
             {locationMode === 'MY_ROOM' && (
-              <div className="p-4 rounded-xl bg-[#070b12] border border-emerald-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-4 rounded-xl bg-[#09110d] border border-[#588157]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center gap-3.5">
                   <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -366,14 +366,14 @@ export default function SubmitComplaint() {
 
             {/* MODE B: Inline Omni-Search */}
             {locationMode === 'SEARCH' && (
-              <div className="space-y-3 p-4 rounded-xl bg-[#070b12] border border-white/[0.08]">
+              <div className="space-y-3 p-4 rounded-xl bg-[#09110d] border border-[#a3b18a]/[0.15]">
                 <div className="relative">
                   <input
                     type="text"
                     value={spotQuery}
                     onChange={(e) => setSpotQuery(e.target.value)}
                     placeholder="Search room number, lab, or block (e.g. '303', '131C', 'VLSI', 'Canteen', 'B-204')..."
-                    className="enterprise-input pl-9 py-2.5 text-xs sm:text-sm bg-[#0b101b]"
+                    className="enterprise-input pl-9 py-2.5 text-xs sm:text-sm bg-[#0c1410]"
                   />
                   <svg className="w-4 h-4 text-emerald-400 absolute left-3 top-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -464,7 +464,7 @@ export default function SubmitComplaint() {
 
             {/* MODE C: Browse Building, Floor, Wing & Room */}
             {locationMode === 'BROWSE' && (
-              <div className="space-y-3.5 p-4 rounded-xl bg-[#070b12] border border-white/[0.08]">
+              <div className="space-y-3.5 p-4 rounded-xl bg-[#09110d] border border-[#a3b18a]/[0.15]">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="sm:col-span-2">
                     <div className="flex items-center justify-between mb-1.5">
@@ -729,8 +729,8 @@ export default function SubmitComplaint() {
             if (e.target === e.currentTarget) setIsMapModalOpen(false);
           }}
         >
-          <div className="bg-[#080c14] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-white/[0.08] bg-[#0c111b] flex items-center justify-between gap-3 shrink-0">
+          <div className="bg-[#0c1410] border border-[#a3b18a]/[0.2] rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-[#a3b18a]/[0.12] bg-[#132019] flex items-center justify-between gap-3 shrink-0">
               <div>
                 <h2 className="text-sm sm:text-base font-semibold text-white">
                   Campus Digital Twin — Location Picker
@@ -744,7 +744,7 @@ export default function SubmitComplaint() {
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-semibold transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-lg bg-garden-500 hover:bg-garden-600 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
                 >
                   Confirm Selection
                 </button>

@@ -38,11 +38,11 @@ export default function Home() {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-10">
-      {/* Compact Dark Action Header */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#09121e] via-[#0c1d24] to-[#09121e] text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-emerald-500/25 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      {/* Compact Botanical Action Header */}
+      <div className="rounded-3xl bg-gradient-to-r from-[#111f17] via-[#16271e] to-[#111f17] text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-[#588157]/35 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-lemon-400/15 border border-lemon-400/35 text-lemon-300 text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-lemon-400 animate-pulse" />
             <span>IIIT Naya Raipur · Sector 24, Atal Nagar</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
@@ -52,14 +52,14 @@ export default function Home() {
           <div className="flex flex-wrap items-center gap-2.5 pt-1">
             <Link
               to={`/submit?building=${encodeURIComponent(selectedMapBuilding)}`}
-              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-garden-500 hover:bg-garden-600 text-white font-black text-xs shadow-lg shadow-garden-500/25 transition-all"
             >
               + Submit Issue ({selectedMapBuilding.split(' (')[0]})
             </Link>
             {isStudent && (
               <Link
                 to="/student"
-                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
+                className="px-4 py-2.5 rounded-xl bg-[#132019] hover:bg-[#1c2f25] border border-[#a3b18a]/[0.2] text-slate-200 font-bold text-xs"
               >
                 My Issues →
               </Link>
@@ -67,7 +67,7 @@ export default function Home() {
             {canAccessOperations && (
               <Link
                 to="/admin"
-                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
+                className="px-4 py-2.5 rounded-xl bg-[#132019] hover:bg-[#1c2f25] border border-[#a3b18a]/[0.2] text-slate-200 font-bold text-xs"
               >
                 Operations Desk →
               </Link>
@@ -75,7 +75,7 @@ export default function Home() {
             {isSuperAdmin && (
               <Link
                 to="/superadmin"
-                className="px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-300 font-bold text-xs"
+                className="px-4 py-2.5 rounded-xl bg-lemon-400/15 hover:bg-lemon-400/25 border border-lemon-400/30 text-lemon-300 font-bold text-xs"
               >
                 Directorate Console →
               </Link>
@@ -83,7 +83,7 @@ export default function Home() {
             {isTechnician && (
               <Link
                 to="/technician"
-                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
+                className="px-4 py-2.5 rounded-xl bg-[#132019] hover:bg-[#1c2f25] border border-[#a3b18a]/[0.2] text-slate-200 font-bold text-xs"
               >
                 Work Orders →
               </Link>
@@ -93,18 +93,18 @@ export default function Home() {
 
         <form
           onSubmit={handleTrackSubmit}
-          className="flex items-center gap-2 bg-[#070b14]/90 backdrop-blur-md p-2.5 rounded-2xl border border-slate-800 w-full lg:w-auto"
+          className="flex items-center gap-2 bg-[#09110d]/90 backdrop-blur-md p-2.5 rounded-2xl border border-[#a3b18a]/[0.2] w-full lg:w-auto"
         >
           <input
             type="text"
             value={trackingCode}
             onChange={(e) => setTrackingCode(e.target.value)}
             placeholder="Track Code (e.g. SCH-...)"
-            className="w-full sm:w-52 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full sm:w-52 px-3.5 py-2.5 rounded-xl bg-[#0c1410] border border-[#a3b18a]/[0.25] text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-lemon-400"
           />
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shrink-0 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-garden-500 hover:bg-garden-600 text-white font-black text-xs shrink-0 cursor-pointer shadow-sm transition-all"
           >
             Track →
           </button>

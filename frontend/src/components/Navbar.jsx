@@ -57,7 +57,7 @@ export default function Navbar() {
   const navTabClasses = ({ isActive }) =>
     `relative h-16 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-colors ${
       isActive
-        ? 'text-white font-semibold after:content-[""] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:bg-emerald-400 after:rounded-full after:shadow-[0_-2px_10px_rgba(16,185,129,0.6)]'
+        ? 'text-white font-semibold after:content-[""] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:bg-lemon-400 after:rounded-full after:shadow-[0_-2px_10px_rgba(254,223,71,0.7)]'
         : 'text-slate-400 hover:text-slate-100 font-medium'
     }`;
 
@@ -69,7 +69,7 @@ export default function Navbar() {
     : '204';
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[#06090f]/80 backdrop-blur-xl border-b border-white/[0.08]">
+    <header className="sticky top-0 z-40 h-16 bg-[#0c1410]/85 backdrop-blur-xl border-b border-[#a3b18a]/[0.15]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex items-center justify-between h-full gap-4">
           {/* Left: Brand Identity + Breadcrumb Divider + Horizontal Underline Tabs */}
@@ -239,9 +239,9 @@ export default function Navbar() {
 
             <Link
               to="/submit"
-              className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs shadow-[0_1px_12px_rgba(16,185,129,0.25)] transition-all inline-flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg bg-garden-500 hover:bg-garden-600 text-white font-semibold text-xs shadow-[0_1px_14px_rgba(88,129,87,0.45)] transition-all inline-flex items-center gap-1.5"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-lemon-300" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
               <span>New Request</span>
@@ -252,7 +252,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setProfileMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-colors cursor-pointer"
+                  className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-[#a3b18a]/[0.2] transition-colors cursor-pointer"
                 >
                   {currentUser.avatar_url ? (
                     <img
@@ -261,7 +261,7 @@ export default function Navbar() {
                       className="w-6 h-6 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-forest-500 via-garden-500 to-lemon-400 text-slate-950 font-bold text-xs flex items-center justify-center">
                       {(currentUser.name || 'S')[0].toUpperCase()}
                     </div>
                   )}
@@ -274,11 +274,11 @@ export default function Navbar() {
                 </button>
 
                 {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-[#0c111b] border border-white/[0.1] shadow-2xl py-1.5 z-50 text-xs">
-                    <div className="px-3.5 py-2.5 border-b border-white/[0.06]">
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-[#132019] border border-[#a3b18a]/[0.2] shadow-2xl py-1.5 z-50 text-xs">
+                    <div className="px-3.5 py-2.5 border-b border-[#a3b18a]/[0.12]">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-white truncate">{currentUser.name}</span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-garden-500/15 text-garden-300 border border-garden-500/25">
                           {currentUser.roleLabel || currentUser.role}
                         </span>
                       </div>
@@ -369,7 +369,7 @@ export default function Navbar() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-3 border-t border-white/[0.08] bg-[#06090f] space-y-1">
+          <div className="md:hidden py-3 border-t border-[#a3b18a]/[0.15] bg-[#0c1410] space-y-1">
             <NavLink
               to="/"
               onClick={() => setMobileMenuOpen(false)}

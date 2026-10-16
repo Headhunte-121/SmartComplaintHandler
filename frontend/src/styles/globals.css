@@ -1,6 +1,11 @@
 /*
- * SmartComplaintHandler - Modern SaaS Design System (Linear / Supabase / Vercel Style)
- * Surface: Deep Obsidian (#06090f) + Hairline White/[0.08] Borders + Emerald (#10b981) Accent
+ * SmartComplaintHandler - Botanical Lemon Grove & Dark Forest Design System
+ * Palette from Dopely:
+ * - Lemon Zest: #FEDF47 (Vibrant citrus highlight)
+ * - Pale Lemon / Cream: #FEF3C6 (Soft warm cream)
+ * - Sage Leaf: #A3B18A (Muted botanical sage)
+ * - Garden Green: #588157 (Lush foliage primary)
+ * - Dark Forest: #344E41 (Deep evergreen base)
  */
 @tailwind base;
 @tailwind components;
@@ -15,26 +20,27 @@
   }
 
   body {
-    background-color: #06090f;
-    color: #f1f5f9;
+    background-color: #0c1410;
+    color: #f3f6f3;
     background-image:
-      radial-gradient(ellipse 80% 45% at 50% -15%, rgba(16, 185, 129, 0.13), transparent 70%),
-      linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
-    background-size: 100% 100%, 36px 36px, 36px 36px;
+      radial-gradient(ellipse 80% 45% at 50% -15%, rgba(88, 129, 87, 0.22), transparent 70%),
+      radial-gradient(circle at 88% 8%, rgba(254, 223, 71, 0.05), transparent 45%),
+      linear-gradient(to right, rgba(163, 177, 138, 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(163, 177, 138, 0.035) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
   }
 }
 
 @layer components {
   .bento-card {
-    @apply bg-[#0c111b]/90 backdrop-blur-xl rounded-2xl border border-white/[0.08] shadow-bento text-slate-100 transition-all duration-200;
+    @apply bg-[#132019]/90 backdrop-blur-xl rounded-2xl border border-[#a3b18a]/[0.15] shadow-bento text-slate-100 transition-all duration-200;
   }
 
   .bento-card-interactive {
-    @apply bg-[#0c111b]/90 backdrop-blur-xl rounded-2xl border border-white/[0.08] shadow-bento hover:shadow-bento-hover hover:border-emerald-500/35 text-slate-100 transition-all duration-200;
+    @apply bg-[#132019]/90 backdrop-blur-xl rounded-2xl border border-[#a3b18a]/[0.15] shadow-bento hover:shadow-bento-hover hover:border-[#588157]/60 text-slate-100 transition-all duration-200;
   }
 
   .enterprise-input {
-    @apply w-full rounded-xl border border-white/[0.1] bg-[#070b12] px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 transition-all duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/15;
+    @apply w-full rounded-xl border border-[#a3b18a]/[0.2] bg-[#09110d] px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-[#a3b18a]/50 transition-all duration-150 focus:border-[#588157] focus:outline-none focus:ring-2 focus:ring-[#588157]/25;
   }
 }
