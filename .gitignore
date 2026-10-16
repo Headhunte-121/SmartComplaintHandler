@@ -240,3 +240,29 @@ smart_complaints.db
 venv/
 .venv/
 backend/venv/
+
+# ==========================================
+# Local Dev Tools, Scratch Scripts & Heavy Assets (Stay local, not GitHub)
+# ==========================================
+# Dev & GIS processing scripts
+scripts/
+*.pyc
+
+# Local JSON data dumps, exports & backups
+user_exact_*.json
+*_backup.json
+*.bak.json
+gis_data/
+
+# High-resolution rendered maps & AI visualizations (keep out of git to avoid repo bloat)
+frontend/public/*_render.jpg
+frontend/public/*digital_twin*
+frontend/public/*pure_2d*
+frontend/public/*vector*
+frontend/public/*topdown*
+frontend/public/user_current*.jpg
+frontend/public/iiitnr_gis_*.jpg
+
+# Temporary & scratch files
+temp_*.js
+temp_*.py
