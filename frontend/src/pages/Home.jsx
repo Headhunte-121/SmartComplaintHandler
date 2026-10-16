@@ -1,7 +1,5 @@
 /**
- * SmartComplaintHandler - IIIT Naya Raipur Campus Map & Hostel Hub
- * Rich Bento layout with dark quick-action header, Interactive OSM/Satellite/Vector Campus Map,
- * Hostel cards, and Estate Office contacts — zero promotional filler.
+ * SmartComplaintHandler - IIIT Naya Raipur Campus Map & Hostel Hub (Obsidian-Slate & Emerald Theme)
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -41,27 +39,27 @@ export default function Home() {
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-10">
       {/* Compact Dark Action Header */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="rounded-3xl bg-gradient-to-r from-[#09121e] via-[#0c1d24] to-[#09121e] text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-emerald-500/25 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>IIIT Naya Raipur · Sector 24, Atal Nagar</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            Campus Map, Hostels &amp; Maintenance Desk
+            Campus Digital Twin &amp; Maintenance Desk
           </h1>
 
           <div className="flex flex-wrap items-center gap-2.5 pt-1">
             <Link
               to={`/submit?building=${encodeURIComponent(selectedMapBuilding)}`}
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 transition-all"
             >
               + Submit Issue ({selectedMapBuilding.split(' (')[0]})
             </Link>
             {isStudent && (
               <Link
                 to="/student"
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs"
+                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
               >
                 My Issues →
               </Link>
@@ -69,7 +67,7 @@ export default function Home() {
             {canAccessOperations && (
               <Link
                 to="/admin"
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs"
+                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
               >
                 Operations Desk →
               </Link>
@@ -85,7 +83,7 @@ export default function Home() {
             {isTechnician && (
               <Link
                 to="/technician"
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs"
+                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
               >
                 Work Orders →
               </Link>
@@ -95,25 +93,25 @@ export default function Home() {
 
         <form
           onSubmit={handleTrackSubmit}
-          className="flex items-center gap-2 bg-white/10 backdrop-blur-md p-2.5 rounded-2xl border border-white/15 w-full lg:w-auto"
+          className="flex items-center gap-2 bg-[#070b14]/90 backdrop-blur-md p-2.5 rounded-2xl border border-slate-800 w-full lg:w-auto"
         >
           <input
             type="text"
             value={trackingCode}
             onChange={(e) => setTrackingCode(e.target.value)}
             placeholder="Track Code (e.g. SCH-...)"
-            className="w-full sm:w-52 px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-400 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full sm:w-52 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-400"
           />
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl bg-white text-slate-950 hover:bg-indigo-50 font-black text-xs shrink-0 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shrink-0 cursor-pointer"
           >
             Track →
           </button>
         </form>
       </div>
 
-      {/* Interactive IIIT Naya Raipur Map (OSM + Satellite + Traced Campus Plan) */}
+      {/* Interactive IIIT Naya Raipur Map */}
       <CampusMapSelector
         selectedBuilding={selectedMapBuilding}
         onSelectBuilding={setSelectedMapBuilding}
@@ -124,12 +122,12 @@ export default function Home() {
       {/* Hostels & Estate Contacts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 bento-card p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-base font-black text-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 className="text-base font-black text-white">
               🏠 IIIT-NR Hostels (Floors G–3 · Wings A &amp; B)
             </h3>
-            <span className="text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
-              Click to Select
+            <span className="text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
+              Click to Report
             </span>
           </div>
 
@@ -138,17 +136,17 @@ export default function Home() {
               <div
                 key={h.id}
                 onClick={() => navigate(`/submit?building=${encodeURIComponent(h.name)}`)}
-                className="p-4 rounded-2xl border border-slate-200/90 hover:border-indigo-400 bg-slate-50/60 hover:bg-indigo-50/30 transition-all cursor-pointer space-y-1"
+                className="p-4 rounded-2xl border border-slate-800 hover:border-emerald-500/40 bg-[#090f1a] hover:bg-emerald-500/10 transition-all cursor-pointer space-y-1"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">
+                  <span className="font-bold text-white text-xs sm:text-sm">
                     {h.name}
                   </span>
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white border border-slate-200 text-indigo-700">
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 border border-emerald-500/30 text-emerald-300">
                     {h.mapPin?.badge || 'HOSTEL'}
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-500">
+                <div className="text-[11px] text-slate-400">
                   {h.type} · <span className="font-mono text-[10px]">{h.gps}</span>
                 </div>
               </div>
@@ -157,8 +155,8 @@ export default function Home() {
         </div>
 
         <div className="lg:col-span-5 bento-card p-6 space-y-4">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-base font-black text-slate-900">
+          <div className="border-b border-slate-800 pb-3">
+            <h3 className="text-base font-black text-white">
               📞 Campus Estate &amp; Engineering Contacts
             </h3>
           </div>
@@ -167,18 +165,18 @@ export default function Home() {
             {IIITNR_CAMPUS_METADATA.contacts.map((c) => (
               <div
                 key={c.email}
-                className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start justify-between gap-3 text-xs"
+                className="p-3.5 rounded-2xl bg-[#090f1a] border border-slate-800 flex items-start justify-between gap-3 text-xs"
               >
                 <div>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-600 block">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block">
                     {c.role}
                   </span>
-                  <div className="font-bold text-slate-900">{c.name}</div>
-                  <div className="text-[11px] text-slate-500">{c.office}</div>
+                  <div className="font-bold text-white">{c.name}</div>
+                  <div className="text-[11px] text-slate-400">{c.office}</div>
                 </div>
                 <div className="text-right font-mono text-[11px] shrink-0">
-                  <div className="font-bold text-slate-800">{c.phone}</div>
-                  <div className="text-indigo-600">{c.email}</div>
+                  <div className="font-bold text-slate-200">{c.phone}</div>
+                  <div className="text-emerald-400">{c.email}</div>
                 </div>
               </div>
             ))}

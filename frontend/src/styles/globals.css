@@ -1,5 +1,6 @@
 /*
- * SmartComplaintHandler - Global Design System & Tailwind Stylesheet
+ * SmartComplaintHandler - Modern SaaS Design System (Linear / Supabase / Vercel Style)
+ * Surface: Deep Obsidian (#06090f) + Hairline White/[0.08] Borders + Emerald (#10b981) Accent
  */
 @tailwind base;
 @tailwind components;
@@ -10,52 +11,30 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: dark;
   }
 
   body {
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #06090f;
+    color: #f1f5f9;
+    background-image:
+      radial-gradient(ellipse 80% 45% at 50% -15%, rgba(16, 185, 129, 0.13), transparent 70%),
+      linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    background-size: 100% 100%, 36px 36px, 36px 36px;
   }
 }
 
 @layer components {
-  .bg-architectural-grid {
-    background-size: 32px 32px;
-    background-image: 
-      linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
-  }
-
-  .bg-dark-architectural-grid {
-    background-size: 28px 28px;
-    background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  }
-
   .bento-card {
-    @apply bg-white rounded-2xl border border-slate-200/80 shadow-bento transition-all duration-200;
+    @apply bg-[#0c111b]/90 backdrop-blur-xl rounded-2xl border border-white/[0.08] shadow-bento text-slate-100 transition-all duration-200;
   }
 
   .bento-card-interactive {
-    @apply bg-white rounded-2xl border border-slate-200/80 shadow-bento hover:shadow-bento-hover hover:border-indigo-200/80 transition-all duration-200;
+    @apply bg-[#0c111b]/90 backdrop-blur-xl rounded-2xl border border-white/[0.08] shadow-bento hover:shadow-bento-hover hover:border-emerald-500/35 text-slate-100 transition-all duration-200;
   }
 
   .enterprise-input {
-    @apply w-full rounded-xl border border-slate-300/90 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-150 focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10;
+    @apply w-full rounded-xl border border-white/[0.1] bg-[#070b12] px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 transition-all duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/15;
   }
-}
-
-.bg-linear-to-r {
-  background-image: linear-gradient(to right, var(--tw-gradient-stops));
-}
-.bg-linear-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-.focus\:outline-hidden:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-.backdrop-blur-xs {
-  backdrop-filter: blur(4px);
 }

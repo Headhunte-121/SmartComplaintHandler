@@ -1,7 +1,5 @@
 /**
- * SmartComplaintHandler - Campus Grievance Submission Workstation (IIIT Naya Raipur)
- * Rich 2-column Bento layout with Interactive Campus Map, Hostel/Wing/Room pickers,
- * Visual Service Category Cards, and Live Triage Preview — zero promotional filler.
+ * SmartComplaintHandler - Submit Maintenance Request Workstation (Modern SaaS UI)
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -18,16 +16,40 @@ import {
   getFloorsForBuilding,
   getWingsForBuilding,
   getRoomsForBuilding,
+  buildCampusSearchIndex,
+  queryCampusSearchIndex,
 } from '../data/iiitnrCampusData';
 
-const SERVICE_CATEGORIES = [
-  { id: 'Electrical', icon: '⚡', label: 'Electrical & Power', hint: 'Fans, AC, switchboards, lighting' },
-  { id: 'Plumbing', icon: '🚰', label: 'Plumbing & Water', hint: 'RO coolers, taps, washroom drainage' },
-  { id: 'IT Support', icon: '🌐', label: 'IT & Campus Wi-Fi', hint: 'LAN ports, Wi-Fi APs, lab PCs' },
-  { id: 'Carpentry', icon: '🪑', label: 'Carpentry & Civil', hint: 'Doors, locks, windows, cots, desks' },
-  { id: 'Sanitation', icon: '🧹', label: 'Sanitation & Hygiene', hint: 'Washroom cleaning, waste, pests' },
-  { id: 'General', icon: '🏛️', label: 'General Facilities', hint: 'Mess, pathways, common areas' },
+const QUICK_SPOT_CHIPS = [
+  { label: 'VLSI Lab (303)', query: '303' },
+  { label: 'Data Centre (131C)', query: '131c' },
+  { label: 'AIDL Lab (210)', query: '210' },
+  { label: 'Auditorium', query: 'auditorium' },
+  { label: 'Canteen Rotunda', query: 'canteen' },
 ];
+
+function inferFloorAndWingFromRoomString(roomStr = '') {
+  const clean = (roomStr || '').trim();
+  let wing = 'Wing A';
+  if (/\bwing\s*b\b|\bb-room|\bb-\d/i.test(clean)) {
+    wing = 'Wing B';
+  } else if (/corridor|washroom|cooler|common|mess|balcony/i.test(clean)) {
+    wing = 'Common Area';
+  }
+
+  let floor = '2';
+  const roomNumMatch = clean.match(/\b([G123])[-]?(\d{2})\b/i);
+  if (roomNumMatch) {
+    floor = roomNumMatch[1].toUpperCase();
+  } else if (/ground|\bg-/i.test(clean)) {
+    floor = 'G';
+  } else if (/floor\s*1|\b1\d{2}\b/i.test(clean)) {
+    floor = '1';
+  } else if (/floor\s*3|\b3\d{2}\b/i.test(clean)) {
+    floor = '3';
+  }
+  return { floor, wing };
+}
 
 export default function SubmitComplaint() {
   const { currentPersona, currentUser, updateProfile } = useAuth();
@@ -49,16 +71,27 @@ export default function SubmitComplaint() {
   const savedRoom = activeUser?.room_number || 'Wing A, Room 204';
 
   const initialBuildingFromUrl = searchParams.get('building');
+  const initialModeFromUrl = searchParams.get('mode');
+
+  const [locationMode, setLocationMode] = useState(
+    initialModeFromUrl === 'search'
+      ? 'SEARCH'
+      : initialBuildingFromUrl
+      ? 'BROWSE'
+      : 'MY_ROOM'
+  );
+
   const [building, setBuilding] = useState(
     initialBuildingFromUrl || savedHostel || allBuildings[0]?.name
   );
-  const [selectedFloor, setSelectedFloor] = useState('2');
-  const [selectedWing, setSelectedWing] = useState('Wing A');
+  const initialInferred = useMemo(() => inferFloorAndWingFromRoomString(savedRoom), [savedRoom]);
+  const [selectedFloor, setSelectedFloor] = useState(initialInferred.floor);
+  const [selectedWing, setSelectedWing] = useState(initialInferred.wing);
   const [specificLocation, setSpecificLocation] = useState(savedRoom);
   const [customRoomOverride, setCustomRoomOverride] = useState('');
-  const [saveAsDefaultResidence, setSaveAsDefaultResidence] = useState(false);
 
-  const [category, setCategory] = useState(SERVICE_CATEGORIES[0].id);
+  const [spotQuery, setSpotQuery] = useState('');
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
@@ -77,6 +110,12 @@ export default function SubmitComplaint() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMapModalOpen]);
+
+  const searchIndex = useMemo(() => buildCampusSearchIndex(allBuildings), [allBuildings]);
+  const spotResults = useMemo(
+    () => queryCampusSearchIndex(spotQuery, searchIndex, 7),
+    [spotQuery, searchIndex]
+  );
 
   const activeBuildingObj = useMemo(
     () =>
@@ -104,28 +143,45 @@ export default function SubmitComplaint() {
   );
 
   useEffect(() => {
-    const validFloorIds = availableFloors.map((f) => f.id);
-    const nextFloor = validFloorIds.includes(selectedFloor)
-      ? selectedFloor
-      : availableFloors[0]?.id || 'G';
-    if (nextFloor !== selectedFloor) {
-      setSelectedFloor(nextFloor);
+    const validFloorIds = availableFloors.map((f) => String(f.id));
+    if (!validFloorIds.includes(String(selectedFloor))) {
+      setSelectedFloor(availableFloors[0]?.id || 'G');
     }
   }, [activeBuildingObj, availableFloors]);
 
   const handleSelectBuilding = (newBuildingName) => {
     setBuilding(newBuildingName);
     setCustomRoomOverride('');
-    const targetRooms = getRoomsForBuilding(newBuildingName, selectedFloor, selectedWing, allBuildings);
+    const targetFloors = getFloorsForBuilding(newBuildingName, allBuildings);
+    const nextFloor = targetFloors[0]?.id || 'G';
+    const targetWings = getWingsForBuilding(newBuildingName, allBuildings);
+    const nextWing = targetWings[0]?.id || 'Wing A';
+    setSelectedFloor(nextFloor);
+    setSelectedWing(nextWing);
+    const targetRooms = getRoomsForBuilding(newBuildingName, nextFloor, nextWing, allBuildings);
     if (targetRooms.length > 0) {
       setSpecificLocation(targetRooms[0]);
     }
   };
 
   const handleUseMySavedRoom = () => {
+    setLocationMode('MY_ROOM');
     setBuilding(savedHostel);
+    const inferred = inferFloorAndWingFromRoomString(savedRoom);
+    setSelectedFloor(inferred.floor);
+    setSelectedWing(inferred.wing);
     setSpecificLocation(savedRoom);
     setCustomRoomOverride('');
+  };
+
+  const handlePickSpotResult = (item) => {
+    setBuilding(item.buildingName);
+    if (item.floorId) setSelectedFloor(String(item.floorId));
+    if (item.wingId) setSelectedWing(item.wingId);
+    const nextRoom = item.roomName || item.title;
+    setSpecificLocation(nextRoom);
+    setCustomRoomOverride('');
+    setSpotQuery('');
   };
 
   const handleSaveCurrentAsMyRoom = async () => {
@@ -135,14 +191,14 @@ export default function SubmitComplaint() {
       hostel_name: activeBuildingObj.name,
       room_number: finalRoom,
     });
-    setResidenceSavedNotice(`Saved ${activeBuildingObj.shortName} · ${finalRoom} as your default hostel room.`);
-    setTimeout(() => setResidenceSavedNotice(null), 3000);
+    setResidenceSavedNotice(`Saved ${activeBuildingObj.shortName} · ${finalRoom} as your default room.`);
+    setTimeout(() => setResidenceSavedNotice(null), 3200);
   };
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (title.trim().length < 5 || description.trim().length < 10) {
-      setError('Please enter an issue title (5+ chars) and details (10+ chars).');
+      setError('Please enter an issue summary (5+ chars) and details (10+ chars).');
       return;
     }
 
@@ -153,13 +209,6 @@ export default function SubmitComplaint() {
     const fullLocation = `${activeBuildingObj?.name || building}, ${resolvedRoom}`;
 
     try {
-      if (saveAsDefaultResidence && isHostelBuilding && activeBuildingObj) {
-        await updateProfile({
-          hostel_name: activeBuildingObj.name,
-          room_number: resolvedRoom,
-        });
-      }
-
       const ticket = await submitComplaint({
         title: title.trim(),
         description: description.trim(),
@@ -179,41 +228,43 @@ export default function SubmitComplaint() {
     }
   }
 
+  const resolvedRoomLabel = customRoomOverride.trim() || specificLocation;
+
   return (
-    <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-10">
-      {/* Compact Dark Header Bar */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white p-5 sm:px-7 shadow-lg bg-dark-architectural-grid border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 animate-fade-in pb-12">
+      {/* Clean Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.07] pb-5">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+          <div className="flex items-center gap-2 text-xs font-medium text-emerald-400 mb-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>Smart Maintenance Dispatch</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-slate-400 font-mono text-[11px]">Auto-Triage Enabled</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
             Submit Maintenance Request
           </h1>
-          <p className="text-xs text-slate-300 mt-0.5">
-            Select your building &amp; room below, or pick visually on the interactive campus map.
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Confirm the location and describe the issue—category, squad, and SLA priority are detected automatically.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           <button
             type="button"
             onClick={() => setIsMapModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 border border-indigo-400/40 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shadow-indigo-950/40"
-            title="Open interactive 2D schematic digital twin map to pick location visually"
+            className="px-3.5 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-slate-200 font-medium text-xs transition-all cursor-pointer inline-flex items-center gap-2"
           >
-            <span>🗺️</span>
-            <span>Campus Map</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleUseMySavedRoom}
-            className="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-emerald-200 font-bold text-xs transition-all cursor-pointer"
-          >
-            🏠 My Room: {(savedHostel || '').split(' ')[0]} · {savedRoom}
+            <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            <span>Open Digital Twin Map</span>
           </button>
           <Link
             to="/student"
-            className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs transition-all"
+            className="px-3.5 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-slate-300 font-medium text-xs transition-all"
           >
-            My Issues →
+            My Requests →
           </Link>
         </div>
       </div>
@@ -225,211 +276,393 @@ export default function SubmitComplaint() {
           className="lg:col-span-7 bento-card p-6 sm:p-7 space-y-6"
         >
           {error && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs font-semibold text-rose-700">
+            <div className="rounded-lg bg-rose-500/10 border border-rose-500/30 p-3.5 text-xs font-medium text-rose-200">
               {error}
             </div>
           )}
 
           {residenceSavedNotice && (
-            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs font-bold text-emerald-800">
+            <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs font-medium text-emerald-300">
               ✓ {residenceSavedNotice}
             </div>
           )}
 
-          {/* Building, Floor, Wing & Room Picker */}
-          <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 space-y-3.5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  📍 Location &amp; Room Number
+          {/* STEP 1: Streamlined 3-Mode Location Selector */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="w-5 h-5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-semibold flex items-center justify-center">
+                  1
                 </span>
+                <span className="text-sm font-semibold text-white tracking-tight">
+                  Location
+                </span>
+              </div>
+
+              {/* 3-Mode Segmented Pill Bar */}
+              <div className="inline-flex items-center p-1 rounded-lg bg-[#070b12] border border-white/[0.08] gap-1">
                 <button
                   type="button"
-                  onClick={() => setIsMapModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
-                  title="Open interactive 2D schematic digital twin map to pick location visually"
+                  onClick={handleUseMySavedRoom}
+                  className={`px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                    locationMode === 'MY_ROOM'
+                      ? 'bg-emerald-500 text-slate-950 font-semibold shadow-xs'
+                      : 'text-slate-400 hover:text-white font-medium'
+                  }`}
                 >
-                  <span>🗺️</span>
-                  <span>Select on Map</span>
+                  <span>My Room</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationMode('SEARCH')}
+                  className={`px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                    locationMode === 'SEARCH'
+                      ? 'bg-emerald-500 text-slate-950 font-semibold shadow-xs'
+                      : 'text-slate-400 hover:text-white font-medium'
+                  }`}
+                >
+                  <span>Quick Search</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationMode('BROWSE')}
+                  className={`px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                    locationMode === 'BROWSE'
+                      ? 'bg-emerald-500 text-slate-950 font-semibold shadow-xs'
+                      : 'text-slate-400 hover:text-white font-medium'
+                  }`}
+                >
+                  <span>Browse / Map</span>
                 </button>
               </div>
-              {isHostelBuilding && (
-                <button
-                  type="button"
-                  onClick={handleSaveCurrentAsMyRoom}
-                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-white px-2.5 py-1 rounded-lg border border-indigo-200 shadow-2xs cursor-pointer"
-                >
-                  💾 Save as My Room
-                </button>
-              )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2">
-                <label htmlFor="building" className="block text-xs font-bold text-slate-700 mb-1">
-                  Hostel or Campus Building
-                </label>
-                <select
-                  id="building"
-                  value={activeBuildingObj?.name || ''}
-                  onChange={(e) => handleSelectBuilding(e.target.value)}
-                  className="enterprise-input font-semibold"
-                >
-                  <optgroup label="🏠 Hostels">
-                    {hostelsList.map((h) => (
-                      <option key={h.id} value={h.name}>
-                        {h.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="🏛️ Academic, Labs & Campus">
-                    {nonHostelsList.map((b) => (
-                      <option key={b.id} value={b.name}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="floorSelect" className="block text-xs font-bold text-slate-700 mb-1">
-                  Floor
-                </label>
-                <select
-                  id="floorSelect"
-                  value={selectedFloor}
-                  onChange={(e) => {
-                    const newFloor = e.target.value;
-                    setSelectedFloor(newFloor);
-                    const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, selectedWing, allBuildings);
-                    if (nextRooms.length > 0) {
-                      setSpecificLocation(nextRooms[0]);
-                      setCustomRoomOverride('');
-                    }
-                  }}
-                  className="enterprise-input"
-                >
-                  {availableFloors.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {isHostelBuilding ? (
-                <div>
-                  <label htmlFor="wingSelect" className="block text-xs font-bold text-slate-700 mb-1">
-                    Wing / Area
-                  </label>
-                  <select
-                    id="wingSelect"
-                    value={selectedWing}
-                    onChange={(e) => {
-                      const newWing = e.target.value;
-                      setSelectedWing(newWing);
-                      const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, selectedFloor, newWing, allBuildings);
-                      if (nextRooms.length > 0) {
-                        setSpecificLocation(nextRooms[0]);
-                        setCustomRoomOverride('');
-                      }
-                    }}
-                    className="enterprise-input"
-                  >
-                    {availableWings.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Coordinates
-                  </label>
-                  <div className="enterprise-input bg-slate-100 text-slate-600 font-mono text-xs flex items-center justify-between">
-                    <span>{activeBuildingObj?.mapPin?.badge || 'BLDG'}</span>
-                    <span>{activeBuildingObj?.gps || ''}</span>
+            {/* MODE A: 1-Tap My Saved Room Card */}
+            {locationMode === 'MY_ROOM' && (
+              <div className="p-4 rounded-xl bg-[#070b12] border border-emerald-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-semibold">
+                        Saved Residence
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">
+                        {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
+                      </span>
+                    </div>
+                    <div className="text-sm font-semibold text-white mt-1">
+                      {activeBuildingObj?.name || savedHostel}
+                    </div>
+                    <div className="text-xs font-mono text-emerald-400 font-medium mt-0.5">
+                      {resolvedRoomLabel}
+                    </div>
                   </div>
                 </div>
-              )}
 
-              <div>
-                <label htmlFor="specificLocation" className="block text-xs font-bold text-slate-700 mb-1">
-                  Room / Lab / Utility
-                </label>
-                <select
-                  id="specificLocation"
-                  value={specificLocation}
-                  onChange={(e) => {
-                    setSpecificLocation(e.target.value);
-                    setCustomRoomOverride('');
-                  }}
-                  className="enterprise-input"
-                >
-                  {availableRooms.map((rm) => (
-                    <option key={rm} value={rm}>
-                      {rm}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="customRoomOverride" className="block text-xs font-bold text-slate-700 mb-1">
-                  Or Type Custom Room No.
-                </label>
-                <input
-                  id="customRoomOverride"
-                  type="text"
-                  placeholder="e.g. Room 209, Balcony, Table 2"
-                  value={customRoomOverride}
-                  onChange={(e) => setCustomRoomOverride(e.target.value)}
-                  className="enterprise-input"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Visual Category Grid */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-              Category
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {SERVICE_CATEGORIES.map((cat) => {
-                const selected = category === cat.id;
-                return (
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <button
-                    key={cat.id}
                     type="button"
-                    onClick={() => setCategory(cat.id)}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      selected
-                        ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-600/15 shadow-2xs'
-                        : 'border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60'
-                    }`}
+                    onClick={() => setLocationMode('SEARCH')}
+                    className="px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-xs font-medium transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-base">{cat.icon}</span>
-                      {selected && <span className="w-2 h-2 rounded-full bg-indigo-600" />}
-                    </div>
-                    <div className="text-xs font-bold text-slate-900 mt-1.5">{cat.label}</div>
-                    <div className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{cat.hint}</div>
+                    Search Other Spot
                   </button>
-                );
-              })}
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsMapModalOpen(true)}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-300 text-xs font-medium transition-colors cursor-pointer"
+                  >
+                    Pick on Map
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* MODE B: Inline Omni-Search */}
+            {locationMode === 'SEARCH' && (
+              <div className="space-y-3 p-4 rounded-xl bg-[#070b12] border border-white/[0.08]">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={spotQuery}
+                    onChange={(e) => setSpotQuery(e.target.value)}
+                    placeholder="Search room number, lab, or block (e.g. '303', '131C', 'VLSI', 'Canteen', 'B-204')..."
+                    className="enterprise-input pl-9 py-2.5 text-xs sm:text-sm bg-[#0b101b]"
+                  />
+                  <svg className="w-4 h-4 text-emerald-400 absolute left-3 top-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  {spotQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSpotQuery('')}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 shrink-0">
+                    Popular:
+                  </span>
+                  {QUICK_SPOT_CHIPS.map((chip) => (
+                    <button
+                      key={chip.query}
+                      type="button"
+                      onClick={() => {
+                        const matches = queryCampusSearchIndex(chip.query, searchIndex, 1);
+                        if (matches.length > 0) handlePickSpotResult(matches[0]);
+                      }}
+                      className="px-2.5 py-1 rounded-md bg-white/[0.03] hover:bg-emerald-500/15 text-slate-300 hover:text-emerald-300 border border-white/[0.07] hover:border-emerald-500/30 text-[11px] font-medium shrink-0 cursor-pointer transition-all"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+
+                {spotQuery.trim().length > 0 && (
+                  <div className="rounded-xl bg-[#05080e] border border-white/[0.08] divide-y divide-white/[0.06] max-h-60 overflow-y-auto">
+                    {spotResults.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-slate-500">
+                        No matching room or building found. Use Browse mode for custom spots.
+                      </div>
+                    ) : (
+                      spotResults.map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handlePickSpotResult(item)}
+                          className="w-full text-left px-3.5 py-2.5 hover:bg-emerald-500/10 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                        >
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-white/[0.05] text-emerald-300 border border-white/[0.08]">
+                                {item.badge}
+                              </span>
+                              <span className="text-xs font-medium text-white">
+                                {item.title}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 mt-0.5">{item.subtitle}</p>
+                          </div>
+                          <span className="text-[11px] font-mono text-emerald-400 shrink-0">
+                            Select →
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                <div className="p-3 rounded-lg bg-white/[0.02] border border-emerald-500/25 flex items-center justify-between gap-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-semibold text-[10px] uppercase">
+                      Selected
+                    </span>
+                    <span className="font-semibold text-white">{activeBuildingObj?.shortName || building}</span>
+                    <span className="text-slate-600">·</span>
+                    <span className="font-mono text-emerald-400 font-medium">{resolvedRoomLabel}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsMapModalOpen(true)}
+                    className="text-[11px] font-medium text-emerald-400 hover:underline shrink-0 cursor-pointer"
+                  >
+                    View on Map →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* MODE C: Browse Building, Floor, Wing & Room */}
+            {locationMode === 'BROWSE' && (
+              <div className="space-y-3.5 p-4 rounded-xl bg-[#070b12] border border-white/[0.08]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="sm:col-span-2">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label htmlFor="building" className="block text-xs font-medium text-slate-300">
+                        Hostel or Campus Building
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setIsMapModalOpen(true)}
+                        className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 cursor-pointer"
+                      >
+                        Pick visually on Digital Twin →
+                      </button>
+                    </div>
+                    <select
+                      id="building"
+                      value={activeBuildingObj?.name || ''}
+                      onChange={(e) => handleSelectBuilding(e.target.value)}
+                      className="enterprise-input font-medium bg-[#0b101b]"
+                    >
+                      <optgroup label="Hostels">
+                        {hostelsList.map((h) => (
+                          <option key={h.id} value={h.name}>
+                            {h.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Academic, Labs & Campus">
+                        {nonHostelsList.map((b) => (
+                          <option key={b.id} value={b.name}>
+                            {b.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="floorSelect" className="block text-xs font-medium text-slate-300 mb-1.5">
+                      Floor
+                    </label>
+                    <select
+                      id="floorSelect"
+                      value={selectedFloor}
+                      onChange={(e) => {
+                        const newFloor = e.target.value;
+                        setSelectedFloor(newFloor);
+                        const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, selectedWing, allBuildings);
+                        if (nextRooms.length > 0) {
+                          setSpecificLocation(nextRooms[0]);
+                          setCustomRoomOverride('');
+                        }
+                      }}
+                      className="enterprise-input bg-[#0b101b]"
+                    >
+                      {availableFloors.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {isHostelBuilding ? (
+                    <div>
+                      <label htmlFor="wingSelect" className="block text-xs font-medium text-slate-300 mb-1.5">
+                        Wing / Zone
+                      </label>
+                      <select
+                        id="wingSelect"
+                        value={selectedWing}
+                        onChange={(e) => {
+                          const newWing = e.target.value;
+                          setSelectedWing(newWing);
+                          const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, selectedFloor, newWing, allBuildings);
+                          if (nextRooms.length > 0) {
+                            setSpecificLocation(nextRooms[0]);
+                            setCustomRoomOverride('');
+                          }
+                        }}
+                        className="enterprise-input bg-[#0b101b]"
+                      >
+                        {availableWings.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            {w.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                        Digital Twin Zone
+                      </label>
+                      <div className="enterprise-input bg-[#0b101b] text-slate-400 font-mono text-xs flex items-center justify-between">
+                        <span className="text-emerald-400 font-semibold">{activeBuildingObj?.mapPin?.badge || 'BLDG'}</span>
+                        <span>{activeBuildingObj?.gps || ''}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label htmlFor="specificLocation" className="block text-xs font-medium text-slate-300 mb-1.5">
+                      Room / Lab / Utility
+                    </label>
+                    <select
+                      id="specificLocation"
+                      value={specificLocation}
+                      onChange={(e) => {
+                        setSpecificLocation(e.target.value);
+                        setCustomRoomOverride('');
+                      }}
+                      className="enterprise-input bg-[#0b101b]"
+                    >
+                      {availableRooms.map((rm) => (
+                        <option key={rm} value={rm}>
+                          {rm}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="customRoomOverride" className="block text-xs font-medium text-slate-300 mb-1.5">
+                      Specific Spot (Optional)
+                    </label>
+                    <input
+                      id="customRoomOverride"
+                      type="text"
+                      placeholder="e.g. Near Balcony, Tap #2"
+                      value={customRoomOverride}
+                      onChange={(e) => setCustomRoomOverride(e.target.value)}
+                      className="enterprise-input bg-[#0b101b]"
+                    />
+                  </div>
+                </div>
+
+                {isHostelBuilding && (
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={handleSaveCurrentAsMyRoom}
+                      className="text-xs font-medium text-emerald-300 hover:text-emerald-200 bg-emerald-500/10 hover:bg-emerald-500/15 px-3 py-1.5 rounded-lg border border-emerald-500/25 transition-colors cursor-pointer"
+                    >
+                      Set as My Default Room
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Issue Title & Description */}
+          <div className="border-t border-white/[0.06]" />
+
+          {/* STEP 2: Issue Title & Details */}
           <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="w-5 h-5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-semibold flex items-center justify-center">
+                  2
+                </span>
+                <span className="text-sm font-semibold text-white tracking-tight">
+                  Issue Description
+                </span>
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-md">
+                <span>Auto-detects category &amp; priority</span>
+              </span>
+            </div>
+
             <div>
-              <label htmlFor="title" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                Issue Title
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="title" className="block text-xs font-medium text-slate-300">
+                  Issue Summary
+                </label>
+                <span className="text-[11px] font-mono text-slate-500">
+                  {title.trim().length}/150
+                </span>
+              </div>
               <input
                 id="title"
                 type="text"
@@ -445,15 +678,20 @@ export default function SubmitComplaint() {
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                Details
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="description" className="block text-xs font-medium text-slate-300">
+                  Details &amp; Observations
+                </label>
+                <span className="text-[11px] font-mono text-slate-500">
+                  {description.trim().length >= 10 ? '✓ Auto-triage active' : 'Min 10 chars'}
+                </span>
+              </div>
               <textarea
                 id="description"
                 required
                 minLength={10}
                 rows={4}
-                placeholder="Describe what needs repair..."
+                placeholder="Describe what needs repair so the assigned maintenance squad can bring the right tools..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={submitting}
@@ -465,11 +703,11 @@ export default function SubmitComplaint() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:bg-slate-300"
+            className="w-full py-3 px-5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm font-semibold shadow-[0_1px_20px_rgba(16,185,129,0.28)] transition-all cursor-pointer disabled:bg-slate-800 disabled:text-slate-500"
           >
             {submitting
-              ? 'Submitting...'
-              : `Submit Request for ${activeBuildingObj?.shortName || building} (${customRoomOverride.trim() || specificLocation})`}
+              ? 'Submitting Request...'
+              : `Submit Request · ${activeBuildingObj?.shortName || building} (${resolvedRoomLabel})`}
           </button>
         </form>
 
@@ -477,54 +715,53 @@ export default function SubmitComplaint() {
         <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
           <LiveTriageCard title={title} description={description} />
 
-          <div className="bento-card p-5 space-y-2.5 text-xs">
+          <div className="bento-card p-5 space-y-3 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">
-                📍 Selected Location
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400">
+                Dispatch Target
               </span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold">
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-white/[0.05] text-slate-300 border border-white/[0.08] font-medium">
                   {activeBuildingObj?.mapPin?.badge || 'BLDG'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(true)}
-                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
-                  title="Open interactive campus map to pick building & room"
+                  className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 cursor-pointer"
                 >
-                  Change 🗺️
+                  Change on Map →
                 </button>
               </div>
             </div>
-            <div className="font-black text-slate-900 text-sm">
+            <div className="font-semibold text-white text-sm">
               {activeBuildingObj?.name || building}
             </div>
-            <div className="font-mono text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl font-bold flex items-center justify-between">
-              <span>{customRoomOverride.trim() || specificLocation}</span>
-              <span className="text-[10px] text-emerald-600 font-sans font-normal">Active Selection</span>
+            <div className="font-mono text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg font-medium flex items-center justify-between">
+              <span>{resolvedRoomLabel}</span>
+              <span className="text-[10px] text-emerald-400 font-sans">Verified</span>
             </div>
           </div>
 
-          <div className="bento-card p-5 space-y-2.5 text-xs">
-            <span className="font-bold text-slate-900 uppercase tracking-wider text-[11px] block">
-              SLA Resolution Targets
+          <div className="bento-card p-5 space-y-3 text-xs">
+            <span className="font-medium text-slate-400 uppercase tracking-wider font-mono text-[10px] block">
+              SLA Resolution Windows
             </span>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/70">
-                <span className="font-black text-rose-700 block">CRITICAL</span>
-                <span className="text-rose-600 font-mono">2 Hours</span>
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+                <span className="font-semibold text-rose-400">CRITICAL</span>
+                <span className="text-slate-300 font-mono">2h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-orange-50/70 border border-orange-200/70">
-                <span className="font-black text-orange-700 block">HIGH</span>
-                <span className="text-orange-600 font-mono">8 Hours</span>
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+                <span className="font-semibold text-orange-400">HIGH</span>
+                <span className="text-slate-300 font-mono">8h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/70">
-                <span className="font-black text-amber-800 block">MEDIUM</span>
-                <span className="text-amber-700 font-mono">24 Hours</span>
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+                <span className="font-semibold text-amber-300">MEDIUM</span>
+                <span className="text-slate-300 font-mono">24h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/70">
-                <span className="font-black text-emerald-700 block">LOW</span>
-                <span className="text-emerald-600 font-mono">72 Hours</span>
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+                <span className="font-semibold text-emerald-400">LOW</span>
+                <span className="text-slate-300 font-mono">72h</span>
               </div>
             </div>
           </div>
@@ -534,39 +771,34 @@ export default function SubmitComplaint() {
       {/* Interactive Map Picker Modal */}
       {isMapModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/80 backdrop-blur-sm animate-fade-in"
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsMapModalOpen(false);
           }}
         >
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden animate-scale-up">
-            {/* Modal Header */}
-            <div className="px-5 py-3.5 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl">🗺️</span>
-                <div>
-                  <h2 className="text-sm sm:text-base font-black text-white">
-                    Campus Digital Twin — Location Picker
-                  </h2>
-                  <p className="text-[11px] text-slate-400">
-                    Click any building, wing, or room to auto-fill your complaint location
-                  </p>
-                </div>
+          <div className="bg-[#080c14] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-white/[0.08] bg-[#0c111b] flex items-center justify-between gap-3 shrink-0">
+              <div>
+                <h2 className="text-sm sm:text-base font-semibold text-white">
+                  Campus Digital Twin — Location Picker
+                </h2>
+                <p className="text-[11px] text-slate-400">
+                  Click any building, wing, or room to lock in your complaint location
+                </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-semibold transition-all cursor-pointer"
                 >
-                  <span>✓</span>
-                  <span>Confirm Location</span>
+                  Confirm Selection
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white flex items-center justify-center text-xs cursor-pointer"
                   title="Close Map (Esc)"
                 >
                   ✕
@@ -574,14 +806,13 @@ export default function SubmitComplaint() {
               </div>
             </div>
 
-            {/* Modal Map Content */}
-            <div className="p-3 sm:p-4 overflow-y-auto flex-1 bg-slate-950">
+            <div className="p-3 sm:p-4 overflow-y-auto flex-1 bg-[#080c14]">
               <CampusMapSelector
                 selectedBuilding={activeBuildingObj?.name}
                 onSelectBuilding={(bName) => {
                   handleSelectBuilding(bName);
                 }}
-                selectedRoom={customRoomOverride.trim() || specificLocation}
+                selectedRoom={resolvedRoomLabel}
                 onSelectRoom={(rm) => {
                   setSpecificLocation(rm);
                   setCustomRoomOverride('');
@@ -589,29 +820,6 @@ export default function SubmitComplaint() {
                 studentSavedHostel={savedHostel}
                 studentSavedRoom={savedRoom}
               />
-            </div>
-
-            {/* Modal Footer with Active Selection Badge & Action */}
-            <div className="px-5 py-3 border-t border-slate-800 bg-slate-900/90 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-slate-400 font-medium">Selected:</span>
-                <span className="px-2.5 py-1 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-800/80 font-bold">
-                  {activeBuildingObj?.name || building}
-                </span>
-                <span className="text-slate-500">·</span>
-                <span className="px-2.5 py-1 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800/80 font-mono font-bold">
-                  {customRoomOverride.trim() || specificLocation}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsMapModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-950/50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <span>✓</span>
-                <span>Done (Use {activeBuildingObj?.shortName || building})</span>
-              </button>
             </div>
           </div>
         </div>

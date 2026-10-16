@@ -1,7 +1,10 @@
 /**
- * SmartComplaintHandler - Global Navigation Header
+ * SmartComplaintHandler - Modern SaaS Global Navigation Header
+ * Inspired by Linear, Vercel & Supabase:
+ * - Left: Brand Mark + Breadcrumb Divider (`/`) + Horizontal Underline Tabs with crisp SVG icons
+ * - Right: Quick Search (`⌘K`) trigger, Saved Room chip, Primary `+ New Request` CTA, and User Profile Dropdown
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,6 +23,8 @@ export default function Navbar() {
 
   const [backendHealthy, setBackendHealthy] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const apiBase = import.meta.env.VITE_API_BASE_URL || '';
@@ -33,187 +38,298 @@ export default function Navbar() {
       .catch(() => setBackendHealthy(false));
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
+    setProfileMenuOpen(false);
     logout();
     navigate('/login');
   };
 
-  const navLinkClasses = ({ isActive }) =>
-    `px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all duration-150 flex items-center space-x-1.5 ${
+  const navTabClasses = ({ isActive }) =>
+    `relative h-16 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-colors ${
       isActive
-        ? 'bg-slate-900 text-white shadow-xs'
-        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90'
+        ? 'text-white font-semibold after:content-[""] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:bg-emerald-400 after:rounded-full after:shadow-[0_-2px_10px_rgba(16,185,129,0.6)]'
+        : 'text-slate-400 hover:text-slate-100 font-medium'
     }`;
 
+  const shortHostel = currentUser?.hostel_name
+    ? currentUser.hostel_name.split(' ')[0]
+    : 'Ramanujan';
+  const shortRoom = currentUser?.room_number
+    ? currentUser.room_number.replace('Wing ', '').replace(', Room ', '-')
+    : 'A-204';
+
   return (
-    <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 shadow-2xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200/80 group-hover:border-indigo-200 transition-colors">
-              <img
-                src="/iiitnr_logo.png"
-                alt="IIIT Naya Raipur"
-                className="h-8 w-auto object-contain"
-              />
-            </div>
-            <div>
-              <div className="text-sm font-black text-slate-900 tracking-tight leading-tight">
-                IIIT Naya Raipur
+    <header className="sticky top-0 z-40 h-16 bg-[#06090f]/80 backdrop-blur-xl border-b border-white/[0.08]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex items-center justify-between h-full gap-4">
+          {/* Left: Brand Identity + Breadcrumb Divider + Horizontal Underline Tabs */}
+          <div className="flex items-center gap-6 h-full">
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] group-hover:border-emerald-500/40 flex items-center justify-center p-1 transition-colors">
+                <img
+                  src="/iiitnr_logo.png"
+                  alt="IIIT Naya Raipur"
+                  className="h-full w-auto object-contain"
+                />
               </div>
-              <p className="text-[10px] text-slate-400 font-medium">
-                Campus Facilities &amp; Hostels
-              </p>
-            </div>
-          </Link>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-white tracking-tight">
+                  IIIT-NR
+                </span>
+                <span className="text-slate-700 font-light text-sm">/</span>
+                <span className="text-xs font-medium text-slate-300">
+                  Facilities
+                </span>
+                {backendHealthy !== null && (
+                  <span
+                    className={`hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border ${
+                      backendHealthy
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        backendHealthy ? 'bg-emerald-400' : 'bg-rose-400'
+                      }`}
+                    />
+                    {backendHealthy ? 'Live' : 'Offline'}
+                  </span>
+                )}
+              </div>
+            </Link>
 
-          {/* Segmented Navigation Pill */}
-          <nav className="hidden md:flex items-center space-x-1 p-1 rounded-2xl bg-slate-100/70 border border-slate-200/60">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all duration-150 flex items-center space-x-1.5 ${
-                  isActive || location.pathname === '/map'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90'
-                }`
-              }
+            {/* Primary Navigation Links */}
+            <nav className="hidden md:flex items-center h-full border-l border-white/[0.06] pl-4 space-x-1">
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  navTabClasses({ isActive: isActive || location.pathname === '/map' })
+                }
+              >
+                <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <span>Campus Map</span>
+              </NavLink>
+
+              {isStudent && (
+                <>
+                  <NavLink to="/submit" className={navTabClasses}>
+                    <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Submit Request</span>
+                  </NavLink>
+                  <NavLink to="/student" className={navTabClasses}>
+                    <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span>My Issues</span>
+                  </NavLink>
+                  <NavLink to="/track" className={navTabClasses}>
+                    <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Track Status</span>
+                  </NavLink>
+                </>
+              )}
+
+              {isTechnician && (
+                <>
+                  <NavLink to="/technician" className={navTabClasses}>
+                    <span>Work Orders</span>
+                  </NavLink>
+                  <NavLink to="/track" className={navTabClasses}>
+                    <span>Track Status</span>
+                  </NavLink>
+                  <NavLink to="/submit" className={navTabClasses}>
+                    <span>Submit Request</span>
+                  </NavLink>
+                </>
+              )}
+
+              {isAdmin && !isSuperAdmin && (
+                <>
+                  <NavLink to="/admin" className={navTabClasses}>
+                    <span>Operations</span>
+                  </NavLink>
+                  <NavLink to="/technician" className={navTabClasses}>
+                    <span>Squads</span>
+                  </NavLink>
+                  <NavLink to="/track" className={navTabClasses}>
+                    <span>Track Status</span>
+                  </NavLink>
+                  <NavLink to="/submit" className={navTabClasses}>
+                    <span>Submit Request</span>
+                  </NavLink>
+                </>
+              )}
+
+              {isSuperAdmin && (
+                <>
+                  <NavLink to="/superadmin" className={navTabClasses}>
+                    <span>Directorate</span>
+                  </NavLink>
+                  <NavLink to="/admin" className={navTabClasses}>
+                    <span>Operations</span>
+                  </NavLink>
+                  <NavLink to="/technician" className={navTabClasses}>
+                    <span>Squads</span>
+                  </NavLink>
+                  <NavLink to="/track" className={navTabClasses}>
+                    <span>Track Status</span>
+                  </NavLink>
+                  <NavLink to="/submit" className={navTabClasses}>
+                    <span>Submit Request</span>
+                  </NavLink>
+                </>
+              )}
+            </nav>
+          </div>
+
+          {/* Right: Quick Search Trigger + Saved Room Chip + Primary Action + Profile Menu */}
+          <div className="hidden sm:flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => navigate('/submit?mode=search')}
+              className="hidden lg:flex items-center justify-between gap-5 px-3 py-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-xs text-slate-400 hover:text-slate-200 transition-all cursor-pointer"
+              title="Quick-locate any room or laboratory"
             >
-              <span>Campus Map</span>
-            </NavLink>
+              <span className="flex items-center gap-2">
+                <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span>Find room or lab...</span>
+              </span>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white/[0.06] text-slate-400 rounded border border-white/[0.08]">
+                ⌘K
+              </kbd>
+            </button>
 
-            {isStudent && (
-              <>
-                <NavLink to="/submit" className={navLinkClasses}>
-                  <span>Submit Issue</span>
-                </NavLink>
-                <NavLink to="/student" className={navLinkClasses}>
-                  <span>My Issues</span>
-                </NavLink>
-                <NavLink to="/track" className={navLinkClasses}>
-                  <span>Track</span>
-                </NavLink>
-              </>
+            {currentUser?.hostel_name && (
+              <Link
+                to="/submit"
+                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/20 text-xs font-medium text-emerald-300 transition-colors"
+                title="Your default hostel residence"
+              >
+                <svg className="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span className="font-mono text-[11px]">
+                  {shortHostel} · {shortRoom}
+                </span>
+              </Link>
             )}
 
-            {isTechnician && (
-              <>
-                <NavLink to="/technician" className={navLinkClasses}>
-                  <span>Work Orders</span>
-                </NavLink>
-                <NavLink to="/track" className={navLinkClasses}>
-                  <span>Track</span>
-                </NavLink>
-                <NavLink to="/submit" className={navLinkClasses}>
-                  <span>Submit Issue</span>
-                </NavLink>
-              </>
-            )}
-
-            {isAdmin && !isSuperAdmin && (
-              <>
-                <NavLink to="/admin" className={navLinkClasses}>
-                  <span>Operations</span>
-                </NavLink>
-                <NavLink to="/technician" className={navLinkClasses}>
-                  <span>Squads</span>
-                </NavLink>
-                <NavLink to="/track" className={navLinkClasses}>
-                  <span>Track</span>
-                </NavLink>
-                <NavLink to="/submit" className={navLinkClasses}>
-                  <span>Submit Issue</span>
-                </NavLink>
-              </>
-            )}
-
-            {isSuperAdmin && (
-              <>
-                <NavLink to="/superadmin" className={navLinkClasses}>
-                  <span>Directorate</span>
-                </NavLink>
-                <NavLink to="/admin" className={navLinkClasses}>
-                  <span>Operations</span>
-                </NavLink>
-                <NavLink to="/technician" className={navLinkClasses}>
-                  <span>Squads</span>
-                </NavLink>
-                <NavLink to="/track" className={navLinkClasses}>
-                  <span>Track</span>
-                </NavLink>
-                <NavLink to="/submit" className={navLinkClasses}>
-                  <span>Submit Issue</span>
-                </NavLink>
-              </>
-            )}
-          </nav>
-
-          {/* Right User Profile & Status */}
-          <div className="hidden sm:flex items-center space-x-2.5">
-            {backendHealthy !== null && (
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  backendHealthy ? 'bg-emerald-500' : 'bg-rose-500'
-                }`}
-                title={backendHealthy ? 'Backend Connected' : 'Backend Offline'}
-              />
-            )}
+            <Link
+              to="/submit"
+              className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs shadow-[0_1px_12px_rgba(16,185,129,0.25)] transition-all inline-flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>New Request</span>
+            </Link>
 
             {currentUser ? (
-              <div className="flex items-center space-x-2">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
-                  onClick={openPersonaModal}
-                  className="flex items-center space-x-2.5 pl-2 pr-3 py-1.5 rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-indigo-200 text-left shadow-2xs transition-all cursor-pointer"
+                  onClick={() => setProfileMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-colors cursor-pointer"
                 >
                   {currentUser.avatar_url ? (
                     <img
                       src={currentUser.avatar_url}
                       alt={currentUser.name}
-                      className="w-7 h-7 rounded-xl object-cover border border-slate-200"
+                      className="w-6 h-6 rounded-full object-cover"
                     />
                   ) : (
-                    <span className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-sm">
-                      {currentUser.avatar || '🎓'}
-                    </span>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center">
+                      {(currentUser.name || 'S')[0].toUpperCase()}
+                    </div>
                   )}
-                  <div className="leading-tight">
-                    <div className="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
-                      <span className="truncate max-w-[115px]">{currentUser.name}</span>
-                      <span
-                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${
-                          currentUser.badgeClass || 'bg-slate-100 text-slate-700 border-slate-200'
-                        }`}
-                      >
-                        {currentUser.roleLabel || currentUser.role}
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-mono truncate max-w-[140px]">
-                      {currentUser.hostel_name
-                        ? `${currentUser.hostel_name.split(' (')[0]} · ${currentUser.room_number || ''}`
-                        : currentUser.email}
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={handleLogout}
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200/70 transition-all cursor-pointer"
-                  title="Sign Out"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
+                  <span className="text-xs font-medium text-slate-200 max-w-[96px] truncate">
+                    {currentUser.name.split(' ')[0]}
+                  </span>
+                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
+
+                {profileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-[#0c111b] border border-white/[0.1] shadow-2xl py-1.5 z-50 text-xs">
+                    <div className="px-3.5 py-2.5 border-b border-white/[0.06]">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-white truncate">{currentUser.name}</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                          {currentUser.roleLabel || currentUser.role}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">
+                        {currentUser.email}
+                      </div>
+                    </div>
+
+                    <div className="py-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileMenuOpen(false);
+                          openPersonaModal();
+                        }}
+                        className="w-full px-3.5 py-2 text-left text-slate-300 hover:text-white hover:bg-white/[0.05] flex items-center gap-2 cursor-pointer"
+                      >
+                        <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Switch Role / Persona</span>
+                      </button>
+
+                      <Link
+                        to="/student"
+                        onClick={() => setProfileMenuOpen(false)}
+                        className="w-full px-3.5 py-2 text-left text-slate-300 hover:text-white hover:bg-white/[0.05] flex items-center gap-2"
+                      >
+                        <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                        </svg>
+                        <span>My Requests &amp; Room</span>
+                      </Link>
+                    </div>
+
+                    <div className="border-t border-white/[0.06] pt-1">
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full px-3.5 py-2 text-left text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 cursor-pointer"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Link
                 to="/login"
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+                className="px-3.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] text-white font-medium text-xs rounded-lg border border-white/[0.1] transition-colors"
               >
                 Sign In
               </Link>
@@ -223,9 +339,9 @@ export default function Navbar() {
           <div className="flex md:hidden items-center space-x-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-500 hover:bg-slate-100"
+              className="p-2 rounded-lg text-slate-400 hover:bg-white/[0.06]"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -237,28 +353,36 @@ export default function Navbar() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-3 border-t border-slate-100 space-y-1">
+          <div className="md:hidden py-3 border-t border-white/[0.08] bg-[#06090f] space-y-1">
             <NavLink
               to="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 text-xs font-bold rounded-xl ${
-                location.pathname === '/' || location.pathname === '/map'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
+              className="block px-3 py-2 text-xs font-medium text-slate-300 rounded-lg hover:bg-white/[0.05]"
             >
               Campus Map
             </NavLink>
-            <NavLink to="/submit" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-100">
-              Submit Issue
+            <NavLink
+              to="/submit"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-xs font-medium text-emerald-400 rounded-lg hover:bg-white/[0.05]"
+            >
+              Submit Request
             </NavLink>
             {isStudent && (
-              <NavLink to="/student" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-100">
+              <NavLink
+                to="/student"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-xs font-medium text-slate-300 rounded-lg hover:bg-white/[0.05]"
+              >
                 My Issues
               </NavLink>
             )}
-            <NavLink to="/track" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-100">
-              Track
+            <NavLink
+              to="/track"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-xs font-medium text-slate-300 rounded-lg hover:bg-white/[0.05]"
+            >
+              Track Status
             </NavLink>
           </div>
         )}

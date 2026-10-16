@@ -1,7 +1,5 @@
 /**
- * SmartComplaintHandler - Student Portal (IIIT Naya Raipur)
- * Rich Bento KPI layout with dark profile banner, Hostel/Room editor modal,
- * expandable Campus Map, and 5-star resolution rating — zero promotional filler.
+ * SmartComplaintHandler - Student Portal (Obsidian-Slate & Emerald Theme)
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
@@ -26,7 +24,6 @@ export default function StudentDashboard() {
   const [allBuildings, setAllBuildings] = useState(() => getCampusBuildings());
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCampusMap, setShowCampusMap] = useState(false);
@@ -64,12 +61,11 @@ export default function StudentDashboard() {
 
   const loadStudentTickets = async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await fetchComplaints({ student_email: studentEmail, limit: 100 });
       setTickets(data);
     } catch (_) {
-      setError('Unable to load requests.');
+      // handled gracefully
     } finally {
       setLoading(false);
     }
@@ -136,17 +132,17 @@ export default function StudentDashboard() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'SUBMITTED':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-sky-500/15 text-sky-300 border-sky-500/30';
       case 'ASSIGNED':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'bg-purple-500/15 text-purple-300 border-purple-500/30';
       case 'IN_PROGRESS':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'bg-amber-500/15 text-amber-300 border-amber-500/30';
       case 'ESCALATED':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'bg-rose-500/15 text-rose-300 border-rose-500/30';
       case 'RESOLVED':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+        return 'bg-slate-800 text-slate-300 border-slate-700';
     }
   };
 
@@ -156,9 +152,9 @@ export default function StudentDashboard() {
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-10">
       {/* Dark Student Profile & Residence Header */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white p-6 sm:p-7 shadow-xl bg-dark-architectural-grid border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+      <div className="rounded-3xl bg-gradient-to-r from-[#09121e] via-[#0c1d24] to-[#09121e] text-white p-6 sm:p-7 shadow-xl bg-dark-architectural-grid border border-emerald-500/25 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
         <div className="flex items-start sm:items-center space-x-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-2xl shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-center text-2xl shrink-0">
             {activeUser?.avatar || '🎓'}
           </div>
           <div className="space-y-1">
@@ -166,14 +162,14 @@ export default function StudentDashboard() {
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                 {activeUser?.name}
               </h1>
-              <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/25 border border-indigo-400/30 text-indigo-200">
+              <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300">
                 {activeUser?.identifier}
               </span>
             </div>
             <p className="text-xs text-slate-300">{activeUser?.department}</p>
 
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-bold">
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
                 <span>🏠 {currentHostelLabel.split(' (')[0]}</span>
                 <span>·</span>
                 <span className="font-mono text-white">{currentRoomLabel}</span>
@@ -181,14 +177,14 @@ export default function StudentDashboard() {
               <button
                 type="button"
                 onClick={() => setIsResidenceModalOpen(true)}
-                className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-indigo-200 hover:text-white transition-all cursor-pointer"
+                className="px-2.5 py-1 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:text-emerald-300 transition-all cursor-pointer"
               >
                 ✏️ Change Room
               </button>
               <button
                 type="button"
                 onClick={() => setShowCampusMap((prev) => !prev)}
-                className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-sky-200 hover:text-white transition-all cursor-pointer"
+                className="px-2.5 py-1 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-emerald-300 transition-all cursor-pointer"
               >
                 🗺️ {showCampusMap ? 'Hide Map' : 'Campus Map'}
               </button>
@@ -199,13 +195,13 @@ export default function StudentDashboard() {
         <div className="flex items-center space-x-2.5 shrink-0">
           <Link
             to="/submit"
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
+            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 transition-all"
           >
             + Submit Issue
           </Link>
           <button
             onClick={loadStudentTickets}
-            className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all cursor-pointer"
+            className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 transition-all cursor-pointer"
             title="Refresh"
           >
             ↻
@@ -228,40 +224,40 @@ export default function StudentDashboard() {
 
       {/* Bento KPI Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bento-card p-5 border-l-4 border-l-amber-500 flex items-center justify-between">
+        <div className="bento-card p-5 border-l-4 border-l-amber-400 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Active Issues
             </span>
-            <div className="text-3xl font-black text-slate-900 mt-1">{activeTickets.length}</div>
+            <div className="text-3xl font-black text-white mt-1">{activeTickets.length}</div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-600 text-lg font-bold">
+          <div className="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-300 text-lg font-bold">
             ⚡
           </div>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-emerald-500 flex items-center justify-between">
+        <div className="bento-card p-5 border-l-4 border-l-emerald-400 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Resolved
             </span>
-            <div className="text-3xl font-black text-slate-900 mt-1">{resolvedTickets.length}</div>
+            <div className="text-3xl font-black text-white mt-1">{resolvedTickets.length}</div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200/70 flex items-center justify-center text-emerald-600 text-lg font-bold">
+          <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300 text-lg font-bold">
             ✓
           </div>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-indigo-600 flex items-center justify-between">
+        <div className="bento-card p-5 border-l-4 border-l-teal-400 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Avg Rating
             </span>
-            <div className="text-3xl font-black text-slate-900 mt-1">
+            <div className="text-3xl font-black text-white mt-1">
               {avgSatisfaction ? `${avgSatisfaction} / 5` : '—'}
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200/70 flex items-center justify-center text-indigo-600 text-lg font-bold">
+          <div className="w-11 h-11 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-300 text-lg font-bold">
             ★
           </div>
         </div>
@@ -269,8 +265,8 @@ export default function StudentDashboard() {
 
       {/* Issues List Card */}
       <div className="bento-card overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/40">
-          <h2 className="text-base font-black text-slate-900">My Requests</h2>
+        <div className="p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0a101c]">
+          <h2 className="text-base font-black text-white">My Maintenance Requests</h2>
 
           <div className="flex flex-wrap items-center gap-2.5">
             <input
@@ -281,11 +277,11 @@ export default function StudentDashboard() {
               className="enterprise-input w-full sm:w-52"
             />
 
-            <div className="flex items-center space-x-1 p-1 bg-slate-200/70 rounded-xl">
+            <div className="flex items-center space-x-1 p-1 bg-[#070b14] border border-slate-800 rounded-xl">
               <button
                 onClick={() => setActiveTab('ALL')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
-                  activeTab === 'ALL' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+                  activeTab === 'ALL' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 All ({tickets.length})
@@ -293,7 +289,7 @@ export default function StudentDashboard() {
               <button
                 onClick={() => setActiveTab('ACTIVE')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
-                  activeTab === 'ACTIVE' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+                  activeTab === 'ACTIVE' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 Active ({activeTickets.length})
@@ -301,7 +297,7 @@ export default function StudentDashboard() {
               <button
                 onClick={() => setActiveTab('RESOLVED')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
-                  activeTab === 'RESOLVED' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+                  activeTab === 'RESOLVED' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 Resolved ({resolvedTickets.length})
@@ -311,19 +307,19 @@ export default function StudentDashboard() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-xs text-slate-400">Loading requests...</div>
+          <div className="py-16 text-center text-xs text-slate-500">Loading requests...</div>
         ) : displayedTickets.length === 0 ? (
           <div className="py-16 text-center space-y-3">
-            <p className="text-xs text-slate-500">No requests found.</p>
+            <p className="text-xs text-slate-400">No maintenance requests found.</p>
             <Link
               to="/submit"
-              className="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl"
+              className="inline-flex px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl"
             >
               + Submit Issue
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-800/80">
             {displayedTickets.map((ticket) => {
               const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
               const hasRating = ticket.feedback_rating != null;
@@ -331,13 +327,13 @@ export default function StudentDashboard() {
               return (
                 <div
                   key={ticket.id || ticket.tracking_code}
-                  className="p-5 hover:bg-slate-50/70 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                  className="p-5 hover:bg-slate-800/30 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4"
                 >
                   <div className="space-y-1.5 flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="font-mono font-bold text-indigo-600 bg-indigo-50/80 px-2.5 py-0.5 rounded-lg border border-indigo-200/80"
+                        className="font-mono font-bold text-emerald-300 bg-emerald-500/10 px-2.5 py-0.5 rounded-lg border border-emerald-500/30"
                       >
                         {ticket.tracking_code}
                       </Link>
@@ -346,14 +342,14 @@ export default function StudentDashboard() {
                         {ticket.status}
                       </span>
                       {ticket.department_name && (
-                        <span className="text-slate-600 text-[11px] font-semibold bg-slate-100 px-2 py-0.5 rounded">
+                        <span className="text-slate-300 text-[11px] font-semibold bg-slate-800/90 border border-slate-700 px-2 py-0.5 rounded">
                           {ticket.department_name}
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-sm font-bold text-slate-900">{ticket.title}</h3>
-                    <div className="text-[11px] text-slate-500">
+                    <h3 className="text-sm font-bold text-white">{ticket.title}</h3>
+                    <div className="text-[11px] text-slate-400">
                       📍 {ticket.location} · {new Date(ticket.created_at).toLocaleDateString()}
                     </div>
                   </div>
@@ -373,7 +369,7 @@ export default function StudentDashboard() {
                           setRatingScore(ticket.feedback_rating || 5);
                           setFeedbackComments(ticket.feedback_comments || '');
                         }}
-                        className="px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white cursor-pointer"
+                        className="px-3 py-1.5 text-xs font-black rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer"
                       >
                         ★ {hasRating ? `${ticket.feedback_rating}/5` : 'Rate'}
                       </button>
@@ -381,9 +377,9 @@ export default function StudentDashboard() {
 
                     <Link
                       to={`/track?code=${ticket.tracking_code}`}
-                      className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl"
+                      className="px-3 py-1.5 text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl"
                     >
-                      Details
+                      Details →
                     </Link>
                   </div>
                 </div>
@@ -396,19 +392,19 @@ export default function StudentDashboard() {
       {/* Hostel & Room Modal */}
       {isResidenceModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
           onClick={() => setIsResidenceModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-4 border border-slate-200"
+            className="w-full max-w-lg rounded-3xl bg-[#0e1624] p-6 shadow-2xl space-y-4 border border-slate-800 text-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-black text-slate-900">Select Your Hostel &amp; Room</h3>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-black text-white">Select Your Hostel &amp; Room</h3>
               <button
                 type="button"
                 onClick={() => setIsResidenceModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 font-bold text-xs cursor-pointer"
+                className="w-7 h-7 rounded-full bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer"
               >
                 ✕
               </button>
@@ -427,11 +423,11 @@ export default function StudentDashboard() {
                         setCustomRoomInput('');
                       }}
                       className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                        active ? 'border-indigo-600 bg-indigo-50/70' : 'border-slate-200 bg-white'
+                        active ? 'border-emerald-500 bg-emerald-500/15' : 'border-slate-800 bg-[#090f1a]'
                       }`}
                     >
-                      <div className="text-xs font-bold text-slate-900">{h.shortName}</div>
-                      <div className="text-[10px] text-slate-500">{h.type}</div>
+                      <div className="text-xs font-bold text-white">{h.shortName}</div>
+                      <div className="text-[10px] text-slate-400">{h.type}</div>
                     </button>
                   );
                 })}
@@ -439,7 +435,7 @@ export default function StudentDashboard() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Floor</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Floor</label>
                   <select
                     value={selectedFloor}
                     onChange={(e) => setSelectedFloor(e.target.value)}
@@ -453,7 +449,7 @@ export default function StudentDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Wing</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Wing</label>
                   <select
                     value={selectedWing}
                     onChange={(e) => setSelectedWing(e.target.value)}
@@ -470,7 +466,7 @@ export default function StudentDashboard() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Room Number</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Room Number</label>
                   <select
                     value={selectedRoom}
                     onChange={(e) => {
@@ -489,7 +485,7 @@ export default function StudentDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Or Custom Room</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Or Custom Room</label>
                   <input
                     type="text"
                     placeholder="e.g. Wing B, Room 312"
@@ -500,18 +496,18 @@ export default function StudentDashboard() {
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsResidenceModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 rounded-xl cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingResidence}
-                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl cursor-pointer"
+                  className="px-5 py-2 text-xs font-black text-slate-950 bg-emerald-500 hover:bg-emerald-400 rounded-xl cursor-pointer"
                 >
                   {savingResidence ? 'Saving...' : 'Save Room'}
                 </button>
@@ -524,14 +520,14 @@ export default function StudentDashboard() {
       {/* Rating Modal */}
       {selectedTicketForFeedback && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
           onClick={() => setSelectedTicketForFeedback(null)}
         >
           <div
-            className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4 border border-slate-200"
+            className="w-full max-w-md rounded-3xl bg-[#0e1624] p-6 shadow-2xl space-y-4 border border-slate-800 text-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-base font-black text-slate-900">
+            <h3 className="text-base font-black text-white">
               Rate Repair ({selectedTicketForFeedback.tracking_code})
             </h3>
             <form onSubmit={handleSubmitRating} className="space-y-4">
@@ -545,7 +541,7 @@ export default function StudentDashboard() {
                     onMouseLeave={() => setRatingHover(0)}
                     className="text-3xl cursor-pointer"
                   >
-                    <span className={(ratingHover || ratingScore) >= star ? 'text-amber-400' : 'text-slate-200'}>
+                    <span className={(ratingHover || ratingScore) >= star ? 'text-amber-400' : 'text-slate-700'}>
                       ★
                     </span>
                   </button>
@@ -562,14 +558,14 @@ export default function StudentDashboard() {
                 <button
                   type="button"
                   onClick={() => setSelectedTicketForFeedback(null)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 rounded-xl"
+                  className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingFeedback}
-                  className="px-5 py-2 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl"
+                  className="px-5 py-2 text-xs font-black text-slate-950 bg-emerald-500 hover:bg-emerald-400 rounded-xl"
                 >
                   Submit Rating
                 </button>

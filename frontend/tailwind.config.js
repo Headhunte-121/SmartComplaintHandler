@@ -1,8 +1,6 @@
 /**
  * SmartComplaintHandler - Tailwind CSS Configuration
- * Blueprint Reference: V1/M1/frontend/01_vite_tailwind_config.md
- * Role: Enterprise design tokens, Inter & JetBrains Mono font stacks, custom keyframe animations,
- *       and priority hazard colors inspired by Linear, Vercel, and Stripe.
+ * Sleek Obsidian-Slate & Emerald Design System
  */
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -18,18 +16,18 @@ export default {
       },
       colors: {
         hazard: {
-          critical: '#DC2626',
-          high: '#EA580C',
-          medium: '#CA8A04',
-          low: '#16A34A',
+          critical: '#F43F5E',
+          high: '#F97316',
+          medium: '#EAB308',
+          low: '#10B981',
         },
       },
       boxShadow: {
-        '2xs': '0 1px 2px 0 rgba(15, 23, 42, 0.04)',
-        'xs': '0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04)',
-        'bento': '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03)',
-        'bento-hover': '0 12px 32px -4px rgba(79, 70, 229, 0.10), 0 4px 12px -2px rgba(15, 23, 42, 0.06)',
-        'glow-indigo': '0 0 24px -4px rgba(99, 102, 241, 0.35)',
+        '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.25)',
+        'xs': '0 1px 3px 0 rgba(0, 0, 0, 0.35), 0 1px 2px -1px rgba(0, 0, 0, 0.25)',
+        'bento': '0 8px 28px -4px rgba(0, 0, 0, 0.45), 0 1px 3px 0 rgba(16, 185, 129, 0.04)',
+        'bento-hover': '0 14px 36px -4px rgba(16, 185, 129, 0.16), 0 4px 14px -2px rgba(0, 0, 0, 0.5)',
+        'glow-emerald': '0 0 28px -4px rgba(16, 185, 129, 0.4)',
       },
       keyframes: {
         fadeIn: {
