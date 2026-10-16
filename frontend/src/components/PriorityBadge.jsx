@@ -23,10 +23,10 @@ const PRIORITY_CONFIG = {
     ),
   },
   MEDIUM: {
-    classes: 'bg-[#fedf47]/15 text-[#fedf47] border-[#fedf47]/35 font-semibold',
+    classes: 'bg-[#B69B86]/20 text-[#B69B86] border-[#B69B86]/40 font-semibold',
     sla: '24 Hours',
     icon: (
-      <svg className="w-3.5 h-3.5 mr-1 text-[#fedf47] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="w-3.5 h-3.5 mr-1 text-[#B69B86] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="9" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
       </svg>

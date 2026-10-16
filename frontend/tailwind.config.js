@@ -1,12 +1,12 @@
 /**
  * SmartComplaintHandler - Tailwind CSS Configuration
- * Botanical Lemon Grove & Dark Forest Design System
- * Palette from Dopely:
- * - Lemon Zest: #FEDF47 (Vibrant citrus highlight)
- * - Pale Lemon / Cream: #FEF3C6 (Soft warm cream)
- * - Sage Leaf: #A3B18A (Muted botanical sage)
- * - Garden Green: #588157 (Lush foliage primary)
- * - Dark Forest: #344E41 (Deep evergreen base)
+ * Botanical Earth Tone Design System (Deep Forest Canvas & Sage Dark Mode)
+ * - Sage: #A7AD89 (Primary action / highlight)
+ * - Cream: #DAD0C6 (Warm secondary typography / chip)
+ * - Moss: #8C906D (Accent border / subtle tone)
+ * - Sand: #B69B86 (Metadata / category accent)
+ * - Forest: #687156 (Elevated component border / background)
+ * - Earth: #8F755E (Grounded utility accents)
  */
 /** @type {import('tailwindcss').Config} */
 export default {

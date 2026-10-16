@@ -241,7 +241,7 @@ export default function Navbar() {
               to="/submit"
               className="px-3.5 py-1.5 rounded-lg bg-[#A7AD89] hover:bg-[#B5BCA0] text-[#0A110D] font-bold text-xs shadow-[0_1px_12px_rgba(167,173,137,0.3)] transition-all inline-flex items-center gap-1.5 cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5 text-lemon-300" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-[#0A110D]" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
               <span>New Request</span>
@@ -369,7 +369,7 @@ export default function Navbar() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-3 border-t border-[#a3b18a]/[0.15] bg-[#0c1410] space-y-1">
+          <div className="md:hidden py-3 border-t border-[#8C906D]/20 bg-[#0F1A14] space-y-1">
             <NavLink
               to="/"
               onClick={() => setMobileMenuOpen(false)}

@@ -54,7 +54,7 @@ function NotFound() {
       <div className="pt-2">
         <Link
           to="/"
-          className="inline-flex items-center space-x-2 px-5 py-2.5 bg-garden-500 hover:bg-garden-600 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+          className="inline-flex items-center space-x-2 px-5 py-2.5 bg-[#A7AD89] hover:bg-[#8C906D] text-[#0A110D] font-bold text-xs rounded-xl shadow-xs transition-colors"
         >
           <span>Return to Facilities Home</span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
