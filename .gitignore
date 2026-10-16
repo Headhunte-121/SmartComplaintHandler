@@ -232,6 +232,8 @@ frontend/.env
 
 # SQLite Databases & Local Storage
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
 smart_complaints.db

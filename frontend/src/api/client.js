@@ -48,17 +48,23 @@ export function resolveApiBaseUrl() {
     return '/api/v1';
   }
 
+  // Normalize localhost to 127.0.0.1 on Windows to bypass IPv6 DNS stall
+  let normalized = rawEnvUrl;
+  if (normalized.includes('localhost:8000')) {
+    normalized = normalized.replace('localhost:8000', '127.0.0.1:8000');
+  }
+
   // Prevent mixed-content / localhost Network Error when deployed on Vercel or production HTTPS
   if (
     typeof window !== 'undefined' &&
     window.location.hostname !== 'localhost' &&
     window.location.hostname !== '127.0.0.1' &&
-    (rawEnvUrl.includes('localhost') || rawEnvUrl.includes('127.0.0.1'))
+    (normalized.includes('localhost') || normalized.includes('127.0.0.1'))
   ) {
     return '/api/v1';
   }
 
-  const trimmed = rawEnvUrl.replace(/\/+$/, '');
+  const trimmed = normalized.replace(/\/+$/, '');
   if (trimmed.endsWith('/api/v1')) {
     return trimmed;
   }
@@ -70,7 +76,7 @@ export function resolveApiBaseUrl() {
 
 const apiClient = axios.create({
   baseURL: resolveApiBaseUrl(),
-  timeout: 15000,
+  timeout: 8000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -141,7 +147,7 @@ apiClient.interceptors.response.use(
               refresh_token: refreshToken,
               remember_me: isPersistent,
             },
-            { headers: { 'Content-Type': 'application/json' }, timeout: 10000 }
+            { headers: { 'Content-Type': 'application/json' }, timeout: 5000 }
           );
 
           const { access_token, refresh_token: nextRefresh, expires_at } = refreshRes.data;

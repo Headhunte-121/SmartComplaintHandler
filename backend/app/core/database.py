@@ -6,7 +6,7 @@ Role: Production SQLAlchemy 2.0 engine configured for Supabase Transaction/Sessi
 """
 import os
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from app.core.config import settings
@@ -43,6 +43,7 @@ engine_kwargs = {
 
 if "sqlite" in db_url:
     connect_args["check_same_thread"] = False
+    connect_args["timeout"] = 30
 elif "postgresql" in db_url:
     if "sslmode" not in db_url:
         connect_args["sslmode"] = "require"
@@ -69,6 +70,16 @@ engine = create_engine(
     connect_args=connect_args,
     **engine_kwargs,
 )
+
+if "sqlite" in db_url:
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL;")
+        cursor.execute("PRAGMA synchronous=NORMAL;")
+        cursor.execute("PRAGMA busy_timeout=30000;")
+        cursor.execute("PRAGMA cache_size=-64000;")
+        cursor.close()
 
 SessionLocal = sessionmaker(
     autocommit=False,

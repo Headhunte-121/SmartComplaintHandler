@@ -42,15 +42,10 @@ export default function TechnicianWorkstation() {
     setError(null);
     try {
       const data = await fetchComplaints({ team_id: selectedTeamId, limit: 100 });
-      setTickets(data);
-    } catch (_) {
-      try {
-        const allData = await fetchComplaints({ limit: 100 });
-        const filtered = allData.filter((t) => t.assigned_team_id === Number(selectedTeamId));
-        setTickets(filtered.length > 0 ? filtered : allData);
-      } catch (__) {
-        setError('Unable to load squad work orders. Ensure the backend service is running.');
-      }
+      setTickets(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Unable to load squad work orders. Ensure the backend service is running.');
+      setTickets([]);
     } finally {
       setLoading(false);
     }

@@ -11,6 +11,7 @@ import re
 import sys
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from app.core.config import settings
@@ -60,8 +61,7 @@ def _initialize_database() -> None:
         logger.warning(f"Database initialization notice: {e}")
 
 
-if not os.environ.get("VERCEL"):
-    _initialize_database()
+
 
 
 @asynccontextmanager
@@ -91,6 +91,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 @app.middleware("http")

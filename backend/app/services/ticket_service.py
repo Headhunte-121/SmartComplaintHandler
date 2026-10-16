@@ -5,7 +5,7 @@ Role: Coordinates complaint creation, dynamic taxonomy classification, priority 
 """
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.ticket import Ticket
 from app.models.department import Department
@@ -202,7 +202,10 @@ def list_tickets(
     """
     Query tickets with optional priority, department, status, student, and team filters.
     """
-    query = db.query(Ticket)
+    query = db.query(Ticket).options(
+        joinedload(Ticket.department),
+        joinedload(Ticket.assigned_team),
+    )
     if priority:
         query = query.filter(Ticket.priority == priority.strip().upper())
     if department_id is not None:
@@ -407,6 +410,10 @@ def get_active_sla_breaches(
     active_statuses = [STATUS_SUBMITTED, STATUS_IN_PROGRESS, STATUS_ESCALATED]
     tickets = (
         db.query(Ticket)
+        .options(
+            joinedload(Ticket.department),
+            joinedload(Ticket.assigned_team),
+        )
         .filter(Ticket.status.in_(active_statuses))
         .filter(Ticket.sla_deadline != None)
         .all()
