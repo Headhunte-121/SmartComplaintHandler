@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
+  CAMPUS_VIEWBOX,
   IIITNR_MAP_UPDATED_EVENT,
   getCampusBuildings,
   saveCustomCampusBuildings,
@@ -122,10 +123,12 @@ export default function CampusMapSelector({
     [searchQuery, searchIndex]
   );
 
-  const panToTarget = (cx, cy, targetZoom = 1.42, label = '') => {
+  const panToTarget = (cx, cy, targetZoom = 1.35, label = '') => {
     const clampedZoom = Math.min(2.4, Math.max(1, targetZoom));
-    const targetPanX = 390 - cx * clampedZoom;
-    const targetPanY = 428 - cy * clampedZoom;
+    const centerX = CAMPUS_VIEWBOX.x + CAMPUS_VIEWBOX.width / 2;
+    const centerY = CAMPUS_VIEWBOX.y + CAMPUS_VIEWBOX.height / 2;
+    const targetPanX = centerX - cx * clampedZoom;
+    const targetPanY = centerY - cy * clampedZoom;
 
     setZoom(clampedZoom);
     setPan({ x: targetPanX, y: targetPanY });
@@ -161,8 +164,8 @@ export default function CampusMapSelector({
   const clientToSvgCoords = (e) => {
     if (!svgRef.current) return null;
     const rect = svgRef.current.getBoundingClientRect();
-    const rawX = -55 + ((e.clientX - rect.left) / rect.width) * 840;
-    const rawY = ((e.clientY - rect.top) / rect.height) * 857;
+    const rawX = CAMPUS_VIEWBOX.x + ((e.clientX - rect.left) / rect.width) * CAMPUS_VIEWBOX.width;
+    const rawY = CAMPUS_VIEWBOX.y + ((e.clientY - rect.top) / rect.height) * CAMPUS_VIEWBOX.height;
     const cx = Math.round(Math.max(-50, Math.min(780, (rawX - pan.x) / zoom)));
     const cy = Math.round(Math.max(15, Math.min(850, (rawY - pan.y) / zoom)));
     return { cx, cy };

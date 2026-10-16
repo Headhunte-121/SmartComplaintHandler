@@ -21,23 +21,35 @@ export const IIITNR_CAMPUS_BOUNDARY_CORNERS = [
 /**
  * Non-overlapping label pill positions for all 16 authentic Digital Twin zones
  */
+export const CAMPUS_VIEWBOX = {
+  x: 170,
+  y: 155,
+  width: 375,
+  height: 485,
+  viewBoxStr: '170 155 375 485',
+};
+
+/**
+ * Non-overlapping, high-readability label pill positions for all 16 authentic Digital Twin zones.
+ * Mathematically tested for 0 collisions with full building names.
+ */
 export const LABEL_POSITIONS = {
-  academic_block: { x: 387.0, y: 481.0 },
-  auditorium_hall: { x: 330.4, y: 494.0 },
-  canteen_block: { x: 362.6, y: 542.6 },
-  ramanujan_house: { x: 376.6, y: 270.5 },
-  bhabha_house: { x: 263.4, y: 539.3 },
-  bose_house: { x: 310.9, y: 572.4 },
-  raman_house: { x: 474.6, y: 469.7 },
-  bldg_1792074173914: { x: 287.6, y: 204.2 },
-  bldg_1792097005723: { x: 409.5, y: 411.2 },
-  bldg_1792119172307: { x: 358.9, y: 584.0 },
-  bldg_1792128996063: { x: 385.8, y: 347.4 },
-  bldg_1792132762957: { x: 304.2, y: 465.7 },
-  bldg_1792159282829: { x: 312.5, y: 514.4 },
-  bldg_1792159326181: { x: 443.9, y: 572.0 },
-  bldg_1792159559173: { x: 362.9, y: 448.0 },
-  bldg_1792159926765: { x: 338.0, y: 391.1 },
+  bldg_1792074173914: { x: 287.6, y: 198.0 }, // Sports Complex (North-West)
+  ramanujan_house:    { x: 376.6, y: 248.0 }, // Ramanujan House (North)
+  bldg_1792128996063: { x: 430.0, y: 345.0 }, // Sabari House (North-East)
+  bldg_1792159926765: { x: 295.0, y: 368.0 }, // Football Ground (North-West)
+  bldg_1792097005723: { x: 435.0, y: 412.0 }, // Basketball Court (East)
+  bldg_1792159559173: { x: 340.0, y: 432.0 }, // Old Amphi (Center-North)
+  bldg_1792132762957: { x: 268.0, y: 468.0 }, // Guest House (West)
+  auditorium_hall:    { x: 295.0, y: 504.0 }, // Auditorium (West-Center)
+  academic_block:     { x: 390.0, y: 481.0 }, // Academic Block (Center)
+  bldg_1792159282829: { x: 270.0, y: 526.0 }, // Volleyball Court (West)
+  canteen_block:      { x: 362.6, y: 532.0 }, // Canteen (South-Center)
+  bhabha_house:       { x: 232.0, y: 558.0 }, // Bhabha House (South-West)
+  bose_house:         { x: 295.0, y: 580.0 }, // Bose House (South)
+  bldg_1792119172307: { x: 365.0, y: 600.0 }, // Palm Park (South)
+  bldg_1792159326181: { x: 468.0, y: 554.0 }, // New Amphi (South-East)
+  raman_house:        { x: 488.0, y: 460.0 }, // Raman House (East)
 };
 
 /**

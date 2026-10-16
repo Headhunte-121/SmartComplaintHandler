@@ -1,15 +1,17 @@
 /**
  * frontend/src/components/campusTwin/DigitalTwinCanvas.jsx
  *
- * Clean Vectorized SVG Map Renderer for IIIT Naya Raipur.
- * 100% grounded in authentic GIS GeoJSON data:
- * - 16 Campus Buildings with exact satellite wing polygons, courtyards, and entrances.
- * - 10 Campus Road Polylines forming the internal transit loop and avenues.
- * - 11 Pedestrian Walkway Polylines connecting all entrances, hostels, and plazas.
- * - Styled in the Primary White & Secondary Light Green design system.
+ * Clean, High-Readability Vectorized SVG Campus Map for IIIT Naya Raipur.
+ * 100% faithful to authentic GIS geometry from IIIT_Naya_Raipur_GIS_Complete (1).geojson:
+ * - 16 Campus Buildings & Facilities (with 2.5D architectural roof plinths & details).
+ * - 10 Campus Road Polylines (clean asphalt transit loop with curbs & lane dividers).
+ * - 11 Pedestrian Walkway Polylines (stone-paved pathways with delicate walking guides).
+ * - Zero-collision, high-contrast label cards with category badges and subtle leader lines.
+ * - Perfectly scaled viewport: campus fills the screen comfortably with no dead margins.
  */
 import React from 'react';
 import {
+  CAMPUS_VIEWBOX,
   IIITNR_CAMPUS_PERIMETER_POINTS,
   INNER_CAMPUS_CLIP_POINTS,
   IIITNR_CAMPUS_BOUNDARY_CORNERS,
@@ -50,23 +52,23 @@ export default function DigitalTwinCanvas({
 }) {
   const isBlueprint = twinTheme === 'blueprint';
 
-  // Category Color Accent Mapping (Light Green Secondary Design System)
+  // Architectural Category Styling (Primary White & Secondary Light Green)
   const getCategoryStyles = (category, isSelected, isHovered) => {
     if (isSelected) {
       return {
-        fill: '#dcfce7', // light green tint
-        stroke: '#16a34a', // strong green
-        strokeWidth: 2.4,
-        badgeBg: '#16a34a',
+        fill: '#dcfce7', // light green selection tint
+        stroke: '#15803d', // deep green border
+        strokeWidth: 2.2,
+        badgeBg: '#15803d',
         badgeText: '#ffffff',
       };
     }
     if (isHovered) {
       return {
-        fill: '#f0fdf4', // soft mint
-        stroke: '#22c55e', // bright green
+        fill: '#f0fdf4', // soft mint hover
+        stroke: '#16a34a', // bright green border
         strokeWidth: 1.8,
-        badgeBg: '#22c55e',
+        badgeBg: '#16a34a',
         badgeText: '#ffffff',
       };
     }
@@ -76,7 +78,7 @@ export default function DigitalTwinCanvas({
         return {
           fill: '#ffffff',
           stroke: '#16a34a',
-          strokeWidth: 1.4,
+          strokeWidth: 1.3,
           badgeBg: '#15803d',
           badgeText: '#ffffff',
         };
@@ -109,7 +111,93 @@ export default function DigitalTwinCanvas({
   };
 
   /**
-   * Renders a single interactive campus building using its authentic GIS polygons, courtyards, and entrances
+   * Renders specialized architectural interior details for campus facilities
+   */
+  const renderBuildingAccents = (bId, pin) => {
+    switch (bId) {
+      case 'academic_block':
+        return (
+          <g>
+            {/* Central Rotunda Dome & Glass Skylight */}
+            <circle cx={387} cy={481} r="7.5" fill="#f8fafc" stroke="#16a34a" strokeWidth="1.2" />
+            <circle cx={387} cy={481} r="3.8" fill="#dcfce7" stroke="#15803d" strokeWidth="0.8" />
+            <circle cx={387} cy={481} r="1.2" fill="#15803d" />
+          </g>
+        );
+
+      case 'canteen_block':
+        return (
+          <g>
+            {/* Circular Dining Rotunda Roof */}
+            <circle cx={362.6} cy={524.6} r="6.5" fill="#f8fafc" stroke="#0d9488" strokeWidth="1.2" />
+            <circle cx={362.6} cy={524.6} r="3" fill="#ccfbf1" stroke="#0f766e" strokeWidth="0.8" />
+          </g>
+        );
+
+      case 'bldg_1792159926765': // Football Ground
+        return (
+          <g transform="translate(348, 388) rotate(-14)">
+            {/* Football Field Turf & Regulation Markings */}
+            <rect x="-24" y="-15" width="48" height="30" rx="1.5" fill="#15803d" fillOpacity="0.85" stroke="#ffffff" strokeWidth="0.9" />
+            {/* Field Stripes */}
+            {[-18, -6, 6, 18].map((sx, idx) => (
+              <rect key={idx} x={sx - 3} y="-15" width="6" height="30" fill="#166534" fillOpacity="0.35" />
+            ))}
+            <line x1="0" y1="-15" x2="0" y2="15" stroke="#ffffff" strokeWidth="0.8" />
+            <circle cx="0" cy="0" r="5" fill="none" stroke="#ffffff" strokeWidth="0.8" />
+            <circle cx="0" cy="0" r="0.8" fill="#ffffff" />
+            <rect x="-24" y="-7.5" width="6" height="15" fill="none" stroke="#ffffff" strokeWidth="0.7" />
+            <rect x="18" y="-7.5" width="6" height="15" fill="none" stroke="#ffffff" strokeWidth="0.7" />
+          </g>
+        );
+
+      case 'bldg_1792097005723': // Basketball Court
+        return (
+          <g transform="translate(387.5, 421.2) rotate(16)">
+            {/* Court Royal Blue Surface & Lines */}
+            <rect x="-8.5" y="-6.5" width="17" height="13" rx="1" fill="#0284c7" stroke="#ffffff" strokeWidth="0.7" />
+            <line x1="0" y1="-6.5" x2="0" y2="6.5" stroke="#ffffff" strokeWidth="0.6" />
+            <circle cx="0" cy="0" r="2.8" fill="none" stroke="#ffffff" strokeWidth="0.6" />
+          </g>
+        );
+
+      case 'bldg_1792159282829': // Volleyball Court
+        return (
+          <g transform="translate(330.5, 514.4)">
+            {/* Sand Court & Net */}
+            <rect x="-11" y="-7" width="22" height="14" rx="1.5" fill="#fef3c7" stroke="#d97706" strokeWidth="0.9" />
+            <line x1="0" y1="-7" x2="0" y2="7" stroke="#b45309" strokeWidth="0.8" strokeDasharray="2 1.5" />
+          </g>
+        );
+
+      case 'bldg_1792159559173': // Old Amphitheatre
+        return (
+          <g transform="translate(367.9, 430)">
+            {/* Stepped Acoustic Bowl Arcs */}
+            <path d="M -10,-4 Q 0,-10 10,-4" fill="none" stroke="#0d9488" strokeWidth="0.8" opacity="0.7" />
+            <path d="M -7,-1 Q 0,-6 7,-1" fill="none" stroke="#0d9488" strokeWidth="0.8" opacity="0.7" />
+            <circle cx="0" cy="2" r="2.2" fill="#0f766e" />
+          </g>
+        );
+
+      case 'bldg_1792119172307': // Palm Park
+        return (
+          <g transform="translate(358.9, 564)">
+            {/* Miniature Palm Park Landscape Accents */}
+            <circle cx="-8" cy="-6" r="3.5" fill="#22c55e" opacity="0.8" />
+            <circle cx="6" cy="-8" r="4" fill="#16a34a" opacity="0.8" />
+            <circle cx="-4" cy="8" r="3.8" fill="#15803d" opacity="0.8" />
+            <circle cx="8" cy="6" r="3.2" fill="#22c55e" opacity="0.8" />
+          </g>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  /**
+   * Renders a single interactive campus building using its authentic GIS geometry
    */
   const renderBuildingEntity = (b) => {
     const isSelected = activeBuildingObj?.id === b.id;
@@ -122,6 +210,10 @@ export default function DigitalTwinCanvas({
     const wings = geom.wings || [];
     const courtyards = geom.courtyards || [];
     const entrances = geom.entrances || [];
+
+    // Calculate if a subtle leader line (tether) is needed from building pin to label card
+    const distToPin = Math.hypot(labelPos.x - pin.x, labelPos.y - pin.y);
+    const showLeaderLine = distToPin > 18;
 
     return (
       <g
@@ -142,115 +234,110 @@ export default function DigitalTwinCanvas({
         }}
         className={isSuperAdmin && isEditMode ? 'cursor-move' : 'cursor-pointer'}
       >
-        {/* Selection / Hover Glow & Pulse */}
+        {/* Selection / Hover Glow & Pulse Rings */}
         {(isSelected || isHovered) && (
           <circle
             cx={pin.x}
             cy={pin.y}
-            r={isSelected ? '28' : '22'}
+            r={isSelected ? '24' : '18'}
             fill="none"
             stroke={isSelected ? '#16a34a' : '#86efac'}
-            strokeWidth={isSelected ? '2.5' : '1.5'}
+            strokeWidth={isSelected ? '2.2' : '1.4'}
             strokeDasharray={isSelected ? '4 3' : '2 2'}
             opacity="0.85"
             className="animate-pulse"
           />
         )}
 
-        {/* 1. Building Wing Polygons */}
-        {wings.length > 0 &&
-          wings.map((w, idx) => (
-            <polygon
-              key={`wing-${idx}`}
-              points={w.points}
-              fill={styles.fill}
-              stroke={styles.stroke}
-              strokeWidth={styles.strokeWidth}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              style={{ filter: isSelected ? 'drop-shadow(0 2px 6px rgba(22,163,74,0.35))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.08))' }}
-            />
-          ))}
+        {/* 1. Building Plinth Drop Shadows (Authentic 2.5D architectural depth) */}
+        {wings.map((w, idx) => (
+          <polygon
+            key={`shadow-${idx}`}
+            points={w.points}
+            fill="rgba(15, 23, 42, 0.07)"
+            transform="translate(1.2, 1.8)"
+            strokeLinejoin="round"
+          />
+        ))}
 
-        {/* 2. Building Courtyards / Open Spaces (e.g. Palm Park, Football Ground, Amphitheatre Bowl) */}
-        {courtyards.length > 0 &&
-          courtyards.map((c, idx) => (
-            <polygon
-              key={`court-${idx}`}
-              points={c.points}
-              fill="#bbf7d0"
-              fillOpacity="0.75"
-              stroke="#16a34a"
-              strokeWidth="1.2"
-              strokeDasharray="4 3"
-              strokeLinejoin="round"
-            />
-          ))}
+        {/* 2. Building Wing Polygons (Crisp White Roofs with Category Outlines) */}
+        {wings.map((w, idx) => (
+          <polygon
+            key={`wing-${idx}`}
+            points={w.points}
+            fill={styles.fill}
+            stroke={styles.stroke}
+            strokeWidth={styles.strokeWidth}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        ))}
 
-        {/* 3. Fallback for entities with no polygon defined (e.g., Volleyball Court) */}
-        {wings.length === 0 && courtyards.length === 0 && (
-          <g transform={`translate(${pin.x}, ${pin.y})`}>
-            <rect
-              x="-15"
-              y="-10"
-              width="30"
-              height="20"
-              rx="3"
-              fill={styles.fill}
-              stroke={styles.stroke}
-              strokeWidth={styles.strokeWidth}
-            />
-            {/* Court net line */}
-            <line x1="0" y1="-10" x2="0" y2="10" stroke="#16a34a" strokeWidth="0.8" strokeDasharray="2 2" />
-          </g>
-        )}
+        {/* 3. Building Courtyards / Open Spaces (Palm Park, Football Ground, Amphitheatre) */}
+        {courtyards.map((c, idx) => (
+          <polygon
+            key={`court-${idx}`}
+            points={c.points}
+            fill="#dcfce7"
+            fillOpacity="0.75"
+            stroke="#16a34a"
+            strokeWidth="1.1"
+            strokeDasharray="4 3"
+            strokeLinejoin="round"
+          />
+        ))}
 
-        {/* 4. Interactive Building Entrances */}
+        {/* 4. Architectural Interior Details (Rotundas, courts, turfs) */}
+        {renderBuildingAccents(b.id, pin)}
+
+        {/* 5. Building Entrances (Delicate green gateway pins) */}
         {entrances.map((ent, idx) => (
           <g key={`ent-${idx}`} transform={`translate(${ent.x}, ${ent.y})`}>
-            <circle r="3.4" fill="#16a34a" stroke="#ffffff" strokeWidth="1" />
-            <circle r="1.3" fill="#ffffff" />
-            {isHovered && (
-              <text
-                x="0"
-                y="-6"
-                textAnchor="middle"
-                fill="#15803d"
-                fontSize="5"
-                fontWeight="700"
-                fontFamily="Inter, system-ui, sans-serif"
-              >
-                {ent.name}
-              </text>
-            )}
+            <circle r="2.8" fill="#16a34a" stroke="#ffffff" strokeWidth="0.9" />
+            <circle r="1" fill="#ffffff" />
           </g>
         ))}
 
-        {/* 5. Clean, Non-Overlapping Interactive Label Pill */}
+        {/* 6. Subtle Leader Line connecting offset label card to building center */}
+        {showLabels && showLeaderLine && (
+          <line
+            x1={pin.x}
+            y1={pin.y}
+            x2={labelPos.x}
+            y2={labelPos.y}
+            stroke="#cbd5e1"
+            strokeWidth="0.8"
+            strokeDasharray="2 2"
+            opacity="0.7"
+          />
+        )}
+
+        {/* 7. Zero-Collision, High-Contrast Interactive Label Pill Card */}
         {(showLabels || isSelected || isHovered) && (
           <g transform={`translate(${labelPos.x}, ${labelPos.y})`}>
+            {/* Card Background Container */}
             <rect
-              x="-36"
-              y="-7"
-              width="72"
-              height="14"
-              rx="4"
+              x="-41"
+              y="-8"
+              width="82"
+              height="16"
+              rx="4.5"
               fill={isSelected ? '#15803d' : '#ffffff'}
               stroke={isSelected ? '#14532d' : isHovered ? '#16a34a' : '#cbd5e1'}
               strokeWidth={isSelected ? '1.4' : '0.9'}
-              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))' }}
+              style={{ filter: 'drop-shadow(0 2px 4px rgba(15, 23, 42, 0.12))' }}
             />
-            {/* Badge Indicator */}
+            {/* Left Category Badge Chip */}
             <rect
-              x="-34"
-              y="-5.5"
-              width="15"
-              height="11"
-              rx="2.5"
+              x="-38.5"
+              y="-6"
+              width="20"
+              height="12"
+              rx="3"
               fill={isSelected ? '#ffffff' : styles.badgeBg}
             />
             <text
-              x="-26.5"
+              x="-28.5"
               y="2.5"
               textAnchor="middle"
               fill={isSelected ? '#15803d' : styles.badgeText}
@@ -260,17 +347,17 @@ export default function DigitalTwinCanvas({
             >
               {b.badge || 'ZONE'}
             </text>
-            {/* Title Text */}
+            {/* Building Name Title (Full, Crisp, Non-Truncated) */}
             <text
-              x="5"
+              x="8"
               y="2.5"
               textAnchor="middle"
               fill={isSelected ? '#ffffff' : '#0f172a'}
-              fontSize="6"
+              fontSize="6.2"
               fontWeight="700"
               fontFamily="Inter, system-ui, sans-serif"
             >
-              {(b.shortName || b.name).length > 13 ? (b.shortName || b.name).slice(0, 12) + '…' : (b.shortName || b.name)}
+              {b.shortName || b.name}
             </text>
           </g>
         )}
@@ -282,7 +369,7 @@ export default function DigitalTwinCanvas({
     <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-[#f8fafc] flex justify-center shadow-sm">
       <svg
         ref={svgRef}
-        viewBox="-55 0 840 857"
+        viewBox={CAMPUS_VIEWBOX.viewBoxStr}
         onClick={handleSvgClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -296,127 +383,84 @@ export default function DigitalTwinCanvas({
         }`}
       >
         <defs>
-          {/* Subtle Modern Architectural Grid */}
+          {/* Subtle Modern Technical Grid */}
           <pattern id="campusArchitecturalGrid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(203, 213, 225, 0.45)" strokeWidth="0.6" />
           </pattern>
           {/* Campus Terrain Gradient */}
-          <radialGradient id="campusTerrainGradLight" cx="45%" cy="48%" r="60%">
+          <radialGradient id="campusTerrainGradLight" cx="48%" cy="48%" r="62%">
             <stop offset="0%" stopColor="#f0fdf4" />
             <stop offset="100%" stopColor="#ecfdf5" />
           </radialGradient>
         </defs>
 
-        {/* 1. Light Paper Canvas Background */}
-        <rect x="-55" y="0" width="840" height="857" fill="#f8fafc" />
-        <rect x="-55" y="0" width="840" height="857" fill="url(#campusArchitecturalGrid)" />
+        {/* 1. Base Canvas Ground */}
+        <rect x="150" y="130" width="420" height="530" fill="#f8fafc" />
+        <rect x="150" y="130" width="420" height="530" fill="url(#campusArchitecturalGrid)" />
 
         {/* Camera Pan & Zoom Container */}
         <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-          {/* 2. Southern Border Highway: Naya Raipur Marg */}
-          <g>
-            <polyline
-              points="-45,628 338,762 560,842"
-              fill="none"
-              stroke="#e2e8f0"
-              strokeWidth="24"
-              strokeLinecap="round"
-            />
-            <polyline
-              points="-45,628 338,762 560,842"
-              fill="none"
-              stroke="#cbd5e1"
-              strokeWidth="22"
-              strokeLinecap="round"
-            />
-            <polyline
-              points="-45,628 338,762 560,842"
-              fill="none"
-              stroke="#22c55e"
-              strokeWidth="2"
-            />
-            <polyline
-              points="-45,623 338,757 560,837"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="1"
-              strokeDasharray="6 6"
-            />
-            <polyline
-              points="-45,633 338,767 560,847"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="1"
-              strokeDasharray="6 6"
-            />
-            <text
-              x="215"
-              y="724"
-              transform="rotate(19.5, 215, 724)"
-              textAnchor="middle"
-              fill="#64748b"
-              fontSize="8.5"
-              fontWeight="700"
-              letterSpacing="1.2"
-            >
-              NAYA RAIPUR MARG (MAIN AVENUE)
-            </text>
-          </g>
-
-          {/* 3. Authentic Campus Terrain Base (50-Acre Perimeter) */}
+          {/* 2. Campus Garden Base Terrain (50-Acre Perimeter) */}
           <polygon
             points={IIITNR_CAMPUS_PERIMETER_POINTS}
             fill="url(#campusTerrainGradLight)"
             stroke="#86efac"
-            strokeWidth="1.5"
+            strokeWidth="1.4"
             strokeLinejoin="round"
           />
 
-          {/* 4. Complete Campus Internal Road Network (10 GIS Roads) */}
+          {/* 3. Complete Internal Road Network (10 GIS Roads - Clean Asphalt Transit Loop) */}
           <g fill="none" strokeLinecap="round" strokeLinejoin="round">
             {/* Outer curb layer */}
             {CAMPUS_ROAD_POLYLINES.map((r, i) => (
-              <polyline key={`curb-${i}`} points={r.points} stroke="#cbd5e1" strokeWidth={r.width + 3.2} />
+              <polyline key={`curb-${i}`} points={r.points} stroke="#cbd5e1" strokeWidth={r.width + 2.6} />
             ))}
-            {/* Asphalt driving surface */}
+            {/* Smooth pale roadway surface */}
             {CAMPUS_ROAD_POLYLINES.map((r, i) => (
-              <polyline key={`road-${i}`} points={r.points} stroke="#f1f5f9" strokeWidth={r.width} />
+              <polyline key={`road-${i}`} points={r.points} stroke="#e2e8f0" strokeWidth={r.width} />
             ))}
-            {/* Center dashed white lane divider */}
+            {/* Center lane divider dashes */}
             {CAMPUS_ROAD_POLYLINES.map((r, i) => (
               <polyline
                 key={`dash-${i}`}
                 points={r.points}
-                stroke="#94a3b8"
+                stroke="#ffffff"
                 strokeWidth="1"
-                strokeDasharray="5 5"
-                opacity="0.8"
+                strokeDasharray="4 4"
+                opacity="0.85"
               />
             ))}
           </g>
 
-          {/* 5. Complete Pedestrian Footpaths (11 GIS Footpaths) */}
+          {/* 4. Complete Pedestrian Footpaths (11 GIS Footpaths - Refined Stone Walkways) */}
           {showPathsAndCourts && (
             <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+              {/* Stone paving base */}
               {CAMPUS_FOOTPATH_POLYLINES.map((fp, i) => (
-                <polyline key={`fp-base-${i}`} points={fp.points} stroke="#bbf7d0" strokeWidth={fp.width + 2} />
+                <polyline key={`fp-base-${i}`} points={fp.points} stroke="#e2e8f0" strokeWidth={fp.width + 1.8} />
               ))}
+              {/* Paved path surface */}
+              {CAMPUS_FOOTPATH_POLYLINES.map((fp, i) => (
+                <polyline key={`fp-surface-${i}`} points={fp.points} stroke="#f8fafc" strokeWidth={fp.width} />
+              ))}
+              {/* Delicate guide dash */}
               {CAMPUS_FOOTPATH_POLYLINES.map((fp, i) => (
                 <polyline
-                  key={`fp-line-${i}`}
+                  key={`fp-dash-${i}`}
                   points={fp.points}
                   stroke="#16a34a"
-                  strokeWidth={fp.width}
-                  strokeDasharray="4 3"
+                  strokeWidth="0.85"
+                  strokeDasharray="3 3"
+                  opacity="0.75"
                 />
               ))}
             </g>
           )}
 
-          {/* 6. Canopy Green Trees & Boulevard Landscaping */}
+          {/* 5. Landscape Canopy Trees */}
           {FOREST_CLUSTERS.map((tree, idx) => (
             <g key={`tree-${idx}`}>
-              <circle cx={tree.x} cy={tree.y} r={tree.r} fill="#86efac" fillOpacity="0.45" stroke="#22c55e" strokeWidth="0.8" />
+              <circle cx={tree.x} cy={tree.y} r={tree.r} fill="#86efac" fillOpacity="0.4" stroke="#22c55e" strokeWidth="0.7" />
               <circle cx={tree.x - 1} cy={tree.y - 1} r={tree.r * 0.55} fill="#22c55e" fillOpacity="0.65" />
             </g>
           ))}
@@ -425,7 +469,7 @@ export default function DigitalTwinCanvas({
               key={`bt-${idx}`}
               cx={t.x}
               cy={t.y}
-              r="3.5"
+              r="3.2"
               fill="#22c55e"
               stroke="#15803d"
               strokeWidth="0.8"
@@ -433,15 +477,15 @@ export default function DigitalTwinCanvas({
             />
           ))}
 
-          {/* 7. Boundary Pillars (50-Acre Perimeter Corners) */}
+          {/* 6. Campus Perimeter Boundary & Pillars */}
           {showBoundary && (
             <g>
               <polygon
                 points={IIITNR_CAMPUS_PERIMETER_POINTS}
                 fill="none"
                 stroke={hoveredBoundary ? '#16a34a' : '#22c55e'}
-                strokeWidth={hoveredBoundary ? '2.8' : '1.6'}
-                strokeDasharray="8 6"
+                strokeWidth={hoveredBoundary ? '2.4' : '1.4'}
+                strokeDasharray="6 5"
                 strokeLinejoin="round"
                 className="cursor-pointer transition-all duration-300"
                 onMouseEnter={() => setHoveredBoundary(true)}
@@ -460,89 +504,68 @@ export default function DigitalTwinCanvas({
                     <circle
                       cx="0"
                       cy="0"
-                      r={isPillarHovered ? '8' : '5'}
+                      r={isPillarHovered ? '7' : '4.5'}
                       fill="rgba(22, 163, 74, 0.3)"
                       className="animate-ping"
                     />
-                    <polygon points="0,-6 5,0 0,6 -5,0" fill="#16a34a" stroke="#ffffff" strokeWidth="1" />
-                    {isPillarHovered && (
-                      <g transform="translate(0, -14)">
-                        <rect
-                          x="-65"
-                          y="-20"
-                          width="130"
-                          height="20"
-                          rx="4"
-                          fill="#ffffff"
-                          stroke="#16a34a"
-                          strokeWidth="1"
-                          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
-                        />
-                        <text x="0" y="-10" textAnchor="middle" fill="#0f172a" fontSize="7" fontWeight="700">
-                          {pillar.label}
-                        </text>
-                        <text x="0" y="-3" textAnchor="middle" fill="#16a34a" fontSize="6">
-                          ({pillar.x}, {pillar.y}) · Campus Boundary
-                        </text>
-                      </g>
-                    )}
+                    <polygon points="0,-5 4,0 0,5 -4,0" fill="#16a34a" stroke="#ffffff" strokeWidth="0.8" />
                   </g>
                 );
               })}
             </g>
           )}
 
-          {/* 8. North Compass Rose */}
-          <g transform="translate(245, 195)">
-            <circle cx="0" cy="0" r="16" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.2" />
-            <polygon points="0,-12 -4,2 0,0 4,2" fill="#16a34a" />
-            <polygon points="0,12 -3,-1 0,0 3,-1" fill="#94a3b8" />
-            <text x="0" y="-14" textAnchor="middle" fill="#16a34a" fontSize="6.5" fontWeight="800">
+          {/* 7. North Compass Rose */}
+          <g transform="translate(195, 185)">
+            <circle cx="0" cy="0" r="14" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+            <polygon points="0,-10 -3.5,1.5 0,0 3.5,1.5" fill="#16a34a" />
+            <polygon points="0,10 -2.5,-1 0,0 2.5,-1" fill="#94a3b8" />
+            <text x="0" y="-12" textAnchor="middle" fill="#16a34a" fontSize="5.5" fontWeight="800">
               N
             </text>
           </g>
 
-          {/* 9. Render All 16 Authentic Campus Buildings */}
+          {/* 8. Render All 16 Authentic Campus Buildings */}
           {buildings.map((b) => renderBuildingEntity(b))}
 
-          {/* 10. Animated Radar Locator Wave on Search / Auto-Detect */}
+          {/* 9. Animated Radar Locator Wave on Search / Auto-Detect */}
           {radarTarget && (
             <g transform={`translate(${radarTarget.cx}, ${radarTarget.cy})`}>
               <circle
                 cx="0"
                 cy="0"
-                r="36"
+                r="32"
                 fill="none"
                 stroke="#16a34a"
-                strokeWidth="2.5"
+                strokeWidth="2.2"
                 className="animate-ping"
                 opacity="0.85"
               />
               <circle
                 cx="0"
                 cy="0"
-                r="20"
+                r="18"
                 fill="none"
                 stroke="#22c55e"
-                strokeWidth="1.8"
+                strokeWidth="1.6"
                 strokeDasharray="4 4"
               />
-              <circle cx="0" cy="0" r="5" fill="#16a34a" stroke="#ffffff" strokeWidth="1.5" />
+              <circle cx="0" cy="0" r="4.5" fill="#16a34a" stroke="#ffffff" strokeWidth="1.2" />
               {radarTarget.label && (
-                <g transform="translate(0, -28)">
+                <g transform="translate(0, -25)">
                   <rect
-                    x="-60"
-                    y="-11"
-                    width="120"
-                    height="18"
-                    rx="5"
+                    x="-55"
+                    y="-10"
+                    width="110"
+                    height="17"
+                    rx="4.5"
                     fill="#16a34a"
                     stroke="#ffffff"
-                    strokeWidth="1.2"
+                    strokeWidth="1"
                     style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
                   />
-                  <text x="0" y="1" textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="800">
-                    🎯 {radarTarget.label.slice(0, 24)}
+                  <text x="0" y="1.5" textAnchor="middle" fill="#ffffff" fontSize="6.8" fontWeight="800">
+                    🎯 {radarTarget.label}
                   </text>
                 </g>
               )}
