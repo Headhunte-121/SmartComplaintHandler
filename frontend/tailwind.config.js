@@ -1,6 +1,12 @@
 /**
  * SmartComplaintHandler - Tailwind CSS Configuration
- * Sleek Obsidian-Slate & Emerald Design System
+ * Botanical Lemon Grove & Dark Forest Design System
+ * Palette from Dopely:
+ * - Lemon Zest: #FEDF47 (Vibrant citrus highlight)
+ * - Pale Lemon / Cream: #FEF3C6 (Soft warm cream)
+ * - Sage Leaf: #A3B18A (Muted botanical sage)
+ * - Garden Green: #588157 (Lush foliage primary)
+ * - Dark Forest: #344E41 (Deep evergreen base)
  */
 /** @type {import('tailwindcss').Config} */
 export default {
