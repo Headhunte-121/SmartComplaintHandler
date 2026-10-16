@@ -33,7 +33,7 @@ import {
   autoDetectCampusLocation,
 } from './campusTwin/campusSearchEngine';
 
-export const IIITNR_CAMPUS_STORAGE_KEY = 'iiitnr_custom_campus_map_v8_twin';
+export const IIITNR_CAMPUS_STORAGE_KEY = 'iiitnr_campus_gis_master_v1';
 export const IIITNR_MAP_UPDATED_EVENT = 'iiitnr-campus-map-updated';
 
 export {
