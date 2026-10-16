@@ -166,6 +166,44 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
       pointer-events: auto;
     }
+    
+    /* Floating Active Drawing Action Bar */
+    .drawing-active-bar {
+      position: absolute;
+      top: 68px;
+      left: 65px;
+      z-index: 600;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid #38bdf8;
+      border-radius: 12px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.25);
+      animation: barFadeSlide 0.2s ease-out;
+    }
+    @keyframes barFadeSlide {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .drawing-pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8;
+      animation: pulseDot 1.2s infinite;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    @keyframes pulseDot {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
+    }
+
     .hud-item {
       display: flex;
       flex-direction: column;
@@ -577,6 +615,36 @@
           <span class="hud-val" style="color: #c7d2fe; font-size: 11px;">⌨️ WASD / Arrows to Pan (Shift = 2x)</span>
         </div>
       </div>
+    
+      <!-- Floating Active Drawing Action Bar -->
+      <div id="drawing-active-bar" class="drawing-active-bar" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="drawing-pulse-dot"></span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="drawing-active-title" style="font-weight: 700; color: #f8fafc; font-size: 13px;">🛣️ Tracing Road</span>
+              <span id="drawing-active-points" style="background: rgba(255,255,255,0.15); color: #94a3b8; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-family: monospace;">0 dots placed</span>
+            </div>
+            <div id="drawing-active-subtitle" style="font-size: 10px; color: #94a3b8; margin-top: 1px;">Click points on satellite map</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; margin-left: 6px;">
+          <button type="button" class="btn warning" id="btn-undo-vertex" onclick="undoLastDrawingVertex()" title="Undo last placed dot (Backspace or Ctrl+Z)" style="font-size: 11px; padding: 5px 11px; background: #d97706; color: #fff; font-weight: 700; border: none; border-radius: 6px; cursor: pointer;">
+            ↩️ Undo Dot
+          </button>
+          <button type="button" class="btn success" id="btn-finish-shape" onclick="finishCurrentDrawing()" title="Finish & save shape (Enter or Double-click)" style="font-size: 11px; padding: 5px 11px; background: #059669; color: #fff; font-weight: 700; border: none; border-radius: 6px; cursor: pointer;">
+            ✅ Finish
+          </button>
+          <button type="button" class="btn danger" id="btn-cancel-drawing" onclick="cancelCurrentDrawing(true)" title="Cancel drawing without saving (Escape or Right-Click)" style="font-size: 11px; padding: 5px 12px; background: #dc2626; color: #fff; font-weight: 800; border: 1px solid #f87171; border-radius: 6px; cursor: pointer;">
+            ❌ Cancel (Esc)
+          </button>
+        </div>
+        <div style="font-size: 10px; color: #94a3b8; border-left: 1px solid rgba(255,255,255,0.18); padding-left: 10px; line-height: 1.3;">
+          <div><b style="color: #f87171;">Esc / Right-Click</b>: Cancel &bull; <b style="color: #fbbf24;">Backspace</b>: Undo</div>
+          <div><b style="color: #34d399;">Double-Click / Enter</b>: Finish</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Sidebar with 3 Modular GIS Tabs -->
@@ -1687,6 +1755,41 @@
       map.on('pm:create', onGeomanVectorCreated);
       map.on('pm:remove', onGeomanVectorRemoved);
 
+      // Real-time drawing HUD & vertex tracking
+      map.on('pm:drawstart', (e) => {
+        let title = 'Drawing Mode';
+        if (window.activeLineType === 'road') title = '🛣️ Tracing Vehicular Road';
+        else if (window.activeLineType === 'footpath') title = '🚶 Tracing Pedestrian Footpath';
+        else if (isDrawingWing) {
+          const b = buildings.find(x => x.id === selectedBuildingId);
+          title = `✏️ Tracing Wing for ${b?.shortName || 'Building'}`;
+        } else if (isDrawingCourtyard) {
+          const b = buildings.find(x => x.id === selectedBuildingId);
+          title = `🌿 Tracing Courtyard for ${b?.shortName || 'Building'}`;
+        }
+        showDrawingHUD(title, 'Click map to place dots. Double-click or click Finish when done.');
+      });
+
+      map.on('pm:vertexadded', (e) => {
+        const count = getActiveDrawingVertexCount();
+        updateDrawingHUD(count);
+      });
+
+      map.on('pm:drawend', (e) => {
+        hideDrawingHUD();
+        document.getElementById('btn-draw-road')?.classList.remove('active');
+        document.getElementById('btn-draw-path')?.classList.remove('active');
+      });
+
+      // Right-click on map cancels drawing immediately
+      map.on('contextmenu', (e) => {
+        if (isDrawingActive()) {
+          L.DomEvent.preventDefault(e);
+          L.DomEvent.stopPropagation(e);
+          cancelCurrentDrawing(true);
+        }
+      });
+
       // Render initial state safely in order
       try {
         renderBuildingMarkers();
@@ -1717,25 +1820,36 @@
 
         const k = e.key.toLowerCase();
         if (e.key === 'Escape') {
-          if (isAddingPin) {
-            isAddingPin = false;
-            document.getElementById('btn-add-pin')?.classList.remove('active');
-            showToast('Cancelled building placement');
+          if (isDrawingActive()) {
+            e.preventDefault();
+            e.stopPropagation();
+            cancelCurrentDrawing(true);
+            return;
           }
-          if (isAddingEntrance) {
-            isAddingEntrance = false;
-            document.getElementById('btn-add-entrance')?.classList.remove('active');
-            showToast('Cancelled entrance placement');
+          if (globalEditMode) {
+            toggleGlobalEditMode();
+            showToast('Exited vertex edit mode');
+            return;
           }
-          if (isDrawingCourtyard) {
-            isDrawingCourtyard = false;
-            map.pm.disableDraw();
-            showToast('Cancelled courtyard drawing');
+        }
+
+        // Backspace, Delete, or Ctrl+Z: Undo last placed dot
+        if (e.key === 'Backspace' || e.key === 'Delete' || (e.ctrlKey && k === 'z')) {
+          if (isDrawingActive() && map?.pm && map.pm.Draw?.getActiveShape?.()) {
+            e.preventDefault();
+            e.stopPropagation();
+            undoLastDrawingVertex();
+            return;
           }
-          if (isDrawingWing) {
-            isDrawingWing = false;
-            map.pm.disableDraw();
-            showToast('Cancelled wing drawing');
+        }
+
+        // Enter: Finish shape
+        if (e.key === 'Enter') {
+          if (isDrawingActive() && map?.pm && map.pm.Draw?.getActiveShape?.()) {
+            e.preventDefault();
+            e.stopPropagation();
+            finishCurrentDrawing();
+            return;
           }
         }
         if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
@@ -1954,8 +2068,10 @@
     }
 
     function enableAddPinMode() {
+      cancelCurrentDrawing(false);
       isAddingPin = true;
-      document.getElementById('btn-add-pin').classList.add('active');
+      document.getElementById('btn-add-pin')?.classList.add('active');
+      showDrawingHUD('📍 Placing New Building Pin', 'Click anywhere on satellite map to drop pin, or click Cancel.');
       showToast('👆 Click anywhere on Google Satellite to place your new building pin!');
     }
 
@@ -2466,9 +2582,11 @@
     function enableAddEntranceMode() {
       const b = buildings.find(x => x.id === selectedBuildingId);
       if (!b) return;
+      cancelCurrentDrawing(false);
       isAddingEntrance = true;
       const btn = document.getElementById('btn-add-entrance');
       if (btn) btn.classList.add('active');
+      showDrawingHUD(`🚪 Placing Entrance for "${b.shortName || b.name}"`, 'Click on satellite map where entrance door is located.');
       showToast(`🚪 Click on Google Satellite to place entrance door for "${b.shortName}"!`);
     }
 
@@ -2583,17 +2701,199 @@
     }
 
     // --- GIS Vector Roads & Footpaths with Width Controls ---
+    
+    // ==========================================
+    // --- GIS Drawing Controls: Cancel, Undo & Finish ---
+    // ==========================================
+    function isDrawingActive() {
+      const pmActive = map && map.pm && (
+        (typeof map.pm.globalDrawModeEnabled === 'function' && map.pm.globalDrawModeEnabled()) ||
+        (typeof map.pm.Draw?.getActiveShape === 'function' && Boolean(map.pm.Draw.getActiveShape()))
+      );
+      return Boolean(pmActive || isAddingPin || isAddingEntrance || isDrawingWing || isDrawingCourtyard || window.activeLineType);
+    }
+
+    function getActiveDrawingVertexCount() {
+      if (!map || !map.pm) return 0;
+      try {
+        const shape = map.pm.Draw?.getActiveShape?.();
+        if (shape && map.pm.Draw[shape]) {
+          const drawInstance = map.pm.Draw[shape];
+          if (Array.isArray(drawInstance._markers)) {
+            return drawInstance._markers.length;
+          }
+          if (drawInstance._layer && typeof drawInstance._layer.getLatLngs === 'function') {
+            const pts = drawInstance._layer.getLatLngs();
+            const flat = Array.isArray(pts[0]) ? pts[0] : pts;
+            return flat.length;
+          }
+        }
+      } catch (err) {
+        console.warn('getActiveDrawingVertexCount error:', err);
+      }
+      return 0;
+    }
+
+    function showDrawingHUD(title, subtitle) {
+      const bar = document.getElementById('drawing-active-bar');
+      if (!bar) return;
+      const t = document.getElementById('drawing-active-title');
+      const s = document.getElementById('drawing-active-subtitle');
+      if (t) t.textContent = title || 'Drawing Active';
+      if (s) s.textContent = subtitle || '';
+      updateDrawingHUD(0);
+      bar.style.display = 'flex';
+    }
+
+    function updateDrawingHUD(count) {
+      const ptsBadge = document.getElementById('drawing-active-points');
+      const undoBtn = document.getElementById('btn-undo-vertex');
+      const finishBtn = document.getElementById('btn-finish-shape');
+      if (ptsBadge) {
+        ptsBadge.textContent = `${count} dot${count === 1 ? '' : 's'} placed`;
+        if (count > 0) {
+          ptsBadge.style.background = '#0284c7';
+          ptsBadge.style.color = '#ffffff';
+        } else {
+          ptsBadge.style.background = 'rgba(255,255,255,0.15)';
+          ptsBadge.style.color = '#94a3b8';
+        }
+      }
+      if (undoBtn) {
+        undoBtn.style.opacity = count > 0 ? '1' : '0.4';
+        undoBtn.style.pointerEvents = count > 0 ? 'auto' : 'none';
+      }
+      if (finishBtn) {
+        const isPoly = isDrawingWing || isDrawingCourtyard;
+        const minNeeded = isPoly ? 3 : 2;
+        const canFinish = count >= minNeeded;
+        finishBtn.style.opacity = canFinish ? '1' : '0.4';
+        finishBtn.style.pointerEvents = canFinish ? 'auto' : 'none';
+      }
+    }
+
+    function hideDrawingHUD() {
+      const bar = document.getElementById('drawing-active-bar');
+      if (bar) bar.style.display = 'none';
+    }
+
+    function cancelCurrentDrawing(showNotice = true) {
+      let wasActive = false;
+
+      // 1. Cancel Geoman active drawing mode
+      if (map && map.pm) {
+        try {
+          const activeShape = map.pm.Draw?.getActiveShape?.();
+          if (activeShape || (typeof map.pm.globalDrawModeEnabled === 'function' && map.pm.globalDrawModeEnabled())) {
+            map.pm.disableDraw();
+            wasActive = true;
+          }
+        } catch (e) {
+          console.warn('Error in map.pm.disableDraw:', e);
+        }
+      }
+
+      // 2. Clear state flags
+      if (window.activeLineType) {
+        wasActive = true;
+        window.activeLineType = null;
+      }
+      if (isDrawingWing) {
+        wasActive = true;
+        isDrawingWing = false;
+      }
+      if (isDrawingCourtyard) {
+        wasActive = true;
+        isDrawingCourtyard = false;
+      }
+      if (isAddingPin) {
+        wasActive = true;
+        isAddingPin = false;
+      }
+      if (isAddingEntrance) {
+        wasActive = true;
+        isAddingEntrance = false;
+      }
+
+      // 3. Reset button UI active highlights
+      document.getElementById('btn-add-pin')?.classList.remove('active');
+      document.getElementById('btn-add-entrance')?.classList.remove('active');
+      document.getElementById('btn-draw-road')?.classList.remove('active');
+      document.getElementById('btn-draw-path')?.classList.remove('active');
+
+      // 4. Hide Action Bar
+      hideDrawingHUD();
+
+      if (wasActive && showNotice) {
+        showToast('❌ Drawing cancelled');
+      }
+    }
+
+    function undoLastDrawingVertex() {
+      if (!map || !map.pm) return;
+      try {
+        const shape = map.pm.Draw?.getActiveShape?.();
+        if (shape && map.pm.Draw[shape]) {
+          const drawInstance = map.pm.Draw[shape];
+          const count = drawInstance._markers?.length || 0;
+          if (count <= 1) {
+            cancelCurrentDrawing(true);
+            return;
+          }
+          if (typeof drawInstance._removeLastVertex === 'function') {
+            drawInstance._removeLastVertex();
+            const newCount = drawInstance._markers?.length || 0;
+            updateDrawingHUD(newCount);
+            showToast(`↩️ Removed last dot (${newCount} remaining)`);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('undoLastDrawingVertex error:', e);
+      }
+      cancelCurrentDrawing(true);
+    }
+
+    function finishCurrentDrawing() {
+      if (!map || !map.pm) return;
+      try {
+        const shape = map.pm.Draw?.getActiveShape?.();
+        if (shape && map.pm.Draw[shape]) {
+          const drawInstance = map.pm.Draw[shape];
+          const count = drawInstance._markers?.length || 0;
+          const isPoly = shape === 'Polygon' || shape === 'Cut' || isDrawingWing || isDrawingCourtyard;
+          const minNeeded = isPoly ? 3 : 2;
+          if (count < minNeeded) {
+            showToast(`⚠️ Need at least ${minNeeded} dots to finish (currently ${count})`);
+            return;
+          }
+          if (typeof drawInstance._finishShape === 'function') {
+            drawInstance._finishShape();
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('finishCurrentDrawing error:', e);
+      }
+    }
+
     function startDrawRoad() {
+      cancelCurrentDrawing(false);
       window.activeLineType = 'road';
       setSidebarTab('roads');
+      document.getElementById('btn-draw-road')?.classList.add('active');
       map.pm.enableDraw('Line', { snappable: true, snapDistance: 15, cursorMarker: true });
-      showToast('🛣️ Tracing Vehicular Road. Click points along asphalt, double-click to finish!');
+      showDrawingHUD('🛣️ Tracing Vehicular Road', 'Click points along asphalt center or curb. Double-click or click Finish when done.');
+      showToast('🛣️ Tracing Vehicular Road. Click points, double-click to finish!');
     }
 
     function startDrawFootpath() {
+      cancelCurrentDrawing(false);
       window.activeLineType = 'footpath';
       setSidebarTab('roads');
+      document.getElementById('btn-draw-path')?.classList.add('active');
       map.pm.enableDraw('Line', { snappable: true, snapDistance: 15, cursorMarker: true });
+      showDrawingHUD('🚶 Tracing Pedestrian Footpath', 'Click points along walkway. Double-click or click Finish when done.');
       showToast('🚶 Tracing Pedestrian Footpath. Click points, double-click to finish!');
     }
 
@@ -2623,9 +2923,11 @@
           saveBuildingsToStorage();
           updateJsonOutput();
           updateGeometryCodeOutput();
+          hideDrawingHUD();
           showToast(`🌿 Added "${newCourt.name}" to ${b.shortName}!`);
         }
         isDrawingCourtyard = false;
+        hideDrawingHUD();
         return;
       }
 
@@ -2653,9 +2955,11 @@
           saveBuildingsToStorage();
           updateJsonOutput();
           updateGeometryCodeOutput();
+          hideDrawingHUD();
           showToast(`✓ Attached "${newPoly.name}" to ${b.shortName}!`);
         }
         isDrawingWing = false;
+        hideDrawingHUD();
         return;
       }
 
@@ -2690,6 +2994,9 @@
       loadSelectedRoadIntoForm();
       updateGeometryCodeOutput();
       window.activeLineType = null;
+      hideDrawingHUD();
+      document.getElementById('btn-draw-road')?.classList.remove('active');
+      document.getElementById('btn-draw-path')?.classList.remove('active');
       showToast(`✓ Traced ${layer.roadData.name}`);
     }
 
