@@ -1621,7 +1621,13 @@
     // --- Map Initialization ---
     function initMap() {
       const savedData = localStorage.getItem('iiitnr_advanced_gis_buildings_v2');
-      buildings = savedData ? JSON.parse(savedData) : INITIAL_BUILDINGS;
+      let parsedB = null;
+      if (savedData) {
+        try {
+          parsedB = JSON.parse(savedData);
+        } catch (_) {}
+      }
+      buildings = (Array.isArray(parsedB) && parsedB.length > 0) ? parsedB : INITIAL_BUILDINGS;
       selectedBuildingId = buildings[0]?.id || null;
 
       // Create Leaflet Map centered on IIIT Naya Raipur
@@ -1681,13 +1687,24 @@
       map.on('pm:create', onGeomanVectorCreated);
       map.on('pm:remove', onGeomanVectorRemoved);
 
-      // Render initial state
-      renderBuildingMarkers();
-      renderBuildingPolygons();
-      renderBuildingEntrances();
-      renderPinChips();
-      loadSelectedBuildingIntoForm();
-      loadSavedRoads();
+      // Render initial state safely in order
+      try {
+        renderBuildingMarkers();
+        renderBuildingPolygons();
+        renderBuildingCourtyards();
+        renderBuildingEntrances();
+        renderPinChips();
+        loadSelectedBuildingIntoForm();
+      } catch (err) {
+        console.error('Error rendering building entities:', err);
+      }
+
+      try {
+        loadSavedRoads();
+      } catch (err) {
+        console.error('Error loading roads:', err);
+      }
+
       updateJsonOutput();
       updateGeometryCodeOutput();
 
@@ -2155,6 +2172,207 @@
       }
     }
 
+
+    // --- Inner Courtyards & Atriums System ---
+    function renderBuildingCourtyards() {
+      if (typeof buildingCourtyardsLayers === 'undefined') buildingCourtyardsLayers = {};
+      Object.values(buildingCourtyardsLayers).forEach(l => {
+        if (map && map.hasLayer(l)) map.removeLayer(l);
+      });
+      buildingCourtyardsLayers = {};
+
+      buildings.forEach(b => {
+        (b.courtyards || []).forEach(courtData => {
+          if (!courtData.latlngs || courtData.latlngs.length < 3) return;
+          const color = courtData.color || '#10b981';
+          const court = L.polygon(courtData.latlngs, {
+            color: color,
+            fillColor: color,
+            fillOpacity: courtData.fillOpacity || 0.55,
+            weight: 2,
+            dashArray: '4, 4'
+          }).addTo(map);
+
+          court.bindTooltip(`
+            <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;">
+              <span style="font-weight:800;color:${color};">[${b.badge || 'PIN'}] ${b.shortName || b.name}</span><br/>
+              <span style="color:#a7f3d0;font-size:10px;">🌿 ${courtData.name}</span>
+            </div>
+          `, {
+            sticky: true,
+            direction: 'top'
+          });
+
+          court.bindPopup(`
+            <div style="min-width: 170px; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;">
+              <div style="font-weight: 800; font-size: 13px; color: ${color}; margin-bottom: 2px;">
+                ${b.shortName || b.name}
+              </div>
+              <div style="font-size: 11px; color: #cbd5e1; margin-bottom: 8px;">
+                🌿 ${courtData.name} (${(courtData.latlngs || []).length} vertices)
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn sky" style="padding: 4px 8px; font-size: 10.5px;" onclick="focusAndEditCourtyard('${courtData.id}')">✏️ Edit</button>
+                <button class="btn danger" style="padding: 4px 8px; font-size: 10.5px;" onclick="deleteCourtyard('${courtData.id}')">🗑️ Delete</button>
+              </div>
+            </div>
+          `);
+
+          court.on('click', () => {
+            selectBuilding(b.id);
+            setSidebarTab('builder');
+          });
+
+          court.on('pm:edit', () => {
+            const rawPts = court.getLatLngs();
+            courtData.latlngs = (Array.isArray(rawPts[0]) ? rawPts[0] : rawPts).map(ll => [ll.lat, ll.lng]);
+            saveBuildingsToStorage();
+            updateJsonOutput();
+            updateGeometryCodeOutput();
+          });
+
+          buildingCourtyardsLayers[courtData.id] = court;
+        });
+      });
+    }
+
+    function startDrawCourtyardForSelectedBuilding() {
+      const b = buildings.find(x => x.id === selectedBuildingId);
+      if (!b) {
+        showToast('⚠️ Please select a building first!');
+        return;
+      }
+
+      isDrawingCourtyard = true;
+      isDrawingWing = false;
+      window.activeLineType = null;
+      map.pm.enableDraw('Polygon', {
+        snappable: true,
+        snapDistance: 15,
+        pathOptions: {
+          color: '#10b981',
+          fillColor: '#10b981',
+          fillOpacity: 0.55,
+          dashArray: '4, 4'
+        }
+      });
+      showToast(`🌿 Tracing courtyard for "${b.shortName}". Click corners on map, double-click to close!`);
+    }
+
+    function startCutCourtyardHole() {
+      isDrawingCourtyard = false;
+      isDrawingWing = false;
+      window.activeLineType = null;
+      map.pm.enableDraw('Cut', {
+        snappable: true,
+        snapDistance: 15
+      });
+      showToast('✂️ Click vertices to cut an open courtyard/atrium hole inside an existing building wing!');
+    }
+
+    function renderBuildingCourtyardsList() {
+      const container = document.getElementById('building-courtyards-list');
+      const pill = document.getElementById('courtyard-count-pill');
+      const b = buildings.find(x => x.id === selectedBuildingId);
+      if (!container || !b) return;
+
+      const courts = b.courtyards || [];
+      if (pill) pill.textContent = `${courts.length} Courtyard${courts.length === 1 ? '' : 's'}`;
+
+      if (courts.length === 0) {
+        container.innerHTML = '<div style="font-size:10px;color:var(--muted);font-style:italic;padding:4px 0;">No courtyards yet. Click "+ Draw Courtyard" to add one!</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      courts.forEach((c) => {
+        const div = document.createElement('div');
+        div.className = 'sub-item-card';
+        div.innerHTML = `
+          <div style="flex:1;">
+            <input type="text" value="${c.name}" style="background:transparent;border:none;color:#a7f3d0;font-weight:700;font-size:11px;padding:0;" onchange="renameCourtyard('${c.id}', this.value)" />
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(c.latlngs || []).length} vertices · Inner Quad</div>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <button class="btn sky" style="padding:2px 7px;font-size:10px;" onclick="focusAndEditCourtyard('${c.id}')">✏️ Edit</button>
+            <button class="btn danger" style="padding:2px 7px;font-size:10px;" onclick="deleteCourtyard('${c.id}')">🗑️ Delete</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renameCourtyard(courtId, newName) {
+      const b = buildings.find(x => x.id === selectedBuildingId);
+      if (!b) return;
+      const c = (b.courtyards || []).find(item => item.id === courtId);
+      if (c) {
+        c.name = newName;
+        saveBuildingsToStorage();
+        updateJsonOutput();
+        renderBuildingCourtyards();
+      }
+    }
+
+    function focusAndEditCourtyard(courtId) {
+      const l = buildingCourtyardsLayers[courtId];
+      if (l) {
+        map.fitBounds(l.getBounds(), { padding: [50, 50], maxZoom: 20 });
+        l.pm.enable();
+        showToast('✏️ Drag handles to reshape courtyard boundary');
+      }
+    }
+
+    function deleteCourtyard(courtId, askConfirm = true) {
+      let targetB = null;
+      let targetCourt = null;
+      for (const b of buildings) {
+        if (b.courtyards) {
+          const c = b.courtyards.find(x => x.id === courtId);
+          if (c) {
+            targetB = b;
+            targetCourt = c;
+            break;
+          }
+        }
+      }
+      if (!targetB || !targetCourt) return;
+      if (!askConfirm || confirm(`Delete courtyard "${targetCourt.name}" from "${targetB.shortName}"?`)) {
+        targetB.courtyards = targetB.courtyards.filter(c => c.id !== courtId);
+        if (buildingCourtyardsLayers[courtId]) {
+          map.removeLayer(buildingCourtyardsLayers[courtId]);
+          delete buildingCourtyardsLayers[courtId];
+        }
+        saveBuildingsToStorage();
+        renderBuildingCourtyardsList();
+        renderBuildingCourtyards();
+        updateJsonOutput();
+        updateGeometryCodeOutput();
+        showToast(`🗑️ Deleted courtyard "${targetCourt.name}"`);
+      }
+    }
+
+    function restoreExactUserData() {
+      if (confirm('Restore your saved 8 buildings, hand-traced wings, entrances, and 3 road networks from the ground-truth file?')) {
+        buildings = JSON.parse(JSON.stringify(INITIAL_BUILDINGS));
+        selectedBuildingId = buildings[0]?.id || null;
+        saveBuildingsToStorage();
+
+        localStorage.setItem('iiitnr_advanced_gis_roads_v2', JSON.stringify(INITIAL_ROADS));
+        loadSavedRoads();
+
+        renderBuildingMarkers();
+        renderBuildingPolygons();
+        renderBuildingCourtyards();
+        renderBuildingEntrances();
+        renderPinChips();
+        loadSelectedBuildingIntoForm();
+        updateJsonOutput();
+        updateGeometryCodeOutput();
+        showToast('✓ Successfully restored your saved 8 buildings & road networks!');
+      }
+    }
+
     // --- Building Entrances System (Nested within Building) ---
     function renderBuildingEntrances() {
       Object.values(entranceMarkersMap).forEach(m => map.removeLayer(m));
@@ -2382,6 +2600,35 @@
     function onGeomanVectorCreated(e) {
       const layer = e.layer;
 
+      if (isDrawingCourtyard) {
+        const b = buildings.find(x => x.id === selectedBuildingId);
+        if (b) {
+          if (!b.courtyards) b.courtyards = [];
+          const count = b.courtyards.length + 1;
+          const rawPts = layer.getLatLngs();
+          const latlngs = (Array.isArray(rawPts[0]) ? rawPts[0] : rawPts).map(ll => [ll.lat, ll.lng]);
+
+          const newCourt = {
+            id: `court_${Date.now()}`,
+            name: `${b.shortName} Courtyard #${count}`,
+            type: 'courtyard',
+            color: '#10b981',
+            fillOpacity: 0.55,
+            latlngs: latlngs
+          };
+          b.courtyards.push(newCourt);
+          map.removeLayer(layer);
+          renderBuildingCourtyards();
+          renderBuildingCourtyardsList();
+          saveBuildingsToStorage();
+          updateJsonOutput();
+          updateGeometryCodeOutput();
+          showToast(`🌿 Added "${newCourt.name}" to ${b.shortName}!`);
+        }
+        isDrawingCourtyard = false;
+        return;
+      }
+
       if (isDrawingWing) {
         // User just finished drawing a wing polygon for the selected building!
         const b = buildings.find(x => x.id === selectedBuildingId);
@@ -2605,16 +2852,22 @@
       let roadDataList = [];
       if (saved) {
         try {
-          roadDataList = JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          roadDataList = (Array.isArray(parsed) && parsed.length > 0) ? parsed : (typeof INITIAL_ROADS !== 'undefined' ? INITIAL_ROADS : []);
         } catch (e) {
           roadDataList = typeof INITIAL_ROADS !== 'undefined' ? INITIAL_ROADS : [];
         }
       } else {
         roadDataList = typeof INITIAL_ROADS !== 'undefined' ? INITIAL_ROADS : [];
       }
+
+      roadLayers.forEach(l => {
+        if (map && map.hasLayer(l)) map.removeLayer(l);
+      });
+      roadLayers = [];
       try {
-        const data = roadDataList;
-        data.forEach(item => {
+        roadDataList.forEach(item => {
+          if (!item.latlngs || item.latlngs.length < 2) return;
           const poly = L.polyline(item.latlngs).addTo(map);
           poly.roadData = item;
           styleRoadLayer(poly);
