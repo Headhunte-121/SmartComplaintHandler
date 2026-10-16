@@ -57,8 +57,8 @@ export default function Navbar() {
   const navTabClasses = ({ isActive }) =>
     `relative h-16 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-colors ${
       isActive
-        ? 'text-white font-semibold after:content-[""] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:bg-emerald-400 after:rounded-full after:shadow-[0_-2px_10px_rgba(16,185,129,0.6)]'
-        : 'text-slate-400 hover:text-slate-100 font-medium'
+        ? 'text-[#FAF7F2] font-semibold after:content-[""] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:bg-[#A7AD89] after:rounded-full after:shadow-[0_-2px_10px_rgba(167,173,137,0.6)]'
+        : 'text-[#DAD0C6]/70 hover:text-[#FAF7F2] font-medium'
     }`;
 
   const shortHostel = currentUser?.hostel_name
@@ -69,13 +69,13 @@ export default function Navbar() {
     : '204';
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[#06090f]/80 backdrop-blur-xl border-b border-white/[0.08]">
+    <header className="sticky top-0 z-40 h-16 bg-[#0A110D]/85 backdrop-blur-xl border-b border-[rgba(167,173,137,0.15)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex items-center justify-between h-full gap-4">
           {/* Left: Brand Identity + Breadcrumb Divider + Horizontal Underline Tabs */}
           <div className="flex items-center gap-6 h-full">
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] group-hover:border-emerald-500/40 flex items-center justify-center p-1 transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-[rgba(167,173,137,0.2)] group-hover:border-[#A7AD89]/50 flex items-center justify-center p-1 transition-colors">
                 <img
                   src="/iiitnr_logo.png"
                   alt="IIIT Naya Raipur"
@@ -83,24 +83,24 @@ export default function Navbar() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-white tracking-tight">
+                <span className="text-sm font-semibold text-[#FAF7F2] tracking-tight">
                   IIIT-NR
                 </span>
-                <span className="text-slate-700 font-light text-sm">/</span>
-                <span className="text-xs font-medium text-slate-300">
+                <span className="text-slate-600 font-light text-sm">/</span>
+                <span className="text-xs font-medium text-[#DAD0C6]">
                   Facilities
                 </span>
                 {backendHealthy !== null && (
                   <span
                     className={`hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border ${
                       backendHealthy
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                        ? 'bg-[#A7AD89]/15 text-[#C4CDB3] border-[#A7AD89]/30'
+                        : 'bg-rose-500/10 text-rose-300 border-rose-500/20'
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        backendHealthy ? 'bg-emerald-400' : 'bg-rose-400'
+                        backendHealthy ? 'bg-[#A7AD89]' : 'bg-rose-400'
                       }`}
                     />
                     {backendHealthy ? 'Live' : 'Offline'}
@@ -184,7 +184,7 @@ export default function Navbar() {
                     <span>Directorate</span>
                   </NavLink>
                   <NavLink to="/superadmin/editor" className={navTabClasses}>
-                    <span className="text-emerald-400 font-semibold">Data Studio</span>
+                    <span className="text-[#A7AD89] font-semibold">Data Studio</span>
                   </NavLink>
                   <NavLink to="/admin" className={navTabClasses}>
                     <span>Operations</span>
@@ -225,10 +225,10 @@ export default function Navbar() {
             {currentUser?.hostel_name && (
               <Link
                 to="/submit"
-                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/20 text-xs font-medium text-emerald-300 transition-colors"
+                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#8C906D]/15 hover:bg-[#8C906D]/25 border border-[#8C906D]/30 text-xs font-medium text-[#C4CDB3] transition-colors"
                 title="Your default hostel residence"
               >
-                <svg className="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-[#A7AD89] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 <span className="font-mono text-[11px]">
@@ -239,7 +239,7 @@ export default function Navbar() {
 
             <Link
               to="/submit"
-              className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs shadow-[0_1px_12px_rgba(16,185,129,0.25)] transition-all inline-flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-lg bg-[#A7AD89] hover:bg-[#B5BCA0] text-[#0A110D] font-bold text-xs shadow-[0_1px_12px_rgba(167,173,137,0.3)] transition-all inline-flex items-center gap-1.5 cursor-pointer"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -252,7 +252,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setProfileMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-colors cursor-pointer"
+                  className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-[rgba(167,173,137,0.2)] transition-colors cursor-pointer"
                 >
                   {currentUser.avatar_url ? (
                     <img
@@ -261,11 +261,11 @@ export default function Navbar() {
                       className="w-6 h-6 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#687156] to-[#A7AD89] text-[#0A110D] font-bold text-xs flex items-center justify-center">
                       {(currentUser.name || 'S')[0].toUpperCase()}
                     </div>
                   )}
-                  <span className="text-xs font-medium text-slate-200 max-w-[96px] truncate">
+                  <span className="text-xs font-medium text-[#DAD0C6] max-w-[96px] truncate">
                     {currentUser.name.split(' ')[0]}
                   </span>
                   <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -274,15 +274,15 @@ export default function Navbar() {
                 </button>
 
                 {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-[#0c111b] border border-white/[0.1] shadow-2xl py-1.5 z-50 text-xs">
-                    <div className="px-3.5 py-2.5 border-b border-white/[0.06]">
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-[#0F1A14] border border-[rgba(167,173,137,0.2)] shadow-2xl py-1.5 z-50 text-xs">
+                    <div className="px-3.5 py-2.5 border-b border-[rgba(167,173,137,0.12)]">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-white truncate">{currentUser.name}</span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#A7AD89]/15 text-[#C4CDB3] border border-[#A7AD89]/30">
                           {currentUser.roleLabel || currentUser.role}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">
+                      <div className="text-[11px] text-[#DAD0C6]/70 font-mono mt-0.5 truncate">
                         {currentUser.email}
                       </div>
                     </div>
@@ -296,7 +296,7 @@ export default function Navbar() {
                         }}
                         className="w-full px-3.5 py-2 text-left text-slate-300 hover:text-white hover:bg-white/[0.05] flex items-center gap-2 cursor-pointer"
                       >
-                        <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 text-[#A7AD89]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <span>Switch Role / Persona</span>
@@ -306,9 +306,9 @@ export default function Navbar() {
                         <Link
                           to="/superadmin/editor"
                           onClick={() => setProfileMenuOpen(false)}
-                          className="w-full px-3.5 py-2 text-left text-emerald-300 hover:text-white hover:bg-emerald-500/10 flex items-center gap-2"
+                          className="w-full px-3.5 py-2 text-left text-[#C4CDB3] hover:text-[#FAF7F2] hover:bg-[#A7AD89]/10 flex items-center gap-2"
                         >
-                          <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <svg className="w-3.5 h-3.5 text-[#A7AD89]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                           <span>Campus Data Studio</span>
@@ -380,7 +380,7 @@ export default function Navbar() {
             <NavLink
               to="/submit"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 text-xs font-medium text-emerald-400 rounded-lg hover:bg-white/[0.05]"
+              className="block px-3 py-2 text-xs font-medium text-[#A7AD89] rounded-lg hover:bg-white/[0.05]"
             >
               Submit Request
             </NavLink>

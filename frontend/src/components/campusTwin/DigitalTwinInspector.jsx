@@ -35,7 +35,7 @@ export default function DigitalTwinInspector({
             </span>
             <span className="font-black text-white text-sm">{hoveredBuildingObj?.name}</span>
             <span className="text-slate-500">·</span>
-            <span className="text-[11px] text-emerald-400 font-medium">{hoveredBuildingObj?.type}</span>
+            <span className="text-[11px] text-[#A7AD89] font-medium">{hoveredBuildingObj?.type}</span>
             <span className="hidden md:inline-block text-[10px] font-mono text-slate-400">
               [{hoveredBuildingObj?.gps}]
             </span>
@@ -58,19 +58,19 @@ export default function DigitalTwinInspector({
               <span className="w-2.5 h-2.5 rounded-xs bg-amber-500 inline-block" /> Canteen/Mess
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600 inline-block" /> FG/Sports/Amphi
+              <span className="w-2.5 h-2.5 rounded-xs bg-[#8C906D] inline-block" /> FG/Sports/Amphi
             </span>
           </div>
 
           {selectedRoom && (
-            <div className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-mono text-xs font-bold shrink-0">
+            <div className="px-3 py-1.5 rounded-xl bg-[#8C906D]/20 border border-[#8C906D]/40 text-[#DAD0C6] font-mono text-xs font-bold shrink-0">
               📍 {selectedRoom}
             </div>
           )}
         </div>
       </div>
 
-      {/* Floor, Wing, Room & Lab Explorer Drawer */}
+      {/* Floor, Room & Lab Explorer Drawer */}
       {activeBuildingObj && (
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-white space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
@@ -123,7 +123,7 @@ export default function DigitalTwinInspector({
                 {inspectorFloor === 'G' ? 'Ground Floor (1xx / G)' : `Floor ${inspectorFloor}`} (
                 {inspectorRooms.length} available)
               </span>
-              <span className="text-emerald-400">Click to Select</span>
+              <span className="text-[#A7AD89]">Click to Select</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-52 overflow-y-auto pr-1">
@@ -139,7 +139,7 @@ export default function DigitalTwinInspector({
                     }}
                     className={`p-2.5 rounded-xl border text-left text-xs font-medium transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
                       isThisRoomSelected
-                        ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-xs'
+                        ? 'bg-[#8C906D]/20 border-[#A7AD89] text-[#DAD0C6] shadow-xs'
                         : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-sky-500/50 hover:bg-slate-900 hover:text-white'
                     }`}
                   >
@@ -147,7 +147,7 @@ export default function DigitalTwinInspector({
                       {roomName}
                     </span>
                     {isThisRoomSelected && (
-                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                      <span className="text-[#A7AD89] font-bold shrink-0">✓</span>
                     )}
                   </button>
                 );

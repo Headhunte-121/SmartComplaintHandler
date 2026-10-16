@@ -59,7 +59,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
       <div className="bento-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#A7AD89] animate-pulse" />
             <span className="text-xs font-semibold text-white">
               Auto-Triage Inspector
             </span>
@@ -110,11 +110,11 @@ export default function LiveTriageCard({ title = '', description = '' }) {
   const priorityKey = (triageData.priority || 'MEDIUM').toUpperCase();
 
   return (
-    <div className="bento-card p-5 space-y-4 border-emerald-500/35">
+    <div className="bento-card p-5 space-y-4 border-[#8C906D]/35">
       <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span className="text-xs font-semibold text-emerald-400">
+          <span className="w-2 h-2 rounded-full bg-[#A7AD89] animate-ping" />
+          <span className="text-xs font-semibold text-[#A7AD89]">
             Live Triage Classification
           </span>
         </div>
@@ -127,9 +127,9 @@ export default function LiveTriageCard({ title = '', description = '' }) {
         </div>
       )}
 
-      <div className="p-3.5 rounded-xl bg-[#070b12] border border-emerald-500/25 flex items-center justify-between gap-3">
+      <div className="p-3.5 rounded-xl bg-[#0A110D] border border-[#8C906D]/30 flex items-center justify-between gap-3">
         <div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#B69B86] block">
             Detected Department
           </span>
           <span className="text-sm font-semibold text-white mt-0.5 block">
@@ -137,8 +137,8 @@ export default function LiveTriageCard({ title = '', description = '' }) {
           </span>
         </div>
         <div className="text-right">
-          <span className="text-[10px] font-mono uppercase text-slate-400 block">Target SLA</span>
-          <span className="text-xs font-mono font-semibold text-emerald-400 mt-0.5 block">
+          <span className="text-[10px] font-mono uppercase text-[#B69B86] block">Target SLA</span>
+          <span className="text-xs font-mono font-semibold text-[#A7AD89] mt-0.5 block">
             {SLA_BY_PRIORITY[priorityKey] || '24 Hours'}
           </span>
         </div>
@@ -146,12 +146,12 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
       <div>
         <div className="flex items-center justify-between text-xs mb-1.5">
-          <span className="text-slate-400">Match Confidence</span>
-          <span className="font-mono font-semibold text-emerald-300">{confidencePct}%</span>
+          <span className="text-[#DAD0C6]/80">Match Confidence</span>
+          <span className="font-mono font-semibold text-[#A7AD89]">{confidencePct}%</span>
         </div>
-        <div className="w-full bg-[#070b12] rounded-full h-1.5 overflow-hidden border border-white/[0.06]">
+        <div className="w-full bg-[#0A110D] rounded-full h-1.5 overflow-hidden border border-white/[0.06]">
           <div
-            className="h-full rounded-full transition-all duration-300 bg-emerald-500"
+            className="h-full rounded-full transition-all duration-300 bg-[#A7AD89]"
             style={{ width: `${Math.max(12, confidencePct)}%` }}
           />
         </div>
@@ -159,14 +159,14 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
       {triageData.matched_keywords && triageData.matched_keywords.length > 0 && (
         <div className="space-y-1.5 pt-1">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#B69B86] block">
             Matched Signals
           </span>
           <div className="flex flex-wrap gap-1.5">
             {triageData.matched_keywords.map((kw, idx) => (
               <span
                 key={idx}
-                className="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                className="px-2 py-0.5 rounded text-[11px] font-mono bg-[#8C906D]/15 text-[#DAD0C6] border border-[#8C906D]/30"
               >
                 #{kw}
               </span>

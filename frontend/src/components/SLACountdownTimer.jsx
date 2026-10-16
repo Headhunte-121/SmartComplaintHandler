@@ -59,7 +59,7 @@ export default function SLACountdownTimer({
       <span
         role="timer"
         aria-live="polite"
-        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs"
+        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#8C906D]/20 text-[#3C4233] border border-[#8C906D]/40 shadow-xs"
       >
         {showIcon && (
           <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +164,7 @@ export default function SLACountdownTimer({
     <span
       role="timer"
       aria-live="polite"
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#8C906D]/20 text-[#3C4233] border border-[#8C906D]/40 shadow-xs"
     >
       {showIcon && (
         <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -157,12 +157,12 @@ export default function AdminDashboard() {
       </div>
 
       {toastMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between animate-fade-in shadow-2xs">
+        <div className="p-4 rounded-2xl bg-[#8C906D]/15 border border-[#8C906D]/30 text-[#3C4233] text-xs font-bold flex items-center justify-between animate-fade-in shadow-2xs">
           <div className="flex items-center space-x-2.5">
-            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black">✓</span>
+            <span className="w-5 h-5 rounded-full bg-[#687156] text-white flex items-center justify-center font-black">✓</span>
             <span>{toastMsg}</span>
           </div>
-          <button onClick={() => setToastMsg(null)} className="text-emerald-700 font-bold">✕</button>
+          <button onClick={() => setToastMsg(null)} className="text-[#3C4233] font-bold">✕</button>
         </div>
       )}
 
@@ -192,11 +192,11 @@ export default function AdminDashboard() {
           <span className="text-[11px] text-slate-500 block">2-hour SLA priority gate</span>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-emerald-600 space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 block">
+        <div className="bento-card p-5 border-l-4 border-l-[#687156] space-y-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#687156] block">
             Verified Closed
           </span>
-          <span className="text-3xl font-black text-emerald-600 block">{resolvedCount}</span>
+          <span className="text-3xl font-black text-[#687156] block">{resolvedCount}</span>
           <span className="text-[11px] text-slate-500 block">Completed with repair proof</span>
         </div>
       </div>
@@ -352,7 +352,7 @@ export default function AdminDashboard() {
                       <span
                         className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
                           t.status === 'RESOLVED'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            ? 'bg-[#8C906D]/20 text-[#3C4233] border-[#8C906D]/40'
                             : t.status === 'IN_PROGRESS'
                             ? 'bg-blue-50 text-blue-700 border-blue-200'
                             : t.status === 'ASSIGNED'
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
                               setResolveTicketTarget(t);
                               setResolveModalOpen(true);
                             }}
-                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] rounded-lg border border-emerald-200 transition-colors cursor-pointer"
+                            className="px-2.5 py-1 bg-[#8C906D]/15 hover:bg-[#8C906D]/25 text-[#3C4233] font-bold text-[11px] rounded-lg border border-[#8C906D]/30 transition-colors cursor-pointer"
                           >
                             Resolve
                           </button>

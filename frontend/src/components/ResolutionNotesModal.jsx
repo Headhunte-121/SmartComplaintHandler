@@ -139,7 +139,7 @@ export default function ResolutionNotesModal({
               <label htmlFor="resolution_notes" className="block text-xs font-semibold text-slate-700">
                 Detailed Resolution & Work Performed <span className="text-rose-500">*</span>
               </label>
-              <span className={`text-[11px] font-medium ${trimmedLength >= 10 ? 'text-emerald-600' : 'text-slate-400'}`}>
+              <span className={`text-[11px] font-medium ${trimmedLength >= 10 ? 'text-[#687156] font-bold' : 'text-slate-400'}`}>
                 {trimmedLength} / 1000 characters (min 10)
               </span>
             </div>
@@ -157,7 +157,7 @@ export default function ResolutionNotesModal({
               className={`mt-1.5 w-full rounded-xl border p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 disabled:bg-slate-50 ${
                 showValidationError
                   ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
-                  : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-100'
+                  : 'border-slate-200 focus:border-[#8C906D] focus:ring-[#8C906D]/20'
               }`}
             />
             {showValidationError && (
@@ -179,7 +179,7 @@ export default function ResolutionNotesModal({
               value={partsReplaced}
               onChange={(e) => setPartsReplaced(e.target.value)}
               placeholder="e.g., 2x PVC Elbow 1-inch, 1x 15A Circuit Breaker"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-50"
+              className="mt-1.5 w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-[#8C906D] focus:outline-none focus:ring-2 focus:ring-[#8C906D]/20 disabled:bg-slate-50"
             />
           </div>
 
@@ -195,7 +195,7 @@ export default function ResolutionNotesModal({
               value={technicianName}
               onChange={(e) => setTechnicianName(e.target.value)}
               placeholder="e.g., Dave Miller (Electrical Squad)"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-50"
+              className="mt-1.5 w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-[#8C906D] focus:outline-none focus:ring-2 focus:ring-[#8C906D]/20 disabled:bg-slate-50"
             />
           </div>
 
@@ -212,7 +212,7 @@ export default function ResolutionNotesModal({
             <button
               type="submit"
               disabled={!isNotesValid || isSubmitting}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-[#687156] hover:bg-[#8C906D] px-5 py-2.5 text-xs font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
             >
               {isSubmitting ? (
                 <>

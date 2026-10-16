@@ -1,6 +1,6 @@
 /**
  * SmartComplaintHandler - Institutional Registration Portal (IIIT Naya Raipur)
- * Rich visual design with auto-detected Roll/Branch card, IIIT-NR Hostel/Wing/Room selector,
+ * Rich visual design with auto-detected Roll/Branch card, IIIT-NR Hostel/Room selector,
  * and 4-bar password strength meter — zero promotional filler advertising.
  */
 import React, { useState, useEffect, useMemo } from 'react';
@@ -9,7 +9,6 @@ import { useAuth } from '../context/AuthContext';
 import { fetchAuthConfig } from '../api/auth';
 import {
   HOSTEL_FLOORS,
-  HOSTEL_WINGS,
   getHostelBuildings,
   getRoomsForBuilding,
 } from '../data/iiitnrCampusData';
@@ -72,7 +71,7 @@ function evaluatePasswordStrength(pw) {
     1: { label: 'Fair', color: 'bg-amber-500' },
     2: { label: 'Good', color: 'bg-blue-500' },
     3: { label: 'Strong', color: 'bg-indigo-600' },
-    4: { label: 'Excellent', color: 'bg-emerald-500' },
+    4: { label: 'Excellent', color: 'bg-[#687156]' },
   };
   return { score, ...(map[score] || map[1]) };
 }
@@ -342,16 +341,16 @@ export default function Register() {
                 </div>
 
                 {livePreview && (
-                  <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between text-xs">
+                  <div className="p-3 rounded-xl bg-[#8C906D]/15 border border-[#8C906D]/30 flex items-center justify-between text-xs">
                     <div className="min-w-0 pr-2">
-                      <div className="font-bold text-emerald-950 truncate">
+                      <div className="font-bold text-[#2D3325] truncate">
                         {livePreview.fullName} ({livePreview.rollNo})
                       </div>
-                      <div className="text-[11px] text-emerald-700 truncate">
+                      <div className="text-[11px] text-[#687156] truncate">
                         {livePreview.department}
                       </div>
                     </div>
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-white text-emerald-700 border border-emerald-200 shrink-0">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-white text-[#687156] border border-[#8C906D]/40 shrink-0">
                       {livePreview.deptCode}
                     </span>
                   </div>

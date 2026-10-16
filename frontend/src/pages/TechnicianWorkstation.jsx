@@ -151,8 +151,8 @@ export default function TechnicianWorkstation() {
       </div>
 
       {actionSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-3 animate-fade-in shadow-2xs">
-          <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black">
+        <div className="p-4 rounded-2xl bg-[#8C906D]/15 border border-[#8C906D]/30 text-[#3C4233] text-xs font-bold flex items-center space-x-3 animate-fade-in shadow-2xs">
+          <span className="w-5 h-5 rounded-full bg-[#687156] text-white flex items-center justify-center font-black">
             ✓
           </span>
           <span>{actionSuccess}</span>
@@ -211,15 +211,15 @@ export default function TechnicianWorkstation() {
           </div>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-emerald-500 flex items-center justify-between">
+        <div className="bento-card p-5 border-l-4 border-l-[#687156] flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Completed Repairs
             </span>
-            <div className="text-3xl font-black text-emerald-600 mt-1">{completedWorkOrders.length}</div>
+            <div className="text-3xl font-black text-[#687156] mt-1">{completedWorkOrders.length}</div>
             <span className="text-[11px] text-slate-500 mt-0.5 block">Verified with closure notes</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/70 flex items-center justify-center text-emerald-600 text-xl font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-[#8C906D]/15 border border-[#8C906D]/30 flex items-center justify-center text-[#687156] text-xl font-bold">
             ✓
           </div>
         </div>
@@ -314,7 +314,7 @@ export default function TechnicianWorkstation() {
                             : ticket.status === 'ESCALATED'
                             ? 'bg-rose-50 text-rose-700 border-rose-200 font-extrabold'
                             : ticket.status === 'RESOLVED'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            ? 'bg-[#8C906D]/20 text-[#3C4233] border-[#8C906D]/40'
                             : 'bg-blue-50 text-blue-700 border-blue-200'
                         }`}
                       >
@@ -370,8 +370,8 @@ export default function TechnicianWorkstation() {
                       </div>
                     ) : (
                       <div className="space-y-1 text-left sm:text-right">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 flex items-center sm:justify-end space-x-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-[#687156] flex items-center sm:justify-end space-x-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#687156]" />
                           <span>Completed</span>
                         </span>
                         {ticket.feedback_rating && (
@@ -397,7 +397,7 @@ export default function TechnicianWorkstation() {
                         <button
                           type="button"
                           onClick={() => setResolvingTicket(ticket)}
-                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                          className="px-4 py-2 bg-[#687156] hover:bg-[#8C906D] text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                         >
                           ✓ Complete &amp; Resolve
                         </button>

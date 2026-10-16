@@ -58,7 +58,7 @@ export default function DigitalTwinSearchBar({
           </div>
 
           <div className="hidden lg:flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-[#A7AD89] animate-ping" />
             <span>Auto-Locate Ready</span>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function DigitalTwinSearchBar({
                       {item.title}
                     </span>
                     {item.floorLabel && (
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#8C906D]/20 text-[#DAD0C6] border border-[#8C906D]/30">
                         {item.floorLabel}
                       </span>
                     )}
@@ -131,7 +131,7 @@ export default function DigitalTwinSearchBar({
             </span>
             <span className="font-bold text-white">{autoDetectNotice.building}</span>
             <span className="text-sky-300">·</span>
-            <span className="px-2 py-0.5 rounded bg-slate-900/90 border border-sky-400/30 text-emerald-300 font-mono text-[11px]">
+            <span className="px-2 py-0.5 rounded bg-slate-900/90 border border-sky-400/30 text-[#A7AD89] font-mono text-[11px]">
               {autoDetectNotice.floor}
             </span>
 

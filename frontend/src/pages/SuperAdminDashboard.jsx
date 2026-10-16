@@ -160,7 +160,7 @@ export default function SuperAdminDashboard() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/superadmin/editor"
-              className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center space-x-2"
+              className="px-5 py-3 rounded-xl bg-[#A7AD89] hover:bg-[#8C906D] text-[#0A110D] font-black text-xs shadow-md shadow-[#A7AD89]/20 transition-all flex items-center space-x-2"
             >
               <span>✏️ Campus &amp; Ticket Data Studio</span>
             </Link>
@@ -194,12 +194,12 @@ export default function SuperAdminDashboard() {
 
       {/* Alerts */}
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between animate-fade-in">
+        <div className="p-4 rounded-2xl bg-[#8C906D]/15 border border-[#8C906D]/30 text-[#3C4233] text-xs font-semibold flex items-center justify-between animate-fade-in">
           <div className="flex items-center space-x-2">
             <span className="text-base">✓</span>
             <span>{successMsg}</span>
           </div>
-          <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 hover:text-emerald-900 font-bold">×</button>
+          <button onClick={() => setSuccessMsg(null)} className="text-[#687156] hover:text-[#3C4233] font-bold">×</button>
         </div>
       )}
 
@@ -218,7 +218,7 @@ export default function SuperAdminDashboard() {
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Campus Staff / Admins</div>
           <div className="text-3xl font-black text-slate-900">{admins.length}</div>
-          <div className="text-[11px] text-emerald-600 font-semibold">Active Institutional Accounts</div>
+          <div className="text-[11px] text-[#687156] font-semibold">Active Institutional Accounts</div>
         </div>
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Facilities Departments</div>
@@ -289,7 +289,7 @@ export default function SuperAdminDashboard() {
                               ? 'bg-amber-100 text-amber-800'
                               : admin.role === 'ADMIN'
                               ? 'bg-purple-100 text-purple-800'
-                              : 'bg-emerald-100 text-emerald-800'
+                              : 'bg-[#8C906D]/20 text-[#3C4233]'
                           }`}>
                             {admin.role === 'SUPER_ADMIN' ? '👑' : admin.role === 'ADMIN' ? '🛡️' : '🔧'}
                           </div>
@@ -308,7 +308,7 @@ export default function SuperAdminDashboard() {
                             ? 'bg-amber-50 text-amber-800 border-amber-300'
                             : admin.role === 'ADMIN'
                             ? 'bg-purple-50 text-purple-700 border-purple-200'
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-[#8C906D]/20 text-[#3C4233] border-[#8C906D]/40'
                         }`}>
                           {admin.role}
                         </span>
@@ -362,7 +362,7 @@ export default function SuperAdminDashboard() {
             <div key={t.team_id || t.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-800">{t.team_name || t.name}</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active" />
+                <span className="w-2 h-2 rounded-full bg-[#A7AD89]" title="Active" />
               </div>
               <div className="text-[11px] text-slate-500">
                 Department ID: #{t.department_id}

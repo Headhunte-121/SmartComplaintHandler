@@ -76,8 +76,8 @@ export default function TeamWorkloadView({ onSelectSquad }) {
             const ratio = Math.min(squad.active_ticket_count / MAX_CAPACITY, 1);
             const percent = Math.round(ratio * 100);
 
-            let barColor = 'bg-emerald-500';
-            let badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            let barColor = 'bg-[#A7AD89]';
+            let badgeColor = 'bg-[#8C906D]/20 text-[#3C4233] border-[#8C906D]/40';
             let statusText = 'Optimal Capacity';
 
             if (percent > 90) {

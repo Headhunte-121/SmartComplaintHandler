@@ -79,7 +79,7 @@ export const CAMPUS_PERSONAS = [
     department: 'Electrical Services',
     department_name: 'Electrical Services',
     avatar: '🔧',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    badgeClass: 'bg-[#8C906D]/20 text-[#3C4233] border-[#8C906D]/40',
     targetRoute: '/technician',
     description: 'Field squad technician servicing assigned repair tickets and updating resolution notes.',
   },
@@ -106,7 +106,7 @@ function enrichUser(userData) {
   } else if (role === 'TECHNICIAN') {
     avatar = '🔧';
     roleLabel = 'Field Technician';
-    badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    badgeClass = 'bg-[#8C906D]/20 text-[#3C4233] border-[#8C906D]/40';
     targetRoute = '/technician';
   }
 

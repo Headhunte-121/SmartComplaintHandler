@@ -1,5 +1,5 @@
 /**
- * SmartComplaintHandler - Atomic Priority Badge Component (Dark Emerald Theme)
+ * SmartComplaintHandler - Atomic Priority Badge Component (Botanical Palette)
  */
 import React from 'react';
 
@@ -33,10 +33,10 @@ const PRIORITY_CONFIG = {
     ),
   },
   LOW: {
-    classes: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35 font-medium',
+    classes: 'bg-[#8C906D]/20 text-[#DAD0C6] border-[#8C906D]/40 font-medium',
     sla: '72 Hours',
     icon: (
-      <svg className="w-3.5 h-3.5 mr-1 text-emerald-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="w-3.5 h-3.5 mr-1 text-[#A7AD89] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
       </svg>
     ),

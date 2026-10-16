@@ -281,13 +281,13 @@ export default function CampusMapSelector({
         <div className="flex items-center space-x-2.5">
           <span
             className={`w-2.5 h-2.5 rounded-full ${
-              isEditMode ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'
+              isEditMode ? 'bg-amber-400 animate-ping' : 'bg-[#A7AD89] animate-pulse'
             }`}
           />
           <span className="text-xs sm:text-sm font-black tracking-tight text-white">
             IIIT Naya Raipur Interactive Digital Twin
           </span>
-          <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+          <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-[#A7AD89]/20 text-[#DAD0C6] border border-[#A7AD89]/30">
             1:1 Polygon Traced · 18 Zones · Official Labs (1xx–3xx)
           </span>
         </div>
@@ -347,7 +347,7 @@ export default function CampusMapSelector({
             onClick={() => setShowPathsAndCourts((prev) => !prev)}
             className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold cursor-pointer transition-all ${
               showPathsAndCourts
-                ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300'
+                ? 'bg-[#8C906D]/20 border-[#8C906D]/40 text-[#DAD0C6]'
                 : 'bg-slate-900 border-slate-800 text-slate-400'
             }`}
           >
@@ -440,7 +440,7 @@ export default function CampusMapSelector({
               const target = buildings.find((b) => b.name === studentSavedHostel);
               if (target?.trace) panToTarget(target.trace.cx, target.trace.cy, 1.4, studentSavedRoom);
             }}
-            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shrink-0 cursor-pointer shadow-xs"
+            className="px-2.5 py-1 rounded-lg bg-[#8C906D] hover:bg-[#A7AD89] text-[#0A110D] text-[11px] font-bold shrink-0 cursor-pointer shadow-xs transition-colors"
           >
             🏠 My Room ({studentSavedHostel.split(' ')[0]} · {studentSavedRoom || 'Saved'})
           </button>
@@ -568,7 +568,7 @@ export default function CampusMapSelector({
               rows={12}
               value={jsonText}
               onChange={(e) => setJsonText(e.target.value)}
-              className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300"
+              className="w-full p-3 rounded-xl bg-[#0A110D] border border-[#8C906D]/30 font-mono text-xs text-[#A7AD89]"
             />
             <div className="flex justify-end space-x-2">
               <button

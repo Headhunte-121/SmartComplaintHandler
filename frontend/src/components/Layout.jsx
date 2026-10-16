@@ -16,7 +16,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#06090f] text-slate-100 font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className="min-h-screen flex flex-col bg-[#0A110D] text-[#DAD0C6] font-sans antialiased selection:bg-[#A7AD89]/30 selection:text-[#FAF7F2]">
       <Navbar />
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />

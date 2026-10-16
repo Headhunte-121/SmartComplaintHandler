@@ -110,7 +110,7 @@ export default function ReassignTeamModal({ isOpen, ticket, onClose, onReassigne
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                 Reason for Reassignment <span className="text-rose-500">*</span>
               </label>
-              <span className={`text-[10px] font-mono ${reason.trim().length >= 5 ? 'text-emerald-600' : 'text-slate-400'}`}>
+              <span className={`text-[10px] font-mono ${reason.trim().length >= 5 ? 'text-[#687156] font-bold' : 'text-slate-400'}`}>
                 {reason.trim().length}/5 chars min
               </span>
             </div>

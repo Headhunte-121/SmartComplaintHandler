@@ -1,5 +1,5 @@
 /**
- * SmartComplaintHandler - IIIT Naya Raipur Campus Map & Hostel Hub (Obsidian-Slate & Emerald Theme)
+ * SmartComplaintHandler - IIIT Naya Raipur Campus Map & Hostel Hub (Botanical Earth Tone Theme)
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -39,27 +39,27 @@ export default function Home() {
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-10">
       {/* Compact Dark Action Header */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#09121e] via-[#0c1d24] to-[#09121e] text-white p-6 sm:p-8 shadow-xl bg-dark-architectural-grid border border-emerald-500/25 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="rounded-3xl bg-gradient-to-r from-[#0F1A14] via-[#14221B] to-[#0F1A14] text-[#FAF7F2] p-6 sm:p-8 shadow-xl border border-[rgba(167,173,137,0.25)] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#A7AD89]/15 border border-[#A7AD89]/30 text-[#FAF7F2] text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-[#A7AD89] animate-pulse" />
             <span>IIIT Naya Raipur · Sector 24, Atal Nagar</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#FAF7F2]">
             Campus Digital Twin &amp; Maintenance Desk
           </h1>
 
           <div className="flex flex-wrap items-center gap-2.5 pt-1">
             <Link
               to={`/submit?building=${encodeURIComponent(selectedMapBuilding)}`}
-              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 transition-all"
+              className="btn-botanical-primary"
             >
               + Submit Issue ({selectedMapBuilding.split(' (')[0]})
             </Link>
             {isStudent && (
               <Link
                 to="/student"
-                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
+                className="btn-botanical-secondary"
               >
                 My Issues →
               </Link>
@@ -67,7 +67,7 @@ export default function Home() {
             {canAccessOperations && (
               <Link
                 to="/admin"
-                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
+                className="btn-botanical-secondary"
               >
                 Operations Desk →
               </Link>
@@ -75,7 +75,7 @@ export default function Home() {
             {isSuperAdmin && (
               <Link
                 to="/superadmin"
-                className="px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-300 font-bold text-xs"
+                className="px-4 py-2 rounded-xl bg-[#8F755E]/20 hover:bg-[#8F755E]/30 border border-[#8F755E]/40 text-[#DAD0C6] font-bold text-xs"
               >
                 Directorate Console →
               </Link>
@@ -83,7 +83,7 @@ export default function Home() {
             {isTechnician && (
               <Link
                 to="/technician"
-                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs"
+                className="btn-botanical-secondary"
               >
                 Work Orders →
               </Link>
@@ -93,18 +93,18 @@ export default function Home() {
 
         <form
           onSubmit={handleTrackSubmit}
-          className="flex items-center gap-2 bg-[#070b14]/90 backdrop-blur-md p-2.5 rounded-2xl border border-slate-800 w-full lg:w-auto"
+          className="flex items-center gap-2 bg-[#0A120E] p-2.5 rounded-2xl border border-[rgba(218,208,198,0.12)] w-full lg:w-auto"
         >
           <input
             type="text"
             value={trackingCode}
             onChange={(e) => setTrackingCode(e.target.value)}
             placeholder="Track Code (e.g. SCH-...)"
-            className="w-full sm:w-52 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full sm:w-52 px-3.5 py-2.5 rounded-xl bg-[#0F1A14] border border-[rgba(218,208,198,0.14)] text-[#FAF7F2] placeholder-[#8C906D]/70 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#A7AD89]"
           />
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shrink-0 cursor-pointer"
+            className="btn-botanical-primary"
           >
             Track →
           </button>
@@ -122,11 +122,11 @@ export default function Home() {
       {/* Hostels & Estate Contacts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 bento-card p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-base font-black text-white">
-              🏠 IIIT-NR Hostels (Floors G–3 · Wings A &amp; B)
+          <div className="flex items-center justify-between border-b border-[rgba(167,173,137,0.15)] pb-3">
+            <h3 className="text-base font-black text-[#FAF7F2]">
+              🏠 IIIT-NR Hostels (Floors G–3)
             </h3>
-            <span className="text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
+            <span className="text-[11px] font-mono font-bold text-[#FAF7F2] bg-[#A7AD89]/15 border border-[#A7AD89]/30 px-2.5 py-1 rounded-lg">
               Click to Report
             </span>
           </div>
@@ -136,17 +136,17 @@ export default function Home() {
               <div
                 key={h.id}
                 onClick={() => navigate(`/submit?building=${encodeURIComponent(h.name)}`)}
-                className="p-4 rounded-2xl border border-slate-800 hover:border-emerald-500/40 bg-[#090f1a] hover:bg-emerald-500/10 transition-all cursor-pointer space-y-1"
+                className="p-4 rounded-2xl border border-[rgba(167,173,137,0.15)] hover:border-[#A7AD89]/50 bg-[#0A120E] hover:bg-[#A7AD89]/10 transition-all cursor-pointer space-y-1"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-white text-xs sm:text-sm">
+                  <span className="font-bold text-[#FAF7F2] text-xs sm:text-sm">
                     {h.name}
                   </span>
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 border border-emerald-500/30 text-emerald-300">
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0F1A14] border border-[#8C906D]/30 text-[#DAD0C6]">
                     {h.mapPin?.badge || 'HOSTEL'}
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-[#DAD0C6]/70">
                   {h.type} · <span className="font-mono text-[10px]">{h.gps}</span>
                 </div>
               </div>
@@ -155,8 +155,8 @@ export default function Home() {
         </div>
 
         <div className="lg:col-span-5 bento-card p-6 space-y-4">
-          <div className="border-b border-slate-800 pb-3">
-            <h3 className="text-base font-black text-white">
+          <div className="border-b border-[rgba(167,173,137,0.15)] pb-3">
+            <h3 className="text-base font-black text-[#FAF7F2]">
               📞 Campus Estate &amp; Engineering Contacts
             </h3>
           </div>
@@ -165,18 +165,18 @@ export default function Home() {
             {IIITNR_CAMPUS_METADATA.contacts.map((c) => (
               <div
                 key={c.email}
-                className="p-3.5 rounded-2xl bg-[#090f1a] border border-slate-800 flex items-start justify-between gap-3 text-xs"
+                className="p-3.5 rounded-2xl bg-[#0A120E] border border-[rgba(218,208,198,0.1)] flex items-start justify-between gap-3 text-xs"
               >
                 <div>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#A7AD89] block">
                     {c.role}
                   </span>
-                  <div className="font-bold text-white">{c.name}</div>
-                  <div className="text-[11px] text-slate-400">{c.office}</div>
+                  <div className="font-bold text-[#FAF7F2]">{c.name}</div>
+                  <div className="text-[11px] text-[#DAD0C6]/70">{c.office}</div>
                 </div>
                 <div className="text-right font-mono text-[11px] shrink-0">
-                  <div className="font-bold text-slate-200">{c.phone}</div>
-                  <div className="text-emerald-400">{c.email}</div>
+                  <div className="font-bold text-[#DAD0C6]">{c.phone}</div>
+                  <div className="text-[#A7AD89]">{c.email}</div>
                 </div>
               </div>
             ))}

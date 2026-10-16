@@ -9,28 +9,28 @@
  * and automatically resolves the exact Building, Floor, Wing, Room, and SVG (cx, cy) pin coordinates.
  */
 
-// Exact sub-wing pin coordinates inside the Academic Building & Campus so auto-detection
-// points to the exact wing or room location rather than just a generic building center!
+// Exact sub-location pin coordinates inside the Academic Building & Campus so auto-detection
+// points to the exact lab or room location rather than just a generic building center!
 export const SUB_LOCATION_PIN_OVERRIDES = {
-  '131c': { cx: 382, cy: 454, wingLabel: 'NW Ground Wing (IT & Data Centre)' },
-  '131e': { cx: 386, cy: 458, wingLabel: 'NW Ground Wing (NOC)' },
-  '132': { cx: 404, cy: 432, wingLabel: 'NE Wing 1 — Ground Floor (Networks & Data Science)' },
-  '110': { cx: 368, cy: 458, wingLabel: 'NW Courtyard Wing — Ground Floor (AICTE IDEA Lab)' },
-  '112': { cx: 372, cy: 462, wingLabel: 'NW Courtyard Wing — Ground Floor (3D Printing Lab)' },
-  '104': { cx: 386, cy: 508, wingLabel: 'SW Admin Wing — Ground Floor (Estate Office)' },
-  '206': { cx: 416, cy: 448, wingLabel: 'NE Wing 2 — 1st Floor (IoT & Sensor Lab)' },
-  '208': { cx: 406, cy: 434, wingLabel: 'NE Wing 1 — 1st Floor (Language Lab)' },
-  '210': { cx: 428, cy: 474, wingLabel: 'NE Wing 3 — 1st Floor (AI & Deep Learning Lab)' },
-  '212': { cx: 420, cy: 452, wingLabel: 'NE Wing 2 — 1st Floor (Biomedical & Speech Lab)' },
-  '216': { cx: 434, cy: 478, wingLabel: 'NE Wing 3 — 1st Floor (Big Data Computing Lab)' },
-  '301': { cx: 404, cy: 432, wingLabel: 'NE Wing 1 — 2nd Floor (Computer Programming Lab)' },
-  '302': { cx: 416, cy: 448, wingLabel: 'NE Wing 2 — 2nd Floor (Electronic Circuit Lab)' },
-  '303': { cx: 422, cy: 444, wingLabel: 'NE Wing 2 — 2nd Floor (VLSI & Embedded Lab)' },
-  '305': { cx: 428, cy: 474, wingLabel: 'NE Wing 3 — 2nd Floor (Communication Lab)' },
-  '308': { cx: 436, cy: 492, wingLabel: 'NE Wing 4 — 2nd Floor (Antenna & Microwave Lab)' },
-  '310': { cx: 442, cy: 488, wingLabel: 'NE Wing 4 — 2nd Floor (PCB Design Lab)' },
-  '314': { cx: 432, cy: 476, wingLabel: 'NE Wing 3 — 2nd Floor (Info Security & Blockchain Lab)' },
-  '317': { cx: 446, cy: 484, wingLabel: 'NE Wing 4 — 2nd Floor (Autonomous Systems & Robotics Lab)' },
+  '131c': { cx: 382, cy: 454, wingLabel: 'NW Sector Ground Floor (IT & Data Centre)' },
+  '131e': { cx: 386, cy: 458, wingLabel: 'NW Sector Ground Floor (NOC)' },
+  '132': { cx: 404, cy: 432, wingLabel: 'NE Sector 1 — Ground Floor (Networks & Data Science)' },
+  '110': { cx: 368, cy: 458, wingLabel: 'NW Courtyard — Ground Floor (AICTE IDEA Lab)' },
+  '112': { cx: 372, cy: 462, wingLabel: 'NW Courtyard — Ground Floor (3D Printing Lab)' },
+  '104': { cx: 386, cy: 508, wingLabel: 'SW Admin Area — Ground Floor (Estate Office)' },
+  '206': { cx: 416, cy: 448, wingLabel: 'NE Sector 2 — 1st Floor (IoT & Sensor Lab)' },
+  '208': { cx: 406, cy: 434, wingLabel: 'NE Sector 1 — 1st Floor (Language Lab)' },
+  '210': { cx: 428, cy: 474, wingLabel: 'NE Sector 3 — 1st Floor (AI & Deep Learning Lab)' },
+  '212': { cx: 420, cy: 452, wingLabel: 'NE Sector 2 — 1st Floor (Biomedical & Speech Lab)' },
+  '216': { cx: 434, cy: 478, wingLabel: 'NE Sector 3 — 1st Floor (Big Data Computing Lab)' },
+  '301': { cx: 404, cy: 432, wingLabel: 'NE Sector 1 — 2nd Floor (Computer Programming Lab)' },
+  '302': { cx: 416, cy: 448, wingLabel: 'NE Sector 2 — 2nd Floor (Electronic Circuit Lab)' },
+  '303': { cx: 422, cy: 444, wingLabel: 'NE Sector 2 — 2nd Floor (VLSI & Embedded Lab)' },
+  '305': { cx: 428, cy: 474, wingLabel: 'NE Sector 3 — 2nd Floor (Communication Lab)' },
+  '308': { cx: 436, cy: 492, wingLabel: 'NE Sector 4 — 2nd Floor (Antenna & Microwave Lab)' },
+  '310': { cx: 442, cy: 488, wingLabel: 'NE Sector 4 — 2nd Floor (PCB Design Lab)' },
+  '314': { cx: 432, cy: 476, wingLabel: 'NE Sector 3 — 2nd Floor (Info Security & Blockchain Lab)' },
+  '317': { cx: 446, cy: 484, wingLabel: 'NE Sector 4 — 2nd Floor (Autonomous Systems & Robotics Lab)' },
   rotunda: { cx: 387, cy: 483, wingLabel: 'Central White Rotunda Dome (387, 483)' },
   atm: { cx: 345, cy: 688, wingLabel: 'Union Bank of India ATM Kiosk (345, 688)' },
   'west gate': { cx: 42, cy: 612, wingLabel: 'West Gate No. 2 (42, 612)' },
@@ -60,7 +60,7 @@ export function buildCampusSearchIndex(buildings = []) {
       category: b.category,
       floorId: 'G',
       floorLabel: 'Ground Floor',
-      wingId: Array.isArray(b.wings) && b.wings.length > 0 ? b.wings[0] : 'Main Complex',
+      wingId: '',
       roomName: '',
       title: b.name,
       subtitle: `${b.type} · ${b.gps || 'Campus Twin'}`,
@@ -88,7 +88,7 @@ export function buildCampusSearchIndex(buildings = []) {
           category: b.category,
           floorId: 'G',
           floorLabel: 'Ground Floor',
-          wingId: 'Common Area',
+          wingId: '',
           roomName: r,
           title: r,
           subtitle: `${b.shortName} · ${override?.wingLabel || 'Specialty Zone / Court'}`,
@@ -120,7 +120,7 @@ export function buildCampusSearchIndex(buildings = []) {
               category: b.category,
               floorId: fl.id,
               floorLabel: fl.label || `Floor ${fl.id}`,
-              wingId: override?.wingLabel || 'Main Complex',
+              wingId: '',
               roomName: r,
               title: r,
               subtitle: `${b.shortName} · ${fl.label || `Floor ${fl.id}`}${override ? ` · ${override.wingLabel}` : ''}`,
@@ -134,37 +134,33 @@ export function buildCampusSearchIndex(buildings = []) {
       });
     }
 
-    // 4. Hostel Rooms across Wings & Floors (G, 1, 2, 3)
+    // 4. Hostel Rooms across Floors (G, 1, 2, 3) - Direct rooms without wings
     if (b.category === 'HOSTEL') {
-      const wings = Array.isArray(b.wings) && b.wings.length > 0 ? b.wings.slice(0, 2) : ['Wing A', 'Wing B'];
       ['G', '1', '2', '3'].forEach((fl) => {
-        wings.forEach((w) => {
-          const wingCode = w.includes('Wing B') ? 'B' : 'A';
-          const maxR = Number(b.roomsPerFloor) || 24;
-          for (let num = 1; num <= maxR; num += 1) {
-            const padded = String(num).padStart(2, '0');
-            const code = fl === 'G' ? `G-${padded}` : `${fl}${padded}`;
-            const rName = `Room ${wingCode}-${code}`;
-            index.push({
-              type: 'HOSTEL_ROOM',
-              buildingId: b.id,
-              buildingName: b.name,
-              shortName: b.shortName,
-              badge: b.trace?.badge || 'HOSTEL',
-              category: 'HOSTEL',
-              floorId: fl,
-              floorLabel: fl === 'G' ? 'Ground Floor (G)' : `Floor ${fl} (${fl}xx)`,
-              wingId: w,
-              roomName: rName,
-              title: `${b.shortName} — ${rName}`,
-              subtitle: `${w} · ${fl === 'G' ? 'Ground Floor' : `Floor ${fl}`}`,
-              details: `Student Residence Room ${rName} in ${b.name}`,
-              searchKey: `${rName} ${code} ${wingCode}${code} ${b.name} ${b.shortName} ${w}`.toLowerCase(),
-              cx: defaultCx,
-              cy: defaultCy,
-            });
-          }
-        });
+        const maxR = Number(b.roomsPerFloor) || 24;
+        for (let num = 1; num <= maxR; num += 1) {
+          const padded = String(num).padStart(2, '0');
+          const code = fl === 'G' ? `G-${padded}` : `${fl}${padded}`;
+          const rName = `Room ${code}`;
+          index.push({
+            type: 'HOSTEL_ROOM',
+            buildingId: b.id,
+            buildingName: b.name,
+            shortName: b.shortName,
+            badge: b.trace?.badge || 'HOSTEL',
+            category: 'HOSTEL',
+            floorId: fl,
+            floorLabel: fl === 'G' ? 'Ground Floor (G)' : `Floor ${fl} (${fl}xx)`,
+            wingId: '',
+            roomName: rName,
+            title: `${b.shortName} — ${rName}`,
+            subtitle: `${fl === 'G' ? 'Ground Floor' : `Floor ${fl}`}`,
+            details: `Student Residence Room ${rName} in ${b.name}`,
+            searchKey: `${rName} ${code} ${b.name} ${b.shortName}`.toLowerCase(),
+            cx: defaultCx,
+            cy: defaultCy,
+          });
+        }
       });
     }
   });

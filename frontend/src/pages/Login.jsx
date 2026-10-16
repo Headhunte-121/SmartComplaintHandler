@@ -461,7 +461,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => handleQuickDemoSignIn('tech.ramesh@iiitnr.edu.in')}
-                className="py-2 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold border border-slate-200/80 transition-colors cursor-pointer"
+                className="py-2 rounded-xl bg-slate-50 hover:bg-[#8C906D]/15 hover:text-[#3C4233] text-slate-700 font-bold border border-slate-200/80 transition-colors cursor-pointer"
               >
                 🔧 Tech
               </button>

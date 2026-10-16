@@ -85,7 +85,7 @@ export default function DeveloperLab() {
               tracking_code: 'TICK-DEMO-99',
               title: 'Water Leakage in 3rd Floor Washroom',
             })}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+            className="px-4 py-2.5 bg-[#687156] hover:bg-[#8C906D] text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
           >
             Launch Resolution Gateway
           </button>
