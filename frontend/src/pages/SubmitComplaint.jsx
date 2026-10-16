@@ -65,8 +65,18 @@ export default function SubmitComplaint() {
   const [submitting, setSubmitting] = useState(false);
   const [createdTicket, setCreatedTicket] = useState(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [error, setError] = useState(null);
   const [residenceSavedNotice, setResidenceSavedNotice] = useState(null);
+
+  useEffect(() => {
+    if (!isMapModalOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsMapModalOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMapModalOpen]);
 
   const activeBuildingObj = useMemo(
     () =>
@@ -178,11 +188,20 @@ export default function SubmitComplaint() {
             Submit Maintenance Request
           </h1>
           <p className="text-xs text-slate-300 mt-0.5">
-            Click your Hostel or Academic Block on the map or select your room below
+            Select your building &amp; room below, or pick visually on the interactive campus map.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsMapModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 border border-indigo-400/40 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shadow-indigo-950/40"
+            title="Open interactive 2D schematic digital twin map to pick location visually"
+          >
+            <span>🗺️</span>
+            <span>Campus Map</span>
+          </button>
           <button
             type="button"
             onClick={handleUseMySavedRoom}
@@ -198,19 +217,6 @@ export default function SubmitComplaint() {
           </Link>
         </div>
       </div>
-
-      {/* Interactive IIIT Naya Raipur Map (OSM + Satellite + Campus Plan) */}
-      <CampusMapSelector
-        selectedBuilding={activeBuildingObj?.name}
-        onSelectBuilding={handleSelectBuilding}
-        selectedRoom={customRoomOverride.trim() || specificLocation}
-        onSelectRoom={(rm) => {
-          setSpecificLocation(rm);
-          setCustomRoomOverride('');
-        }}
-        studentSavedHostel={savedHostel}
-        studentSavedRoom={savedRoom}
-      />
 
       {/* Main 2-Column Workstation */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -233,9 +239,20 @@ export default function SubmitComplaint() {
           {/* Building, Floor, Wing & Room Picker */}
           <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 space-y-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                📍 Location &amp; Room Number
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  📍 Location &amp; Room Number
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsMapModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
+                  title="Open interactive 2D schematic digital twin map to pick location visually"
+                >
+                  <span>🗺️</span>
+                  <span>Select on Map</span>
+                </button>
+              </div>
               {isHostelBuilding && (
                 <button
                   type="button"
@@ -465,15 +482,26 @@ export default function SubmitComplaint() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">
                 📍 Selected Location
               </span>
-              <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold">
-                {activeBuildingObj?.mapPin?.badge || 'BLDG'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold">
+                  {activeBuildingObj?.mapPin?.badge || 'BLDG'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsMapModalOpen(true)}
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                  title="Open interactive campus map to pick building & room"
+                >
+                  Change 🗺️
+                </button>
+              </div>
             </div>
             <div className="font-black text-slate-900 text-sm">
               {activeBuildingObj?.name || building}
             </div>
-            <div className="font-mono text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl font-bold">
-              {customRoomOverride.trim() || specificLocation}
+            <div className="font-mono text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl font-bold flex items-center justify-between">
+              <span>{customRoomOverride.trim() || specificLocation}</span>
+              <span className="text-[10px] text-emerald-600 font-sans font-normal">Active Selection</span>
             </div>
           </div>
 
@@ -502,6 +530,92 @@ export default function SubmitComplaint() {
           </div>
         </div>
       </div>
+
+      {/* Interactive Map Picker Modal */}
+      {isMapModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsMapModalOpen(false);
+          }}
+        >
+          <div className="bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden animate-scale-up">
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">🗺️</span>
+                <div>
+                  <h2 className="text-sm sm:text-base font-black text-white">
+                    Campus Digital Twin — Location Picker
+                  </h2>
+                  <p className="text-[11px] text-slate-400">
+                    Click any building, wing, or room to auto-fill your complaint location
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMapModalOpen(false)}
+                  className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>✓</span>
+                  <span>Confirm Location</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsMapModalOpen(false)}
+                  className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition-all cursor-pointer"
+                  title="Close Map (Esc)"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Map Content */}
+            <div className="p-3 sm:p-4 overflow-y-auto flex-1 bg-slate-950">
+              <CampusMapSelector
+                selectedBuilding={activeBuildingObj?.name}
+                onSelectBuilding={(bName) => {
+                  handleSelectBuilding(bName);
+                }}
+                selectedRoom={customRoomOverride.trim() || specificLocation}
+                onSelectRoom={(rm) => {
+                  setSpecificLocation(rm);
+                  setCustomRoomOverride('');
+                }}
+                studentSavedHostel={savedHostel}
+                studentSavedRoom={savedRoom}
+              />
+            </div>
+
+            {/* Modal Footer with Active Selection Badge & Action */}
+            <div className="px-5 py-3 border-t border-slate-800 bg-slate-900/90 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-slate-400 font-medium">Selected:</span>
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-800/80 font-bold">
+                  {activeBuildingObj?.name || building}
+                </span>
+                <span className="text-slate-500">·</span>
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800/80 font-mono font-bold">
+                  {customRoomOverride.trim() || specificLocation}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsMapModalOpen(false)}
+                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-950/50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>✓</span>
+                <span>Done (Use {activeBuildingObj?.shortName || building})</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <SubmissionSuccessModal
         isOpen={isSuccessModalOpen}
