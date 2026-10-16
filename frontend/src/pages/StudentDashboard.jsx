@@ -11,7 +11,6 @@ import CampusMapSelector from '../components/CampusMapSelector';
 import {
   IIITNR_MAP_UPDATED_EVENT,
   HOSTEL_FLOORS,
-  HOSTEL_WINGS,
   getCampusBuildings,
   getHostelBuildings,
   getRoomsForBuilding,
@@ -35,8 +34,7 @@ export default function StudentDashboard() {
     activeUser?.hostel_name || hostelsList[0]?.name || 'Ramanujan House (Boys Hostel)'
   );
   const [selectedFloor, setSelectedFloor] = useState('2');
-  const [selectedWing, setSelectedWing] = useState('Wing A');
-  const [selectedRoom, setSelectedRoom] = useState(activeUser?.room_number || 'Wing A, Room 204');
+  const [selectedRoom, setSelectedRoom] = useState(activeUser?.room_number || 'Room 204');
   const [customRoomInput, setCustomRoomInput] = useState('');
   const [savingResidence, setSavingResidence] = useState(false);
 
@@ -55,8 +53,8 @@ export default function StudentDashboard() {
   }, []);
 
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing, allBuildings),
-    [selectedHostel, selectedFloor, selectedWing, allBuildings]
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, null, allBuildings),
+    [selectedHostel, selectedFloor, allBuildings]
   );
 
   const loadStudentTickets = async () => {
@@ -147,7 +145,7 @@ export default function StudentDashboard() {
   };
 
   const currentHostelLabel = activeUser?.hostel_name || hostelsList[0]?.name || 'Ramanujan House';
-  const currentRoomLabel = activeUser?.room_number || 'Wing A, Room 204';
+  const currentRoomLabel = activeUser?.room_number || 'Room 204';
 
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-10">
@@ -433,7 +431,7 @@ export default function StudentDashboard() {
                 })}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1">Floor</label>
                   <select
@@ -448,23 +446,6 @@ export default function StudentDashboard() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Wing</label>
-                  <select
-                    value={selectedWing}
-                    onChange={(e) => setSelectedWing(e.target.value)}
-                    className="enterprise-input text-xs"
-                  >
-                    {HOSTEL_WINGS.slice(0, 2).map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1">Room Number</label>
                   <select
@@ -484,16 +465,17 @@ export default function StudentDashboard() {
                       ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Or Custom Room</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Wing B, Room 312"
-                    value={customRoomInput}
-                    onChange={(e) => setCustomRoomInput(e.target.value)}
-                    className="enterprise-input text-xs"
-                  />
-                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Or Custom Room / Spot</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Room 312 or Guest Suite"
+                  value={customRoomInput}
+                  onChange={(e) => setCustomRoomInput(e.target.value)}
+                  className="enterprise-input text-xs"
+                />
               </div>
 
               <div className="flex justify-end space-x-2 pt-2 border-t border-slate-800">

@@ -159,6 +159,12 @@ export default function SuperAdminDashboard() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
+              to="/superadmin/editor"
+              className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center space-x-2"
+            >
+              <span>✏️ Campus &amp; Ticket Data Studio</span>
+            </Link>
+            <Link
               to="/map"
               className="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all flex items-center space-x-2"
             >

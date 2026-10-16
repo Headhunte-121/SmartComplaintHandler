@@ -91,8 +91,7 @@ export default function Register() {
 
   const [selectedHostel, setSelectedHostel] = useState(hostels[0]?.name || 'Ramanujan House (Boys Hostel)');
   const [selectedFloor, setSelectedFloor] = useState('2');
-  const [selectedWing, setSelectedWing] = useState('Wing A');
-  const [selectedRoomNumber, setSelectedRoomNumber] = useState('Wing A, Room 204');
+  const [selectedRoomNumber, setSelectedRoomNumber] = useState('Room 204');
 
   const [googleClientId, setGoogleClientId] = useState(getInitialGoogleClientId);
   const [showClientIdModal, setShowClientIdModal] = useState(false);
@@ -103,8 +102,8 @@ export default function Register() {
   const [error, setError] = useState(null);
 
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor, selectedWing),
-    [selectedHostel, selectedFloor, selectedWing]
+    () => getRoomsForBuilding(selectedHostel, selectedFloor),
+    [selectedHostel, selectedFloor]
   );
 
   useEffect(() => {
@@ -431,40 +430,23 @@ export default function Register() {
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                          Wing
+                          Room Number
                         </label>
-                        <select
-                          value={selectedWing}
-                          onChange={(e) => setSelectedWing(e.target.value)}
+                        <input
+                          type="text"
+                          list="reg-room-options"
+                          value={selectedRoomNumber}
+                          onChange={(e) => setSelectedRoomNumber(e.target.value)}
                           className="enterprise-input text-xs"
-                        >
-                          {HOSTEL_WINGS.slice(0, 2).map((w) => (
-                            <option key={w.id} value={w.id}>
-                              {w.label}
-                            </option>
-                          ))}
-                        </select>
+                        />
+                        <datalist id="reg-room-options">
+                          {availableRooms
+                            .filter((r) => r.includes('Room') || r.includes('Suite'))
+                            .map((r) => (
+                              <option key={r} value={r} />
+                            ))}
+                        </datalist>
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                        Room Number
-                      </label>
-                      <input
-                        type="text"
-                        list="reg-room-options"
-                        value={selectedRoomNumber}
-                        onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                        className="enterprise-input text-xs"
-                      />
-                      <datalist id="reg-room-options">
-                        {availableRooms
-                          .filter((r) => r.includes('Room') || r.includes('Suite'))
-                          .map((r) => (
-                            <option key={r} value={r} />
-                          ))}
-                      </datalist>
                     </div>
                   </>
                 )}

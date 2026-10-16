@@ -14,6 +14,7 @@ import AdminDashboard from '../pages/AdminDashboard';
 import StudentDashboard from '../pages/StudentDashboard';
 import TechnicianWorkstation from '../pages/TechnicianWorkstation';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
+import SuperAdminDataEditor from '../pages/SuperAdminDataEditor';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import DeveloperLab from '../pages/DeveloperLab';
@@ -135,6 +136,30 @@ export default function AppRouter() {
             element={
               <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/admin">
                 <SuperAdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="superadmin/editor"
+            element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/admin">
+                <SuperAdminDataEditor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="superadmin/data"
+            element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/admin">
+                <SuperAdminDataEditor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="data-editor"
+            element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']} fallbackRoute="/submit">
+                <SuperAdminDataEditor />
               </ProtectedRoute>
             }
           />

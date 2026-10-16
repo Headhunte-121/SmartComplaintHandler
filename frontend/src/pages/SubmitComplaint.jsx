@@ -14,7 +14,6 @@ import {
   getHostelBuildings,
   getNonHostelBuildings,
   getFloorsForBuilding,
-  getWingsForBuilding,
   getRoomsForBuilding,
   buildCampusSearchIndex,
   queryCampusSearchIndex,
@@ -28,15 +27,8 @@ const QUICK_SPOT_CHIPS = [
   { label: 'Canteen Rotunda', query: 'canteen' },
 ];
 
-function inferFloorAndWingFromRoomString(roomStr = '') {
+function inferFloorFromRoomString(roomStr = '') {
   const clean = (roomStr || '').trim();
-  let wing = 'Wing A';
-  if (/\bwing\s*b\b|\bb-room|\bb-\d/i.test(clean)) {
-    wing = 'Wing B';
-  } else if (/corridor|washroom|cooler|common|mess|balcony/i.test(clean)) {
-    wing = 'Common Area';
-  }
-
   let floor = '2';
   const roomNumMatch = clean.match(/\b([G123])[-]?(\d{2})\b/i);
   if (roomNumMatch) {
@@ -48,7 +40,7 @@ function inferFloorAndWingFromRoomString(roomStr = '') {
   } else if (/floor\s*3|\b3\d{2}\b/i.test(clean)) {
     floor = '3';
   }
-  return { floor, wing };
+  return floor;
 }
 
 export default function SubmitComplaint() {
@@ -68,7 +60,7 @@ export default function SubmitComplaint() {
   const nonHostelsList = useMemo(() => getNonHostelBuildings(allBuildings), [allBuildings]);
 
   const savedHostel = activeUser?.hostel_name || hostelsList[0]?.name || allBuildings[0]?.name;
-  const savedRoom = activeUser?.room_number || 'Wing A, Room 204';
+  const savedRoom = activeUser?.room_number || 'Room 204';
 
   const initialBuildingFromUrl = searchParams.get('building');
   const initialModeFromUrl = searchParams.get('mode');
@@ -84,9 +76,7 @@ export default function SubmitComplaint() {
   const [building, setBuilding] = useState(
     initialBuildingFromUrl || savedHostel || allBuildings[0]?.name
   );
-  const initialInferred = useMemo(() => inferFloorAndWingFromRoomString(savedRoom), [savedRoom]);
-  const [selectedFloor, setSelectedFloor] = useState(initialInferred.floor);
-  const [selectedWing, setSelectedWing] = useState(initialInferred.wing);
+  const [selectedFloor, setSelectedFloor] = useState(() => inferFloorFromRoomString(savedRoom));
   const [specificLocation, setSpecificLocation] = useState(savedRoom);
   const [customRoomOverride, setCustomRoomOverride] = useState('');
 
@@ -132,14 +122,9 @@ export default function SubmitComplaint() {
     [activeBuildingObj, allBuildings]
   );
 
-  const availableWings = useMemo(
-    () => getWingsForBuilding(activeBuildingObj?.name, allBuildings),
-    [activeBuildingObj, allBuildings]
-  );
-
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(activeBuildingObj?.name, selectedFloor, selectedWing, allBuildings),
-    [activeBuildingObj, selectedFloor, selectedWing, allBuildings]
+    () => getRoomsForBuilding(activeBuildingObj?.name, selectedFloor, null, allBuildings),
+    [activeBuildingObj, selectedFloor, allBuildings]
   );
 
   useEffect(() => {
@@ -154,11 +139,8 @@ export default function SubmitComplaint() {
     setCustomRoomOverride('');
     const targetFloors = getFloorsForBuilding(newBuildingName, allBuildings);
     const nextFloor = targetFloors[0]?.id || 'G';
-    const targetWings = getWingsForBuilding(newBuildingName, allBuildings);
-    const nextWing = targetWings[0]?.id || 'Wing A';
     setSelectedFloor(nextFloor);
-    setSelectedWing(nextWing);
-    const targetRooms = getRoomsForBuilding(newBuildingName, nextFloor, nextWing, allBuildings);
+    const targetRooms = getRoomsForBuilding(newBuildingName, nextFloor, null, allBuildings);
     if (targetRooms.length > 0) {
       setSpecificLocation(targetRooms[0]);
     }
@@ -167,9 +149,8 @@ export default function SubmitComplaint() {
   const handleUseMySavedRoom = () => {
     setLocationMode('MY_ROOM');
     setBuilding(savedHostel);
-    const inferred = inferFloorAndWingFromRoomString(savedRoom);
-    setSelectedFloor(inferred.floor);
-    setSelectedWing(inferred.wing);
+    const inferredFloor = inferFloorFromRoomString(savedRoom);
+    setSelectedFloor(inferredFloor);
     setSpecificLocation(savedRoom);
     setCustomRoomOverride('');
   };
@@ -531,7 +512,7 @@ export default function SubmitComplaint() {
                       onChange={(e) => {
                         const newFloor = e.target.value;
                         setSelectedFloor(newFloor);
-                        const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, selectedWing, allBuildings);
+                        const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, null, allBuildings);
                         if (nextRooms.length > 0) {
                           setSpecificLocation(nextRooms[0]);
                           setCustomRoomOverride('');
@@ -547,43 +528,15 @@ export default function SubmitComplaint() {
                     </select>
                   </div>
 
-                  {isHostelBuilding ? (
-                    <div>
-                      <label htmlFor="wingSelect" className="block text-xs font-medium text-slate-300 mb-1.5">
-                        Wing / Zone
-                      </label>
-                      <select
-                        id="wingSelect"
-                        value={selectedWing}
-                        onChange={(e) => {
-                          const newWing = e.target.value;
-                          setSelectedWing(newWing);
-                          const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, selectedFloor, newWing, allBuildings);
-                          if (nextRooms.length > 0) {
-                            setSpecificLocation(nextRooms[0]);
-                            setCustomRoomOverride('');
-                          }
-                        }}
-                        className="enterprise-input bg-[#0b101b]"
-                      >
-                        {availableWings.map((w) => (
-                          <option key={w.id} value={w.id}>
-                            {w.label}
-                          </option>
-                        ))}
-                      </select>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                      Campus Zone / Coordinates
+                    </label>
+                    <div className="enterprise-input bg-[#0b101b] text-slate-400 font-mono text-xs flex items-center justify-between">
+                      <span className="text-emerald-400 font-semibold">{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
+                      <span className="text-[11px] truncate max-w-[180px]">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
                     </div>
-                  ) : (
-                    <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                        Digital Twin Zone
-                      </label>
-                      <div className="enterprise-input bg-[#0b101b] text-slate-400 font-mono text-xs flex items-center justify-between">
-                        <span className="text-emerald-400 font-semibold">{activeBuildingObj?.mapPin?.badge || 'BLDG'}</span>
-                        <span>{activeBuildingObj?.gps || ''}</span>
-                      </div>
-                    </div>
-                  )}
+                  </div>
 
                   <div>
                     <label htmlFor="specificLocation" className="block text-xs font-medium text-slate-300 mb-1.5">

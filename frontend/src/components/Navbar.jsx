@@ -65,8 +65,8 @@ export default function Navbar() {
     ? currentUser.hostel_name.split(' ')[0]
     : 'Ramanujan';
   const shortRoom = currentUser?.room_number
-    ? currentUser.room_number.replace('Wing ', '').replace(', Room ', '-')
-    : 'A-204';
+    ? currentUser.room_number.replace('Wing ', '').replace(', Room ', '-').replace('Room ', '')
+    : '204';
 
   return (
     <header className="sticky top-0 z-40 h-16 bg-[#06090f]/80 backdrop-blur-xl border-b border-white/[0.08]">
@@ -180,8 +180,11 @@ export default function Navbar() {
 
               {isSuperAdmin && (
                 <>
-                  <NavLink to="/superadmin" className={navTabClasses}>
+                  <NavLink to="/superadmin" end className={navTabClasses}>
                     <span>Directorate</span>
+                  </NavLink>
+                  <NavLink to="/superadmin/editor" className={navTabClasses}>
+                    <span className="text-emerald-400 font-semibold">Data Studio</span>
                   </NavLink>
                   <NavLink to="/admin" className={navTabClasses}>
                     <span>Operations</span>
@@ -298,6 +301,19 @@ export default function Navbar() {
                         </svg>
                         <span>Switch Role / Persona</span>
                       </button>
+
+                      {(isSuperAdmin || isAdmin) && (
+                        <Link
+                          to="/superadmin/editor"
+                          onClick={() => setProfileMenuOpen(false)}
+                          className="w-full px-3.5 py-2 text-left text-emerald-300 hover:text-white hover:bg-emerald-500/10 flex items-center gap-2"
+                        >
+                          <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span>Campus Data Studio</span>
+                        </Link>
+                      )}
 
                       <Link
                         to="/student"

@@ -151,24 +151,12 @@ export function getFloorsForBuilding(buildingNameOrId, customBuildingsList = nul
   return HOSTEL_FLOORS;
 }
 
-export function getWingsForBuilding(buildingNameOrId, customBuildingsList = null) {
-  const list = customBuildingsList || getCampusBuildings();
-  const target = list.find(
-    (b) => b.id === buildingNameOrId || b.name === buildingNameOrId || b.shortName === buildingNameOrId
-  );
-  if (target && Array.isArray(target.wings) && target.wings.length > 0) {
-    return [
-      ...target.wings.map((w) => ({ id: w, label: w })),
-      { id: 'Common Area', label: 'Corridor / Washroom / Court / Utility' },
-    ];
-  }
-  if (target && target.category !== 'HOSTEL') {
-    return [{ id: 'Main Complex', label: 'Main Complex / Central Hall' }];
-  }
-  return HOSTEL_WINGS;
+export function getWingsForBuilding() {
+  // IIIT Naya Raipur campus architecture does not use wings - returning empty array for compatibility
+  return [];
 }
 
-export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'Wing A', customBuildingsList = null) {
+export function getRoomsForBuilding(buildingNameOrId, floorId = '1', _legacyWingId = null, customBuildingsList = null) {
   const list = customBuildingsList || getCampusBuildings();
   const target = list.find(
     (b) => b.id === buildingNameOrId || b.name === buildingNameOrId || b.shortName === buildingNameOrId
@@ -176,6 +164,7 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
 
   if (!target) return generateHostelRoomsForFloor(floorId, 24);
 
+  // If building has structured floor objects with explicit room arrays (e.g. Academic Block)
   if (Array.isArray(target.floors)) {
     const floorObj =
       target.floors.find((f) => typeof f === 'object' && String(f.id) === String(floorId)) ||
@@ -185,25 +174,13 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
     }
   }
 
+  // If hostel building: generate clean, direct rooms without wing prefixes
   if (target.category === 'HOSTEL') {
-    if (wingId === 'Common Area') {
-      return [
-        ...(target.customRooms || []),
-        ...HOSTEL_COMMON_ZONES.map((z) => `${floorId === 'G' ? 'Ground' : `Floor ${floorId}`} — ${z}`),
-      ];
-    }
     const maxRooms = Number(target.roomsPerFloor) || 24;
     const prefix = target.roomPrefix || 'Room ';
     const allFloorRooms = generateHostelRoomsForFloor(floorId, maxRooms, prefix);
-    const wings = Array.isArray(target.wings) && target.wings.length > 0 ? target.wings : ['Wing A', 'Wing B'];
-    const wingIndex = Math.max(0, wings.indexOf(wingId));
-    const chunkSize = Math.ceil(allFloorRooms.length / Math.max(1, wings.length));
-    const sliced = allFloorRooms.slice(wingIndex * chunkSize, (wingIndex + 1) * chunkSize);
-    const activeRooms = sliced.length > 0 ? sliced : allFloorRooms;
-    const tag = wingId && wingId.startsWith('Wing ') ? `${wingId.replace('Wing ', '').split(' ')[0]}-` : '';
-
     return [
-      ...activeRooms.map((r) => `${tag}${r}`),
+      ...allFloorRooms,
       ...(target.customRooms || []),
       ...HOSTEL_COMMON_ZONES.map((z) => `${floorId === 'G' ? 'Ground' : `Floor ${floorId}`} — ${z}`),
     ];
@@ -212,14 +189,13 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
   return generateHostelRoomsForFloor(floorId, 24);
 }
 
-export function getRoomsForSelection(buildingNameOrId, floorId = 'G', wingId = 'Wing A') {
-  return getRoomsForBuilding(buildingNameOrId, floorId, wingId);
+export function getRoomsForSelection(buildingNameOrId, floorId = 'G') {
+  return getRoomsForBuilding(buildingNameOrId, floorId);
 }
 
-export function formatIIITNRLocation({ building, wing, floor, room, customSpot }) {
+export function formatIIITNRLocation({ building, floor, room, customSpot }) {
   const parts = [];
   if (building) parts.push(building);
-  if (wing && wing !== 'Common Area' && wing !== 'Main Complex') parts.push(wing);
   if (floor) {
     const floorLabel =
       floor === 'G'
@@ -253,12 +229,11 @@ export const IIITNR_QUICK_SCENARIOS = [
     id: 'wifi_ramanujan',
     label: '🌐 Wi-Fi Drop in Ramanujan Hostel',
     building: 'Ramanujan House (Boys Hostel 1)',
-    wing: 'Wing A (NW Wing)',
     floor: '2',
-    room: 'A-Room 204',
+    room: 'Room 204',
     category: 'IT',
-    title: 'Hostel Wi-Fi router offline in Ramanujan House Wing A, 2nd Floor',
-    text: 'The ceiling Wi-Fi access point near Room A-204 in Ramanujan House (2nd Floor) is blinking red with no internet connectivity.',
+    title: 'Hostel Wi-Fi router offline in Ramanujan House, 2nd Floor',
+    text: 'The ceiling Wi-Fi access point near Room 204 in Ramanujan House (2nd Floor) is blinking red with no internet connectivity.',
   },
   {
     id: 'lab_vlsi_303',
@@ -274,7 +249,6 @@ export const IIITNR_QUICK_SCENARIOS = [
     id: 'ro_bhabha',
     label: '💧 RO Water Cooler Leaking (Bhabha House)',
     building: 'Bhabha House (Boys Hostel 2)',
-    wing: 'Common Area',
     floor: '1',
     room: 'Floor 1 — Corridor RO Water Cooler',
     category: 'Plumbing',
@@ -282,3 +256,4 @@ export const IIITNR_QUICK_SCENARIOS = [
     text: 'The RO drinking water cooler on the 1st Floor corridor of Bhabha House is leaking water onto the floor and needs urgent plumbing repair.',
   },
 ];
+

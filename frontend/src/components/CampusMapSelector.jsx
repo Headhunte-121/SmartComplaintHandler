@@ -15,7 +15,6 @@ import {
   saveCustomCampusBuildings,
   resetCampusBuildingsToDefault,
   getFloorsForBuilding,
-  getWingsForBuilding,
   getRoomsForBuilding,
   buildCampusSearchIndex,
   queryCampusSearchIndex,
@@ -65,7 +64,6 @@ export default function CampusMapSelector({
 
   // Digital Twin Floor & Facility Inspector State
   const [inspectorFloor, setInspectorFloor] = useState('G');
-  const [inspectorWing, setInspectorWing] = useState('Wing A');
 
   const svgRef = useRef(null);
   const radarTimerRef = useRef(null);
@@ -105,26 +103,17 @@ export default function CampusMapSelector({
     return getFloorsForBuilding(activeBuildingObj.id, buildings);
   }, [activeBuildingObj, buildings]);
 
-  const availableWings = useMemo(() => {
-    if (!activeBuildingObj) return [];
-    return getWingsForBuilding(activeBuildingObj.id, buildings);
-  }, [activeBuildingObj, buildings]);
-
   const inspectorRooms = useMemo(() => {
     if (!activeBuildingObj) return [];
-    return getRoomsForBuilding(activeBuildingObj.id, inspectorFloor, inspectorWing, buildings);
-  }, [activeBuildingObj, inspectorFloor, inspectorWing, buildings]);
+    return getRoomsForBuilding(activeBuildingObj.id, inspectorFloor, null, buildings);
+  }, [activeBuildingObj, inspectorFloor, buildings]);
 
   useEffect(() => {
     if (availableFloors.length > 0) {
       const matchFloor = availableFloors.find((f) => String(f.id) === String(inspectorFloor));
       if (!matchFloor) setInspectorFloor(availableFloors[0].id);
     }
-    if (availableWings.length > 0) {
-      const matchWing = availableWings.find((w) => w.id === inspectorWing);
-      if (!matchWing) setInspectorWing(availableWings[0].id);
-    }
-  }, [activeBuildingObj?.id, availableFloors, availableWings]);
+  }, [activeBuildingObj?.id, availableFloors]);
 
   // Search Index & Ranked Query Results
   const searchIndex = useMemo(() => buildCampusSearchIndex(buildings), [buildings]);
@@ -156,7 +145,6 @@ export default function CampusMapSelector({
     setEditingBuildingId(item.buildingId);
 
     if (item.floorId) setInspectorFloor(item.floorId);
-    if (item.wingId) setInspectorWing(item.wingId);
     if (item.roomName && onSelectRoom) onSelectRoom(item.roomName);
 
     panToTarget(item.cx, item.cy, 1.48, item.roomName || item.shortName);
@@ -166,7 +154,6 @@ export default function CampusMapSelector({
       building: item.buildingName,
       room: item.roomName,
       floor: item.floorLabel || (item.floorId ? `Floor ${item.floorId}` : 'Ground Floor'),
-      wing: item.wingId,
       gps: `(${Math.round(item.cx)}, ${Math.round(item.cy)})`,
     });
   };
@@ -195,7 +182,6 @@ export default function CampusMapSelector({
       shortName: `Zone ${idx}`,
       type: 'Custom Twin Facility',
       category: 'AMENITY',
-      wings: ['Wing A', 'Wing B'],
       floors: [{ id: 'G', label: 'Ground Floor', rooms: [`Zone ${idx} Main Facility`] }],
       roomsPerFloor: 12,
       roomPrefix: 'Room ',
@@ -548,11 +534,8 @@ export default function CampusMapSelector({
           onSelectBuilding={onSelectBuilding}
           onSelectRoom={onSelectRoom}
           availableFloors={availableFloors}
-          availableWings={availableWings}
           inspectorFloor={inspectorFloor}
           setInspectorFloor={setInspectorFloor}
-          inspectorWing={inspectorWing}
-          setInspectorWing={setInspectorWing}
           inspectorRooms={inspectorRooms}
           isSuperAdmin={isSuperAdmin}
           isEditMode={isEditMode}

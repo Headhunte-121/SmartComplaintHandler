@@ -13,11 +13,8 @@ export default function DigitalTwinInspector({
   onSelectBuilding,
   onSelectRoom,
   availableFloors,
-  availableWings,
   inspectorFloor,
   setInspectorFloor,
-  inspectorWing,
-  setInspectorWing,
   inspectorRooms,
   isSuperAdmin,
   isEditMode,
@@ -116,31 +113,7 @@ export default function DigitalTwinInspector({
             )}
           </div>
 
-          {/* Wing Switcher (For Hostels & Multi-Wing Clusters) */}
-          {activeBuildingObj.category === 'HOSTEL' && availableWings.length > 1 && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
-                Wing / Block:
-              </span>
-              {availableWings.map((w) => {
-                const isWingActive = inspectorWing === w.id;
-                return (
-                  <button
-                    key={w.id}
-                    type="button"
-                    onClick={() => setInspectorWing(w.id)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
-                      isWingActive
-                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-2xs'
-                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white'
-                    }`}
-                  >
-                    {w.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+
 
           {/* Clickable Room / Laboratory Grid */}
           <div className="space-y-1.5">

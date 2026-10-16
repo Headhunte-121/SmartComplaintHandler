@@ -134,11 +134,7 @@ export default function DigitalTwinSearchBar({
             <span className="px-2 py-0.5 rounded bg-slate-900/90 border border-sky-400/30 text-emerald-300 font-mono text-[11px]">
               {autoDetectNotice.floor}
             </span>
-            {autoDetectNotice.wing && autoDetectNotice.wing !== 'Main Complex' && (
-              <span className="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-700 text-indigo-300 font-mono text-[11px]">
-                {autoDetectNotice.wing}
-              </span>
-            )}
+
             {autoDetectNotice.room && (
               <span className="font-bold text-amber-300">→ {autoDetectNotice.room}</span>
             )}
