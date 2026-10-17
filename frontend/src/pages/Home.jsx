@@ -1,6 +1,6 @@
 /**
- * SmartComplaintHandler - IIIT Naya Raipur Campus Map & Hostel Hub
- * Rich Secondary (Emerald/Teal) & Tertiary (Amber, Sky, Indigo) Accent Theme
+ * SmartComplaintHandler - IIIT Naya Raipur Campus Map & Facility Command Center
+ * Flush Edge-to-Edge Dark Command Twin Layout with Consistent Institutional Palette
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -17,7 +17,6 @@ const getBuildingCardTheme = (h) => {
   const name = (h.name || '').toLowerCase();
   const category = (h.category || '').toUpperCase();
 
-  // Sports & Recreation (Football, Basketball, Sports, Courts, Amphitheater)
   if (
     name.includes('football') ||
     name.includes('sports') ||
@@ -25,29 +24,13 @@ const getBuildingCardTheme = (h) => {
     name.includes('amphi') ||
     category === 'INFRASTRUCTURE'
   ) {
-    return {
-      cardCls:
-        'bg-gradient-to-br from-emerald-100/90 via-emerald-50 to-teal-50/70 border-2 border-emerald-300 hover:border-emerald-500 text-emerald-950 shadow-xs hover:shadow-md hover:-translate-y-0.5',
-      badgeCls: 'bg-emerald-700 text-white font-black border border-emerald-600',
-      icon: '⚽',
-      subCls: 'text-emerald-800/80 font-medium',
-      gpsCls: 'text-emerald-700 font-bold',
-    };
+    return { icon: '⚽' };
   }
 
-  // Parks, Green Lawns, Guest House (Palm Park, Aranya)
   if (name.includes('park') || name.includes('guest') || name.includes('lawn')) {
-    return {
-      cardCls:
-        'bg-gradient-to-br from-sky-100/90 via-sky-50 to-cyan-50/70 border-2 border-sky-300 hover:border-sky-500 text-sky-950 shadow-xs hover:shadow-md hover:-translate-y-0.5',
-      badgeCls: 'bg-sky-700 text-white font-black border border-sky-600',
-      icon: '🌿',
-      subCls: 'text-sky-800/80 font-medium',
-      gpsCls: 'text-sky-700 font-bold',
-    };
+    return { icon: '🌿' };
   }
 
-  // Academic / Amenity / Cultural
   if (
     category === 'ACADEMIC' ||
     category === 'AMENITY' ||
@@ -55,68 +38,18 @@ const getBuildingCardTheme = (h) => {
     name.includes('canteen') ||
     name.includes('auditorium')
   ) {
-    return {
-      cardCls:
-        'bg-gradient-to-br from-indigo-100/90 via-indigo-50 to-violet-50/70 border-2 border-indigo-300 hover:border-indigo-500 text-indigo-950 shadow-xs hover:shadow-md hover:-translate-y-0.5',
-      badgeCls: 'bg-indigo-700 text-white font-black border border-indigo-600',
-      icon: '🏛️',
-      subCls: 'text-indigo-800/80 font-medium',
-      gpsCls: 'text-indigo-700 font-bold',
-    };
+    return { icon: '🏛️' };
   }
 
-  // Default: Student Residential Hostels (Warm Amber / Sand Tone)
-  return {
-    cardCls:
-      'bg-gradient-to-br from-amber-100/90 via-amber-50 to-orange-50/70 border-2 border-amber-300 hover:border-amber-500 text-amber-950 shadow-xs hover:shadow-md hover:-translate-y-0.5',
-    badgeCls: 'bg-amber-600 text-white font-black border border-amber-500',
-    icon: '🛏️',
-    subCls: 'text-amber-800/80 font-medium',
-    gpsCls: 'text-amber-700 font-bold',
-  };
+  return { icon: '🛏️' };
 };
 
 const getContactTheme = (c) => {
   const role = (c.role || '').toLowerCase();
-  if (role.includes('electrical')) {
-    return {
-      cardCls:
-        'bg-gradient-to-br from-amber-100/90 via-amber-50 to-yellow-100/50 border-2 border-amber-400 text-amber-950 shadow-xs hover:shadow-md',
-      tagCls: 'bg-amber-600 text-white',
-      icon: '⚡',
-      phoneCls: 'text-amber-900',
-      emailCls: 'text-amber-800',
-    };
-  }
-  if (role.includes('sr. network') || role.includes('core')) {
-    return {
-      cardCls:
-        'bg-gradient-to-br from-indigo-100/90 via-indigo-50 to-blue-100/50 border-2 border-indigo-400 text-indigo-950 shadow-xs hover:shadow-md',
-      tagCls: 'bg-indigo-700 text-white',
-      icon: '📶',
-      phoneCls: 'text-indigo-900',
-      emailCls: 'text-indigo-800',
-    };
-  }
-  if (role.includes('network') || role.includes('noc')) {
-    return {
-      cardCls:
-        'bg-gradient-to-br from-sky-100/90 via-sky-50 to-cyan-100/50 border-2 border-sky-400 text-sky-950 shadow-xs hover:shadow-md',
-      tagCls: 'bg-sky-700 text-white',
-      icon: '🌐',
-      phoneCls: 'text-sky-900',
-      emailCls: 'text-sky-800',
-    };
-  }
-  // Estate Officer (Civil / Infrastructure)
-  return {
-    cardCls:
-      'bg-gradient-to-br from-emerald-100/90 via-emerald-50 to-teal-100/50 border-2 border-emerald-400 text-emerald-950 shadow-xs hover:shadow-md',
-    tagCls: 'bg-emerald-700 text-white',
-    icon: '🏢',
-    phoneCls: 'text-emerald-900',
-    emailCls: 'text-emerald-800',
-  };
+  if (role.includes('electrical')) return { icon: '⚡' };
+  if (role.includes('sr. network') || role.includes('core')) return { icon: '📶' };
+  if (role.includes('network') || role.includes('noc')) return { icon: '🌐' };
+  return { icon: '🏢' };
 };
 
 export default function Home() {
@@ -144,194 +77,210 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-10">
-      {/* Rich Secondary/Tertiary Command Deck Hero */}
-      <div className="rounded-3xl bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 text-white p-7 sm:p-8 shadow-xl border-2 border-emerald-600/50 relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="w-full bg-[#080C14] text-white min-h-screen flex flex-col space-y-0 animate-fade-in">
+      {/* Flush Command Deck Hero Header */}
+      <div className="w-full bg-[#0B0F19] border-b border-slate-800/80 px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden">
         {/* Ambient background glow auras */}
-        <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-teal-500/15 blur-3xl pointer-events-none" />
+        <div className="absolute -right-24 -bottom-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-24 -top-24 w-96 h-96 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
 
-        <div className="space-y-2.5 relative z-10">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-bold shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>IIIT Naya Raipur · Sector 24, Atal Nagar</span>
+        <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-3">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>IIIT Naya Raipur · Sector 24, Atal Nagar</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
+              Campus Digital Twin &amp; Maintenance Desk
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
+              Explore campus buildings, hostels, and academic facilities in interactive GIS space, or dispatch a verified maintenance work order with real-time AI triage.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2.5 pt-2">
+              <Link
+                to={`/submit?building=${encodeURIComponent(selectedMapBuilding)}`}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-black text-xs shadow-md shadow-emerald-700/30 transition-all inline-flex items-center gap-2 cursor-pointer border border-emerald-500/50 hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <span>+ Submit Issue ({selectedMapBuilding.split(' (')[0]})</span>
+              </Link>
+              {isStudent && (
+                <Link
+                  to="/student"
+                  className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                >
+                  My Issues →
+                </Link>
+              )}
+              {canAccessOperations && (
+                <Link
+                  to="/admin"
+                  className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                >
+                  Operations Desk →
+                </Link>
+              )}
+              {isSuperAdmin && (
+                <Link
+                  to="/superadmin"
+                  className="px-4 py-2.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-700/60 text-purple-200 font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                >
+                  Directorate Console →
+                </Link>
+              )}
+              {isTechnician && (
+                <Link
+                  to="/technician"
+                  className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                >
+                  Work Orders →
+                </Link>
+              )}
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            Campus Digital Twin &amp; Maintenance Desk
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
-            Explore campus buildings, hostels, and facilities in interactive 2D GIS space, or dispatch a verified maintenance work order with real-time AI triage.
-          </p>
 
-          <div className="flex flex-wrap items-center gap-2.5 pt-2">
-            <Link
-              to={`/submit?building=${encodeURIComponent(selectedMapBuilding)}`}
-              className="btn-botanical-primary"
-            >
-              + Submit Issue ({selectedMapBuilding.split(' (')[0]})
-            </Link>
-            {isStudent && (
-              <Link
-                to="/student"
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-white/20 text-white font-bold text-xs shadow-sm hover:shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
-              >
-                My Issues →
-              </Link>
-            )}
-            {canAccessOperations && (
-              <Link
-                to="/admin"
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-white/20 text-white font-bold text-xs shadow-sm hover:shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
-              >
-                Operations Desk →
-              </Link>
-            )}
-            {isSuperAdmin && (
-              <Link
-                to="/superadmin"
-                className="px-4 py-2.5 rounded-xl bg-purple-500/25 hover:bg-purple-500/35 border-2 border-purple-400/50 text-purple-200 font-bold text-xs shadow-sm hover:shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
-              >
-                Directorate Console →
-              </Link>
-            )}
-            {isTechnician && (
-              <Link
-                to="/technician"
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-white/20 text-white font-bold text-xs shadow-sm hover:shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
-              >
-                Work Orders →
-              </Link>
-            )}
-          </div>
-        </div>
-
-        <form
-          onSubmit={handleTrackSubmit}
-          className="flex items-center gap-2 bg-slate-950/90 p-2.5 rounded-2xl border-2 border-slate-700/80 w-full lg:w-auto shadow-inner relative z-10"
-        >
-          <input
-            type="text"
-            value={trackingCode}
-            onChange={(e) => setTrackingCode(e.target.value)}
-            placeholder="Track Code (e.g. SCH-...)"
-            className="w-full sm:w-56 px-4 py-2.5 rounded-xl bg-slate-900 border-2 border-slate-700 text-white placeholder-slate-400 text-xs font-mono focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-          />
-          <button
-            type="submit"
-            className="btn-botanical-primary shrink-0"
+          <form
+            onSubmit={handleTrackSubmit}
+            className="flex items-center gap-2 bg-slate-900/90 p-2 rounded-2xl border border-slate-700/80 w-full lg:w-auto shadow-inner relative z-10"
           >
-            Track →
-          </button>
-        </form>
+            <input
+              type="text"
+              value={trackingCode}
+              onChange={(e) => setTrackingCode(e.target.value)}
+              placeholder="Track Code (e.g. SCH-...)"
+              className="w-full sm:w-56 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-mono focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition-all cursor-pointer shrink-0"
+            >
+              Track →
+            </button>
+          </form>
+        </div>
       </div>
 
-      {/* Interactive IIIT Naya Raipur Map */}
-      <CampusMapSelector
-        selectedBuilding={selectedMapBuilding}
-        onSelectBuilding={setSelectedMapBuilding}
-        studentSavedHostel={currentUser?.hostel_name}
-        studentSavedRoom={currentUser?.room_number}
-      />
+      {/* Flush Interactive Digital Twin Map */}
+      <div className="w-full">
+        <CampusMapSelector
+          flush={true}
+          selectedBuilding={selectedMapBuilding}
+          onSelectBuilding={setSelectedMapBuilding}
+          studentSavedHostel={currentUser?.hostel_name}
+          studentSavedRoom={currentUser?.room_number}
+        />
+      </div>
 
-      {/* Hostels & Estate Contacts Grid with Rich Category Colors */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Hostels & Spots Card */}
-        <div className="lg:col-span-7 bento-card p-6 space-y-4 bg-white border-2 border-slate-200/90 shadow-md rounded-3xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-emerald-500 to-sky-500" />
-          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🏠</span>
-              <h3 className="text-base font-black text-slate-900">
-                IIIT-NR Hostels &amp; Campus Spots
-              </h3>
+      {/* Flush Hostels & Campus Engineering Contacts Grid */}
+      <div className="w-full bg-[#080C14] px-4 sm:px-8 lg:px-12 py-10">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Hostels & Campus Spots */}
+          <div className="lg:col-span-7 p-6 sm:p-7 space-y-5 bg-[#0B101D] border border-slate-800 shadow-2xl rounded-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400" />
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">🏢</span>
+                <div>
+                  <h3 className="text-base font-black text-white">
+                    IIIT-NR Hostels &amp; Campus Spots
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Click any spot to select and report an issue</p>
+                </div>
+              </div>
+              <span className="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-xl">
+                Live Navigator
+              </span>
             </div>
-            <span className="text-[11px] font-mono font-black text-emerald-900 bg-emerald-100 border-2 border-emerald-300 px-3 py-1 rounded-xl shadow-2xs">
-              Click to Report
-            </span>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {hostels.map((h) => {
-              const theme = getBuildingCardTheme(h);
-              return (
-                <div
-                  key={h.id}
-                  onClick={() => navigate(`/submit?building=${encodeURIComponent(h.name)}`)}
-                  className={`p-4 rounded-2xl ${theme.cardCls} transition-all cursor-pointer space-y-1.5`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-base shrink-0">{theme.icon}</span>
-                      <span className="font-black text-xs sm:text-sm truncate">
-                        {h.name}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {hostels.map((h) => {
+                const theme = getBuildingCardTheme(h);
+                return (
+                  <div
+                    key={h.id}
+                    onClick={() => {
+                      setSelectedMapBuilding(h.name);
+                      navigate(`/submit?building=${encodeURIComponent(h.name)}`);
+                    }}
+                    className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/80 hover:bg-slate-850 hover:shadow-lg transition-all cursor-pointer space-y-2 group"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base shrink-0">{theme.icon}</span>
+                        <span className="font-bold text-xs sm:text-sm text-slate-200 group-hover:text-white truncate">
+                          {h.name}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 group-hover:bg-emerald-950 text-emerald-400 border border-slate-700 group-hover:border-emerald-700/60 shrink-0">
+                        {h.mapPin?.badge || 'SPOT'}
                       </span>
                     </div>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-lg ${theme.badgeCls} shrink-0 shadow-2xs`}>
-                      {h.mapPin?.badge || 'SPOT'}
-                    </span>
-                  </div>
-                  <div className={`text-[11px] ${theme.subCls} flex items-center justify-between`}>
-                    <span>{h.type}</span>
-                    <span className={`font-mono text-[10px] ${theme.gpsCls}`}>
-                      {h.gps}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Campus Estate Contacts Card */}
-        <div className="lg:col-span-5 bento-card p-6 space-y-4 bg-white border-2 border-slate-200/90 shadow-md rounded-3xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-500" />
-          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">📞</span>
-              <h3 className="text-base font-black text-slate-900">
-                Campus Estate &amp; Engineering Contacts
-              </h3>
-            </div>
-            <span className="text-[10px] font-mono font-bold text-slate-500">
-              Immediate Help
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {IIITNR_CAMPUS_METADATA.contacts.map((c) => {
-              const theme = getContactTheme(c);
-              return (
-                <div
-                  key={c.email}
-                  className={`p-4 rounded-2xl ${theme.cardCls} flex items-start justify-between gap-3 text-xs transition-all`}
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{theme.icon}</span>
-                      <span className={`text-[10px] font-mono font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${theme.tagCls} shadow-2xs`}>
-                        {c.role}
+                    <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                      <span>{h.type}</span>
+                      <span className="font-mono text-[10px] text-slate-500 group-hover:text-slate-400">
+                        {h.gps}
                       </span>
                     </div>
-                    <div className="font-black text-slate-950 text-sm">{c.name}</div>
-                    <div className="text-[11px] text-slate-600 font-medium">{c.office}</div>
                   </div>
-                  <div className="text-right font-mono text-[11px] shrink-0 space-y-1">
-                    <a
-                      href={`tel:${c.phone}`}
-                      className={`font-black ${theme.phoneCls} bg-white/90 px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs block hover:underline`}
-                    >
-                      📞 {c.phone}
-                    </a>
-                    <a
-                      href={`mailto:${c.email}`}
-                      className={`text-[10px] font-bold ${theme.emailCls} block hover:underline truncate max-w-[150px]`}
-                    >
-                      {c.email}
-                    </a>
-                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Campus Estate & Engineering Contacts */}
+          <div className="lg:col-span-5 p-6 sm:p-7 space-y-5 bg-[#0B101D] border border-slate-800 shadow-2xl rounded-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500" />
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">📞</span>
+                <div>
+                  <h3 className="text-base font-black text-white">
+                    Campus Estate &amp; Engineering Contacts
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Duty engineers for emergency facility escalations</p>
                 </div>
-              );
-            })}
+              </div>
+              <span className="text-[10px] font-mono font-bold text-slate-400 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800">
+                24/7 Support
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {IIITNR_CAMPUS_METADATA.contacts.map((c) => {
+                const theme = getContactTheme(c);
+                return (
+                  <div
+                    key={c.email}
+                    className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-start justify-between gap-3 text-xs transition-all"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm">{theme.icon}</span>
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                          {c.role}
+                        </span>
+                      </div>
+                      <div className="font-bold text-white text-sm">{c.name}</div>
+                      <div className="text-[11px] text-slate-400">{c.office}</div>
+                    </div>
+                    <div className="text-right font-mono text-[11px] shrink-0 space-y-1.5">
+                      <a
+                        href={`tel:${c.phone}`}
+                        className="font-bold text-white bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-lg border border-slate-700 block transition-colors"
+                      >
+                        📞 {c.phone}
+                      </a>
+                      <a
+                        href={`mailto:${c.email}`}
+                        className="text-[10px] text-emerald-400 hover:text-emerald-300 block hover:underline truncate max-w-[150px]"
+                      >
+                        {c.email}
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

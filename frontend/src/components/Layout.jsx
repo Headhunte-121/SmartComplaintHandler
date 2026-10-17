@@ -1,8 +1,5 @@
-/**
- * SmartComplaintHandler - Global Layout Shell
- */
 import React from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import PersonaSwitcherModal from './PersonaSwitcherModal';
@@ -10,19 +7,28 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Layout() {
   const { currentUser } = useAuth();
+  const location = useLocation();
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
 
+  const isMapPage = location.pathname === '/' || location.pathname === '/map';
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAF9] text-slate-800 font-sans antialiased selection:bg-green-100 selection:text-green-900">
-      <Navbar />
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div
+      className={`min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-200 ${
+        isMapPage
+          ? 'bg-[#090D16] text-slate-100'
+          : 'bg-[#EDF3EF] text-slate-800'
+      }`}
+    >
+      <Navbar isDark={isMapPage} />
+      <main className={`flex-1 w-full ${isMapPage ? 'p-0 m-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
         <Outlet />
       </main>
       <PersonaSwitcherModal />
-      <Footer />
+      <Footer isDark={isMapPage} />
     </div>
   );
 }

@@ -37,10 +37,11 @@ export default function CampusMapSelector({
   onSelectRoom,
   studentSavedHostel = '',
   studentSavedRoom = '',
+  flush = false,
 }) {
   const { isSuperAdmin } = useAuth();
   const [buildings, setBuildings] = useState(() => getCampusBuildings());
-  const [twinTheme, setTwinTheme] = useState('light');
+  const [twinTheme, setTwinTheme] = useState('architectural');
   const [showLabels, setShowLabels] = useState(true);
   const [showPathsAndCourts, setShowPathsAndCourts] = useState(true);
   const [showBoundary, setShowBoundary] = useState(true);
@@ -340,9 +341,15 @@ export default function CampusMapSelector({
   };
 
   return (
-    <div className="relative rounded-3xl border border-slate-200/90 bg-white shadow-md overflow-hidden select-none">
+    <div
+      className={`relative select-none overflow-hidden transition-all ${
+        flush
+          ? 'w-full rounded-none border-y border-slate-800/90 bg-slate-950 shadow-2xl'
+          : 'rounded-3xl border border-slate-200/90 bg-white shadow-md'
+      }`}
+    >
       {/* Top Floating Glassmorphic Search & Quick Filter Bar */}
-      <div className="p-3.5 bg-slate-950 text-white border-b border-slate-800 space-y-2.5">
+      <div className={`p-3.5 ${flush ? 'px-4 sm:px-8 lg:px-12' : ''} bg-slate-950 text-white border-b border-slate-800 space-y-2.5`}>
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           {/* Omni Search Input */}
           <div className="relative flex-1 min-w-[260px]">
