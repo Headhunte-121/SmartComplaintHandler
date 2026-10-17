@@ -130,17 +130,17 @@ export default function StudentDashboard() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'SUBMITTED':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-gradient-to-r from-sky-50 to-blue-50 text-sky-800 border-sky-300 shadow-2xs font-bold';
       case 'ASSIGNED':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-900 border-amber-300 shadow-2xs font-bold';
       case 'IN_PROGRESS':
-        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+        return 'bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-900 border-indigo-300 shadow-2xs font-bold';
       case 'ESCALATED':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'bg-gradient-to-r from-rose-50 to-red-50 text-rose-900 border-rose-300 shadow-2xs font-bold animate-pulse';
       case 'RESOLVED':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return 'bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-900 border-emerald-300 shadow-2xs font-bold';
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        return 'bg-slate-100 text-slate-700 border-slate-200 shadow-2xs font-medium';
     }
   };
 
@@ -220,42 +220,42 @@ export default function StudentDashboard() {
         />
       )}
 
-      {/* Bento KPI Row */}
+      {/* Bento KPI Row with Multi-Layer Depth */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bento-card p-5 border-l-4 border-l-amber-500 flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-2xl">
+        <div className="bento-card p-5 border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50/30 via-white to-white flex items-center justify-between shadow-2xs hover:shadow-xs transition-all">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Active Issues
             </span>
             <div className="text-3xl font-black text-slate-900 mt-1">{activeTickets.length}</div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 text-lg font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-100/90 to-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center text-lg font-bold shadow-2xs">
             ⚡
           </div>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-green-600 flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-2xl">
+        <div className="bento-card p-5 border-l-4 border-l-emerald-500 bg-gradient-to-br from-emerald-50/30 via-white to-white flex items-center justify-between shadow-2xs hover:shadow-xs transition-all">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               Resolved
             </span>
             <div className="text-3xl font-black text-slate-900 mt-1">{resolvedTickets.length}</div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center text-green-600 text-lg font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-100/90 to-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center text-lg font-bold shadow-2xs">
             ✓
           </div>
         </div>
 
-        <div className="bento-card p-5 border-l-4 border-l-blue-600 flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-2xl">
+        <div className="bento-card p-5 border-l-4 border-l-sky-500 bg-gradient-to-br from-sky-50/30 via-white to-white flex items-center justify-between shadow-2xs hover:shadow-xs transition-all">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-              Avg Rating
+              Avg Satisfaction
             </span>
             <div className="text-3xl font-black text-slate-900 mt-1">
               {avgSatisfaction ? `${avgSatisfaction} / 5` : '—'}
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 text-lg font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-100/90 to-sky-50 border border-sky-200 text-sky-700 flex items-center justify-center text-lg font-bold shadow-2xs">
             ★
           </div>
         </div>

@@ -212,17 +212,24 @@ export default function SubmitComplaint() {
   const resolvedRoomLabel = customRoomOverride.trim() || specificLocation;
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="space-y-6 animate-fade-in pb-12 relative">
+      {/* Ambient background glow for visual depth */}
+      <div className="absolute -top-10 left-1/4 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-40 right-10 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
+
       {/* Clean Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200/90 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-green-700 mb-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/90 text-xs font-bold text-emerald-800 mb-2 shadow-2xs">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
             <span>Smart Maintenance Dispatch</span>
-            <span className="text-slate-400">·</span>
-            <span className="text-slate-500 font-mono text-[11px]">Auto-Triage Enabled</span>
+            <span className="text-emerald-300">·</span>
+            <span className="font-mono text-[11px] text-emerald-700">Auto-Triage Active</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
             Submit Maintenance Request
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-1">
@@ -234,9 +241,9 @@ export default function SubmitComplaint() {
           <button
             type="button"
             onClick={() => setIsMapModalOpen(true)}
-            className="btn-botanical-secondary"
+            className="btn-botanical-moss shadow-sm"
           >
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
             <span>Open Digital Twin Map</span>
@@ -254,16 +261,19 @@ export default function SubmitComplaint() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <form
           onSubmit={handleSubmit}
-          className="lg:col-span-7 bento-card p-6 sm:p-7 space-y-6"
+          className="lg:col-span-7 bento-card p-6 sm:p-7 space-y-6 relative overflow-hidden"
         >
+          {/* Top card accent line */}
+          <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500" />
+
           {error && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs font-semibold text-rose-800">
+            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs font-semibold text-rose-800 shadow-2xs">
               {error}
             </div>
           )}
 
           {residenceSavedNotice && (
-            <div className="rounded-xl bg-green-50 border border-green-200 p-3 text-xs font-semibold text-green-800">
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs font-bold text-emerald-800 shadow-2xs">
               ✓ {residenceSavedNotice}
             </div>
           )}
@@ -272,22 +282,22 @@ export default function SubmitComplaint() {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-lg bg-green-50 border border-green-200 text-green-700 font-mono text-xs font-bold flex items-center justify-center">
+                <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-[0_2px_8px_rgba(22,163,74,0.35)] ring-4 ring-emerald-50">
                   1
                 </span>
-                <span className="text-sm font-bold text-slate-900 tracking-tight">
+                <span className="text-sm font-black text-slate-900 tracking-tight">
                   Location
                 </span>
               </div>
 
               {/* 3-Mode Segmented Pill Bar */}
-              <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 gap-1">
+              <div className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 gap-1 shadow-2xs">
                 <button
                   type="button"
                   onClick={handleUseMySavedRoom}
                   className={`px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'MY_ROOM'
-                      ? 'bg-green-600 text-white font-bold shadow-xs'
+                      ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold shadow-[0_2px_8px_rgba(22,163,74,0.25)]'
                       : 'text-slate-600 hover:text-slate-900 font-medium'
                   }`}
                 >
@@ -298,7 +308,7 @@ export default function SubmitComplaint() {
                   onClick={() => setLocationMode('SEARCH')}
                   className={`px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'SEARCH'
-                      ? 'bg-green-600 text-white font-bold shadow-xs'
+                      ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold shadow-[0_2px_8px_rgba(22,163,74,0.25)]'
                       : 'text-slate-600 hover:text-slate-900 font-medium'
                   }`}
                 >
@@ -309,7 +319,7 @@ export default function SubmitComplaint() {
                   onClick={() => setLocationMode('BROWSE')}
                   className={`px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'BROWSE'
-                      ? 'bg-green-600 text-white font-bold shadow-xs'
+                      ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold shadow-[0_2px_8px_rgba(22,163,74,0.25)]'
                       : 'text-slate-600 hover:text-slate-900 font-medium'
                   }`}
                 >
@@ -320,27 +330,27 @@ export default function SubmitComplaint() {
 
             {/* MODE A: 1-Tap My Saved Room Card */}
             {locationMode === 'MY_ROOM' && (
-              <div className="p-4 rounded-xl bg-green-50/50 border border-green-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-4.5 rounded-2xl bg-gradient-to-br from-emerald-50/95 via-green-50/40 to-white border border-emerald-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-green-200 text-green-600 shadow-xs flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-[0_2px_10px_rgba(22,163,74,0.3)] flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-white text-green-800 border border-green-200 font-bold shadow-2xs">
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-white text-emerald-900 border border-emerald-300 font-black shadow-2xs">
                         Saved Residence
                       </span>
-                      <span className="text-[11px] font-mono text-slate-500">
+                      <span className="text-[11px] font-mono font-bold text-emerald-800">
                         {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
                       </span>
                     </div>
-                    <div className="text-sm font-bold text-slate-900 mt-1">
+                    <div className="text-sm font-black text-slate-900 mt-1">
                       {activeBuildingObj?.name || savedHostel}
                     </div>
-                    <div className="text-xs font-mono text-green-700 font-semibold mt-0.5">
-                      {resolvedRoomLabel}
+                    <div className="text-xs font-mono text-emerald-800 font-bold mt-0.5">
+                      📍 {resolvedRoomLabel}
                     </div>
                   </div>
                 </div>
@@ -356,7 +366,7 @@ export default function SubmitComplaint() {
                   <button
                     type="button"
                     onClick={() => setIsMapModalOpen(true)}
-                    className="btn-botanical-moss"
+                    className="btn-botanical-moss shadow-xs"
                   >
                     Pick on Map
                   </button>
@@ -589,30 +599,30 @@ export default function SubmitComplaint() {
             )}
           </div>
 
-          <div className="border-t border-slate-200" />
+          <div className="border-t border-slate-200/80" />
 
           {/* STEP 2: Issue Title & Details */}
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-lg bg-green-50 border border-green-200 text-green-700 font-mono text-xs font-bold flex items-center justify-center">
+                <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-[0_2px_8px_rgba(22,163,74,0.35)] ring-4 ring-emerald-50">
                   2
                 </span>
-                <span className="text-sm font-bold text-slate-900 tracking-tight">
+                <span className="text-sm font-black text-slate-900 tracking-tight">
                   Issue Description
                 </span>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-green-800 bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-md font-semibold">
-                <span>Auto-detects category &amp; priority</span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-800 bg-emerald-50/90 border border-emerald-200/80 px-2.5 py-0.5 rounded-lg font-bold shadow-2xs">
+                <span>✨ Auto-detects category &amp; SLA</span>
               </span>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="title" className="block text-xs font-semibold text-slate-700">
+                <label htmlFor="title" className="block text-xs font-bold text-slate-700">
                   Issue Summary
                 </label>
-                <span className="text-[11px] font-mono text-slate-400">
+                <span className="text-[11px] font-mono font-medium text-slate-400">
                   {title.trim().length}/150
                 </span>
               </div>
@@ -626,16 +636,16 @@ export default function SubmitComplaint() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={submitting}
-                className="enterprise-input text-sm"
+                className="enterprise-input text-sm rounded-xl focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 transition-all shadow-2xs"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="description" className="block text-xs font-semibold text-slate-700">
+                <label htmlFor="description" className="block text-xs font-bold text-slate-700">
                   Details &amp; Observations
                 </label>
-                <span className="text-[11px] font-mono text-slate-400">
+                <span className="text-[11px] font-mono font-bold text-emerald-700">
                   {description.trim().length >= 10 ? '✓ Auto-triage active' : 'Min 10 chars'}
                 </span>
               </div>
@@ -648,7 +658,7 @@ export default function SubmitComplaint() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={submitting}
-                className="enterprise-input text-sm resize-none leading-relaxed"
+                className="enterprise-input text-sm rounded-xl focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 resize-none leading-relaxed transition-all shadow-2xs"
               />
             </div>
           </div>
@@ -656,7 +666,7 @@ export default function SubmitComplaint() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 px-5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-green-600/20 transition-all cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+            className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white text-xs sm:text-sm font-bold shadow-[0_4px_16px_rgba(22,163,74,0.35)] hover:shadow-[0_6px_20px_rgba(22,163,74,0.45)] transition-all cursor-pointer disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:shadow-none hover:-translate-y-0.5 active:translate-y-0"
           >
             {submitting
               ? 'Submitting Request...'
@@ -668,53 +678,76 @@ export default function SubmitComplaint() {
         <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
           <LiveTriageCard title={title} description={description} />
 
-          <div className="bento-card p-5 space-y-3 text-xs bg-white border border-slate-200 shadow-sm rounded-2xl">
+          {/* Dispatch Target Card */}
+          <div className="bento-card p-5 space-y-3.5 text-xs bg-white/95 border border-slate-200/90 shadow-sm rounded-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold">
                 Dispatch Target
               </span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-semibold">
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold shadow-2xs">
                   {activeBuildingObj?.mapPin?.badge || 'BLDG'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(true)}
-                  className="text-[11px] font-semibold text-green-700 hover:text-green-800 cursor-pointer"
+                  className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer"
                 >
                   Change on Map →
                 </button>
               </div>
             </div>
-            <div className="font-bold text-slate-900 text-sm">
+            <div className="font-black text-slate-900 text-sm">
               {activeBuildingObj?.name || building}
             </div>
-            <div className="font-mono text-xs text-slate-900 bg-green-50 border border-green-200 px-3 py-2 rounded-xl font-medium flex items-center justify-between">
-              <span>{resolvedRoomLabel}</span>
-              <span className="text-[10px] text-green-700 font-sans font-bold">Verified</span>
+            <div className="font-mono text-xs text-slate-900 bg-emerald-50/70 border border-emerald-200/90 px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between shadow-2xs">
+              <span className="flex items-center gap-1.5">
+                <span className="text-emerald-600">📍</span>
+                <span>{resolvedRoomLabel}</span>
+              </span>
+              <span className="text-[10px] text-emerald-800 font-sans font-bold bg-white px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs">
+                Verified ✓
+              </span>
             </div>
           </div>
 
-          <div className="bento-card p-5 space-y-3 text-xs bg-white border border-slate-200 shadow-sm rounded-2xl">
-            <span className="font-bold text-slate-400 uppercase tracking-wider font-mono text-[10px] block">
-              SLA Resolution Windows
-            </span>
+          {/* SLA Resolution Windows Matrix */}
+          <div className="bento-card p-5 space-y-3 text-xs bg-white/95 border border-slate-200/90 shadow-sm rounded-2xl relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-500 uppercase tracking-wider font-mono text-[10px] block">
+                SLA Resolution Windows
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 font-semibold">Response Matrix</span>
+            </div>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                <span className="font-bold text-rose-600">CRITICAL</span>
-                <span className="text-slate-700 font-mono font-semibold">2h</span>
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-50/80 to-rose-50/30 border border-rose-200/90 flex items-center justify-between shadow-2xs hover:border-rose-300 transition-colors">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  <span className="font-bold text-rose-700">CRITICAL</span>
+                </div>
+                <span className="text-rose-900 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-rose-200 shadow-2xs">2h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                <span className="font-bold text-orange-600">HIGH</span>
-                <span className="text-slate-700 font-mono font-semibold">8h</span>
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-50/80 to-amber-50/30 border border-amber-200/90 flex items-center justify-between shadow-2xs hover:border-amber-300 transition-colors">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="font-bold text-amber-700">HIGH</span>
+                </div>
+                <span className="text-amber-900 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-amber-200 shadow-2xs">8h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                <span className="font-bold text-amber-600">MEDIUM</span>
-                <span className="text-slate-700 font-mono font-semibold">24h</span>
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-sky-50/80 to-sky-50/30 border border-sky-200/90 flex items-center justify-between shadow-2xs hover:border-sky-300 transition-colors">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-500" />
+                  <span className="font-bold text-sky-700">MEDIUM</span>
+                </div>
+                <span className="text-sky-900 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-sky-200 shadow-2xs">24h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                <span className="font-bold text-green-700">LOW</span>
-                <span className="text-slate-700 font-mono font-semibold">72h</span>
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border border-emerald-200/90 flex items-center justify-between shadow-2xs hover:border-emerald-300 transition-colors">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="font-bold text-emerald-700">LOW</span>
+                </div>
+                <span className="text-emerald-900 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-200 shadow-2xs">72h</span>
               </div>
             </div>
           </div>

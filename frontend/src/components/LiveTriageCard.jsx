@@ -1,19 +1,78 @@
 /**
  * SmartComplaintHandler - Auto-Detection AI Triage Inspector Card
+ * Enhanced with rich domain accent colors, ambient elevation shadows, and deep telemetry depth.
  */
 import React, { useState, useEffect } from 'react';
 import { fetchTriagePreview } from '../api/triage';
 import PriorityBadge from './PriorityBadge';
 
 const DOMAIN_META = {
-  Electrical: { label: 'Electrical & Power' },
-  Plumbing: { label: 'Plumbing & Water' },
-  'IT Support': { label: 'IT & Campus Wi-Fi' },
-  Carpentry: { label: 'Carpentry & Civil' },
-  Infrastructure: { label: 'Carpentry & Civil' },
-  Sanitation: { label: 'Sanitation & Hygiene' },
-  General: { label: 'General Facilities' },
+  Electrical: {
+    label: 'Electrical & Power',
+    icon: '⚡',
+    gradient: 'from-amber-500/10 via-amber-50/50 to-white',
+    border: 'border-amber-300/80',
+    text: 'text-amber-900',
+    badge: 'bg-amber-100 text-amber-900 border-amber-300',
+  },
+  Plumbing: {
+    label: 'Plumbing & Water',
+    icon: '💧',
+    gradient: 'from-sky-500/10 via-sky-50/50 to-white',
+    border: 'border-sky-300/80',
+    text: 'text-sky-900',
+    badge: 'bg-sky-100 text-sky-900 border-sky-300',
+  },
+  'IT Support': {
+    label: 'IT & Campus Wi-Fi',
+    icon: '📶',
+    gradient: 'from-indigo-500/10 via-indigo-50/50 to-white',
+    border: 'border-indigo-300/80',
+    text: 'text-indigo-900',
+    badge: 'bg-indigo-100 text-indigo-900 border-indigo-300',
+  },
+  Carpentry: {
+    label: 'Carpentry & Civil',
+    icon: '🪚',
+    gradient: 'from-orange-500/10 via-orange-50/50 to-white',
+    border: 'border-orange-300/80',
+    text: 'text-orange-900',
+    badge: 'bg-orange-100 text-orange-900 border-orange-300',
+  },
+  Infrastructure: {
+    label: 'Carpentry & Civil',
+    icon: '🪚',
+    gradient: 'from-orange-500/10 via-orange-50/50 to-white',
+    border: 'border-orange-300/80',
+    text: 'text-orange-900',
+    badge: 'bg-orange-100 text-orange-900 border-orange-300',
+  },
+  Sanitation: {
+    label: 'Sanitation & Hygiene',
+    icon: '🧹',
+    gradient: 'from-teal-500/10 via-teal-50/50 to-white',
+    border: 'border-teal-300/80',
+    text: 'text-teal-900',
+    badge: 'bg-teal-100 text-teal-900 border-teal-300',
+  },
+  General: {
+    label: 'General Facilities',
+    icon: '🏢',
+    gradient: 'from-emerald-500/10 via-emerald-50/50 to-white',
+    border: 'border-emerald-300/80',
+    text: 'text-emerald-900',
+    badge: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+  },
 };
+
+const STANDBY_DOMAINS = [
+  { name: 'Electrical', icon: '⚡', cls: 'chip-domain-electrical' },
+  { name: 'Plumbing', icon: '💧', cls: 'chip-domain-plumbing' },
+  { name: 'IT & Wi-Fi', icon: '📶', cls: 'chip-domain-it' },
+  { name: 'Carpentry', icon: '🪚', cls: 'chip-domain-carpentry' },
+  { name: 'Sanitation', icon: '🧹', cls: 'chip-domain-sanitation' },
+  { name: 'Facilities', icon: '🏢', cls: 'chip-domain-facilities' },
+];
 
 const SLA_BY_PRIORITY = {
   CRITICAL: '2 Hours',
@@ -56,33 +115,41 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
   if (cleanTitle.length < 5 || cleanDesc.length < 10) {
     return (
-      <div className="bento-card p-5 space-y-4 bg-white border border-slate-200 shadow-sm rounded-2xl">
+      <div className="bento-card p-5 space-y-4 bg-gradient-to-br from-white via-slate-50/50 to-emerald-50/30 border border-slate-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06),0_10px_25px_-5px_rgba(22,163,74,0.05)] rounded-2xl relative overflow-hidden">
+        {/* Subtle top accent bar */}
+        <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500" />
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-bold text-slate-900">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            </span>
+            <span className="text-xs font-black tracking-tight text-slate-900">
               Auto-Triage Inspector
             </span>
           </div>
-          <span className="text-[10px] font-mono text-slate-600 px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-            Standby
+          <span className="text-[10px] font-mono font-bold text-emerald-800 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 shadow-2xs">
+            ● Standby
           </span>
         </div>
 
-        <p className="text-xs text-slate-500 leading-relaxed">
+        <p className="text-xs text-slate-600 leading-relaxed">
           Start typing your issue summary and details. The classification engine automatically assigns the{' '}
-          <span className="text-slate-800 font-semibold">Department</span>,{' '}
-          <span className="text-slate-800 font-semibold">Squad</span>, and{' '}
-          <span className="text-slate-800 font-semibold">SLA Priority</span>.
+          <span className="text-emerald-900 font-bold">Department</span>,{' '}
+          <span className="text-emerald-900 font-bold">Squad</span>, and{' '}
+          <span className="text-emerald-900 font-bold">SLA Priority</span>.
         </p>
 
-        <div className="grid grid-cols-3 gap-1.5 pt-1 text-[11px] text-slate-600">
-          {['Electrical', 'Plumbing', 'IT & Wi-Fi', 'Carpentry', 'Sanitation', 'Facilities'].map((dom) => (
+        {/* Vibrant Domain Accent Badges */}
+        <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
+          {STANDBY_DOMAINS.map((dom) => (
             <div
-              key={dom}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 truncate font-medium text-center"
+              key={dom.name}
+              className={`px-2.5 py-2 rounded-xl ${dom.cls} flex items-center justify-center gap-1.5 cursor-default transition-all`}
             >
-              {dom}
+              <span>{dom.icon}</span>
+              <span className="font-bold truncate">{dom.name}</span>
             </div>
           ))}
         </div>
@@ -92,7 +159,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
   if (loading && !triageData) {
     return (
-      <div className="bento-card p-5 space-y-3 bg-white border border-slate-200 shadow-sm rounded-2xl animate-pulse">
+      <div className="bento-card p-5 space-y-3 bg-white border border-slate-200/90 shadow-sm rounded-2xl animate-pulse">
         <div className="flex justify-between items-center">
           <div className="h-4 w-36 bg-slate-200 rounded" />
           <div className="h-4 w-16 bg-slate-200 rounded" />
@@ -110,11 +177,17 @@ export default function LiveTriageCard({ title = '', description = '' }) {
   const priorityKey = (triageData.priority || 'MEDIUM').toUpperCase();
 
   return (
-    <div className="bento-card p-5 space-y-4 bg-white border border-green-200 shadow-sm rounded-2xl">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+    <div className={`bento-card p-5 space-y-4 bg-gradient-to-br ${domainInfo.gradient} border ${domainInfo.border} shadow-[0_4px_24px_-4px_rgba(15,23,42,0.08),0_12px_32px_-6px_rgba(22,163,74,0.08)] rounded-2xl relative overflow-hidden`}>
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500" />
+
+      <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
-          <span className="text-xs font-bold text-green-800">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+          </span>
+          <span className="text-xs font-black text-slate-900 tracking-tight">
             Live Triage Classification
           </span>
         </div>
@@ -122,51 +195,60 @@ export default function LiveTriageCard({ title = '', description = '' }) {
       </div>
 
       {triageData.hazard_detected && (
-        <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800 font-semibold">
-          Safety Hazard Detected — Escalated to CRITICAL (2-Hour Emergency SLA)
+        <div className="rounded-xl bg-gradient-to-r from-rose-50 to-red-50 border border-rose-300 p-3 text-xs text-rose-900 font-bold flex items-center gap-2 shadow-xs">
+          <span>⚠️</span>
+          <span>Safety Hazard Detected — Escalated to CRITICAL (2-Hour Emergency SLA)</span>
         </div>
       )}
 
-      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
-        <div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 block">
-            Detected Department
+      {/* Target Department Banner with Rich Depth */}
+      <div className="p-3.5 rounded-xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-base shadow-2xs">
+            {domainInfo.icon}
           </span>
-          <span className="text-sm font-bold text-slate-900 mt-0.5 block">
-            {domainInfo.label}
-          </span>
+          <div>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 block font-semibold">
+              Detected Department
+            </span>
+            <span className="text-sm font-black text-slate-900 mt-0.5 block">
+              {domainInfo.label}
+            </span>
+          </div>
         </div>
         <div className="text-right">
-          <span className="text-[10px] font-mono uppercase text-slate-500 block">Target SLA</span>
-          <span className="text-xs font-mono font-bold text-green-700 mt-0.5 block">
+          <span className="text-[10px] font-mono uppercase text-slate-500 block font-semibold">Target SLA</span>
+          <span className="text-xs font-mono font-black text-emerald-700 mt-0.5 block">
             {SLA_BY_PRIORITY[priorityKey] || '24 Hours'}
           </span>
         </div>
       </div>
 
+      {/* Confidence Meter */}
       <div>
         <div className="flex items-center justify-between text-xs mb-1.5">
-          <span className="text-slate-600 font-medium">Match Confidence</span>
-          <span className="font-mono font-bold text-green-700">{confidencePct}%</span>
+          <span className="text-slate-600 font-semibold">Classification Match</span>
+          <span className="font-mono font-black text-emerald-700">{confidencePct}%</span>
         </div>
-        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+        <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200 p-[1px]">
           <div
-            className="h-full rounded-full transition-all duration-300 bg-green-600"
+            className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 shadow-xs"
             style={{ width: `${Math.max(12, confidencePct)}%` }}
           />
         </div>
       </div>
 
+      {/* Matched Keywords */}
       {triageData.matched_keywords && triageData.matched_keywords.length > 0 && (
         <div className="space-y-1.5 pt-1">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 block">
-            Matched Signals
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 block font-semibold">
+            Matched Telemetry Signals
           </span>
           <div className="flex flex-wrap gap-1.5">
             {triageData.matched_keywords.map((kw, idx) => (
               <span
                 key={idx}
-                className="px-2 py-0.5 rounded text-[11px] font-mono bg-green-50 text-green-800 border border-green-200 font-medium"
+                className="px-2.5 py-0.5 rounded-lg text-[11px] font-mono bg-white text-emerald-900 border border-emerald-200/90 font-bold shadow-2xs"
               >
                 #{kw}
               </span>
