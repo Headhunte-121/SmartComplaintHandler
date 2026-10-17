@@ -13,7 +13,11 @@ export default function Layout() {
     return <Navigate to="/login" replace />;
   }
 
-  const isDarkPage = location.pathname === '/' || location.pathname === '/map' || location.pathname === '/submit';
+  const isDarkPage =
+    location.pathname === '/' ||
+    location.pathname === '/map' ||
+    location.pathname === '/submit' ||
+    location.pathname === '/student';
 
   return (
     <div
