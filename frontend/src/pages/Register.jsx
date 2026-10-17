@@ -69,9 +69,9 @@ function evaluatePasswordStrength(pw) {
 
   const map = {
     1: { label: 'Fair', color: 'bg-amber-500' },
-    2: { label: 'Good', color: 'bg-blue-500' },
-    3: { label: 'Strong', color: 'bg-indigo-600' },
-    4: { label: 'Excellent', color: 'bg-[#687156]' },
+    2: { label: 'Good', color: 'bg-sky-500' },
+    3: { label: 'Strong', color: 'bg-emerald-500' },
+    4: { label: 'Excellent', color: 'bg-teal-400' },
   };
   return { score, ...(map[score] || map[1]) };
 }
@@ -266,32 +266,45 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-slate-50 bg-architectural-grid relative overflow-hidden">
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-[#080C14] text-slate-100 relative overflow-hidden">
+      {/* Ambient background glows & mesh */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[540px] h-[540px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 right-1/4 w-[420px] h-[420px] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md space-y-6">
-        <div className="text-center space-y-2.5">
-          <div className="inline-flex p-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+        <div className="text-center space-y-3">
+          <div className="inline-flex p-3 rounded-2xl bg-[#0B101D] border border-slate-800 shadow-xl shadow-black/40 ring-1 ring-emerald-500/20">
             <img
               src="/iiitnr_logo.png"
               alt="IIIT Naya Raipur"
-              className="h-12 w-auto object-contain"
+              className="h-12 w-auto object-contain drop-shadow"
             />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Institutional Onboarding
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight">
               Create IIIT-NR Account
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Step {step === 'password' ? '2' : '1'} of 2 · Student &amp; Staff Onboarding
+            <p className="text-xs text-slate-400 font-medium">
+              Step {step === 'password' ? '2' : '1'} of 2 · Student &amp; Staff Registration
             </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/[0.04] p-7 sm:p-8 space-y-5">
+        <div className="bg-[#0B101D] rounded-3xl border border-slate-800 shadow-2xl shadow-black/60 p-7 sm:p-8 space-y-5 text-white relative overflow-hidden ring-1 ring-slate-800/80">
+          {/* Top emerald accent line */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
+
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
-              {error}
+            <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-semibold flex items-center gap-2">
+              <svg className="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 
@@ -301,7 +314,7 @@ export default function Register() {
                 type="button"
                 onClick={handleContinueWithGoogle}
                 disabled={googleLoading || loading}
-                className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-300/90 hover:border-slate-400 text-slate-800 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer"
+                className="w-full py-3 px-4 bg-slate-900/90 hover:bg-slate-800 hover:border-emerald-500/40 border border-slate-700/90 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
@@ -313,16 +326,16 @@ export default function Register() {
               </button>
 
               <div className="relative flex py-1 items-center">
-                <div className="grow border-t border-slate-200" />
-                <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <div className="grow border-t border-slate-800" />
+                <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   or email
                 </span>
-                <div className="grow border-t border-slate-200" />
+                <div className="grow border-t border-slate-800" />
               </div>
 
               <form onSubmit={handleContinueWithEmail} className="space-y-3.5">
                 <div>
-                  <label htmlFor="register-email" className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label htmlFor="register-email" className="block text-xs font-bold text-slate-300 mb-1.5">
                     Institutional Email Address
                   </label>
                   <input
@@ -336,21 +349,21 @@ export default function Register() {
                       setEmail(e.target.value);
                       setError(null);
                     }}
-                    className="enterprise-input"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-mono"
                   />
                 </div>
 
                 {livePreview && (
-                  <div className="p-3 rounded-xl bg-[#8C906D]/15 border border-[#8C906D]/30 flex items-center justify-between text-xs">
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
                     <div className="min-w-0 pr-2">
-                      <div className="font-bold text-[#2D3325] truncate">
+                      <div className="font-bold text-white truncate">
                         {livePreview.fullName} ({livePreview.rollNo})
                       </div>
-                      <div className="text-[11px] text-[#687156] truncate">
+                      <div className="text-[11px] text-emerald-400 truncate">
                         {livePreview.department}
                       </div>
                     </div>
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-white text-[#687156] border border-[#8C906D]/40 shrink-0">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">
                       {livePreview.deptCode}
                     </span>
                   </div>
@@ -358,7 +371,7 @@ export default function Register() {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+                  className="w-full py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/25 transition-all cursor-pointer"
                 >
                   Continue →
                 </button>
@@ -366,45 +379,45 @@ export default function Register() {
             </div>
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
                 <div className="min-w-0 pr-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                     Email
                   </span>
-                  <span className="text-xs font-bold text-slate-900 truncate block font-mono">
+                  <span className="text-xs font-bold text-slate-200 truncate block font-mono">
                     {email}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setStep('email')}
-                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2.5 py-1 rounded-lg hover:bg-indigo-50 cursor-pointer"
+                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 px-2.5 py-1 rounded-lg hover:bg-emerald-500/10 transition-colors cursor-pointer"
                 >
                   Change
                 </button>
               </div>
 
               {/* IIIT-NR Hostel & Room Assignment Box */}
-              <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
+              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block">
                   🏠 Select Your Hostel &amp; Room
                 </span>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
                     Hostel House
                   </label>
                   <select
                     value={selectedHostel}
                     onChange={(e) => setSelectedHostel(e.target.value)}
-                    className="enterprise-input text-xs"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                   >
                     {hostels.map((h) => (
-                      <option key={h.id} value={h.name}>
+                      <option key={h.id} value={h.name} className="bg-slate-900 text-white">
                         {h.name}
                       </option>
                     ))}
-                    <option value="Day Scholar (Off-Campus)">Day Scholar</option>
+                    <option value="Day Scholar (Off-Campus)" className="bg-slate-900 text-white">Day Scholar</option>
                   </select>
                 </div>
 
@@ -412,23 +425,23 @@ export default function Register() {
                   <>
                     <div className="grid grid-cols-2 gap-2.5">
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
                           Floor
                         </label>
                         <select
                           value={selectedFloor}
                           onChange={(e) => setSelectedFloor(e.target.value)}
-                          className="enterprise-input text-xs"
+                          className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                         >
                           {HOSTEL_FLOORS.map((f) => (
-                            <option key={f.id} value={f.id}>
+                            <option key={f.id} value={f.id} className="bg-slate-900 text-white">
                               {f.label}
                             </option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
                           Room Number
                         </label>
                         <input
@@ -436,7 +449,7 @@ export default function Register() {
                           list="reg-room-options"
                           value={selectedRoomNumber}
                           onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                          className="enterprise-input text-xs"
+                          className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-mono"
                         />
                         <datalist id="reg-room-options">
                           {availableRooms
@@ -454,11 +467,11 @@ export default function Register() {
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold text-slate-700">Password</label>
+                    <label className="text-xs font-bold text-slate-300">Password</label>
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer"
+                      className="text-xs font-bold text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
                     >
                       {showPassword ? 'Hide' : 'Show'}
                     </button>
@@ -469,14 +482,14 @@ export default function Register() {
                     placeholder="Minimum 6 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="enterprise-input"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
                   />
                   <div className="mt-2 grid grid-cols-4 gap-1.5 h-1">
                     {[1, 2, 3, 4].map((bar) => (
                       <div
                         key={bar}
                         className={`rounded-full transition-all ${
-                          pwStrength.score >= bar ? pwStrength.color : 'bg-slate-200'
+                          pwStrength.score >= bar ? pwStrength.color : 'bg-slate-800'
                         }`}
                       />
                     ))}
@@ -484,7 +497,7 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
                     Confirm Password
                   </label>
                   <input
@@ -493,7 +506,7 @@ export default function Register() {
                     placeholder="Re-enter password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="enterprise-input"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
                   />
                 </div>
               </div>
@@ -501,17 +514,18 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/25 transition-all cursor-pointer disabled:opacity-50"
               >
                 {loading ? 'Creating Account...' : 'Complete Registration'}
               </button>
             </form>
           )}
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">Already registered?</span>
-            <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-800">
-              Sign in →
+          <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
+            <span className="text-slate-400">Already registered?</span>
+            <Link to="/login" className="font-bold text-emerald-400 hover:text-emerald-300 transition-colors inline-flex items-center gap-1">
+              <span>Sign in</span>
+              <span>→</span>
             </Link>
           </div>
         </div>

@@ -261,45 +261,46 @@ export default function Login() {
     }
   };
 
-  const handleQuickDemoSignIn = async (demoEmail) => {
-    setError(null);
-    setLoading(true);
-    try {
-      const user = await login(demoEmail, 'password123', true);
-      handleRoleRedirect(user);
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Quick sign-in failed.');
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-slate-50 bg-architectural-grid relative overflow-hidden">
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-[#080C14] text-slate-100 relative overflow-hidden">
+      {/* Ambient background glows & mesh */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[540px] h-[540px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 right-1/4 w-[420px] h-[420px] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md space-y-6">
-        <div className="text-center space-y-2.5">
-          <div className="inline-flex p-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+        <div className="text-center space-y-3">
+          <div className="inline-flex p-3 rounded-2xl bg-[#0B101D] border border-slate-800 shadow-xl shadow-black/40 ring-1 ring-emerald-500/20">
             <img
               src="/iiitnr_logo.png"
               alt="IIIT Naya Raipur"
-              className="h-12 w-auto object-contain"
+              className="h-12 w-auto object-contain drop-shadow"
             />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Institutional Access
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight">
               IIIT Naya Raipur Portal
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Campus Facilities &amp; Hostel Maintenance
+            <p className="text-xs text-slate-400 font-medium">
+              Campus Facilities &amp; Maintenance Command Center
             </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/[0.04] p-7 sm:p-8 space-y-5">
+        <div className="bg-[#0B101D] rounded-3xl border border-slate-800 shadow-2xl shadow-black/60 p-7 sm:p-8 space-y-5 text-white relative overflow-hidden ring-1 ring-slate-800/80">
+          {/* Top emerald accent line */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
+
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
-              {error}
+            <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-semibold flex items-center gap-2">
+              <svg className="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 
@@ -309,7 +310,7 @@ export default function Login() {
                 type="button"
                 onClick={handleContinueWithGoogle}
                 disabled={googleLoading || loading}
-                className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-300/90 hover:border-slate-400 text-slate-800 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+                className="w-full py-3 px-4 bg-slate-900/90 hover:bg-slate-800 hover:border-emerald-500/40 border border-slate-700/90 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
@@ -321,16 +322,16 @@ export default function Login() {
               </button>
 
               <div className="relative flex py-1 items-center">
-                <div className="grow border-t border-slate-200" />
-                <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <div className="grow border-t border-slate-800" />
+                <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   or email
                 </span>
-                <div className="grow border-t border-slate-200" />
+                <div className="grow border-t border-slate-800" />
               </div>
 
               <form onSubmit={handleContinueWithEmail} className="space-y-3.5">
                 <div>
-                  <label htmlFor="login-email" className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label htmlFor="login-email" className="block text-xs font-bold text-slate-300 mb-1.5">
                     Institutional Email
                   </label>
                   <input
@@ -344,19 +345,19 @@ export default function Login() {
                       setEmail(e.target.value);
                       setError(null);
                     }}
-                    className="enterprise-input"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-mono"
                   />
                 </div>
 
                 {detectedProfile && (
-                  <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex items-center justify-between text-xs">
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
                     <div className="min-w-0 pr-2">
-                      <div className="font-bold text-indigo-950 truncate">{detectedProfile.name}</div>
-                      <div className="text-[11px] text-indigo-700 truncate">
+                      <div className="font-bold text-white truncate">{detectedProfile.name}</div>
+                      <div className="text-[11px] text-emerald-400 truncate">
                         {detectedProfile.identifier} · {detectedProfile.department_name}
                       </div>
                     </div>
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-white text-indigo-700 border border-indigo-200 shrink-0">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">
                       {detectedProfile.role}
                     </span>
                   </div>
@@ -364,7 +365,7 @@ export default function Login() {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+                  className="w-full py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/25 transition-all cursor-pointer"
                 >
                   Continue →
                 </button>
@@ -372,12 +373,12 @@ export default function Login() {
             </div>
           ) : (
             <form onSubmit={handlePasswordSignIn} className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
                 <div className="min-w-0 pr-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                     Account
                   </span>
-                  <span className="text-xs font-bold text-slate-900 truncate block font-mono">
+                  <span className="text-xs font-bold text-slate-200 truncate block font-mono">
                     {email}
                   </span>
                 </div>
@@ -388,7 +389,7 @@ export default function Login() {
                     setPassword('');
                     setError(null);
                   }}
-                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2.5 py-1 rounded-lg hover:bg-indigo-50 cursor-pointer"
+                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 px-2.5 py-1 rounded-lg hover:bg-emerald-500/10 transition-colors cursor-pointer"
                 >
                   Change
                 </button>
@@ -396,13 +397,13 @@ export default function Login() {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="login-password" className="text-xs font-bold text-slate-700">
+                  <label htmlFor="login-password" className="text-xs font-bold text-slate-300">
                     Password
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer"
+                    className="text-xs font-bold text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
@@ -415,16 +416,16 @@ export default function Login() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="enterprise-input"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
                 />
               </div>
 
-              <label className="flex items-center space-x-2 text-xs font-medium text-slate-600 cursor-pointer select-none">
+              <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-emerald-600 focus:ring-emerald-500/30"
                 />
                 <span>Keep me signed in for 30 days</span>
               </label>
@@ -432,74 +433,40 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/25 transition-all cursor-pointer disabled:opacity-50"
               >
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
           )}
 
-          <div className="pt-4 border-t border-slate-100 space-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Quick Role Switch
-            </span>
-            <div className="grid grid-cols-4 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleQuickDemoSignIn('nikhil26100@iiitnr.edu.in')}
-                className="py-2 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 font-bold border border-slate-200/80 transition-colors cursor-pointer"
-              >
-                🎓 Student
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemoSignIn('admin@iiitnr.edu.in')}
-                className="py-2 rounded-xl bg-slate-50 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-bold border border-slate-200/80 transition-colors cursor-pointer"
-              >
-                🛡️ Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemoSignIn('tech.ramesh@iiitnr.edu.in')}
-                className="py-2 rounded-xl bg-slate-50 hover:bg-[#8C906D]/15 hover:text-[#3C4233] text-slate-700 font-bold border border-slate-200/80 transition-colors cursor-pointer"
-              >
-                🔧 Tech
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemoSignIn('superadmin@iiitnr.edu.in')}
-                className="py-2 rounded-xl bg-slate-50 hover:bg-amber-50 hover:text-amber-800 text-slate-700 font-bold border border-slate-200/80 transition-colors cursor-pointer"
-              >
-                👑 Director
-              </button>
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">New student or staff?</span>
-            <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-800">
-              Create account →
+          <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
+            <span className="text-slate-400">New student or staff?</span>
+            <Link to="/register" className="font-bold text-emerald-400 hover:text-emerald-300 transition-colors inline-flex items-center gap-1">
+              <span>Create account</span>
+              <span>→</span>
             </Link>
           </div>
         </div>
       </div>
 
       {!IS_PROD_BUILD && showClientIdModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 border border-slate-200 shadow-2xl">
-            <h3 className="text-base font-black text-slate-900">Configure Google Client ID</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
+          <div className="bg-[#0B101D] rounded-3xl max-w-md w-full p-6 space-y-4 border border-slate-800 shadow-2xl text-white">
+            <h3 className="text-base font-black text-white">Configure Google Client ID</h3>
+            <p className="text-xs text-slate-400">Development mode Google OAuth Client ID setup</p>
             <input
               type="text"
               placeholder="123456-abc.apps.googleusercontent.com"
               value={clientIdInput}
               onChange={(e) => setClientIdInput(e.target.value)}
-              className="enterprise-input font-mono text-xs"
+              className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-mono"
             />
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
                 onClick={() => setShowClientIdModal(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-600"
+                className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -514,7 +481,7 @@ export default function Login() {
                     launchGoogleWorkspaceFlow(cleaned);
                   }
                 }}
-                className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 text-white text-xs font-bold shadow-sm"
               >
                 Save &amp; Continue
               </button>
