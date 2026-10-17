@@ -81,7 +81,7 @@ def hash_password(password: str) -> str:
 
 
 # Pre-computed dummy password hash for constant-time verification when an email is not found
-DUMMY_PASSWORD_HASH = hash_password("iiitnr_constant_time_dummy_guard_secret_2026")
+DUMMY_PASSWORD_HASH = "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4oL9.x1W6e"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

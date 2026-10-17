@@ -6,7 +6,7 @@ Role: REST routes for viewing squad workloads (/teams/workloads) and RBAC-protec
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_db, require_roles
 from app.models.team import MaintenanceTeam
@@ -25,28 +25,32 @@ def get_workloads(
     """
     Returns active ticket counts across all squads for workload inspection.
     """
-    teams = db.query(MaintenanceTeam).all()
-    results = []
     active_statuses = ["SUBMITTED", "IN_PROGRESS", "ESCALATED", "ON_HOLD", "ASSIGNED"]
 
-    for team in teams:
-        count = (
-            db.query(func.count(Ticket.id))
-            .filter(Ticket.assigned_team_id == team.id)
-            .filter(Ticket.status.in_(active_statuses))
-            .scalar()
-            or 0
+    teams = (
+        db.query(MaintenanceTeam)
+        .options(joinedload(MaintenanceTeam.department))
+        .all()
+    )
+    counts_by_team = dict(
+        db.query(Ticket.assigned_team_id, func.count(Ticket.id))
+        .filter(
+            Ticket.assigned_team_id.isnot(None),
+            Ticket.status.in_(active_statuses),
         )
-        dept_name = team.department.name if team.department else "General"
-        results.append(
-            TeamWorkloadResponse(
-                team_id=team.id,
-                team_name=team.name,
-                department_name=dept_name,
-                active_ticket_count=count,
-            )
+        .group_by(Ticket.assigned_team_id)
+        .all()
+    )
+
+    return [
+        TeamWorkloadResponse(
+            team_id=team.id,
+            team_name=team.name,
+            department_name=team.department.name if team.department else "General",
+            active_ticket_count=counts_by_team.get(team.id, 0),
         )
-    return results
+        for team in teams
+    ]
 
 
 @router.patch("/tickets/{ticket_id}/reassign")

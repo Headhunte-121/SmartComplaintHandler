@@ -165,6 +165,14 @@ def _ensure_users_table_ready(db: Session) -> None:
         if engine_key in _VERIFIED_ENGINES:
             return
 
+        is_sqlite = "sqlite" in engine_key
+        is_pytest = "pytest" in sys.modules
+        run_migration = os.getenv("RUN_SCHEMA_MIGRATION", "false").lower() in ("true", "1", "yes")
+
+        if not is_sqlite and not is_pytest and not run_migration:
+            _VERIFIED_ENGINES.add(engine_key)
+            return
+
         Base.metadata.create_all(bind=bind, checkfirst=True)
         if "sqlite" not in engine_key:
             with bind.begin() as conn:
@@ -576,7 +584,7 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
 
     try:
         _ensure_users_table_ready(db)
-        db_user = db.query(User).filter(User.email.ilike(email)).first()
+        db_user = db.query(User).filter(User.email == email.strip().lower()).first()
         if db_user:
             if not db_user.is_active:
                 raise HTTPException(
@@ -853,7 +861,7 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
                 detail="Invalid or expired email verification OTP.",
             )
 
-    existing = db.query(User).filter(User.email.ilike(clean_email)).first()
+    existing = db.query(User).filter(User.email == clean_email).first()
     now_utc = datetime.now(timezone.utc)
 
     if existing:
@@ -920,7 +928,7 @@ def update_user_profile(
     """Update an authenticated user's hostel, room number, phone, or display name in Supabase."""
     _ensure_users_table_ready(db)
     clean_email = (email or "").strip().lower()
-    user = db.query(User).filter(User.email.ilike(clean_email)).first()
+    user = db.query(User).filter(User.email == clean_email).first()
 
     if not user:
         meta = resolve_user_metadata(clean_email)
@@ -969,7 +977,7 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
             detail=f"Access restricted. Only institutional @{IIITNR_DOMAIN} emails are permitted.",
         )
 
-    db_user = db.query(User).filter(User.email.ilike(clean_email)).first()
+    db_user = db.query(User).filter(User.email == clean_email).first()
     _check_account_lockout(clean_email, db_user)
     now_utc = datetime.now(timezone.utc)
 
@@ -1026,7 +1034,7 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
             db.refresh(db_user)
         except Exception:
             db.rollback()
-            db_user = db.query(User).filter(User.email.ilike(clean_email)).first()
+            db_user = db.query(User).filter(User.email == clean_email).first()
             if not db_user or not verify_password(req.password, db_user.hashed_password or ""):
                 _record_failed_login(clean_email, db_user, db)
                 raise HTTPException(
@@ -1050,7 +1058,7 @@ def refresh_user_session(refresh_token: str, remember_me: bool, db: Session) -> 
 
     email = payload["sub"]
     _ensure_users_table_ready(db)
-    user = db.query(User).filter(User.email.ilike(email)).first()
+    user = db.query(User).filter(User.email == email.strip().lower()).first()
     if user:
         if not user.is_active:
             raise HTTPException(
@@ -1088,7 +1096,7 @@ def change_user_password(
 ) -> UserResponse:
     """Allow an authenticated user to update their account password in Supabase."""
     _ensure_users_table_ready(db)
-    user = db.query(User).filter(User.email.ilike(email.strip().lower())).first()
+    user = db.query(User).filter(User.email == email.strip().lower()).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -1127,7 +1135,7 @@ def get_current_user_from_token(token: str, db: Session) -> UserResponse:
     email = payload["sub"]
     try:
         _ensure_users_table_ready(db)
-        user = db.query(User).filter(User.email.ilike(email)).first()
+        user = db.query(User).filter(User.email == email.strip().lower()).first()
         if user:
             if not user.is_active:
                 raise HTTPException(
@@ -1184,7 +1192,7 @@ def add_admin_user(admin_data: AdminCreateRequest, db: Session) -> User:
     """Create a new facility admin or technician with bcrypt password hashing."""
     _ensure_users_table_ready(db)
     clean_email = admin_data.email.strip().lower()
-    existing = db.query(User).filter(User.email.ilike(clean_email)).first()
+    existing = db.query(User).filter(User.email == clean_email).first()
     raw_password = admin_data.password or "IIITNR@2026"
     hashed_pw = hash_password(raw_password)
 

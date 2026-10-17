@@ -6,7 +6,7 @@ Role: REST routes for student complaint submission (POST), status tracking by co
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_db, get_optional_current_user
 from app.core.config import settings
@@ -188,6 +188,7 @@ def track_complaint(
     """
     ticket = (
         db.query(Ticket)
+        .options(joinedload(Ticket.department), joinedload(Ticket.assigned_team))
         .filter(Ticket.tracking_code == tracking_code.strip().upper())
         .first()
     )

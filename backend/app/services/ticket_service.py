@@ -213,7 +213,7 @@ def list_tickets(
     if status:
         query = query.filter(Ticket.status == status.strip().upper())
     if student_email:
-        query = query.filter(Ticket.student_email.ilike(student_email.strip()))
+        query = query.filter(Ticket.student_email == student_email.strip().lower())
     if assigned_team_id is not None:
         query = query.filter(Ticket.assigned_team_id == assigned_team_id)
     return query.order_by(Ticket.created_at.desc()).offset(skip).limit(limit).all()

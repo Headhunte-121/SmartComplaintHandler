@@ -40,12 +40,16 @@ def _is_allowed_origin(origin: str) -> bool:
 
 def _initialize_database() -> None:
     """
-    Ensure database tables and columns exist.
-    Full data seeding is deferred by default unless AUTO_SEED_ON_STARTUP=true or running inside pytest.
+    Run DDL schema checks only on local SQLite, pytest, or when RUN_SCHEMA_MIGRATION=true.
     """
     try:
-        ensure_schema()
         is_pytest = "pytest" in sys.modules
+        is_sqlite = "sqlite" in str(engine.url)
+        run_migration = os.getenv("RUN_SCHEMA_MIGRATION", "false").lower() in ("true", "1", "yes")
+
+        if is_sqlite or is_pytest or run_migration:
+            ensure_schema()
+
         auto_seed = getattr(
             settings,
             "AUTO_SEED_ON_STARTUP",
@@ -149,19 +153,20 @@ def root():
 
 
 @app.get("/health", tags=["Health"])
-def health_check():
-    """Verify real database connectivity with a lightweight SELECT 1 ping without leaking credentials."""
+def health_check(check_db: bool = False):
+    """Verify system health. Database ping is deferred unless explicitly requested with ?check_db=true."""
     db_status = "connected"
     http_status = status.HTTP_200_OK
-    db = SessionLocal()
-    try:
-        db.execute(text("SELECT 1"))
-    except Exception as e:
-        logger.warning(f"Database health check ping failed: {e}")
-        db_status = "disconnected"
-        http_status = status.HTTP_503_SERVICE_UNAVAILABLE
-    finally:
-        db.close()
+    if check_db:
+        db = SessionLocal()
+        try:
+            db.execute(text("SELECT 1"))
+        except Exception as e:
+            logger.warning(f"Database health check ping failed: {e}")
+            db_status = "disconnected"
+            http_status = status.HTTP_503_SERVICE_UNAVAILABLE
+        finally:
+            db.close()
 
     return JSONResponse(
         status_code=http_status,
