@@ -13,22 +13,22 @@ export default function Layout() {
     return <Navigate to="/login" replace />;
   }
 
-  const isMapPage = location.pathname === '/' || location.pathname === '/map';
+  const isDarkPage = location.pathname === '/' || location.pathname === '/map' || location.pathname === '/submit';
 
   return (
     <div
       className={`min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-200 ${
-        isMapPage
+        isDarkPage
           ? 'bg-[#090D16] text-slate-100'
           : 'bg-[#EDF3EF] text-slate-800'
       }`}
     >
-      <Navbar isDark={isMapPage} />
-      <main className={`flex-1 w-full ${isMapPage ? 'p-0 m-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
+      <Navbar isDark={isDarkPage} />
+      <main className={`flex-1 w-full ${isDarkPage ? 'p-0 m-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
         <Outlet />
       </main>
       <PersonaSwitcherModal />
-      <Footer isDark={isMapPage} />
+      <Footer isDark={isDarkPage} />
     </div>
   );
 }

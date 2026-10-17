@@ -1,5 +1,6 @@
 /**
- * SmartComplaintHandler - Submit Maintenance Request Workstation (Modern SaaS UI)
+ * SmartComplaintHandler - Submit Maintenance Request Workstation
+ * Flush Edge-to-Edge Dark Command Twin Layout with Consistent Institutional Palette
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -158,7 +159,6 @@ export default function SubmitComplaint() {
   const handlePickSpotResult = (item) => {
     setBuilding(item.buildingName);
     if (item.floorId) setSelectedFloor(String(item.floorId));
-    if (item.wingId) setSelectedWing(item.wingId);
     const nextRoom = item.roomName || item.title;
     setSpecificLocation(nextRoom);
     setCustomRoomOverride('');
@@ -212,543 +212,549 @@ export default function SubmitComplaint() {
   const resolvedRoomLabel = customRoomOverride.trim() || specificLocation;
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12 relative">
-      {/* Ambient background glow for visual depth */}
-      <div className="absolute -top-10 left-1/4 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute top-40 right-10 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
+    <div className="w-full bg-[#080C14] text-white min-h-screen flex flex-col space-y-0 animate-fade-in">
+      {/* Flush Command Deck Hero Header */}
+      <div className="w-full bg-[#0B0F19] border-b border-slate-800/80 px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden">
+        {/* Ambient background glow auras */}
+        <div className="absolute -right-24 -bottom-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-24 -top-24 w-96 h-96 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
 
-      {/* Clean Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200/80 pb-5">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/90 text-xs font-bold text-emerald-800 mb-2 shadow-2xs">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span>Smart Maintenance Dispatch</span>
-            <span className="text-emerald-300">·</span>
-            <span className="font-mono text-[11px] text-emerald-700">Auto-Triage Active</span>
+        <div className="w-full flex flex-col sm:flex-row sm:items-end justify-between gap-6 relative z-10">
+          <div className="space-y-3">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold shadow-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span>Smart Maintenance Dispatch</span>
+              <span className="text-emerald-500">·</span>
+              <span className="font-mono text-[11px] text-emerald-400">Auto-Triage Active</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
+              Submit Maintenance Request
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
+              Confirm the location and describe the issue—category, squad, and SLA priority are detected automatically.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-            Submit Maintenance Request
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-600 mt-1">
-            Confirm the location and describe the issue—category, squad, and SLA priority are detected automatically.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsMapModalOpen(true)}
-            className="btn-botanical-moss shadow-sm"
-          >
-            <svg className="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
-            <span>Open Digital Twin Map</span>
-          </button>
-          <Link
-            to="/student"
-            className="btn-botanical-secondary"
-          >
-            My Requests →
-          </Link>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsMapModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-emerald-400 hover:text-emerald-300 font-bold text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+            >
+              <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span>Open Digital Twin Map</span>
+            </button>
+            <Link
+              to="/student"
+              className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+            >
+              My Requests →
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Main 2-Column Workstation */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <form
-          onSubmit={handleSubmit}
-          className="lg:col-span-7 bento-card p-6 sm:p-7 space-y-6 relative overflow-hidden"
-        >
-          {/* Top card accent line */}
-          <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500" />
+      {/* Flush Workstation Layout */}
+      <div className="w-full bg-[#080C14] px-4 sm:px-8 lg:px-12 py-10">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Main Request Form */}
+          <form
+            onSubmit={handleSubmit}
+            className="lg:col-span-7 p-6 sm:p-8 space-y-6 bg-[#0B101D] border border-slate-800 shadow-2xl rounded-2xl relative overflow-hidden text-white"
+          >
+            {/* Top card accent line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400" />
 
-          {error && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs font-semibold text-rose-800 shadow-2xs">
-              {error}
-            </div>
-          )}
-
-          {residenceSavedNotice && (
-            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs font-bold text-emerald-800 shadow-2xs">
-              ✓ {residenceSavedNotice}
-            </div>
-          )}
-
-          {/* STEP 1: Streamlined 3-Mode Location Selector */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-[0_2px_8px_rgba(22,163,74,0.35)] ring-4 ring-emerald-50">
-                  1
-                </span>
-                <span className="text-sm font-black text-slate-900 tracking-tight">
-                  Location
-                </span>
+            {error && (
+              <div className="rounded-xl bg-rose-950/80 border border-rose-800/80 p-3.5 text-xs font-semibold text-rose-300 shadow-xs">
+                {error}
               </div>
+            )}
 
-              {/* 3-Mode Segmented Pill Bar with Distinct Borders & Shadows */}
-              <div className="inline-flex items-center p-1.5 rounded-2xl bg-slate-100 border-2 border-slate-300 gap-1.5 shadow-inner">
-                <button
-                  type="button"
-                  onClick={handleUseMySavedRoom}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                    locationMode === 'MY_ROOM'
-                      ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white font-black shadow-md shadow-emerald-700/30 border-2 border-emerald-500 scale-[1.02]'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-bold border-2 border-slate-300 hover:border-slate-400 shadow-xs hover:shadow-sm'
-                  }`}
-                >
-                  <span>🏠 My Room</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLocationMode('SEARCH')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                    locationMode === 'SEARCH'
-                      ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white font-black shadow-md shadow-emerald-700/30 border-2 border-emerald-500 scale-[1.02]'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-bold border-2 border-slate-300 hover:border-slate-400 shadow-xs hover:shadow-sm'
-                  }`}
-                >
-                  <span>🔍 Quick Search</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLocationMode('BROWSE')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                    locationMode === 'BROWSE'
-                      ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white font-black shadow-md shadow-emerald-700/30 border-2 border-emerald-500 scale-[1.02]'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-bold border-2 border-slate-300 hover:border-slate-400 shadow-xs hover:shadow-sm'
-                  }`}
-                >
-                  <span>🗺️ Browse / Map</span>
-                </button>
+            {residenceSavedNotice && (
+              <div className="rounded-xl bg-emerald-950/80 border border-emerald-800/80 p-3 text-xs font-bold text-emerald-300 shadow-xs">
+                ✓ {residenceSavedNotice}
               </div>
-            </div>
+            )}
 
-            {/* MODE A: 1-Tap My Saved Room Card */}
-            {locationMode === 'MY_ROOM' && (
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-green-50/40 to-white border-2 border-emerald-300 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start sm:items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-md shadow-emerald-600/30 flex items-center justify-center shrink-0 border border-emerald-400">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-emerald-700 text-white font-black shadow-xs">
-                        Saved Residence
-                      </span>
-                      <span className="text-xs font-mono font-bold text-emerald-900 bg-white px-2 py-0.5 rounded-md border border-emerald-300 shadow-2xs">
-                        {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
-                      </span>
-                    </div>
-                    <div className="text-base font-black text-slate-900 mt-1">
-                      {activeBuildingObj?.name || savedHostel}
-                    </div>
-                    <div className="text-xs font-mono text-emerald-800 font-extrabold mt-0.5 flex items-center gap-1">
-                      <span>📍</span>
-                      <span>{resolvedRoomLabel}</span>
-                    </div>
-                  </div>
+            {/* STEP 1: Streamlined 3-Mode Location Selector */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-7 h-7 rounded-xl bg-emerald-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-xs ring-4 ring-emerald-950/80">
+                    1
+                  </span>
+                  <span className="text-sm font-black text-white tracking-tight">
+                    Location
+                  </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                {/* 3-Mode Segmented Pill Bar */}
+                <div className="inline-flex items-center p-1.5 rounded-2xl bg-slate-950 border border-slate-800 gap-1.5 shadow-inner">
+                  <button
+                    type="button"
+                    onClick={handleUseMySavedRoom}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                      locationMode === 'MY_ROOM'
+                        ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-md border border-emerald-500/50'
+                        : 'bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    <span>🏠 My Room</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setLocationMode('SEARCH')}
-                    className="btn-botanical-secondary"
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                      locationMode === 'SEARCH'
+                        ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-md border border-emerald-500/50'
+                        : 'bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
                   >
-                    Search Other Spot
+                    <span>🔍 Quick Search</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIsMapModalOpen(true)}
-                    className="btn-botanical-moss"
+                    onClick={() => setLocationMode('BROWSE')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                      locationMode === 'BROWSE'
+                        ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-md border border-emerald-500/50'
+                        : 'bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
                   >
-                    Pick on Map
+                    <span>🗺️ Browse / Map</span>
                   </button>
                 </div>
               </div>
-            )}
 
-            {/* MODE B: Inline Omni-Search */}
-            {locationMode === 'SEARCH' && (
-              <div className="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={spotQuery}
-                    onChange={(e) => setSpotQuery(e.target.value)}
-                    placeholder="Search room number, lab, or block (e.g. '303', '131C', 'VLSI', 'Canteen', 'Room 204')..."
-                    className="enterprise-input pl-9 py-2.5 text-xs sm:text-sm bg-white border-slate-200 focus:border-green-500"
-                  />
-                  <svg className="w-4 h-4 text-green-600 absolute left-3 top-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  {spotQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSpotQuery('')}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-800 text-xs font-bold cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 shrink-0 font-semibold">
-                    Popular:
-                  </span>
-                  {QUICK_SPOT_CHIPS.map((chip) => (
-                    <button
-                      key={chip.query}
-                      type="button"
-                      onClick={() => {
-                        const matches = queryCampusSearchIndex(chip.query, searchIndex, 1);
-                        if (matches.length > 0) handlePickSpotResult(matches[0]);
-                      }}
-                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 border-2 border-slate-200 hover:border-emerald-400 text-xs font-bold shrink-0 cursor-pointer transition-all shadow-xs hover:shadow-sm"
-                    >
-                      {chip.label}
-                    </button>
-                  ))}
-                </div>
-
-                {spotQuery.trim().length > 0 && (
-                  <div className="rounded-xl bg-white border border-slate-200 divide-y divide-slate-100 max-h-60 overflow-y-auto shadow-lg">
-                    {spotResults.length === 0 ? (
-                      <div className="p-4 text-center text-xs text-slate-500">
-                        No matching room or building found. Use Browse mode for custom spots.
+              {/* MODE A: 1-Tap My Saved Room Card */}
+              {locationMode === 'MY_ROOM' && (
+                <div className="p-5 rounded-2xl bg-slate-950/90 border border-slate-800 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start sm:items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-700/60 text-emerald-400 shadow-md flex items-center justify-center shrink-0">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold shadow-xs">
+                          Saved Residence
+                        </span>
+                        <span className="text-xs font-mono font-bold text-slate-300 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">
+                          {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
+                        </span>
                       </div>
-                    ) : (
-                      spotResults.map((item, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handlePickSpotResult(item)}
-                          className="w-full text-left px-3.5 py-2.5 hover:bg-green-50/60 transition-colors flex items-center justify-between gap-3 cursor-pointer"
-                        >
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-100 text-green-800 border border-slate-200">
-                                {item.badge}
-                              </span>
-                              <span className="text-xs font-bold text-slate-900">
-                                {item.title}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{item.subtitle}</p>
-                          </div>
-                          <span className="text-[11px] font-mono text-green-700 font-semibold shrink-0">
-                            Select →
-                          </span>
-                        </button>
-                      ))
-                    )}
+                      <div className="text-base font-black text-white mt-1">
+                        {activeBuildingObj?.name || savedHostel}
+                      </div>
+                      <div className="text-xs font-mono text-emerald-400 font-bold mt-0.5 flex items-center gap-1">
+                        <span>📍</span>
+                        <span>{resolvedRoomLabel}</span>
+                      </div>
+                    </div>
                   </div>
-                )}
 
-                <div className="p-3 rounded-xl bg-white border border-green-200 flex items-center justify-between gap-2 text-xs shadow-2xs">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-green-100 text-green-800 font-mono font-bold text-[10px] uppercase">
-                      Selected
-                    </span>
-                    <span className="font-bold text-slate-900">{activeBuildingObj?.shortName || building}</span>
-                    <span className="text-slate-400">·</span>
-                    <span className="font-mono text-green-700 font-bold">{resolvedRoomLabel}</span>
+                  <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setLocationMode('SEARCH')}
+                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Search Other Spot
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsMapModalOpen(true)}
+                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-emerald-800 text-emerald-400 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>🗺️</span>
+                      <span>Pick on Map</span>
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsMapModalOpen(true)}
-                    className="text-[11px] font-semibold text-green-700 hover:underline shrink-0 cursor-pointer"
-                  >
-                    View on Map →
-                  </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* MODE C: Browse Building, Floor & Room */}
-            {locationMode === 'BROWSE' && (
-              <div className="space-y-3.5 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="sm:col-span-2">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label htmlFor="building" className="block text-xs font-semibold text-slate-700">
-                        Hostel or Campus Building
-                      </label>
+              {/* MODE B: Inline Omni-Search */}
+              {locationMode === 'SEARCH' && (
+                <div className="space-y-3 p-4 rounded-xl bg-slate-950/90 border border-slate-800">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={spotQuery}
+                      onChange={(e) => setSpotQuery(e.target.value)}
+                      placeholder="Search room number, lab, or block (e.g. '303', '131C', 'VLSI', 'Canteen', 'Room 204')..."
+                      className="w-full px-4 py-2.5 pl-9 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs sm:text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-sans"
+                    />
+                    <svg className="w-4 h-4 text-emerald-400 absolute left-3 top-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    {spotQuery && (
                       <button
                         type="button"
-                        onClick={() => setIsMapModalOpen(true)}
-                        className="text-[11px] font-semibold text-green-700 hover:text-green-800 cursor-pointer"
+                        onClick={() => setSpotQuery('')}
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
                       >
-                        Pick visually on Digital Twin →
+                        ✕
                       </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 shrink-0 font-bold">
+                      Popular:
+                    </span>
+                    {QUICK_SPOT_CHIPS.map((chip) => (
+                      <button
+                        key={chip.query}
+                        type="button"
+                        onClick={() => {
+                          const matches = queryCampusSearchIndex(chip.query, searchIndex, 1);
+                          if (matches.length > 0) handlePickSpotResult(matches[0]);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white border border-slate-700 hover:border-emerald-500/60 text-xs font-bold shrink-0 cursor-pointer transition-all shadow-xs"
+                      >
+                        {chip.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {spotQuery.trim().length > 0 && (
+                    <div className="rounded-xl bg-slate-900 border border-slate-800 divide-y divide-slate-800 max-h-60 overflow-y-auto shadow-xl">
+                      {spotResults.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-slate-400">
+                          No matching room or building found. Use Browse mode for custom spots.
+                        </div>
+                      ) : (
+                        spotResults.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handlePickSpotResult(item)}
+                            className="w-full text-left px-3.5 py-2.5 hover:bg-slate-850 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          >
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-emerald-400 border border-slate-700">
+                                  {item.badge}
+                                </span>
+                                <span className="text-xs font-bold text-white">
+                                  {item.title}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-400 mt-0.5">{item.subtitle}</p>
+                            </div>
+                            <span className="text-[11px] font-mono text-emerald-400 font-bold shrink-0">
+                              Select →
+                            </span>
+                          </button>
+                        ))
+                      )}
                     </div>
-                    <select
-                      id="building"
-                      value={activeBuildingObj?.name || ''}
-                      onChange={(e) => handleSelectBuilding(e.target.value)}
-                      className="enterprise-input font-medium bg-white border-slate-200 text-slate-900"
-                    >
-                      <optgroup label="Hostels">
-                        {hostelsList.map((h) => (
-                          <option key={h.id} value={h.name}>
-                            {h.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="Academic, Labs & Campus">
-                        {nonHostelsList.map((b) => (
-                          <option key={b.id} value={b.name}>
-                            {b.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
-                  </div>
+                  )}
 
-                  <div>
-                    <label htmlFor="floorSelect" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Floor
-                    </label>
-                    <select
-                      id="floorSelect"
-                      value={selectedFloor}
-                      onChange={(e) => {
-                        const newFloor = e.target.value;
-                        setSelectedFloor(newFloor);
-                        const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, null, allBuildings);
-                        if (nextRooms.length > 0) {
-                          setSpecificLocation(nextRooms[0]);
-                          setCustomRoomOverride('');
-                        }
-                      }}
-                      className="enterprise-input bg-white border-slate-200 text-slate-900"
-                    >
-                      {availableFloors.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Campus Zone / Coordinates
-                    </label>
-                    <div className="enterprise-input bg-white border-slate-200 text-slate-700 font-mono text-xs flex items-center justify-between">
-                      <span className="text-green-700 font-bold">{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
-                      <span className="text-[11px] truncate max-w-[180px] text-slate-500">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
+                  <div className="p-3 rounded-xl bg-slate-900 border border-emerald-800/80 flex items-center justify-between gap-2 text-xs shadow-xs">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono font-bold text-[10px] uppercase">
+                        Selected
+                      </span>
+                      <span className="font-bold text-white">{activeBuildingObj?.shortName || building}</span>
+                      <span className="text-slate-500">·</span>
+                      <span className="font-mono text-emerald-400 font-bold">{resolvedRoomLabel}</span>
                     </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="specificLocation" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Room / Lab / Utility
-                    </label>
-                    <select
-                      id="specificLocation"
-                      value={specificLocation}
-                      onChange={(e) => {
-                        setSpecificLocation(e.target.value);
-                        setCustomRoomOverride('');
-                      }}
-                      className="enterprise-input bg-white border-slate-200 text-slate-900"
-                    >
-                      {availableRooms.map((rm) => (
-                        <option key={rm} value={rm}>
-                          {rm}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="customRoomOverride" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Specific Spot (Optional)
-                    </label>
-                    <input
-                      id="customRoomOverride"
-                      type="text"
-                      placeholder="e.g. Near Balcony, Tap #2"
-                      value={customRoomOverride}
-                      onChange={(e) => setCustomRoomOverride(e.target.value)}
-                      className="enterprise-input bg-white border-slate-200 text-slate-900"
-                    />
-                  </div>
-                </div>
-
-                {isHostelBuilding && (
-                  <div className="flex justify-end pt-1">
                     <button
                       type="button"
-                      onClick={handleSaveCurrentAsMyRoom}
-                      className="text-xs font-semibold text-green-800 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg border border-green-200 shadow-2xs transition-colors cursor-pointer"
+                      onClick={() => setIsMapModalOpen(true)}
+                      className="text-[11px] font-bold text-emerald-400 hover:underline shrink-0 cursor-pointer"
                     >
-                      Set as My Default Room
+                      View on Map →
                     </button>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-slate-200/80" />
-
-          {/* STEP 2: Issue Title & Details */}
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-[0_2px_8px_rgba(22,163,74,0.35)] ring-4 ring-emerald-50">
-                  2
-                </span>
-                <span className="text-sm font-black text-slate-900 tracking-tight">
-                  Issue Description
-                </span>
-              </div>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-800 bg-emerald-50/90 border border-emerald-200/80 px-2.5 py-0.5 rounded-lg font-bold shadow-2xs">
-                <span>✨ Auto-detects category &amp; SLA</span>
-              </span>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="title" className="block text-xs font-bold text-slate-700">
-                  Issue Summary
-                </label>
-                <span className="text-[11px] font-mono font-medium text-slate-400">
-                  {title.trim().length}/150
-                </span>
-              </div>
-              <input
-                id="title"
-                type="text"
-                required
-                minLength={5}
-                maxLength={150}
-                placeholder="e.g. Ceiling fan regulator broken, or LAN port dead"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                disabled={submitting}
-                className="enterprise-input text-sm rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/70 focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-xs"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="description" className="block text-xs font-bold text-slate-700">
-                  Details &amp; Observations
-                </label>
-                <span className="text-[11px] font-mono font-bold text-emerald-700">
-                  {description.trim().length >= 10 ? '✓ Auto-triage active' : 'Min 10 chars'}
-                </span>
-              </div>
-              <textarea
-                id="description"
-                required
-                minLength={10}
-                rows={4}
-                placeholder="Describe what needs repair so the assigned maintenance squad can bring the right tools..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                disabled={submitting}
-                className="enterprise-input text-sm rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/70 focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-600 resize-none leading-relaxed transition-all shadow-xs"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white text-xs sm:text-sm font-black shadow-[0_6px_20px_rgba(22,163,74,0.35)] hover:shadow-[0_8px_25px_rgba(22,163,74,0.45)] transition-all cursor-pointer disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:shadow-none hover:-translate-y-0.5 active:translate-y-0 border border-emerald-500/40"
-          >
-            {submitting
-              ? 'Submitting Request...'
-              : `Submit Request · ${activeBuildingObj?.shortName || building} (${resolvedRoomLabel})`}
-          </button>
-        </form>
-
-        {/* Right Sticky Triage & Target Summary Column */}
-        <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
-          <LiveTriageCard title={title} description={description} />
-
-          {/* Dispatch Target Card */}
-          <div className="bento-card p-5 space-y-3.5 text-xs bg-white border-2 border-slate-200/90 shadow-md rounded-3xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold">
-                Dispatch Target
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-300 font-black shadow-2xs">
-                  {activeBuildingObj?.mapPin?.badge || 'BLDG'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsMapModalOpen(true)}
-                  className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer"
-                >
-                  Change on Map →
-                </button>
-              </div>
-            </div>
-            <div className="font-black text-slate-900 text-sm">
-              {activeBuildingObj?.name || building}
-            </div>
-            <div className="font-mono text-xs text-slate-900 bg-emerald-50/80 border-2 border-emerald-300 px-3.5 py-2.5 rounded-2xl font-bold flex items-center justify-between shadow-xs">
-              <span className="flex items-center gap-1.5">
-                <span className="text-emerald-600">📍</span>
-                <span>{resolvedRoomLabel}</span>
-              </span>
-              <span className="text-[10px] text-emerald-900 font-sans font-bold bg-white px-2.5 py-0.5 rounded-md border border-emerald-300 shadow-2xs">
-                Verified ✓
-              </span>
-            </div>
-          </div>
-
-          {/* SLA Resolution Windows Matrix */}
-          <div className="bento-card p-5 space-y-3.5 text-xs bg-white border-2 border-slate-200/90 shadow-md rounded-3xl relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-600 uppercase tracking-wider font-mono text-[10px] block">
-                SLA Resolution Windows
-              </span>
-              <span className="text-[10px] font-mono text-slate-400 font-bold">Response Matrix</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5 text-[11px]">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-50 to-rose-50/30 border-2 border-rose-300 flex items-center justify-between shadow-xs hover:shadow-sm hover:border-rose-400 transition-all">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                  <span className="font-bold text-rose-800">CRITICAL</span>
                 </div>
-                <span className="text-rose-950 font-mono font-bold bg-white px-2 py-0.5 rounded-lg border-2 border-rose-300 shadow-2xs">2h</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-50/30 border-2 border-amber-300 flex items-center justify-between shadow-xs hover:shadow-sm hover:border-amber-400 transition-all">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  <span className="font-bold text-amber-800">HIGH</span>
+              )}
+
+              {/* MODE C: Browse Building, Floor & Room */}
+              {locationMode === 'BROWSE' && (
+                <div className="space-y-3.5 p-4 rounded-xl bg-slate-950/90 border border-slate-800">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="sm:col-span-2">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label htmlFor="building" className="block text-xs font-bold text-slate-300">
+                          Hostel or Campus Building
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setIsMapModalOpen(true)}
+                          className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 cursor-pointer"
+                        >
+                          Pick visually on Digital Twin →
+                        </button>
+                      </div>
+                      <select
+                        id="building"
+                        value={activeBuildingObj?.name || ''}
+                        onChange={(e) => handleSelectBuilding(e.target.value)}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs sm:text-sm focus:border-emerald-400 focus:outline-none"
+                      >
+                        <optgroup label="Hostels">
+                          {hostelsList.map((h) => (
+                            <option key={h.id} value={h.name} className="bg-slate-900 text-white">
+                              {h.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Academic, Labs & Campus">
+                          {nonHostelsList.map((b) => (
+                            <option key={b.id} value={b.name} className="bg-slate-900 text-white">
+                              {b.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="floorSelect" className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Floor
+                      </label>
+                      <select
+                        id="floorSelect"
+                        value={selectedFloor}
+                        onChange={(e) => {
+                          const newFloor = e.target.value;
+                          setSelectedFloor(newFloor);
+                          const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, null, allBuildings);
+                          if (nextRooms.length > 0) {
+                            setSpecificLocation(nextRooms[0]);
+                            setCustomRoomOverride('');
+                          }
+                        }}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs sm:text-sm focus:border-emerald-400 focus:outline-none"
+                      >
+                        {availableFloors.map((f) => (
+                          <option key={f.id} value={f.id} className="bg-slate-900 text-white">
+                            {f.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Campus Zone / Coordinates
+                      </label>
+                      <div className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-mono text-xs flex items-center justify-between">
+                        <span className="text-emerald-400 font-bold">{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
+                        <span className="text-[11px] truncate max-w-[180px] text-slate-400">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="specificLocation" className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Room / Lab / Utility
+                      </label>
+                      <select
+                        id="specificLocation"
+                        value={specificLocation}
+                        onChange={(e) => {
+                          setSpecificLocation(e.target.value);
+                          setCustomRoomOverride('');
+                        }}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs sm:text-sm focus:border-emerald-400 focus:outline-none"
+                      >
+                        {availableRooms.map((rm) => (
+                          <option key={rm} value={rm} className="bg-slate-900 text-white">
+                            {rm}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="customRoomOverride" className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Specific Spot (Optional)
+                      </label>
+                      <input
+                        id="customRoomOverride"
+                        type="text"
+                        placeholder="e.g. Near Balcony, Tap #2"
+                        value={customRoomOverride}
+                        onChange={(e) => setCustomRoomOverride(e.target.value)}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs sm:text-sm focus:border-emerald-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {isHostelBuilding && (
+                    <div className="flex justify-end pt-1">
+                      <button
+                        type="button"
+                        onClick={handleSaveCurrentAsMyRoom}
+                        className="text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/60 hover:bg-emerald-950 border border-emerald-800 px-3 py-1.5 rounded-lg shadow-xs transition-colors cursor-pointer"
+                      >
+                        Set as My Default Room
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <span className="text-amber-950 font-mono font-bold bg-white px-2 py-0.5 rounded-lg border-2 border-amber-300 shadow-2xs">8h</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-50/30 border-2 border-sky-300 flex items-center justify-between shadow-xs hover:shadow-sm hover:border-sky-400 transition-all">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
-                  <span className="font-bold text-sky-800">MEDIUM</span>
+              )}
+            </div>
+
+            <div className="border-t border-slate-800/80" />
+
+            {/* STEP 2: Issue Title & Details */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-7 h-7 rounded-xl bg-emerald-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-xs ring-4 ring-emerald-950/80">
+                    2
+                  </span>
+                  <span className="text-sm font-black text-white tracking-tight">
+                    Issue Description
+                  </span>
                 </div>
-                <span className="text-sky-950 font-mono font-bold bg-white px-2 py-0.5 rounded-lg border-2 border-sky-300 shadow-2xs">24h</span>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2.5 py-0.5 rounded-lg font-bold shadow-xs">
+                  <span>✨ Auto-detects category &amp; SLA</span>
+                </span>
               </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-50/30 border-2 border-emerald-300 flex items-center justify-between shadow-xs hover:shadow-sm hover:border-emerald-400 transition-all">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  <span className="font-bold text-emerald-800">LOW</span>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="title" className="block text-xs font-bold text-slate-300">
+                    Issue Summary
+                  </label>
+                  <span className="text-[11px] font-mono font-medium text-slate-500">
+                    {title.trim().length}/150
+                  </span>
                 </div>
-                <span className="text-emerald-950 font-mono font-bold bg-white px-2 py-0.5 rounded-lg border-2 border-emerald-300 shadow-2xs">72h</span>
+                <input
+                  id="title"
+                  type="text"
+                  required
+                  minLength={5}
+                  maxLength={150}
+                  placeholder="e.g. Ceiling fan regulator broken, or LAN port dead"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all shadow-xs"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="description" className="block text-xs font-bold text-slate-300">
+                    Details &amp; Observations
+                  </label>
+                  <span className="text-[11px] font-mono font-bold text-emerald-400">
+                    {description.trim().length >= 10 ? '✓ Auto-triage active' : 'Min 10 chars'}
+                  </span>
+                </div>
+                <textarea
+                  id="description"
+                  required
+                  minLength={10}
+                  rows={4}
+                  placeholder="Describe what needs repair so the assigned maintenance squad can bring the right tools..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 resize-none leading-relaxed transition-all shadow-xs"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-black text-sm shadow-lg shadow-emerald-700/30 border border-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submitting
+                ? 'Submitting Request...'
+                : `Submit Request · ${activeBuildingObj?.shortName || building} (${resolvedRoomLabel})`}
+            </button>
+          </form>
+
+          {/* Right Sticky Triage & Target Summary Column */}
+          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
+            <LiveTriageCard title={title} description={description} />
+
+            {/* Dispatch Target Card */}
+            <div className="p-5 sm:p-6 space-y-3.5 bg-[#0B101D] border border-slate-800 shadow-2xl rounded-2xl relative overflow-hidden text-white">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+                  Dispatch Target
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg bg-slate-900 text-emerald-400 border border-slate-700 font-bold shadow-xs">
+                    {activeBuildingObj?.mapPin?.badge || 'BLDG'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsMapModalOpen(true)}
+                    className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer"
+                  >
+                    Change on Map →
+                  </button>
+                </div>
+              </div>
+              <div className="font-black text-white text-sm">
+                {activeBuildingObj?.name || building}
+              </div>
+              <div className="font-mono text-xs text-white bg-slate-950 border border-emerald-800/80 px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between shadow-xs">
+                <span className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">📍</span>
+                  <span>{resolvedRoomLabel}</span>
+                </span>
+                <span className="text-[10px] text-emerald-400 font-sans font-bold bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-800">
+                  Verified ✓
+                </span>
+              </div>
+            </div>
+
+            {/* SLA Resolution Windows Matrix */}
+            <div className="p-5 sm:p-6 space-y-3.5 bg-[#0B101D] border border-slate-800 shadow-2xl rounded-2xl relative overflow-hidden text-white">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-300 uppercase tracking-wider font-mono text-[10px] block">
+                  SLA Resolution Windows
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 font-bold">Response Matrix</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 text-[11px]">
+                <div className="p-3 rounded-xl bg-slate-950 border border-rose-900/60 flex items-center justify-between shadow-xs hover:border-rose-800 transition-all">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                    <span className="font-bold text-rose-300">CRITICAL</span>
+                  </div>
+                  <span className="text-rose-300 font-mono font-bold bg-rose-950/80 px-2 py-0.5 rounded-lg border border-rose-800 shadow-xs">2h</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950 border border-amber-900/60 flex items-center justify-between shadow-xs hover:border-amber-800 transition-all">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                    <span className="font-bold text-amber-300">HIGH</span>
+                  </div>
+                  <span className="text-amber-300 font-mono font-bold bg-amber-950/80 px-2 py-0.5 rounded-lg border border-amber-800 shadow-xs">8h</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950 border border-sky-900/60 flex items-center justify-between shadow-xs hover:border-sky-800 transition-all">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
+                    <span className="font-bold text-sky-300">MEDIUM</span>
+                  </div>
+                  <span className="text-sky-300 font-mono font-bold bg-sky-950/80 px-2 py-0.5 rounded-lg border border-sky-800 shadow-xs">24h</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950 border border-emerald-900/60 flex items-center justify-between shadow-xs hover:border-emerald-800 transition-all">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                    <span className="font-bold text-emerald-300">LOW</span>
+                  </div>
+                  <span className="text-emerald-300 font-mono font-bold bg-emerald-950/80 px-2 py-0.5 rounded-lg border border-emerald-800 shadow-xs">72h</span>
+                </div>
               </div>
             </div>
           </div>
@@ -758,18 +764,18 @@ export default function SubmitComplaint() {
       {/* Interactive Map Picker Modal */}
       {isMapModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/80 backdrop-blur-md animate-fade-in"
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsMapModalOpen(false);
           }}
         >
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-3 shrink-0">
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden text-white">
+            <div className="px-5 py-3.5 border-b border-slate-800 bg-[#0B0F19] flex items-center justify-between gap-3 shrink-0">
               <div>
-                <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                <h2 className="text-sm sm:text-base font-bold text-white">
                   Campus Digital Twin — Location Picker
                 </h2>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-400">
                   Click any building, floor, or room to lock in your complaint location
                 </p>
               </div>
@@ -778,14 +784,14 @@ export default function SubmitComplaint() {
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
                   Confirm Selection
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="w-8 h-8 rounded-lg bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center text-xs cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 flex items-center justify-center text-xs cursor-pointer transition-colors"
                   title="Close Map (Esc)"
                 >
                   ✕
@@ -793,8 +799,9 @@ export default function SubmitComplaint() {
               </div>
             </div>
 
-            <div className="p-3 sm:p-4 overflow-y-auto flex-1 bg-slate-50">
+            <div className="p-2 sm:p-3 overflow-y-auto flex-1 bg-slate-950">
               <CampusMapSelector
+                flush={true}
                 selectedBuilding={activeBuildingObj?.name}
                 onSelectBuilding={(bName) => {
                   handleSelectBuilding(bName);

@@ -21,7 +21,7 @@ export default function Navbar({ isDark = false }) {
     isSuperAdmin,
   } = useAuth();
 
-  const isDarkTheme = isDark || location.pathname === '/' || location.pathname === '/map';
+  const isDarkTheme = isDark || location.pathname === '/' || location.pathname === '/map' || location.pathname === '/submit';
 
   const [backendHealthy, setBackendHealthy] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
