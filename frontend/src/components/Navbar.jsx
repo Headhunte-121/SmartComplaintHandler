@@ -26,7 +26,8 @@ export default function Navbar({ isDark = false }) {
     location.pathname === '/' ||
     location.pathname === '/map' ||
     location.pathname === '/submit' ||
-    location.pathname === '/student';
+    location.pathname === '/student' ||
+    location.pathname === '/track';
 
   const [backendHealthy, setBackendHealthy] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

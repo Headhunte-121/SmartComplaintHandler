@@ -17,7 +17,8 @@ export default function Layout() {
     location.pathname === '/' ||
     location.pathname === '/map' ||
     location.pathname === '/submit' ||
-    location.pathname === '/student';
+    location.pathname === '/student' ||
+    location.pathname === '/track';
 
   return (
     <div
