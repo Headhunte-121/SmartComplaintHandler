@@ -17,7 +17,7 @@ def _normalize_database_url(raw_url: str) -> str:
     Normalize Postgres connection strings for SQLAlchemy 2.0 and strip unsupported
     PgBouncer query parameters (`pgbouncer=true`, `connection_limit`) that cause psycopg2 errors.
     """
-    url = (raw_url or "sqlite:///./smart_complaints.db").strip()
+    url = (raw_url or "sqlite:///./smart_complaints.db").strip().strip('"').strip("'")
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql://", 1)
 

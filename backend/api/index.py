@@ -9,8 +9,18 @@ for path in [backend_dir, api_dir, os.getcwd()]:
     if path and path not in sys.path:
         sys.path.insert(0, path)
 
-# Export `app` ONLY. Do NOT export `handler = app` because @vercel/python treats `handler`
-# as a BaseHTTPRequestHandler class and crashes with TypeError on ASGI FastAPI instances!
-from app.main import app
+try:
+    from app.main import app
+except Exception as e:
+    import traceback
+    tb = traceback.format_exc()
+    from fastapi import FastAPI
+    from fastapi.responses import PlainTextResponse
+
+    app = FastAPI(title="Diagnostic Startup Fallback")
+
+    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
+    def error_fallback(path: str = ""):
+        return PlainTextResponse(f"BACKEND COLD START ERROR:\n{tb}", status_code=500)
 
 __all__ = ["app"]

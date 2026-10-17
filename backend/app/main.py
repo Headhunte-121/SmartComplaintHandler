@@ -70,7 +70,10 @@ def _initialize_database() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    _initialize_database()
+    try:
+        _initialize_database()
+    except Exception as exc:
+        logger.error(f"Lifespan database startup exception caught: {exc}", exc_info=True)
     yield
 
 
