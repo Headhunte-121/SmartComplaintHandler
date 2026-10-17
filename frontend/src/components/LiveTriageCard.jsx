@@ -115,7 +115,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
   if (cleanTitle.length < 5 || cleanDesc.length < 10) {
     return (
-      <div className="bento-card p-5 space-y-4 bg-gradient-to-br from-white via-slate-50/50 to-emerald-50/30 border border-slate-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06),0_10px_25px_-5px_rgba(22,163,74,0.05)] rounded-2xl relative overflow-hidden">
+      <div className="bento-card p-5 space-y-4 bg-gradient-to-br from-white via-slate-50/50 to-emerald-50/30 border-2 border-slate-200/90 shadow-md rounded-3xl relative overflow-hidden">
         {/* Subtle top accent bar */}
         <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500" />
 
@@ -142,13 +142,13 @@ export default function LiveTriageCard({ title = '', description = '' }) {
         </p>
 
         {/* Vibrant Domain Accent Badges */}
-        <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
+        <div className="grid grid-cols-3 gap-2.5 pt-1 text-[11px]">
           {STANDBY_DOMAINS.map((dom) => (
             <div
               key={dom.name}
-              className={`px-2.5 py-2 rounded-xl ${dom.cls} flex items-center justify-center gap-1.5 cursor-default transition-all`}
+              className={`px-3 py-2.5 rounded-2xl ${dom.cls} flex items-center justify-center gap-1.5 cursor-default transition-all`}
             >
-              <span>{dom.icon}</span>
+              <span className="text-sm">{dom.icon}</span>
               <span className="font-bold truncate">{dom.name}</span>
             </div>
           ))}
@@ -177,7 +177,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
   const priorityKey = (triageData.priority || 'MEDIUM').toUpperCase();
 
   return (
-    <div className={`bento-card p-5 space-y-4 bg-gradient-to-br ${domainInfo.gradient} border ${domainInfo.border} shadow-[0_4px_24px_-4px_rgba(15,23,42,0.08),0_12px_32px_-6px_rgba(22,163,74,0.08)] rounded-2xl relative overflow-hidden`}>
+    <div className={`bento-card p-5 space-y-4 bg-gradient-to-br ${domainInfo.gradient} border-2 ${domainInfo.border} shadow-md rounded-3xl relative overflow-hidden`}>
       {/* Top accent line */}
       <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500" />
 
@@ -202,9 +202,9 @@ export default function LiveTriageCard({ title = '', description = '' }) {
       )}
 
       {/* Target Department Banner with Rich Depth */}
-      <div className="p-3.5 rounded-xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-white/95 backdrop-blur-sm border-2 border-slate-200 shadow-xs flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-base shadow-2xs">
+          <span className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg shadow-2xs border border-slate-200">
             {domainInfo.icon}
           </span>
           <div>

@@ -290,72 +290,73 @@ export default function SubmitComplaint() {
                 </span>
               </div>
 
-              {/* 3-Mode Segmented Pill Bar */}
-              <div className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 gap-1 shadow-2xs">
+              {/* 3-Mode Segmented Pill Bar with Distinct Borders & Shadows */}
+              <div className="inline-flex items-center p-1.5 rounded-2xl bg-slate-100 border-2 border-slate-300 gap-1.5 shadow-inner">
                 <button
                   type="button"
                   onClick={handleUseMySavedRoom}
-                  className={`px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'MY_ROOM'
-                      ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold shadow-[0_2px_8px_rgba(22,163,74,0.25)]'
-                      : 'text-slate-600 hover:text-slate-900 font-medium'
+                      ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white font-black shadow-md shadow-emerald-700/30 border-2 border-emerald-500 scale-[1.02]'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-bold border-2 border-slate-300 hover:border-slate-400 shadow-xs hover:shadow-sm'
                   }`}
                 >
-                  <span>My Room</span>
+                  <span>🏠 My Room</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setLocationMode('SEARCH')}
-                  className={`px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'SEARCH'
-                      ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold shadow-[0_2px_8px_rgba(22,163,74,0.25)]'
-                      : 'text-slate-600 hover:text-slate-900 font-medium'
+                      ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white font-black shadow-md shadow-emerald-700/30 border-2 border-emerald-500 scale-[1.02]'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-bold border-2 border-slate-300 hover:border-slate-400 shadow-xs hover:shadow-sm'
                   }`}
                 >
-                  <span>Quick Search</span>
+                  <span>🔍 Quick Search</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setLocationMode('BROWSE')}
-                  className={`px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'BROWSE'
-                      ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold shadow-[0_2px_8px_rgba(22,163,74,0.25)]'
-                      : 'text-slate-600 hover:text-slate-900 font-medium'
+                      ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white font-black shadow-md shadow-emerald-700/30 border-2 border-emerald-500 scale-[1.02]'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-bold border-2 border-slate-300 hover:border-slate-400 shadow-xs hover:shadow-sm'
                   }`}
                 >
-                  <span>Browse / Map</span>
+                  <span>🗺️ Browse / Map</span>
                 </button>
               </div>
             </div>
 
             {/* MODE A: 1-Tap My Saved Room Card */}
             {locationMode === 'MY_ROOM' && (
-              <div className="p-4.5 rounded-2xl bg-gradient-to-br from-emerald-50/95 via-green-50/40 to-white border border-emerald-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-green-50/40 to-white border-2 border-emerald-300 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-[0_2px_10px_rgba(22,163,74,0.3)] flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-md shadow-emerald-600/30 flex items-center justify-center shrink-0 border border-emerald-400">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-white text-emerald-900 border border-emerald-300 font-black shadow-2xs">
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-emerald-700 text-white font-black shadow-xs">
                         Saved Residence
                       </span>
-                      <span className="text-[11px] font-mono font-bold text-emerald-800">
+                      <span className="text-xs font-mono font-bold text-emerald-900 bg-white px-2 py-0.5 rounded-md border border-emerald-300 shadow-2xs">
                         {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
                       </span>
                     </div>
-                    <div className="text-sm font-black text-slate-900 mt-1">
+                    <div className="text-base font-black text-slate-900 mt-1">
                       {activeBuildingObj?.name || savedHostel}
                     </div>
-                    <div className="text-xs font-mono text-emerald-800 font-bold mt-0.5">
-                      📍 {resolvedRoomLabel}
+                    <div className="text-xs font-mono text-emerald-800 font-extrabold mt-0.5 flex items-center gap-1">
+                      <span>📍</span>
+                      <span>{resolvedRoomLabel}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
                   <button
                     type="button"
                     onClick={() => setLocationMode('SEARCH')}
@@ -366,7 +367,7 @@ export default function SubmitComplaint() {
                   <button
                     type="button"
                     onClick={() => setIsMapModalOpen(true)}
-                    className="btn-botanical-moss shadow-xs"
+                    className="btn-botanical-moss"
                   >
                     Pick on Map
                   </button>
@@ -411,7 +412,7 @@ export default function SubmitComplaint() {
                         const matches = queryCampusSearchIndex(chip.query, searchIndex, 1);
                         if (matches.length > 0) handlePickSpotResult(matches[0]);
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-green-50 text-slate-700 hover:text-green-800 border border-slate-200 hover:border-green-300 text-[11px] font-medium shrink-0 cursor-pointer transition-all shadow-2xs"
+                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 border-2 border-slate-200 hover:border-emerald-400 text-xs font-bold shrink-0 cursor-pointer transition-all shadow-xs hover:shadow-sm"
                     >
                       {chip.label}
                     </button>
@@ -636,7 +637,7 @@ export default function SubmitComplaint() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={submitting}
-                className="enterprise-input text-sm rounded-xl focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 transition-all shadow-2xs"
+                className="enterprise-input text-sm rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/70 focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-xs"
               />
             </div>
 
@@ -658,7 +659,7 @@ export default function SubmitComplaint() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={submitting}
-                className="enterprise-input text-sm rounded-xl focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 resize-none leading-relaxed transition-all shadow-2xs"
+                className="enterprise-input text-sm rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/70 focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-600 resize-none leading-relaxed transition-all shadow-xs"
               />
             </div>
           </div>
@@ -666,7 +667,7 @@ export default function SubmitComplaint() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white text-xs sm:text-sm font-bold shadow-[0_4px_16px_rgba(22,163,74,0.35)] hover:shadow-[0_6px_20px_rgba(22,163,74,0.45)] transition-all cursor-pointer disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:shadow-none hover:-translate-y-0.5 active:translate-y-0"
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white text-xs sm:text-sm font-black shadow-[0_6px_20px_rgba(22,163,74,0.35)] hover:shadow-[0_8px_25px_rgba(22,163,74,0.45)] transition-all cursor-pointer disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:shadow-none hover:-translate-y-0.5 active:translate-y-0 border border-emerald-500/40"
           >
             {submitting
               ? 'Submitting Request...'
@@ -679,14 +680,14 @@ export default function SubmitComplaint() {
           <LiveTriageCard title={title} description={description} />
 
           {/* Dispatch Target Card */}
-          <div className="bento-card p-5 space-y-3.5 text-xs bg-white/95 border border-slate-200/90 shadow-sm rounded-2xl relative overflow-hidden">
+          <div className="bento-card p-5 space-y-3.5 text-xs bg-white border-2 border-slate-200/90 shadow-md rounded-3xl relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold">
                 Dispatch Target
               </span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold shadow-2xs">
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-300 font-black shadow-2xs">
                   {activeBuildingObj?.mapPin?.badge || 'BLDG'}
                 </span>
                 <button
@@ -701,53 +702,53 @@ export default function SubmitComplaint() {
             <div className="font-black text-slate-900 text-sm">
               {activeBuildingObj?.name || building}
             </div>
-            <div className="font-mono text-xs text-slate-900 bg-emerald-50/70 border border-emerald-200/90 px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between shadow-2xs">
+            <div className="font-mono text-xs text-slate-900 bg-emerald-50/80 border-2 border-emerald-300 px-3.5 py-2.5 rounded-2xl font-bold flex items-center justify-between shadow-xs">
               <span className="flex items-center gap-1.5">
                 <span className="text-emerald-600">📍</span>
                 <span>{resolvedRoomLabel}</span>
               </span>
-              <span className="text-[10px] text-emerald-800 font-sans font-bold bg-white px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs">
+              <span className="text-[10px] text-emerald-900 font-sans font-bold bg-white px-2.5 py-0.5 rounded-md border border-emerald-300 shadow-2xs">
                 Verified ✓
               </span>
             </div>
           </div>
 
           {/* SLA Resolution Windows Matrix */}
-          <div className="bento-card p-5 space-y-3 text-xs bg-white/95 border border-slate-200/90 shadow-sm rounded-2xl relative overflow-hidden">
+          <div className="bento-card p-5 space-y-3.5 text-xs bg-white border-2 border-slate-200/90 shadow-md rounded-3xl relative overflow-hidden">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-500 uppercase tracking-wider font-mono text-[10px] block">
+              <span className="font-bold text-slate-600 uppercase tracking-wider font-mono text-[10px] block">
                 SLA Resolution Windows
               </span>
-              <span className="text-[10px] font-mono text-slate-400 font-semibold">Response Matrix</span>
+              <span className="text-[10px] font-mono text-slate-400 font-bold">Response Matrix</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-50/80 to-rose-50/30 border border-rose-200/90 flex items-center justify-between shadow-2xs hover:border-rose-300 transition-colors">
+            <div className="grid grid-cols-2 gap-2.5 text-[11px]">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-50 to-rose-50/30 border-2 border-rose-300 flex items-center justify-between shadow-xs hover:shadow-sm hover:border-rose-400 transition-all">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                  <span className="font-bold text-rose-700">CRITICAL</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                  <span className="font-bold text-rose-800">CRITICAL</span>
                 </div>
-                <span className="text-rose-900 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-rose-200 shadow-2xs">2h</span>
+                <span className="text-rose-950 font-mono font-bold bg-white px-2 py-0.5 rounded-lg border-2 border-rose-300 shadow-2xs">2h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-50/80 to-amber-50/30 border border-amber-200/90 flex items-center justify-between shadow-2xs hover:border-amber-300 transition-colors">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-50/30 border-2 border-amber-300 flex items-center justify-between shadow-xs hover:shadow-sm hover:border-amber-400 transition-all">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span className="font-bold text-amber-700">HIGH</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  <span className="font-bold text-amber-800">HIGH</span>
                 </div>
-                <span className="text-amber-900 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-amber-200 shadow-2xs">8h</span>
+                <span className="text-amber-950 font-mono font-bold bg-white px-2 py-0.5 rounded-lg border-2 border-amber-300 shadow-2xs">8h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-sky-50/80 to-sky-50/30 border border-sky-200/90 flex items-center justify-between shadow-2xs hover:border-sky-300 transition-colors">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-50/30 border-2 border-sky-300 flex items-center justify-between shadow-xs hover:shadow-sm hover:border-sky-400 transition-all">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-sky-500" />
-                  <span className="font-bold text-sky-700">MEDIUM</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
+                  <span className="font-bold text-sky-800">MEDIUM</span>
                 </div>
-                <span className="text-sky-900 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-sky-200 shadow-2xs">24h</span>
+                <span className="text-sky-950 font-mono font-bold bg-white px-2 py-0.5 rounded-lg border-2 border-sky-300 shadow-2xs">24h</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border border-emerald-200/90 flex items-center justify-between shadow-2xs hover:border-emerald-300 transition-colors">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-50/30 border-2 border-emerald-300 flex items-center justify-between shadow-xs hover:shadow-sm hover:border-emerald-400 transition-all">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="font-bold text-emerald-700">LOW</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <span className="font-bold text-emerald-800">LOW</span>
                 </div>
-                <span className="text-emerald-900 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-200 shadow-2xs">72h</span>
+                <span className="text-emerald-950 font-mono font-bold bg-white px-2 py-0.5 rounded-lg border-2 border-emerald-300 shadow-2xs">72h</span>
               </div>
             </div>
           </div>
