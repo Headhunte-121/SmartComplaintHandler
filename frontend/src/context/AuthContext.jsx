@@ -149,6 +149,7 @@ function clearAuthStorage() {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
   localStorage.removeItem(AUTH_EXPIRES_AT_KEY);
+  localStorage.removeItem('smart_complaint_remember_email');
   sessionStorage.removeItem(AUTH_TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_TOKEN_KEY);
   sessionStorage.removeItem(AUTH_USER_KEY);
@@ -172,10 +173,7 @@ function persistAuthSession(authData, enrichedUser, rememberMe) {
   secondaryStorage.removeItem(REFRESH_TOKEN_KEY);
   secondaryStorage.removeItem(AUTH_USER_KEY);
   secondaryStorage.removeItem(AUTH_EXPIRES_AT_KEY);
-
-  if (rememberMe && enrichedUser?.email) {
-    localStorage.setItem('smart_complaint_remember_email', enrichedUser.email);
-  }
+  localStorage.removeItem('smart_complaint_remember_email');
 }
 
 const AuthContext = createContext(null);
@@ -216,9 +214,7 @@ export function AuthProvider({ children }) {
 
   const [authInitializing, setAuthInitializing] = useState(true);
   const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
-  const [rememberedEmail, setRememberedEmail] = useState(() => {
-    return localStorage.getItem('smart_complaint_remember_email') || '';
-  });
+  const [rememberedEmail, setRememberedEmail] = useState('');
 
   const logout = useCallback(() => {
     setCurrentUser(null);

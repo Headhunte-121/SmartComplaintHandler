@@ -56,10 +56,9 @@ function ensureGoogleSdkLoaded(timeoutMs = 8000) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, loginGoogle, rememberedEmail, currentUser } = useAuth();
+  const { login, loginGoogle, currentUser } = useAuth();
 
-  const [step, setStep] = useState(rememberedEmail ? 'password' : 'email');
-  const [email, setEmail] = useState(rememberedEmail || '');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -71,6 +70,12 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    try {
+      localStorage.removeItem('smart_complaint_remember_email');
+    } catch (_) {}
+  }, []);
 
   useEffect(() => {
     if (currentUser) {
@@ -85,13 +90,6 @@ export default function Login() {
       navigate(redirect, { replace: true });
     }
   }, [currentUser, navigate]);
-
-  useEffect(() => {
-    if (rememberedEmail) {
-      setEmail(rememberedEmail);
-      setStep('password');
-    }
-  }, [rememberedEmail]);
 
   useEffect(() => {
     if (!googleClientId) {
@@ -233,27 +231,25 @@ export default function Login() {
     await launchGoogleWorkspaceFlow(activeClientId);
   };
 
-  const handleContinueWithEmail = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
     setError(null);
     const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setError('Please enter your institutional email.');
+      return;
+    }
     if (!cleanEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
       setError(`Please use your @${ALLOWED_DOMAIN} email address.`);
       return;
     }
-    setStep('password');
-  };
-
-  const handlePasswordSignIn = async (e) => {
-    e.preventDefault();
-    setError(null);
     if (!password || password.length < 4) {
       setError('Please enter your password.');
       return;
     }
     setLoading(true);
     try {
-      const user = await login(email.trim().toLowerCase(), password, rememberMe);
+      const user = await login(cleanEmail, password, rememberMe);
       handleRoleRedirect(user);
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Invalid email or password.');
@@ -304,141 +300,110 @@ export default function Login() {
             </div>
           )}
 
-          {step === 'email' ? (
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleContinueWithGoogle}
-                disabled={googleLoading || loading}
-                className="w-full py-3 px-4 bg-slate-900/90 hover:bg-slate-800 hover:border-emerald-500/40 border border-slate-700/90 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
-                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z" />
-                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
-                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
-                </svg>
-                <span>{googleLoading ? 'Connecting...' : 'Sign in with Google (@iiitnr.edu.in)'}</span>
-              </button>
+          {/* Google SSO Button */}
+          <button
+            type="button"
+            onClick={handleContinueWithGoogle}
+            disabled={googleLoading || loading}
+            className="w-full py-3 px-4 bg-slate-900/90 hover:bg-slate-800 hover:border-emerald-500/40 border border-slate-700/90 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+          >
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z" />
+              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+            </svg>
+            <span>{googleLoading ? 'Connecting...' : 'Sign in with Google (@iiitnr.edu.in)'}</span>
+          </button>
 
-              <div className="relative flex py-1 items-center">
-                <div className="grow border-t border-slate-800" />
-                <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                  or email
-                </span>
-                <div className="grow border-t border-slate-800" />
-              </div>
+          <div className="relative flex py-1 items-center">
+            <div className="grow border-t border-slate-800" />
+            <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              or institutional credentials
+            </span>
+            <div className="grow border-t border-slate-800" />
+          </div>
 
-              <form onSubmit={handleContinueWithEmail} className="space-y-3.5">
-                <div>
-                  <label htmlFor="login-email" className="block text-xs font-bold text-slate-300 mb-1.5">
-                    Institutional Email
-                  </label>
-                  <input
-                    id="login-email"
-                    type="email"
-                    required
-                    autoFocus
-                    placeholder="name26100@iiitnr.edu.in"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setError(null);
-                    }}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-mono"
-                  />
-                </div>
-
-                {detectedProfile && (
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
-                    <div className="min-w-0 pr-2">
-                      <div className="font-bold text-white truncate">{detectedProfile.name}</div>
-                      <div className="text-[11px] text-emerald-400 truncate">
-                        {detectedProfile.identifier} · {detectedProfile.department_name}
-                      </div>
-                    </div>
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">
-                      {detectedProfile.role}
-                    </span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/25 transition-all cursor-pointer"
-                >
-                  Continue →
-                </button>
-              </form>
+          {/* Standard Single Login Form */}
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div>
+              <label htmlFor="login-email" className="block text-xs font-bold text-slate-300 mb-1.5">
+                Institutional Email
+              </label>
+              <input
+                id="login-email"
+                type="email"
+                required
+                autoFocus
+                placeholder="name26100@iiitnr.edu.in"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError(null);
+                }}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-mono"
+              />
             </div>
-          ) : (
-            <form onSubmit={handlePasswordSignIn} className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+
+            {detectedProfile && (
+              <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
                 <div className="min-w-0 pr-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                    Account
-                  </span>
-                  <span className="text-xs font-bold text-slate-200 truncate block font-mono">
-                    {email}
-                  </span>
+                  <div className="font-bold text-white truncate">{detectedProfile.name}</div>
+                  <div className="text-[11px] text-emerald-400 truncate">
+                    {detectedProfile.identifier} · {detectedProfile.department_name}
+                  </div>
                 </div>
+                <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  {detectedProfile.role}
+                </span>
+              </div>
+            )}
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="login-password" className="text-xs font-bold text-slate-300">
+                  Password
+                </label>
                 <button
                   type="button"
-                  onClick={() => {
-                    setStep('email');
-                    setPassword('');
-                    setError(null);
-                  }}
-                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 px-2.5 py-1 rounded-lg hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-xs font-bold text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
                 >
-                  Change
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
+              <input
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError(null);
+                }}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
+              />
+            </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="login-password" className="text-xs font-bold text-slate-300">
-                    Password
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="text-xs font-bold text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
-                  >
-                    {showPassword ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-                <input
-                  id="login-password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoFocus
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
-                />
-              </div>
+            <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-emerald-600 focus:ring-emerald-500/30"
+              />
+              <span>Keep me signed in for 30 days</span>
+            </label>
 
-              <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-emerald-600 focus:ring-emerald-500/30"
-                />
-                <span>Keep me signed in for 30 days</span>
-              </label>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/25 transition-all cursor-pointer disabled:opacity-50"
-              >
-                {loading ? 'Signing in...' : 'Sign In'}
-              </button>
-            </form>
-          )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/25 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
 
           <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
             <span className="text-slate-400">New student or staff?</span>
