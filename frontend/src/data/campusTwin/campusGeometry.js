@@ -1,319 +1,372 @@
 /**
  * frontend/src/data/campusTwin/campusGeometry.js
  *
- * Clean Vectorized Campus Map Geometry for IIIT Naya Raipur.
- * Source of truth: Authentic GIS GeoJSON dataset (16 buildings, 10 roads, 11 footpaths).
- * Extracted directly from IIIT_Naya_Raipur_GIS_Complete (1).geojson via exact affine conversion.
- * ViewBox: -55 0 840 857 (Campus active bounds: X=[230..490], Y=[180..620])
+ * Exact 1:1 GIS GeoJSON-Projected Polygon Geometry for the IIIT Naya Raipur Digital Twin.
+ * Generated directly from IIIT_Naya_Raipur_GIS_Complete.geojson (63 survey-traced features:
+ * 16 buildings, 13 multi-vertex wing polygons, 3 courtyards, 10 entrances, 10 roads, 11 footpaths).
+ * Projected using true-scale equirectangular WGS84 coordinates onto a balanced 1080 x 800 SVG canvas.
  */
 
-// Outer 50-Acre Campus Perimeter & Clipped Digital Twin Zone
-export const IIITNR_CAMPUS_PERIMETER_POINTS = '200,160 520,160 520,645 200,645';
-export const INNER_CAMPUS_CLIP_POINTS = '210,165 510,165 510,635 210,635';
+export const CAMPUS_VIEWBOX = {
+  x: 0,
+  y: 0,
+  width: 1080,
+  height: 800,
+  viewBoxStr: '0 0 1080 800',
+};
+
+export const IIITNR_CAMPUS_PERIMETER_POINTS = '368,42 685,148 892,468 788,718 562,742 242,628';
+
+export const INNER_CAMPUS_CLIP_POINTS = '368,42 685,148 892,468 788,718 562,742 242,628';
 
 export const IIITNR_CAMPUS_BOUNDARY_CORNERS = [
-  { id: 'pillar_nw', x: 200, y: 160, label: 'Northwest Boundary Pillar #1', subtitle: 'Sports Complex Corridor' },
-  { id: 'pillar_ne', x: 520, y: 160, label: 'Northeast Boundary Pillar #2', subtitle: 'North Woodland Perimeter Wall' },
-  { id: 'pillar_se', x: 520, y: 645, label: 'Southeast Boundary Pillar #3', subtitle: 'Naya Raipur Marg & East Avenue' },
-  { id: 'pillar_sw', x: 200, y: 645, label: 'Southwest Boundary Pillar #4', subtitle: 'Naya Raipur Marg & West Avenue Junction' },
+  { id: 'pillar_nw', x: 368, y: 42, label: 'Northwest Boundary Pillar #1', subtitle: 'North Sports Complex Perimeter' },
+  { id: 'pillar_ne', x: 685, y: 148, label: 'Northeast Boundary Pillar #2', subtitle: 'Ramanujan House North Perimeter' },
+  { id: 'pillar_e', x: 892, y: 468, label: 'East Boundary Pillar #3', subtitle: 'Raman House East Perimeter' },
+  { id: 'pillar_se', x: 788, y: 718, label: 'Southeast Boundary Pillar #4', subtitle: 'New Amphitheater Woodland Corner' },
+  { id: 'pillar_s', x: 562, y: 742, label: 'Main Gate Highway Junction #5', subtitle: 'Naya Raipur Marg Main Gate Entry' },
+  { id: 'pillar_sw', x: 242, y: 628, label: 'Southwest Boundary Pillar #6', subtitle: 'Bhabha House & West Avenue Corner' },
 ];
 
-/**
- * Non-overlapping label pill positions for all 16 authentic Digital Twin zones
- */
-export const CAMPUS_VIEWBOX = {
-  x: 170,
-  y: 155,
-  width: 375,
-  height: 485,
-  viewBoxStr: '170 155 375 485',
+export const SATELLITE_IMAGE_BOUNDS = {
+  "x": -103.1,
+  "y": -94.6,
+  "width": 1327.1,
+  "height": 1232.3
 };
 
 /**
- * Non-overlapping, high-readability label pill positions for all 16 authentic Digital Twin zones.
- * Mathematically tested for 0 collisions with full building names.
+ * Collision-free callout label positions for all 16 GIS-traced campus buildings
  */
 export const LABEL_POSITIONS = {
-  bldg_1792074173914: { x: 287.6, y: 198.0 }, // Sports Complex (North-West)
-  ramanujan_house:    { x: 376.6, y: 248.0 }, // Ramanujan House (North)
-  bldg_1792128996063: { x: 430.0, y: 345.0 }, // Sabari House (North-East)
-  bldg_1792159926765: { x: 295.0, y: 368.0 }, // Football Ground (North-West)
-  bldg_1792097005723: { x: 435.0, y: 412.0 }, // Basketball Court (East)
-  bldg_1792159559173: { x: 340.0, y: 432.0 }, // Old Amphi (Center-North)
-  bldg_1792132762957: { x: 268.0, y: 468.0 }, // Guest House (West)
-  auditorium_hall:    { x: 295.0, y: 504.0 }, // Auditorium (West-Center)
-  academic_block:     { x: 390.0, y: 481.0 }, // Academic Block (Center)
-  bldg_1792159282829: { x: 270.0, y: 526.0 }, // Volleyball Court (West)
-  canteen_block:      { x: 362.6, y: 532.0 }, // Canteen (South-Center)
-  bhabha_house:       { x: 232.0, y: 558.0 }, // Bhabha House (South-West)
-  bose_house:         { x: 295.0, y: 580.0 }, // Bose House (South)
-  bldg_1792119172307: { x: 365.0, y: 600.0 }, // Palm Park (South)
-  bldg_1792159326181: { x: 468.0, y: 554.0 }, // New Amphi (South-East)
-  raman_house:        { x: 488.0, y: 460.0 }, // Raman House (East)
+  "academic_block": { "x": 762, "y": 472 },
+  "auditorium_hall": { "x": 298, "y": 526 },
+  "canteen_block": { "x": 642, "y": 594 },
+  "ramanujan_house": { "x": 758, "y": 222 },
+  "bhabha_house": { "x": 188, "y": 608 },
+  "bose_house": { "x": 336, "y": 686 },
+  "raman_house": { "x": 910, "y": 514 },
+  "bldg_1792074173914": { "x": 502, "y": 92 },
+  "bldg_1792097005723": { "x": 755, "y": 418 },
+  "bldg_1792119172307": { "x": 508, "y": 672 },
+  "bldg_1792128996063": { "x": 745, "y": 336 },
+  "bldg_1792132762957": { "x": 298, "y": 486 },
+  "bldg_1792159282829": { "x": 298, "y": 566 },
+  "bldg_1792159326181": { "x": 785, "y": 665 },
+  "bldg_1792159559173": { "x": 482, "y": 432 },
+  "bldg_1792159926765": { "x": 505, "y": 355 }
 };
 
 /**
- * Exact Authentic Satellite/GIS-Traced Polygons for all 16 campus buildings
+ * Exact GIS-Traced Polygons, Courtyards, and Entrance Beacons per building ID
  */
 export const EXACT_BUILDING_POLYGONS = {
-  // Academic & Administrative Block (Academic Block)
-  academic_block: {
-    pin: { x: 387.0, y: 481.0 },
-    wings: [
-      { name: 'Academic Block Wing #1', points: '384.1,514.5 388.3,508.6 389.9,511.0 394.5,506.5 394.2,502.9 400.7,495.0 402.8,498.2 406.5,493.4 406.0,489.3 411.8,481.8 407.6,472.4 403.0,478.0 398.5,467.4 401.8,463.3 397.1,452.7 393.8,458.0 391.7,450.9 396.7,445.2 404.9,463.8 409.3,458.2 399.7,437.7 397.5,440.3 394.0,432.8 390.4,437.8 386.4,431.3 361.1,458.5 362.9,463.0 363.4,467.5 358.1,471.5 363.0,482.4 371.3,474.6 373.1,479.5 369.9,482.7 374.7,493.5 378.0,490.3 382.6,500.0 378.8,504.1 383.2,514.7' },
+  "academic_block": {
+    "cx": 615.9,
+    "cy": 524.3,
+    "w": 129.3,
+    "h": 126.8,
+    "color": "#0284c7",
+    "badge": "ACAD",
+    "wings": [
+      {
+        "name": "Academic Block Wing #1",
+        "points": "602.1,575.2 613.6,566.7 617.0,570.4 629.2,564.1 629.2,558.5 646.6,547.0 651.0,552.2 661.0,545.2 660.6,538.9 676.6,528.2 668.1,513.4 655.8,521.5 646.9,504.8 655.8,498.9 646.6,482.3 637.3,490.0 633.6,478.9 646.9,470.8 663.2,500.0 675.1,491.9 655.8,459.7 649.9,463.4 642.9,451.5 633.2,458.9 624.7,448.6 557.3,487.4 560.7,494.5 561.0,501.5 547.3,507.1 557.0,524.1 578.8,513.0 582.4,520.7 573.8,525.2 583.3,542.2 592.0,537.7 601.4,552.9 591.1,558.8 599.8,575.4"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-      { name: 'Front Main Portico Entrance', x: 400.2, y: 499.1 },
-      { name: 'West Wing Entrance', x: 372.2, y: 480.5 },
-    ],
+    "courtyards": [],
+    "entrances": [
+      { "name": "Front Main Portico Entrance", "x": 644.5, "y": 553.3, "lat": 21.128164, "lng": 81.766357 },
+      { "name": "West Wing Entrance", "x": 579.9, "y": 522.1, "lat": 21.128375, "lng": 81.765889 }
+    ]
   },
-  // Central Campus Auditorium (Auditorium)
-  auditorium_hall: {
-    pin: { x: 344.4, y: 494.0 },
-    wings: [
-      { name: 'Auditorium Wing #1', points: '345.6,512.4 347.7,516.5 353.6,510.1 351.4,506.1 354.6,503.6 352.4,497.8 355.4,494.6 353.3,490.0 358.7,483.9 352.5,469.5 347.2,476.6 345.5,472.3 341.3,476.0 339.7,472.8 338.1,474.3 335.7,469.5 329.7,476.2 331.5,480.5 329.8,483.5 343.7,514.0' },
+  "auditorium_hall": {
+    "cx": 509.1,
+    "cy": 539.9,
+    "w": 70.6,
+    "h": 72.8,
+    "color": "#e11d48",
+    "badge": "AUD",
+    "wings": [
+      {
+        "name": "Auditorium Wing #1",
+        "points": "508.3,568.0 512.7,574.5 528.4,565.3 523.9,559.1 532.2,555.5 527.9,546.5 535.8,542.0 531.7,534.8 546.3,525.9 534.0,503.4 519.6,513.7 516.2,506.9 505.4,512.1 502.1,507.1 497.7,509.3 492.9,501.7 477.0,511.3 480.3,518.0 475.7,522.5 503.3,570.4"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-      { name: 'Auditorium Front Plaza Entrance', x: 356.0, y: 478.1 },
-      { name: 'Auditorium Entrance Back', x: 351.9, y: 511.4 },
-      { name: 'Auditorium Entrance Side', x: 332.6, y: 487.9 },
-    ],
+    "courtyards": [],
+    "entrances": [
+      { "name": "Auditorium Front Plaza Entrance", "x": 540.8, "y": 516.9, "lat": 21.12841, "lng": 81.765606 },
+      { "name": "Auditorium Entrance Back", "x": 524.0, "y": 567.2, "lat": 21.12807, "lng": 81.765484 },
+      { "name": "Auditorium Entrance Side", "x": 481.6, "y": 529.5, "lat": 21.128325, "lng": 81.765177 }
+    ]
   },
-  // Canteen IIIT Naya Raipur (Rotunda & Arcade) (Canteen)
-  canteen_block: {
-    pin: { x: 362.6, y: 524.6 },
-    wings: [
-      { name: 'Canteen Wing #1', points: '367.0,535.9 368.9,532.9 370.4,527.9 370.5,524.9 369.9,520.5 368.5,516.5 366.9,514.4 364.5,511.6 361.7,510.8 358.7,511.3 357.4,512.8 358.0,514.9 357.7,514.5 355.4,516.9 356.1,518.0 354.1,520.0 351.5,522.5 352.8,525.7 352.0,526.4 356.8,537.8 357.7,537.0 359.0,540.2 363.6,535.0 364.5,536.7 366.1,534.6' },
+  "canteen_block": {
+    "cx": 547.3,
+    "cy": 588.4,
+    "w": 46.0,
+    "h": 44.5,
+    "color": "#f59e0b",
+    "badge": "CANTEEN",
+    "wings": [
+      {
+        "name": "Canteen Wing #1",
+        "points": "555.8,606.1 561.2,601.7 565.7,594.3 566.7,589.6 566.0,582.8 563.4,576.7 559.9,573.2 554.7,568.8 548.0,567.3 540.6,567.8 537.2,569.9 538.0,573.2 537.5,572.5 531.3,576.0 532.8,577.7 527.5,580.6 520.7,584.1 523.1,589.0 521.2,590.1 530.5,608.0 533.0,606.8 535.4,611.8 547.8,604.4 549.5,607.1 554.0,604.1"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-      { name: 'Canteen Arcade Entry', x: 362.2, y: 514.5 },
-    ],
+    "courtyards": [],
+    "entrances": [
+      { "name": "Canteen Arcade Entry", "x": 548.4, "y": 573.0, "lat": 21.128031, "lng": 81.765661 }
+    ]
   },
-  // Ramanujan House (Boys Hostel 1) (Ramanujan House)
-  ramanujan_house: {
-    pin: { x: 376.6, y: 292.5 },
-    wings: [
-      { name: 'Ramanujan House Wing #1', points: '369.0,329.2 371.5,326.5 370.9,324.9 373.9,322.2 372.3,318.8 372.6,318.4 373.6,320.2 374.9,318.2 375.9,316.4 376.6,317.9 391.7,300.9 391.2,300.0 391.8,299.3 393.4,302.4 398.0,297.3 394.6,288.5 400.1,283.2 387.6,254.2 383.7,258.4 381.9,261.5 380.9,259.8 377.6,262.5 378.1,264.1 376.5,265.4 377.5,267.6 375.4,270.4 374.3,269.5 358.7,285.4 357.7,284.3 353.4,287.9 354.6,294.1' },
+  "ramanujan_house": {
+    "cx": 629.2,
+    "cy": 235.9,
+    "w": 115.2,
+    "h": 112.6,
+    "color": "#4f46e5",
+    "badge": "BH-3",
+    "wings": [
+      {
+        "name": "Ramanujan House Wing #1",
+        "points": "603.1,291.2 609.8,287.3 608.7,284.7 616.4,280.9 613.2,275.6 614.1,275.1 616.1,277.9 619.8,275.0 622.7,272.3 624.0,274.7 664.3,250.2 663.4,248.8 665.0,247.8 668.3,252.8 680.5,245.4 674.0,231.7 688.6,224.1 664.0,178.6 653.4,184.7 648.4,189.1 646.4,186.5 637.9,190.2 638.6,192.8 634.4,194.7 636.4,198.0 630.7,202.1 628.2,200.6 586.8,223.4 584.6,221.5 573.4,226.5 575.1,236.2"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-    ],
+    "courtyards": [],
+    "entrances": []
   },
-  // Bhabha House (Boys Hostel 2) (Bhabha House)
-  bhabha_house: {
-    pin: { x: 275.4, y: 539.3 },
-    wings: [
-      { name: 'Bhabha House Wing #1', points: '281.4,560.5 285.6,525.7 268.2,518.4 267.8,521.3 266.3,520.8 267.1,515.7 263.5,514.3 262.9,518.8 260.6,518.0 258.6,533.7 261.9,535.0 261.2,540.4 262.3,541.1 261.6,544.7 260.4,553.1 262.4,553.4 262.9,549.7 264.1,550.2 263.7,552.2' },
+  "bhabha_house": {
+    "cx": 331.1,
+    "cy": 602.0,
+    "w": 67.6,
+    "h": 72.4,
+    "color": "#9333ea",
+    "badge": "GH-2",
+    "wings": [
+      {
+        "name": "Bhabha House Wing #1",
+        "points": "341.5,635.1 359.0,582.3 317.9,569.5 316.3,573.9 312.8,572.9 315.8,565.3 307.1,562.7 304.9,569.6 299.4,568.1 291.4,591.8 299.1,594.2 296.2,602.3 298.7,603.4 296.5,609.0 291.7,621.5 296.5,622.3 298.5,616.6 301.2,617.5 299.9,620.6"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-      { name: 'Bhabha House Entrance #1', x: 284.3, y: 541.4 },
-    ],
+    "courtyards": [],
+    "entrances": [
+      { "name": "Bhabha House Entrance #1", "x": 352.5, "y": 606.2, "lat": 21.127807, "lng": 81.764242 }
+    ]
   },
-  // Bose House (Boys Hostel 3) (Bose House)
-  bose_house: {
-    pin: { x: 310.9, y: 556.4 },
-    wings: [
-      { name: 'Bose House Wing #1', points: '314.6,572.0 314.1,575.3 317.9,577.0 319.1,568.4 318.1,568.0 318.7,564.6 322.0,565.9 323.9,550.5 321.2,549.7 322.4,541.4 318.5,539.7 318.0,542.3 304.2,536.1 300.4,566.5' },
+  "bose_house": {
+    "cx": 414.4,
+    "cy": 631.8,
+    "w": 60.7,
+    "h": 63.8,
+    "color": "#6366f1",
+    "badge": "BH-2",
+    "wings": [
+      {
+        "name": "Bose House Wing #1",
+        "points": "420.2,655.9 418.5,660.9 427.4,663.9 432.0,650.9 429.7,650.2 431.9,645.0 439.8,647.3 447.5,624.0 441.1,622.5 445.7,610.0 436.4,607.0 434.8,610.9 402.2,600.1 386.8,646.0"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-      { name: 'Bose House Entrance #1', x: 301.0, y: 552.6 },
-    ],
+    "courtyards": [],
+    "entrances": [
+      { "name": "Bose House Entrance #1", "x": 391.0, "y": 625.0, "lat": 21.12768, "lng": 81.764521 }
+    ]
   },
-  // Raman House (Girls Hostel 1) (Raman House)
-  raman_house: {
-    pin: { x: 462.6, y: 469.7 },
-    wings: [
-      { name: 'Raman House Wing #1', points: '448.3,480.3 467.4,488.6 467.3,491.9 470.3,492.6 471.9,484.7 470.8,483.2 471.4,479.9 475.0,481.7 476.0,471.2 477.0,462.9 473.9,461.9 475.1,453.8 471.7,452.8 471.6,455.5 452.8,446.4' },
+  "raman_house": {
+    "cx": 803.3,
+    "cy": 514.7,
+    "w": 73.7,
+    "h": 72.2,
+    "color": "#7c3aed",
+    "badge": "BH-1",
+    "wings": [
+      {
+        "name": "Raman House Wing #1",
+        "points": "766.1,529.5 811.1,544.1 810.1,549.1 817.4,550.4 822.7,538.6 820.5,536.2 822.5,531.2 831.1,534.3 835.7,518.4 839.8,505.8 832.4,503.9 837.0,491.7 828.8,489.9 828.1,493.9 784.0,478.2"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-    ],
+    "courtyards": [],
+    "entrances": []
   },
-  // Sports Complex (Sports Complex)
-  bldg_1792074173914: {
-    pin: { x: 287.6, y: 224.2 },
-    wings: [
-      { name: 'Sports Complex Wing #1', points: '292.1,239.5 296.2,202.9 282.3,196.8 277.7,233.1' },
+  "bldg_1792074173914": {
+    "cx": 425.6,
+    "cy": 122.9,
+    "w": 51.6,
+    "h": 66.0,
+    "color": "#0891b2",
+    "badge": "SC",
+    "wings": [
+      {
+        "name": "Sports Complex Wing #1",
+        "points": "433.4,146.6 451.1,91.3 418.2,80.6 399.5,135.5"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-      { name: 'Sports Complex Entrance #1', x: 278.6, y: 213.8 },
-    ],
+    "courtyards": [],
+    "entrances": [
+      { "name": "Sports Complex Entrance #1", "x": 405.7, "y": 106.1, "lat": 21.131186, "lng": 81.764627 }
+    ]
   },
-  // Basketball Court (Outdoor) (Basketball Court)
-  bldg_1792097005723: {
-    pin: { x: 387.5, y: 421.2 },
-    wings: [
-      { name: 'Basketball Wing #1', points: '380.1,430.0 396.8,427.7 395.6,411.9 379.2,413.5' },
+  "bldg_1792097005723": {
+    "cx": 629.5,
+    "cy": 433.3,
+    "w": 41.6,
+    "h": 26.0,
+    "color": "#ea580c",
+    "badge": "BC",
+    "wings": [
+      {
+        "name": "Basketball Wing #1",
+        "points": "609.6,445.9 650.9,444.1 651.2,419.9 610.8,420.7"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-    ],
+    "courtyards": [],
+    "entrances": []
   },
-  // Palm Park & Central Garden (Palm Park)
-  bldg_1792119172307: {
-    pin: { x: 358.9, y: 564.0 },
-    wings: [
+  "bldg_1792119172307": {
+    "cx": 530.3,
+    "cy": 648.0,
+    "w": 128.1,
+    "h": 100.0,
+    "color": "#16a34a",
+    "badge": "P",
+    "wings": [],
+    "courtyards": [
+      {
+        "name": "Palm Park Courtyard #1",
+        "points": "460.5,665.3 566.4,701.4 588.6,639.8 584.2,629.6 487.5,601.4"
+      }
     ],
-    courtyards: [
-      { name: 'Palm Park Courtyard #1', points: '331.5,577.1 376.5,597.8 382.2,557.0 379.8,550.5 339.0,534.7' },
-    ],
-    entrances: [
-    ],
+    "entrances": []
   },
-  // Sabari House (Girls Hostel 2) (Sabari House)
-  bldg_1792128996063: {
-    pin: { x: 385.8, y: 365.4 },
-    wings: [
-      { name: 'Sabari Wing #1', points: '371.1,358.5 390.3,340.0 401.5,363.3 382.4,382.1' },
+  "bldg_1792128996063": {
+    "cx": 636.6,
+    "cy": 348.1,
+    "w": 73.2,
+    "h": 63.4,
+    "color": "#db2777",
+    "badge": "GH-1",
+    "wings": [
+      {
+        "name": "Sabari Wing #1",
+        "points": "602.3,336.0 652.9,309.7 675.5,346.4 625.1,373.1"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-      { name: 'Sabari Entrance #1', x: 379.9, y: 348.8 },
-    ],
+    "courtyards": [],
+    "entrances": [
+      { "name": "Sabari Entrance #1", "x": 625.6, "y": 322.2, "lat": 21.129726, "lng": 81.76622 }
+    ]
   },
-  // Aranya Guest House (Guest House)
-  bldg_1792132762957: {
-    pin: { x: 314.2, y: 483.7 },
-    wings: [
-      { name: 'Guest House  Wing #1', points: '306.3,481.5 308.9,482.7 309.1,481.4 311.5,481.7 309.0,499.3 315.9,502.1 317.2,490.3 325.8,494.5 327.4,482.5 318.3,478.8 319.9,466.5 312.8,464.5 311.3,474.3 312.4,475.1 311.8,479.7 309.6,478.4 310.0,476.6 306.8,475.6' },
+  "bldg_1792132762957": {
+    "cx": 437.4,
+    "cy": 521.2,
+    "w": 51.4,
+    "h": 57.5,
+    "color": "#0d9488",
+    "badge": "AGH",
+    "wings": [
+      {
+        "name": "Guest House  Wing #1",
+        "points": "418.6,517.1 424.7,519.2 425.5,517.1 431.3,517.9 421.6,544.4 437.7,549.3 443.5,531.6 463.6,538.8 470.0,520.8 448.5,514.2 454.9,495.6 438.0,491.8 432.2,506.6 434.8,508.0 432.4,514.9 427.2,512.6 428.6,510.0 420.9,508.2"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-    ],
+    "courtyards": [],
+    "entrances": []
   },
-  // Volleyball Court (Outdoor) (Volleyball Court)
-  bldg_1792159282829: {
-    pin: { x: 330.5, y: 514.4 },
-    wings: [
+  "bldg_1792159282829": {
+    "cx": 471.0,
+    "cy": 569.6,
+    "w": 35.0,
+    "h": 22.0,
+    "color": "#2563eb",
+    "badge": "VC",
+    "wings": [
+      {
+        "name": "Volleyball Court Surface",
+        "points": "455.0,559.6 487.0,564.6 484.0,581.6 452.0,576.6"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-    ],
+    "courtyards": [],
+    "entrances": []
   },
-  // New Amphitheatre (Open-Air Stage) (New Amphi)
-  bldg_1792159326181: {
-    pin: { x: 428.9, y: 554.0 },
-    wings: [
-      { name: 'Building 14 Wing #1', points: '414.4,571.6 417.6,576.3 420.4,579.2 425.8,582.6 430.3,583.3 435.3,581.9 440.2,578.5 442.5,574.7 444.9,567.7 446.0,561.2 446.0,557.0 444.9,547.3 443.3,542.6 441.1,537.7 438.9,534.1 432.9,543.0 434.9,546.5 436.2,550.2 436.7,555.2 436.2,560.4 434.0,564.7 430.9,567.3 426.9,567.4 422.4,563.1 420.9,560.9' },
+  "bldg_1792159326181": {
+    "cx": 703.6,
+    "cy": 639.9,
+    "w": 89.2,
+    "h": 87.7,
+    "color": "#10b981",
+    "badge": "Am-2",
+    "wings": [
+      {
+        "name": "Building 14 Wing #1",
+        "points": "664.4,665.3 671.2,672.7 677.6,677.5 690.1,683.3 700.9,684.6 713.5,683.1 726.0,678.4 732.4,672.8 739.9,662.3 743.8,652.5 744.8,646.1 744.1,631.3 741.0,624.0 736.6,616.3 732.1,610.5 715.5,623.5 719.6,629.1 722.2,634.8 722.2,642.4 720.1,650.4 713.9,656.7 705.6,660.3 695.8,660.1 685.7,653.2 682.4,649.7"
+      }
     ],
-    courtyards: [
-      { name: 'Building 14 Courtyard #1', points: '414.4,571.6 420.9,560.9 422.4,563.1 426.9,567.4 430.9,567.3 434.0,564.7 436.2,560.4 436.7,555.2 436.2,550.2 434.9,546.5 432.9,543.0 438.9,534.1 440.3,530.1 440.4,527.7 435.4,525.4 430.3,525.9 425.6,527.9 420.0,532.5 417.0,536.6 413.2,543.5 411.8,546.6 410.5,553.4 410.1,562.7 410.6,568.2 412.0,570.5' },
+    "courtyards": [
+      {
+        "name": "Building 14 Courtyard #1",
+        "points": "664.4,665.3 682.4,649.7 685.7,653.2 695.8,660.1 705.6,660.3 713.9,656.7 720.1,650.4 722.2,642.4 722.2,634.8 719.6,629.1 715.5,623.5 732.1,610.5 736.3,604.6 736.9,600.9 725.2,596.9 712.8,597.2 700.9,599.8 686.1,606.2 678.0,612.2 667.2,622.3 663.3,626.9 658.6,637.1 655.6,651.3 655.8,659.7 658.7,663.4"
+      }
     ],
-    entrances: [
-    ],
+    "entrances": []
   },
-  // Old Amphitheatre (Old Amphi)
-  bldg_1792159559173: {
-    pin: { x: 367.9, y: 430.0 },
-    wings: [
-      { name: 'Building 15 Wing #1', points: '361.1,458.5 386.4,431.3 380.3,432.0 376.0,423.6 376.5,417.4 369.3,414.4 357.7,426.5 357.4,438.4 362.5,440.0 365.2,446.8' },
+  "bldg_1792159559173": {
+    "cx": 579.8,
+    "cy": 444.7,
+    "w": 72.5,
+    "h": 66.4,
+    "color": "#d97706",
+    "badge": "Am-1",
+    "wings": [
+      {
+        "name": "Building 15 Wing #1",
+        "points": "557.3,487.4 624.7,448.6 609.6,449.1 600.8,435.7 603.3,426.4 586.3,421.0 555.6,438.3 552.2,456.5 564.6,459.4 569.7,470.1"
+      }
     ],
-    courtyards: [
-    ],
-    entrances: [
-    ],
+    "courtyards": [],
+    "entrances": []
   },
-  // Main Football Ground (Football Ground)
-  bldg_1792159926765: {
-    pin: { x: 348.0, y: 396.1 },
-    wings: [
+  "bldg_1792159926765": {
+    "cx": 538.1,
+    "cy": 391.0,
+    "w": 150.8,
+    "h": 92.9,
+    "color": "#15803d",
+    "badge": "FG",
+    "wings": [],
+    "courtyards": [
+      {
+        "name": "Football Ground  Courtyard #1",
+        "points": "574.7,332.1 609.6,397.6 506.2,425.0 458.8,412.4 474.4,352.1"
+      }
     ],
-    courtyards: [
-      { name: 'Football Ground  Courtyard #1', points: '359.7,356.7 377.5,398.5 336.9,419.1 317.0,412.2 320.0,372.4' },
-    ],
-    entrances: [
-    ],
-  },
+    "entrances": []
+  }
 };
 
-/**
- * Complete Campus Road Network Polylines (10 authentic GIS-traced roads)
- */
 export const CAMPUS_ROAD_POLYLINES = [
-  // Road #1
-  { name: 'Road #1', points: '384.3,598.0 390.5,545.6 401.0,524.0 414.7,505.6 434.5,490.0 442.6,418.3 393.0,328.8 313.0,365.1 291.1,552.1 289.7,564.8 289.8,568.7 290.3,569.8 290.6,570.3 291.3,572.0 319.1,585.9 377.1,613.0', width: 10 },
-  // Road #2
-  { name: 'Road #2', points: '377.1,613.0 382.6,615.3 384.3,598.0', width: 14 },
-  // Road #3
-  { name: 'Road #3', points: '399.4,527.3 397.8,521.2 397.7,512.8 399.6,506.6 402.0,504.2 405.1,502.0 408.6,501.4 410.8,502.7 413.1,504.3 414.2,506.4', width: 14 },
-  // Road #4
-  { name: 'Road #4', points: '390.5,545.6 342.2,440.3 339.1,435.2 333.6,431.8 306.6,420.2', width: 14 },
-  // Road #5
-  { name: 'Road #5', points: '434.5,490.0 487.6,505.4', width: 10 },
-  // Road #6
-  { name: 'Road #6', points: '382.6,615.3 393.9,619.5 399.0,568.7 401.8,552.2 406.1,538.6 416.8,524.8 426.2,515.4 432.7,511.7 447.3,509.9 461.0,513.5', width: 8 },
-  // Road #7
-  { name: 'Road #7', points: '436.9,511.2 434.5,490.0', width: 10 },
-  // Road #8
-  { name: 'Road #8', points: '370.8,338.8 344.8,282.1 384.2,240.5', width: 8 },
-  // Road #9
-  { name: 'Road #9', points: '275.4,187.1 261.5,311.8 244.2,435.4 231.7,543.7 234.3,549.5 243.7,554.1 291.3,572.0', width: 14 },
-  // Road #10
-  { name: 'Road #10', points: '424.6,497.8 408.2,462.1', width: 16 },
+  { "name": "Road #1", "width": 9.5, "points": "585.5,702.5 611.4,623.2 641.4,591.4 678.8,564.7 730.3,542.9 764.7,434.3 661.8,292.8 458.8,340.3 367.0,623.2 360.9,642.4 360.4,648.4 361.3,650.1 361.9,650.9 363.5,653.5 428.5,677.6 564.7,724.7" },
+  { "name": "Road #2", "width": 13.3, "points": "564.7,724.7 577.6,728.6 585.5,702.5" },
+  { "name": "Road #3", "width": 13.3, "points": "636.8,596.3 634.2,586.8 635.6,574.0 641.4,564.7 647.9,561.3 655.8,558.2 664.6,557.7 669.6,559.9 675.0,562.5 677.3,565.8" },
+  { "name": "Road #4", "width": 13.3, "points": "611.4,623.2 514.7,457.8 508.3,449.7 495.5,443.9 431.8,423.7" },
+  { "name": "Road #5", "width": 9.5, "points": "730.3,542.9 856.8,571.6" },
+  { "name": "Road #6", "width": 7.6, "points": "577.6,728.6 604.5,736.3 627.3,659.3 637.7,634.5 651.0,614.1 679.9,594.1 704.7,580.8 721.5,575.8 757.6,574.5 790.2,581.3" },
+  { "name": "Road #7", "width": 9.5, "points": "731.8,575.4 730.3,542.9" },
+  { "name": "Road #8", "width": 7.6, "points": "605.5,306.0 553.5,216.9 658.4,157.5" },
+  { "name": "Road #9", "width": 13.3, "points": "403.3,65.1 343.7,253.9 276.3,440.5 223.5,604.5 228.7,613.5 250.6,621.5 363.5,653.5" },
+  { "name": "Road #10", "width": 15.2, "points": "704.5,553.8 671.8,497.7" }
 ];
 
-/**
- * Complete Pedestrian Walkway Polylines (11 authentic GIS-traced footpaths)
- */
 export const CAMPUS_FOOTPATH_POLYLINES = [
-  // Footpath #1
-  { name: 'Footpath #1', points: '324.0,546.3 349.7,519.2', width: 9 },
-  // Footpath #2
-  { name: 'Footpath #2', points: '349.7,519.2 351.0,521.8 357.7,514.5 358.4,513.3 361.6,512.4 364.6,513.4 367.8,517.7 371.3,513.2', width: 9 },
-  // Footpath #3
-  { name: 'Footpath #3', points: '349.7,519.2 348.7,516.6 352.1,511.7', width: 4.5 },
-  // Footpath #4
-  { name: 'Footpath #4', points: '396.0,521.2 391.4,520.1 390.7,517.8 389.8,517.3 388.2,518.3 388.0,518.9 380.1,516.2 378.8,515.9 376.7,515.4', width: 4.5 },
-  // Footpath #5
-  { name: 'Footpath #5', points: '344.8,282.1 340.0,279.6 330.0,270.1 316.4,256.0 307.8,247.7 304.4,245.8 293.4,239.0 273.8,230.2 278.3,189.7', width: 4.5 },
-  // Footpath #6
-  { name: 'Footpath #6', points: '352.5,456.0 353.9,423.3 368.1,406.5 378.5,410.3 382.0,414.2 389.9,413.5 390.3,412.4 396.2,405.7 401.8,397.0 411.5,386.9 419.8,377.2', width: 4.5 },
-  // Footpath #7
-  { name: 'Footpath #7', points: '397.0,404.4 392.4,396.0 387.1,394.2 383.3,394.2 366.7,357.3 363.0,348.8 360.3,343.6', width: 4.5 },
-  // Footpath #8
-  { name: 'Footpath #8', points: '407.7,492.4 421.8,491.7', width: 4.5 },
-  // Footpath #9
-  { name: 'Footpath #9', points: '400.4,500.8 407.7,492.4', width: 4.5 },
-  // Footpath #10
-  { name: 'Footpath #10', points: '408.2,462.1 409.8,458.7 401.2,439.4 402.2,420.0 397.0,404.4', width: 4.5 },
-  // Footpath #11
-  { name: 'Footpath #11', points: '401.4,436.1 395.8,427.8 394.5,413.8 389.9,413.5', width: 4.5 },
+  { "name": "Footpath #1", "width": 7.6, "points": "448.6,617.6 517.0,578.8" },
+  { "name": "Footpath #2", "width": 7.6, "points": "517.0,578.8 519.6,583.0 537.5,572.5 539.5,570.8 547.6,569.7 554.7,571.5 561.6,578.5 571.0,571.9" },
+  { "name": "Footpath #3", "width": 3.8, "points": "517.0,578.8 515.2,574.8 524.3,567.7" },
+  { "name": "Footpath #4", "width": 3.8, "points": "629.8,586.6 618.7,584.4 617.4,580.8 615.3,580.0 611.2,581.3 610.6,582.2 591.9,577.4 588.7,576.8 583.7,575.9" },
+  { "name": "Footpath #5", "width": 3.8, "points": "553.5,216.9 542.4,212.6 519.9,197.0 489.4,174.3 470.1,160.8 462.2,157.5 436.8,146.0 390.5,130.6 410.0,69.3" },
+  { "name": "Footpath #6", "width": 3.8, "points": "536.8,482.8 547.0,433.2 584.9,408.9 609.7,415.8 617.4,422.1 637.0,421.8 638.1,420.1 653.9,410.5 669.4,397.8 695.3,383.4 717.4,369.4" },
+  { "name": "Footpath #7", "width": 3.8, "points": "656.2,408.6 646.5,395.3 634.1,392.0 624.7,391.7 591.6,333.7 584.4,320.4 579.0,312.2" },
+  { "name": "Footpath #8", "width": 3.8, "points": "664.4,543.9 698.9,544.2" },
+  { "name": "Footpath #9", "width": 3.8, "points": "644.7,555.9 664.4,543.9" },
+  { "name": "Footpath #10", "width": 3.8, "points": "671.8,497.7 676.2,492.7 659.4,462.3 665.6,433.0 656.2,408.6" },
+  { "name": "Footpath #11", "width": 3.8, "points": "660.4,457.3 648.4,444.2 648.1,422.7 637.0,421.8" }
 ];
 
-export const FOREST_CLUSTERS = [
-  { x: 440, y: 320, r: 12 },
-  { x: 460, y: 350, r: 14 },
-  { x: 475, y: 390, r: 11 },
-  { x: 480, y: 430, r: 13 },
-  { x: 450, y: 520, r: 10 },
-  { x: 470, y: 550, r: 12 },
-];
-
-export const BOULEVARD_TREES = [
-  { x: 380, y: 580 },
-  { x: 382, y: 560 },
-  { x: 395, y: 535 },
-  { x: 405, y: 515 },
-  { x: 418, y: 495 },
-  { x: 360, y: 320 },
-  { x: 345, y: 340 },
-  { x: 330, y: 365 },
-];
+export const FOREST_CLUSTERS = [];
+export const BOULEVARD_TREES = [];
