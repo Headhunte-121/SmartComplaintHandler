@@ -55,10 +55,10 @@ export default function Navbar() {
   };
 
   const navTabClasses = ({ isActive }) =>
-    `relative h-16 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-colors ${
+    `relative h-16 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-all ${
       isActive
-        ? 'text-green-700 font-semibold after:content-[""] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:bg-green-500 after:rounded-full after:shadow-[0_-2px_10px_rgba(34,197,94,0.6)]'
-        : 'text-slate-600 hover:text-slate-900 font-medium'
+        ? 'text-emerald-800 font-bold after:content-[""] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[3px] after:bg-gradient-to-r after:from-emerald-500 after:to-teal-500 after:rounded-full after:shadow-[0_-2px_10px_rgba(22,163,74,0.6)]'
+        : 'text-slate-600 hover:text-slate-900 font-semibold'
     }`;
 
   const shortHostel = currentUser?.hostel_name
@@ -69,7 +69,8 @@ export default function Navbar() {
     : '204';
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-2xs">
+    <header className="sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-xl border-b-2 border-slate-200/90 shadow-xs relative">
+      <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex items-center justify-between h-full gap-4">
           {/* Left: Brand Identity + Breadcrumb Divider + Horizontal Underline Tabs */}
@@ -225,13 +226,13 @@ export default function Navbar() {
             {currentUser?.hostel_name && (
               <Link
                 to="/submit"
-                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 border border-green-200 text-xs font-medium text-green-800 transition-colors"
+                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-100/90 via-emerald-50 to-teal-100/60 hover:from-emerald-200 hover:to-teal-100 border-2 border-emerald-300 text-xs font-bold text-emerald-950 transition-all shadow-2xs hover:shadow-xs"
                 title="Your default hostel residence"
               >
-                <svg className="w-3.5 h-3.5 text-green-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-emerald-700 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span className="font-mono text-[11px]">
+                <span className="font-mono text-xs font-black">
                   {shortHostel} · {shortRoom}
                 </span>
               </Link>
@@ -239,12 +240,12 @@ export default function Navbar() {
 
             <Link
               to="/submit"
-              className="px-3.5 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold text-xs shadow-sm shadow-green-600/25 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-black text-xs shadow-md shadow-emerald-700/30 transition-all inline-flex items-center gap-1.5 cursor-pointer border border-emerald-500/50 hover:-translate-y-0.5 active:translate-y-0"
             >
               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              <span>New Request</span>
+              <span>+ New Request</span>
             </Link>
 
             {currentUser ? (
