@@ -132,7 +132,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
               className={`p-2.5 rounded-xl border flex items-center justify-center gap-1.5 transition-colors text-xs font-semibold ${
                 isDark
                   ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700 text-zinc-300'
-                  : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700'
+                  : 'bg-slate-100 hover:bg-slate-200/80 border-slate-300/80 hover:border-slate-400 text-slate-700 shadow-2xs'
               }`}
             >
               <span className="text-sm">{dom.icon}</span>
@@ -197,11 +197,11 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
       {/* Target Department Banner */}
       <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 ${
-        isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-slate-50 border-slate-200'
+        isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-slate-100/90 border-slate-300/80 shadow-2xs'
       }`}>
         <div className="flex items-center gap-2.5">
           <span className={`w-9 h-9 rounded-xl border flex items-center justify-center text-lg ${
-            isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-slate-200 shadow-2xs'
+            isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-slate-300/80 shadow-2xs'
           }`}>
             {domainInfo.icon}
           </span>
@@ -233,7 +233,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
       {/* AI Rationale & Explanation */}
       {triageData.reason && (
         <div className={`p-3 rounded-xl border text-xs leading-relaxed font-sans ${
-          isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+          isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-300' : 'bg-slate-100/80 border-slate-300/80 text-slate-700 shadow-2xs'
         }`}>
           <span className={`text-[10px] font-mono uppercase block font-semibold mb-0.5 ${
             isDark ? 'text-zinc-500' : 'text-slate-500'

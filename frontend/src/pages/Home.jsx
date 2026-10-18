@@ -79,7 +79,7 @@ export default function Home() {
   };
 
   return (
-    <div className={`w-full min-h-screen flex flex-col space-y-0 transition-colors ${isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-[#f8fafc] text-slate-900'}`}>
+    <div className={`w-full min-h-screen flex flex-col space-y-0 transition-colors ${isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-[#f1f5f9] text-slate-900'}`}>
       {/* Matte Command Deck Hero Header */}
       <div className={`w-full px-4 sm:px-8 lg:px-12 py-8 relative border-b transition-colors ${
         isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-white border-slate-200'
@@ -203,7 +203,7 @@ export default function Home() {
 
       {/* Flush Hostels & Campus Engineering Contacts Grid */}
       <div className={`w-full px-4 sm:px-8 lg:px-12 py-10 transition-colors ${
-        isDark ? 'bg-[#0e1117]' : 'bg-[#f8fafc]'
+        isDark ? 'bg-[#0e1117]' : 'bg-[#f1f5f9]'
       }`}>
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Hostels & Campus Spots */}
