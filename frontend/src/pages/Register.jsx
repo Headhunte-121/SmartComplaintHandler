@@ -6,12 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchAuthConfig } from '../api/auth';
-import {
-  HOSTEL_FLOORS,
-  getHostelBuildings,
-  getRoomsForBuilding,
-} from '../data/iiitnrCampusData';
+import { fetchAuthConfig, isUndergradHostelStudent } from '../api/auth';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
@@ -80,17 +75,12 @@ export default function Register() {
   const navigate = useNavigate();
   const { register, loginGoogle, currentUser } = useAuth();
 
-  const hostels = useMemo(() => getHostelBuildings(), []);
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-
-  const [selectedHostel, setSelectedHostel] = useState(hostels[0]?.name || 'Ramanujan House (Boys Hostel)');
-  const [selectedFloor, setSelectedFloor] = useState('2');
-  const [selectedRoomNumber, setSelectedRoomNumber] = useState('Room 204');
 
   const [googleClientId, setGoogleClientId] = useState(getInitialGoogleClientId);
   const [showClientIdModal, setShowClientIdModal] = useState(false);
@@ -100,19 +90,15 @@ export default function Register() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor),
-    [selectedHostel, selectedFloor]
-  );
-
-  useEffect(() => {
-    if (availableRooms.length > 0 && !availableRooms.includes(selectedRoomNumber)) {
-      setSelectedRoomNumber(availableRooms[0]);
-    }
-  }, [availableRooms]);
-
   useEffect(() => {
     if (currentUser) {
+      if (isUndergradHostelStudent(currentUser.email)) {
+        const isCompleted = localStorage.getItem(`iiitnr_residence_completed_${(currentUser.email || '').toLowerCase()}`);
+        if (!isCompleted && (!currentUser.hostel_name || !currentUser.room_number)) {
+          navigate('/residence-info', { replace: true });
+          return;
+        }
+      }
       navigate('/submit', { replace: true });
     }
   }, [currentUser, navigate]);
@@ -202,12 +188,17 @@ export default function Register() {
             return;
           }
           try {
-            await loginGoogle({
+            const user = await loginGoogle({
               access_token: tokenResponse.access_token,
               hd: ALLOWED_DOMAIN,
               remember_me: rememberMe,
+              is_registration: true,
             });
-            navigate('/submit', { replace: true });
+            if (isUndergradHostelStudent(user?.email)) {
+              navigate('/residence-info', { replace: true });
+            } else {
+              navigate('/submit', { replace: true });
+            }
           } catch (err) {
             setError(err.response?.data?.detail || err.message);
             setGoogleLoading(false);
@@ -248,17 +239,19 @@ export default function Register() {
     try {
       const cleanEmail = email.trim().toLowerCase();
       const meta = parseEmailMetadata(cleanEmail);
-      await register({
+      const user = await register({
         name: meta?.fullName || cleanEmail.split('@')[0],
         email: cleanEmail,
         password,
         role: 'STUDENT',
         department_name: meta?.department || 'Computer Science & Engineering',
-        hostel_name: selectedHostel,
-        room_number: selectedRoomNumber,
         remember_me: rememberMe,
       });
-      navigate('/submit', { replace: true });
+      if (isUndergradHostelStudent(cleanEmail)) {
+        navigate('/residence-info', { replace: true });
+      } else {
+        navigate('/submit', { replace: true });
+      }
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Registration failed.');
       setLoading(false);
@@ -395,73 +388,6 @@ export default function Register() {
                 >
                   Change
                 </button>
-              </div>
-
-              {/* IIIT-NR Hostel & Room Assignment Box */}
-              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block">
-                  🏠 Select Your Hostel &amp; Room
-                </span>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Hostel House
-                  </label>
-                  <select
-                    value={selectedHostel}
-                    onChange={(e) => setSelectedHostel(e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                  >
-                    {hostels.map((h) => (
-                      <option key={h.id} value={h.name} className="bg-slate-900 text-white">
-                        {h.name}
-                      </option>
-                    ))}
-                    <option value="Day Scholar (Off-Campus)" className="bg-slate-900 text-white">Day Scholar</option>
-                  </select>
-                </div>
-
-                {selectedHostel !== 'Day Scholar (Off-Campus)' && (
-                  <>
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                          Floor
-                        </label>
-                        <select
-                          value={selectedFloor}
-                          onChange={(e) => setSelectedFloor(e.target.value)}
-                          className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                        >
-                          {HOSTEL_FLOORS.map((f) => (
-                            <option key={f.id} value={f.id} className="bg-slate-900 text-white">
-                              {f.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                          Room Number
-                        </label>
-                        <input
-                          type="text"
-                          list="reg-room-options"
-                          value={selectedRoomNumber}
-                          onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                          className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-mono"
-                        />
-                        <datalist id="reg-room-options">
-                          {availableRooms
-                            .filter((r) => r.includes('Room') || r.includes('Suite'))
-                            .map((r) => (
-                              <option key={r} value={r} />
-                            ))}
-                        </datalist>
-                      </div>
-                    </div>
-                  </>
-                )}
               </div>
 
               <div className="space-y-3">

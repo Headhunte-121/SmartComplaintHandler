@@ -106,7 +106,7 @@ class Settings(BaseSettings):
         in ("true", "1", "yes")
     )
     ALLOW_UNREGISTERED_LOGIN_PROVISIONING: bool = (
-        os.getenv("ALLOW_UNREGISTERED_LOGIN_PROVISIONING", "false" if _is_production_env() else "true").lower()
+        os.getenv("ALLOW_UNREGISTERED_LOGIN_PROVISIONING", "false").lower()
         in ("true", "1", "yes")
     )
     EXPOSE_DEV_OTP_IN_RESPONSE: bool = (

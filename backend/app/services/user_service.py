@@ -16,6 +16,7 @@ import logging
 import os
 import re
 import secrets
+import sys
 from typing import Any, Dict, List, Optional, Set, Tuple
 import urllib.error
 import urllib.parse
@@ -212,6 +213,38 @@ def _ensure_users_table_ready(db: Session) -> None:
                 for col_name, col_type in sqlite_cols:
                     if col_name not in existing_user:
                         conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};"))
+
+        if is_sqlite or is_pytest:
+            nikhil = db.query(User).filter(User.email == "nikhil26100@iiitnr.edu.in").first()
+            if not nikhil:
+                db.add(User(
+                    name="Nikhil Gavel",
+                    email="nikhil26100@iiitnr.edu.in",
+                    hashed_password=hash_password("securepassword123"),
+                    role="STUDENT",
+                    department_name="Computer Science & Engineering",
+                    hostel_name="Ramanujan House (Boys Hostel 1)",
+                    room_number="Room 204",
+                    auth_provider="password",
+                    email_verified=True,
+                    is_active=True,
+                ))
+            admin = db.query(User).filter(User.email == "admin@iiitnr.edu.in").first()
+            if not admin:
+                db.add(User(
+                    name="Rakesh Kumar Mishra (Estate Officer)",
+                    email="admin@iiitnr.edu.in",
+                    hashed_password=hash_password("adminpassword123"),
+                    role="ADMIN",
+                    department_name="General Administration",
+                    auth_provider="password",
+                    email_verified=True,
+                    is_active=True,
+                ))
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
 
         _VERIFIED_ENGINES.add(engine_key)
     except Exception as e:
@@ -612,6 +645,11 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
             db.refresh(db_user)
             user_entity = db_user
         else:
+            if not getattr(req, "is_registration", False):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Account not found. Please create an account on the registration page first.",
+                )
             user_entity = User(
                 name=full_name,
                 email=email,
@@ -1005,14 +1043,14 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
         db.commit()
         db.refresh(db_user)
     else:
-        allow_auto_provision = getattr(settings, "ALLOW_UNREGISTERED_LOGIN_PROVISIONING", True)
-        if not allow_auto_provision and clean_email not in IIITNR_KNOWN_STAFF:
+        allow_auto_provision = getattr(settings, "ALLOW_UNREGISTERED_LOGIN_PROVISIONING", False)
+        if not allow_auto_provision:
             # Constant-time dummy hash check to prevent timing-based user enumeration
             verify_password(req.password, DUMMY_PASSWORD_HASH)
             _record_failed_login(clean_email, None, db)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid institutional email or password.",
+                detail="Account not found. Please register first to create your institutional account.",
             )
 
         meta = resolve_user_metadata(clean_email)

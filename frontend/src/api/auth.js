@@ -149,6 +149,7 @@ export async function loginWithGoogle(googleData) {
     hd: cleanHd || ALLOWED_DOMAIN,
     email_verified: googleData.email_verified !== undefined ? Boolean(googleData.email_verified) : true,
     remember_me: googleData.remember_me !== false,
+    is_registration: Boolean(googleData.is_registration),
   };
 
   try {
@@ -165,6 +166,17 @@ export async function loginWithGoogle(googleData) {
     }
     throw err;
   }
+}
+
+/**
+ * Determine if an email belongs to an undergraduate student following the batch-branch roll schema:
+ * e.g. name26100@iiitnr.edu.in (CSE), name26101@iiitnr.edu.in (DSAI), name26102@iiitnr.edu.in (ECE).
+ * PhD scholars, staff, faculty, admin, technicians, and directorate do NOT follow this schema.
+ */
+export function isUndergradHostelStudent(email) {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  return /^[a-z]+(?:[._][a-z]+)*?(?:26|\d{2})(100|101|102)\d*@iiitnr\.edu\.in$/i.test(clean);
 }
 
 export async function sendOTP(email) {

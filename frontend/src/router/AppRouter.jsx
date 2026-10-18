@@ -17,6 +17,7 @@ import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import SuperAdminDataEditor from '../pages/SuperAdminDataEditor';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
+import ResidenceInfo from '../pages/ResidenceInfo';
 import DeveloperLab from '../pages/DeveloperLab';
 import { useAuth } from '../context/AuthContext';
 
@@ -70,9 +71,11 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Standalone Authentication Pages (NO Navbar / Footer) */}
+        {/* Standalone Authentication & Onboarding Pages (NO Navbar / Footer) */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/residence-info" element={<ResidenceInfo />} />
+        <Route path="/onboarding" element={<ResidenceInfo />} />
 
         {/* Main Application Shell (Strictly Protected - Requires Authentication) */}
         <Route path="/" element={<Layout />}>

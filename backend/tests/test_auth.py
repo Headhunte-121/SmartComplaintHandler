@@ -502,3 +502,57 @@ def test_iiitnr_hostel_room_persistence_and_zone_dispatch():
     assert compute_zone_affinity_bonus("Shabhari House (Girls Hostel 2), Wing B, Room 118", "Hostel Plumbing Squad 2") == 1
     assert compute_zone_affinity_bonus("Academic Block, VLSI Lab (Room 202)", "Academic Power Crew") == 1
     assert compute_zone_affinity_bonus("Academic Block, Room 131C Data Centre", "Academic Network Squad") == 1
+
+
+def test_unregistered_login_blocked_and_registration_allowed():
+    reset_rate_limiters()
+    random_id = str(uuid.uuid4().hex[:4])
+    unregistered_email = f"unknown26{random_id}@iiitnr.edu.in"
+
+    # 1. Unregistered user attempting password login must be rejected
+    resp_pw_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": unregistered_email, "password": "somepassword123"},
+    )
+    assert resp_pw_login.status_code == 401
+    assert "register first" in resp_pw_login.json()["detail"].lower()
+
+    # 2. Unregistered user attempting Google login without is_registration must be rejected
+    resp_google_login = client.post(
+        "/api/v1/auth/google",
+        json={
+            "email": unregistered_email,
+            "name": "New Student",
+            "hd": "iiitnr.edu.in",
+            "is_registration": False,
+        },
+    )
+    assert resp_google_login.status_code == 404
+    assert "registration" in resp_google_login.json()["detail"].lower()
+
+    # 3. Registering via Google with is_registration=True must succeed
+    resp_google_reg = client.post(
+        "/api/v1/auth/google",
+        json={
+            "email": unregistered_email,
+            "name": "New Student",
+            "hd": "iiitnr.edu.in",
+            "is_registration": True,
+        },
+    )
+    assert resp_google_reg.status_code == 200
+    assert resp_google_reg.json()["user"]["email"] == unregistered_email
+
+    # 4. Now that account is registered, subsequent Google login without is_registration succeeds
+    resp_google_subsequent = client.post(
+        "/api/v1/auth/google",
+        json={
+            "email": unregistered_email,
+            "name": "New Student",
+            "hd": "iiitnr.edu.in",
+            "is_registration": False,
+        },
+    )
+    assert resp_google_subsequent.status_code == 200
+    assert resp_google_subsequent.json()["user"]["email"] == unregistered_email
+

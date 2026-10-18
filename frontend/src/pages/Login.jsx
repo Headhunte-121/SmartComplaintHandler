@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchAuthConfig, resolveIiitnrProfileFromEmail } from '../api/auth';
+import { fetchAuthConfig, resolveIiitnrProfileFromEmail, isUndergradHostelStudent } from '../api/auth';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
@@ -79,15 +79,7 @@ export default function Login() {
 
   useEffect(() => {
     if (currentUser) {
-      const redirect =
-        currentUser.role === 'SUPER_ADMIN'
-          ? '/superadmin'
-          : currentUser.role === 'ADMIN'
-          ? '/admin'
-          : currentUser.role === 'TECHNICIAN'
-          ? '/technician'
-          : '/submit';
-      navigate(redirect, { replace: true });
+      handleRoleRedirect(currentUser);
     }
   }, [currentUser, navigate]);
 
@@ -111,6 +103,13 @@ export default function Login() {
   }, [email]);
 
   const handleRoleRedirect = (user) => {
+    if (isUndergradHostelStudent(user?.email)) {
+      const isCompleted = localStorage.getItem(`iiitnr_residence_completed_${(user.email || '').toLowerCase()}`);
+      if (!isCompleted && (!user.hostel_name || !user.room_number)) {
+        navigate('/residence-info', { replace: true });
+        return;
+      }
+    }
     const targetRoute =
       user.role === 'SUPER_ADMIN'
         ? '/superadmin'
@@ -179,6 +178,7 @@ export default function Login() {
                 hd: userHd || ALLOWED_DOMAIN,
                 email_verified: profile.email_verified !== false,
                 remember_me: rememberMe,
+                is_registration: false,
               });
               handleRoleRedirect(user);
             } else {
@@ -187,6 +187,7 @@ export default function Login() {
                 email: cleanHint.endsWith(`@${ALLOWED_DOMAIN}`) ? cleanHint : undefined,
                 hd: ALLOWED_DOMAIN,
                 remember_me: rememberMe,
+                is_registration: false,
               });
               handleRoleRedirect(user);
             }
@@ -292,11 +293,25 @@ export default function Login() {
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
 
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-semibold flex items-center gap-2">
-              <svg className="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{error}</span>
+            <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-semibold space-y-2">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{error}</span>
+              </div>
+              {(error.toLowerCase().includes('not found') || error.toLowerCase().includes('register')) && (
+                <div className="pt-2 border-t border-rose-900/60 flex items-center justify-between">
+                  <span className="text-[11px] text-rose-300/80">Unregistered institutional account?</span>
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer"
+                  >
+                    <span>Register Here</span>
+                    <span>→</span>
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 
@@ -335,7 +350,7 @@ export default function Login() {
                 type="email"
                 required
                 autoFocus
-                placeholder="name26100@iiitnr.edu.in"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);

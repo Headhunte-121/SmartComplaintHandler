@@ -146,6 +146,7 @@ class GoogleAuthRequest(BaseModel):
     hd: Optional[str] = Field(None, description="Google Workspace Hosted Domain claim (must be iiitnr.edu.in)")
     email_verified: Optional[bool] = Field(True, description="Whether Google has verified email ownership")
     remember_me: bool = Field(True, description="Persist session for 30 days")
+    is_registration: bool = Field(False, description="True if calling from registration page to register a new account")
 
     if HAS_PYDANTIC_V2:
         model_config = ConfigDict(str_strip_whitespace=True)
