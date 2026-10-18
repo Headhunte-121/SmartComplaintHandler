@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import CampusMapSelector from '../components/CampusMapSelector';
 import {
   IIITNR_CAMPUS_METADATA,
@@ -55,6 +56,7 @@ const getContactTheme = (c) => {
 export default function Home() {
   const navigate = useNavigate();
   const { currentUser, isStudent, canAccessOperations, isTechnician, isSuperAdmin } = useAuth();
+  const { isDark } = useTheme();
   const [buildings, setBuildings] = useState(() => getCampusBuildings());
   const [trackingCode, setTrackingCode] = useState('');
   const [selectedMapBuilding, setSelectedMapBuilding] = useState(
@@ -77,37 +79,47 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full bg-[#080C14] text-white min-h-screen flex flex-col space-y-0 animate-fade-in">
-      {/* Flush Command Deck Hero Header */}
-      <div className="w-full bg-[#0B0F19] border-b border-slate-800/80 px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden">
-        {/* Ambient background glow auras */}
-        <div className="absolute -right-24 -bottom-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute -left-24 -top-24 w-96 h-96 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
-
+    <div className={`w-full min-h-screen flex flex-col space-y-0 transition-colors ${isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-[#f8fafc] text-slate-900'}`}>
+      {/* Matte Command Deck Hero Header */}
+      <div className={`w-full px-4 sm:px-8 lg:px-12 py-8 relative border-b transition-colors ${
+        isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-white border-slate-200'
+      }`}>
         <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-3">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold border ${
+              isDark
+                ? 'bg-zinc-800/80 border-zinc-700 text-emerald-400'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            }`}>
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span>IIIT Naya Raipur · Sector 24, Atal Nagar</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
+            <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight ${
+              isDark ? 'text-zinc-100' : 'text-slate-900'
+            }`}>
               Campus Digital Twin &amp; Maintenance Desk
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
+            <p className={`text-xs sm:text-sm max-w-2xl leading-relaxed ${
+              isDark ? 'text-zinc-400' : 'text-slate-600'
+            }`}>
               Explore campus buildings, hostels, and academic facilities in interactive GIS space, or dispatch a verified maintenance work order with real-time AI triage.
             </p>
 
             <div className="flex flex-wrap items-center gap-2.5 pt-2">
               <Link
                 to={`/submit?building=${encodeURIComponent(selectedMapBuilding)}`}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-black text-xs shadow-md shadow-emerald-700/30 transition-all inline-flex items-center gap-2 cursor-pointer border border-emerald-500/50 hover:-translate-y-0.5 active:translate-y-0"
+                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer border border-emerald-600"
               >
                 <span>+ Submit Issue ({selectedMapBuilding.split(' (')[0]})</span>
               </Link>
               {isStudent && (
                 <Link
                   to="/student"
-                  className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                  className={`px-4 py-2 rounded-lg border font-semibold text-xs transition-colors cursor-pointer inline-flex items-center gap-2 ${
+                    isDark
+                      ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-200 hover:text-white'
+                      : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
+                  }`}
                 >
                   My Issues →
                 </Link>
@@ -115,7 +127,11 @@ export default function Home() {
               {canAccessOperations && (
                 <Link
                   to="/admin"
-                  className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                  className={`px-4 py-2 rounded-lg border font-semibold text-xs transition-colors cursor-pointer inline-flex items-center gap-2 ${
+                    isDark
+                      ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-200 hover:text-white'
+                      : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
+                  }`}
                 >
                   Operations Desk →
                 </Link>
@@ -123,7 +139,11 @@ export default function Home() {
               {isSuperAdmin && (
                 <Link
                   to="/superadmin"
-                  className="px-4 py-2.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-700/60 text-purple-200 font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                  className={`px-4 py-2 rounded-lg border font-semibold text-xs transition-colors cursor-pointer inline-flex items-center gap-2 ${
+                    isDark
+                      ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-purple-300 hover:text-purple-200'
+                      : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-800'
+                  }`}
                 >
                   Directorate Console →
                 </Link>
@@ -131,7 +151,11 @@ export default function Home() {
               {isTechnician && (
                 <Link
                   to="/technician"
-                  className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                  className={`px-4 py-2 rounded-lg border font-semibold text-xs transition-colors cursor-pointer inline-flex items-center gap-2 ${
+                    isDark
+                      ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-200 hover:text-white'
+                      : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
+                  }`}
                 >
                   Work Orders →
                 </Link>
@@ -141,18 +165,24 @@ export default function Home() {
 
           <form
             onSubmit={handleTrackSubmit}
-            className="flex items-center gap-2 bg-slate-900/90 p-2 rounded-2xl border border-slate-700/80 w-full lg:w-auto shadow-inner relative z-10"
+            className={`flex items-center gap-2 p-1.5 rounded-xl border w-full lg:w-auto ${
+              isDark ? 'bg-[#0e1117] border-zinc-700' : 'bg-slate-50 border-slate-200'
+            }`}
           >
             <input
               type="text"
               value={trackingCode}
               onChange={(e) => setTrackingCode(e.target.value)}
               placeholder="Track Code (e.g. SCH-...)"
-              className="w-full sm:w-56 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-mono focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+              className={`w-full sm:w-56 px-3.5 py-2 rounded-lg text-xs font-mono border focus:outline-none transition-colors ${
+                isDark
+                  ? 'bg-[#161b22] border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500'
+                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600'
+              }`}
             />
             <button
               type="submit"
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition-all cursor-pointer shrink-0"
+              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer shrink-0"
             >
               Track →
             </button>
@@ -172,22 +202,33 @@ export default function Home() {
       </div>
 
       {/* Flush Hostels & Campus Engineering Contacts Grid */}
-      <div className="w-full bg-[#080C14] px-4 sm:px-8 lg:px-12 py-10">
+      <div className={`w-full px-4 sm:px-8 lg:px-12 py-10 transition-colors ${
+        isDark ? 'bg-[#0e1117]' : 'bg-[#f8fafc]'
+      }`}>
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Hostels & Campus Spots */}
-          <div className="lg:col-span-7 p-6 sm:p-7 space-y-5 bg-[#0B101D] border border-slate-800 shadow-2xl rounded-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400" />
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className={`lg:col-span-7 p-6 sm:p-7 space-y-5 rounded-2xl border transition-colors ${
+            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+          }`}>
+            <div className={`flex items-center justify-between border-b pb-4 ${
+              isDark ? 'border-zinc-800' : 'border-slate-100'
+            }`}>
               <div className="flex items-center gap-2.5">
                 <span className="text-xl">🏢</span>
                 <div>
-                  <h3 className="text-base font-black text-white">
+                  <h3 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
                     IIIT-NR Hostels &amp; Campus Spots
                   </h3>
-                  <p className="text-[11px] text-slate-400">Click any spot to select and report an issue</p>
+                  <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    Click any spot to select and report an issue
+                  </p>
                 </div>
               </div>
-              <span className="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-xl">
+              <span className={`text-[11px] font-mono font-bold px-3 py-1 rounded-lg border ${
+                isDark
+                  ? 'text-emerald-400 bg-zinc-800/80 border-zinc-700'
+                  : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+              }`}>
                 Live Navigator
               </span>
             </div>
@@ -202,22 +243,36 @@ export default function Home() {
                       setSelectedMapBuilding(h.name);
                       navigate(`/submit?building=${encodeURIComponent(h.name)}`);
                     }}
-                    className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/80 hover:bg-slate-850 hover:shadow-lg transition-all cursor-pointer space-y-2 group"
+                    className={`p-3.5 rounded-xl border transition-colors cursor-pointer space-y-2 group ${
+                      isDark
+                        ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-white hover:shadow-xs'
+                    }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-base shrink-0">{theme.icon}</span>
-                        <span className="font-bold text-xs sm:text-sm text-slate-200 group-hover:text-white truncate">
+                        <span className={`font-bold text-xs sm:text-sm truncate ${
+                          isDark ? 'text-zinc-200 group-hover:text-white' : 'text-slate-800 group-hover:text-slate-950'
+                        }`}>
                           {h.name}
                         </span>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 group-hover:bg-emerald-950 text-emerald-400 border border-slate-700 group-hover:border-emerald-700/60 shrink-0">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border shrink-0 ${
+                        isDark
+                          ? 'bg-zinc-800 text-zinc-300 border-zinc-700'
+                          : 'bg-slate-200 text-slate-700 border-slate-300'
+                      }`}>
                         {h.mapPin?.badge || 'SPOT'}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                    <div className={`text-[11px] flex items-center justify-between ${
+                      isDark ? 'text-zinc-400' : 'text-slate-500'
+                    }`}>
                       <span>{h.type}</span>
-                      <span className="font-mono text-[10px] text-slate-500 group-hover:text-slate-400">
+                      <span className={`font-mono text-[10px] ${
+                        isDark ? 'text-zinc-500 group-hover:text-zinc-400' : 'text-slate-400 group-hover:text-slate-600'
+                      }`}>
                         {h.gps}
                       </span>
                     </div>
@@ -228,19 +283,28 @@ export default function Home() {
           </div>
 
           {/* Campus Estate & Engineering Contacts */}
-          <div className="lg:col-span-5 p-6 sm:p-7 space-y-5 bg-[#0B101D] border border-slate-800 shadow-2xl rounded-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500" />
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className={`lg:col-span-5 p-6 sm:p-7 space-y-5 rounded-2xl border transition-colors ${
+            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+          }`}>
+            <div className={`flex items-center justify-between border-b pb-4 ${
+              isDark ? 'border-zinc-800' : 'border-slate-100'
+            }`}>
               <div className="flex items-center gap-2.5">
                 <span className="text-xl">📞</span>
                 <div>
-                  <h3 className="text-base font-black text-white">
+                  <h3 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
                     Campus Estate &amp; Engineering Contacts
                   </h3>
-                  <p className="text-[11px] text-slate-400">Duty engineers for emergency facility escalations</p>
+                  <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    Duty engineers for emergency facility escalations
+                  </p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono font-bold text-slate-400 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800">
+              <span className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border ${
+                isDark
+                  ? 'text-zinc-400 bg-zinc-800 border-zinc-700'
+                  : 'text-slate-600 bg-slate-100 border-slate-200'
+              }`}>
                 24/7 Support
               </span>
             </div>
@@ -251,28 +315,40 @@ export default function Home() {
                 return (
                   <div
                     key={c.email}
-                    className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-start justify-between gap-3 text-xs transition-all"
+                    className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 text-xs transition-colors ${
+                      isDark
+                        ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                    }`}
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm">{theme.icon}</span>
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                        <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                          isDark
+                            ? 'bg-zinc-800 text-emerald-400 border-zinc-700'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>
                           {c.role}
                         </span>
                       </div>
-                      <div className="font-bold text-white text-sm">{c.name}</div>
-                      <div className="text-[11px] text-slate-400">{c.office}</div>
+                      <div className={`font-bold text-sm ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>{c.name}</div>
+                      <div className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>{c.office}</div>
                     </div>
                     <div className="text-right font-mono text-[11px] shrink-0 space-y-1.5">
                       <a
                         href={`tel:${c.phone}`}
-                        className="font-bold text-white bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-lg border border-slate-700 block transition-colors"
+                        className={`font-semibold px-2.5 py-1 rounded-lg border block transition-colors ${
+                          isDark
+                            ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-zinc-700'
+                            : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 shadow-2xs'
+                        }`}
                       >
                         📞 {c.phone}
                       </a>
                       <a
                         href={`mailto:${c.email}`}
-                        className="text-[10px] text-emerald-400 hover:text-emerald-300 block hover:underline truncate max-w-[150px]"
+                        className="text-[10px] text-emerald-500 hover:text-emerald-400 block hover:underline truncate max-w-[150px]"
                       >
                         {c.email}
                       </a>

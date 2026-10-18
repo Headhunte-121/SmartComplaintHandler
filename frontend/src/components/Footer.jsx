@@ -8,7 +8,7 @@ export default function Footer({ isDark = false }) {
     <footer
       className={`border-t mt-auto transition-colors ${
         isDark
-          ? 'bg-[#060A10] text-slate-400 border-slate-800'
+          ? 'bg-[#161b22] text-zinc-400 border-zinc-800'
           : 'bg-white text-slate-500 border-slate-200'
       }`}
     >
@@ -19,19 +19,19 @@ export default function Footer({ isDark = false }) {
             alt="IIIT-NR"
             className="h-5 w-auto object-contain opacity-90"
           />
-          <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <span className={`font-semibold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
             IIIT Naya Raipur
           </span>
-          <span className="text-slate-500">·</span>
-          <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
+          <span className={isDark ? 'text-zinc-600' : 'text-slate-400'}>·</span>
+          <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
             Sector 24, Atal Nagar – 493661
           </span>
         </div>
 
-        <div className={`flex flex-wrap items-center gap-4 text-[11px] font-mono ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-          <span>Electrical: <span className={isDark ? 'text-slate-200 font-semibold' : 'text-slate-900 font-medium'}>0771-2474109</span></span>
-          <span>Estate: <span className={isDark ? 'text-slate-200 font-semibold' : 'text-slate-900 font-medium'}>0771-2474104</span></span>
-          <span>IT NOC: <span className="text-emerald-400 font-bold">Room 131C</span></span>
+        <div className={`flex flex-wrap items-center gap-4 text-[11px] font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+          <span>Electrical: <span className={isDark ? 'text-zinc-200 font-semibold' : 'text-slate-900 font-medium'}>0771-2474109</span></span>
+          <span>Estate: <span className={isDark ? 'text-zinc-200 font-semibold' : 'text-slate-900 font-medium'}>0771-2474104</span></span>
+          <span>IT NOC: <span className="text-emerald-500 font-bold">Room 131C</span></span>
         </div>
       </div>
     </footer>

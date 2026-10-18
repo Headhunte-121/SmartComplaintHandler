@@ -7,8 +7,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
-export default function Navbar({ isDark = false }) {
+export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -19,14 +20,8 @@ export default function Navbar({ isDark = false }) {
     isAdmin,
     isSuperAdmin,
   } = useAuth();
-
-  const isDarkTheme =
-    isDark ||
-    location.pathname === '/' ||
-    location.pathname === '/map' ||
-    location.pathname === '/submit' ||
-    location.pathname === '/student' ||
-    location.pathname === '/track';
+  const { isDark, toggleTheme } = useTheme();
+  const isDarkTheme = isDark;
 
   const [backendHealthy, setBackendHealthy] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -62,14 +57,14 @@ export default function Navbar({ isDark = false }) {
   };
 
   const navTabClasses = ({ isActive }) =>
-    `relative h-16 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-all ${
+    `relative h-16 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-colors ${
       isDarkTheme
         ? isActive
-          ? 'text-emerald-400 font-bold after:content-[""] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[2.5px] after:bg-gradient-to-r after:from-emerald-400 after:to-teal-400 after:rounded-full after:shadow-[0_0_12px_rgba(52,211,153,0.8)]'
-          : 'text-slate-400 hover:text-white font-semibold'
+          ? 'text-zinc-100 font-bold after:content-[""] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[2px] after:bg-emerald-500 after:rounded-full'
+          : 'text-zinc-400 hover:text-zinc-200 font-medium'
         : isActive
-        ? 'text-emerald-800 font-bold after:content-[""] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[3px] after:bg-gradient-to-r after:from-emerald-500 after:to-teal-500 after:rounded-full after:shadow-[0_-2px_10px_rgba(22,163,74,0.6)]'
-        : 'text-slate-600 hover:text-slate-900 font-semibold'
+        ? 'text-zinc-900 font-bold after:content-[""] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[2px] after:bg-emerald-600 after:rounded-full'
+        : 'text-slate-600 hover:text-slate-900 font-medium'
     }`;
 
   const shortHostel = currentUser?.hostel_name
@@ -81,13 +76,12 @@ export default function Navbar({ isDark = false }) {
 
   return (
     <header
-      className={`sticky top-0 z-40 h-16 backdrop-blur-xl border-b transition-colors relative ${
+      className={`sticky top-0 z-40 h-16 backdrop-blur-md border-b transition-colors relative ${
         isDarkTheme
-          ? 'bg-[#080C14]/95 border-slate-800 text-white shadow-md'
-          : 'bg-white/95 border-slate-200/90 text-slate-800 shadow-xs'
+          ? 'bg-[#0e1117]/95 border-zinc-800 text-zinc-100'
+          : 'bg-white/95 border-slate-200 text-slate-800 shadow-xs'
       }`}
     >
-      <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600" />
       <div className={`h-full ${isDarkTheme ? 'w-full px-4 sm:px-8 lg:px-12' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}`}>
         <div className="flex items-center justify-between h-full gap-4">
           {/* Left: Brand Identity + Breadcrumb Divider + Horizontal Underline Tabs */}
@@ -96,8 +90,8 @@ export default function Navbar({ isDark = false }) {
               <div
                 className={`w-8 h-8 rounded-lg flex items-center justify-center p-1 transition-colors border ${
                   isDarkTheme
-                    ? 'bg-slate-900 border-slate-800 group-hover:border-emerald-500/80'
-                    : 'bg-slate-50 border-slate-200 group-hover:border-green-400/80'
+                    ? 'bg-zinc-900 border-zinc-800 group-hover:border-zinc-700'
+                    : 'bg-slate-50 border-slate-200 group-hover:border-slate-300'
                 }`}
               >
                 <img
@@ -107,7 +101,7 @@ export default function Navbar({ isDark = false }) {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className={`text-sm font-bold tracking-tight ${isDarkTheme ? 'text-white' : 'text-slate-900'}`}>
+                <span className={`text-sm font-bold tracking-tight ${isDarkTheme ? 'text-zinc-100' : 'text-slate-900'}`}>
                   IIIT-NR
                 </span>
                 <span className={`font-light text-sm ${isDarkTheme ? 'text-slate-600' : 'text-slate-400'}`}>/</span>
@@ -261,25 +255,48 @@ export default function Navbar({ isDark = false }) {
             {currentUser?.hostel_name && (
               <Link
                 to="/submit"
-                className={`hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs ${
+                className={`hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
                   isDarkTheme
-                    ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-emerald-400 hover:border-emerald-500'
-                    : 'bg-gradient-to-r from-emerald-100/90 via-emerald-50 to-teal-100/60 hover:from-emerald-200 hover:to-teal-100 border-2 border-emerald-300 text-emerald-950'
+                    ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-200 hover:border-zinc-700'
+                    : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
                 }`}
                 title="Your default hostel residence"
               >
                 <svg className={`w-3.5 h-3.5 shrink-0 ${isDarkTheme ? 'text-emerald-400' : 'text-emerald-700'}`} fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span className="font-mono text-xs font-bold">
+                <span className="font-mono text-xs font-medium">
                   {shortHostel} · {shortRoom}
                 </span>
               </Link>
             )}
 
+            {/* Theme Toggle Button (One Click) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${isDarkTheme ? 'light' : 'dark'} mode`}
+              title={`Switch to ${isDarkTheme ? 'light' : 'dark'} mode`}
+              className={`p-2 rounded-lg border transition-colors cursor-pointer flex items-center justify-center ${
+                isDarkTheme
+                  ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-amber-400'
+                  : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 shadow-xs'
+              }`}
+            >
+              {isDarkTheme ? (
+                <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+
             <Link
               to="/submit"
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-black text-xs shadow-md shadow-emerald-700/30 transition-all inline-flex items-center gap-1.5 cursor-pointer border border-emerald-500/50 hover:-translate-y-0.5 active:translate-y-0"
+              className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -294,7 +311,7 @@ export default function Navbar({ isDark = false }) {
                   onClick={() => setProfileMenuOpen((prev) => !prev)}
                   className={`flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full border transition-colors cursor-pointer ${
                     isDarkTheme
-                      ? 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                      ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-200'
                       : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
                   }`}
                 >
@@ -309,7 +326,7 @@ export default function Navbar({ isDark = false }) {
                       {(currentUser.name || 'S')[0].toUpperCase()}
                     </div>
                   )}
-                  <span className={`text-xs font-medium max-w-[96px] truncate ${isDarkTheme ? 'text-slate-200' : 'text-slate-800'}`}>
+                  <span className={`text-xs font-medium max-w-[96px] truncate ${isDarkTheme ? 'text-zinc-200' : 'text-slate-800'}`}>
                     {currentUser.name.split(' ')[0]}
                   </span>
                   <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -318,19 +335,19 @@ export default function Navbar({ isDark = false }) {
                 </button>
 
                 {profileMenuOpen && (
-                  <div className={`absolute right-0 mt-2 w-64 rounded-xl border shadow-2xl py-1.5 z-50 text-xs ${
-                    isDarkTheme ? 'bg-[#0B0F19] border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800 shadow-xl'
+                  <div className={`absolute right-0 mt-2 w-64 rounded-xl border shadow-xl py-1.5 z-50 text-xs ${
+                    isDarkTheme ? 'bg-[#161b22] border-zinc-800 text-zinc-200' : 'bg-white border-slate-200 text-slate-800'
                   }`}>
-                    <div className={`px-3.5 py-2.5 border-b ${isDarkTheme ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <div className={`px-3.5 py-2.5 border-b ${isDarkTheme ? 'border-zinc-800' : 'border-slate-100'}`}>
                       <div className="flex items-center justify-between">
-                        <span className={`font-semibold truncate ${isDarkTheme ? 'text-white' : 'text-slate-900'}`}>{currentUser.name}</span>
+                        <span className={`font-semibold truncate ${isDarkTheme ? 'text-zinc-100' : 'text-slate-900'}`}>{currentUser.name}</span>
                         <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold border ${
-                          isDarkTheme ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-green-50 text-green-700 border-green-200'
+                          isDarkTheme ? 'bg-zinc-800 text-emerald-400 border-zinc-700' : 'bg-green-50 text-green-700 border-green-200'
                         }`}>
                           {currentUser.roleLabel || currentUser.role}
                         </span>
                       </div>
-                      <div className={`text-[11px] font-mono mt-0.5 truncate ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
+                      <div className={`text-[11px] font-mono mt-0.5 truncate ${isDarkTheme ? 'text-zinc-400' : 'text-slate-500'}`}>
                         {currentUser.email}
                       </div>
                     </div>
@@ -341,7 +358,7 @@ export default function Navbar({ isDark = false }) {
                           to="/superadmin/editor"
                           onClick={() => setProfileMenuOpen(false)}
                           className={`w-full px-3.5 py-2 text-left flex items-center gap-2 ${
-                            isDarkTheme ? 'text-slate-300 hover:text-white hover:bg-slate-800/80' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                            isDarkTheme ? 'text-zinc-300 hover:text-white hover:bg-zinc-800/80' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                           }`}
                         >
                           <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -355,7 +372,7 @@ export default function Navbar({ isDark = false }) {
                         to="/student"
                         onClick={() => setProfileMenuOpen(false)}
                         className={`w-full px-3.5 py-2 text-left flex items-center gap-2 ${
-                          isDarkTheme ? 'text-slate-300 hover:text-white hover:bg-slate-800/80' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                          isDarkTheme ? 'text-zinc-300 hover:text-white hover:bg-zinc-800/80' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                         }`}
                       >
                         <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -365,7 +382,7 @@ export default function Navbar({ isDark = false }) {
                       </Link>
                     </div>
 
-                    <div className={`border-t pt-1 ${isDarkTheme ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <div className={`border-t pt-1 ${isDarkTheme ? 'border-zinc-800' : 'border-slate-100'}`}>
                       <button
                         type="button"
                         onClick={handleLogout}
@@ -393,9 +410,32 @@ export default function Navbar({ isDark = false }) {
           </div>
 
           <div className="flex md:hidden items-center space-x-2">
+            {/* Mobile Header Theme Toggle Button (One-Click) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${isDarkTheme ? 'light' : 'dark'} mode`}
+              title={`Switch to ${isDarkTheme ? 'light' : 'dark'} mode`}
+              className={`p-2 rounded-lg border transition-colors cursor-pointer flex items-center justify-center ${
+                isDarkTheme
+                  ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-amber-400'
+                  : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 shadow-xs'
+              }`}
+            >
+              {isDarkTheme ? (
+                <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-400 hover:bg-white/[0.06]"
+              className={`p-2 rounded-lg ${isDarkTheme ? 'text-zinc-400 hover:bg-zinc-800' : 'text-slate-600 hover:bg-slate-100'}`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
@@ -410,13 +450,13 @@ export default function Navbar({ isDark = false }) {
 
         {mobileMenuOpen && (
           <div className={`md:hidden py-3 border-t space-y-1 ${
-            isDarkTheme ? 'bg-[#080C14] border-slate-800' : 'bg-white border-slate-200'
+            isDarkTheme ? 'bg-[#161b22] border-zinc-800' : 'bg-white border-slate-200'
           }`}>
             <NavLink
               to="/"
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-3 py-2 text-xs font-medium rounded-lg ${
-                isDarkTheme ? 'text-slate-200 hover:bg-slate-900' : 'text-slate-700 hover:bg-slate-50'
+                isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               Campus Map
@@ -425,7 +465,7 @@ export default function Navbar({ isDark = false }) {
               to="/submit"
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-3 py-2 text-xs font-semibold rounded-lg ${
-                isDarkTheme ? 'text-emerald-400 hover:bg-slate-900' : 'text-green-700 hover:bg-green-50'
+                isDarkTheme ? 'text-emerald-400 hover:bg-zinc-800' : 'text-green-700 hover:bg-green-50'
               }`}
             >
               Submit Request
@@ -435,7 +475,7 @@ export default function Navbar({ isDark = false }) {
                 to="/student"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`block px-3 py-2 text-xs font-medium rounded-lg ${
-                  isDarkTheme ? 'text-slate-200 hover:bg-slate-900' : 'text-slate-700 hover:bg-slate-50'
+                  isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 My Issues
@@ -445,7 +485,7 @@ export default function Navbar({ isDark = false }) {
               to="/track"
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-3 py-2 text-xs font-medium rounded-lg ${
-                isDarkTheme ? 'text-slate-200 hover:bg-slate-900' : 'text-slate-700 hover:bg-slate-50'
+                isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               Track Status

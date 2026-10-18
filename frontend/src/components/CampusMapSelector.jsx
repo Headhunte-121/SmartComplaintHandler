@@ -11,6 +11,7 @@
  */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   IIITNR_MAP_UPDATED_EVENT,
   getCampusBuildings,
@@ -40,8 +41,10 @@ export default function CampusMapSelector({
   flush = false,
 }) {
   const { isSuperAdmin } = useAuth();
+  const { isDark } = useTheme();
   const [buildings, setBuildings] = useState(() => getCampusBuildings());
-  const [twinTheme, setTwinTheme] = useState('architectural');
+  const [twinThemeOverride, setTwinThemeOverride] = useState(null);
+  const twinTheme = twinThemeOverride !== null ? twinThemeOverride : (isDark ? 'architectural' : 'light');
   const [showLabels, setShowLabels] = useState(true);
   const [showPathsAndCourts, setShowPathsAndCourts] = useState(true);
   const [showBoundary, setShowBoundary] = useState(true);
@@ -344,12 +347,18 @@ export default function CampusMapSelector({
     <div
       className={`relative select-none overflow-hidden transition-all ${
         flush
-          ? 'w-full rounded-none border-y border-slate-800/90 bg-slate-950 shadow-2xl'
-          : 'rounded-3xl border border-slate-200/90 bg-white shadow-md'
+          ? isDark
+            ? 'w-full rounded-none border-y border-zinc-800 bg-[#0e1117]'
+            : 'w-full rounded-none border-y border-slate-200 bg-white'
+          : isDark
+          ? 'rounded-2xl border border-zinc-800 bg-[#161b22]'
+          : 'rounded-2xl border border-slate-200 bg-white shadow-xs'
       }`}
     >
-      {/* Top Floating Glassmorphic Search & Quick Filter Bar */}
-      <div className={`p-3.5 ${flush ? 'px-4 sm:px-8 lg:px-12' : ''} bg-slate-950 text-white border-b border-slate-800 space-y-2.5`}>
+      {/* Top Floating Search & Quick Filter Bar */}
+      <div className={`p-3.5 ${flush ? 'px-4 sm:px-8 lg:px-12' : ''} border-b transition-colors space-y-2.5 ${
+        isDark ? 'bg-[#161b22] text-zinc-100 border-zinc-800' : 'bg-slate-50 text-slate-800 border-slate-200'
+      }`}>
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           {/* Omni Search Input */}
           <div className="relative flex-1 min-w-[260px]">
@@ -359,14 +368,18 @@ export default function CampusMapSelector({
               onFocus={() => setIsSearchFocused(true)}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="🔍 Search any building, lab (VLSI, AIDL), room (303, 131C), or facility..."
-              className="w-full px-4 py-2 pl-9 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-xs sm:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-400 transition-all font-sans"
+              className={`w-full px-4 py-2 pl-9 rounded-xl border text-xs sm:text-sm transition-colors font-sans focus:outline-none ${
+                isDark
+                  ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-emerald-500'
+                  : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 shadow-2xs'
+              }`}
             />
-            <span className="absolute left-3 top-2 text-emerald-400 text-xs">⚡</span>
+            <span className="absolute left-3 top-2 text-emerald-500 text-xs">⚡</span>
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2 text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
+                className={`absolute right-3 top-2 text-xs font-bold cursor-pointer ${isDark ? 'text-zinc-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'}`}
               >
                 ✕
               </button>
@@ -374,26 +387,38 @@ export default function CampusMapSelector({
 
             {/* Live Search Dropdown */}
             {isSearchFocused && searchResults.length > 0 && (
-              <div className="absolute left-0 right-0 mt-2 bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-40 divide-y divide-slate-800 max-h-72 overflow-y-auto">
-                <div className="px-3.5 py-1.5 bg-slate-900/90 text-[10px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
+              <div className={`absolute left-0 right-0 mt-2 border rounded-2xl shadow-xl overflow-hidden z-40 divide-y max-h-72 overflow-y-auto ${
+                isDark ? 'bg-[#161b22] border-zinc-700 divide-zinc-800 text-zinc-100' : 'bg-white border-slate-200 divide-slate-100 text-slate-800'
+              }`}>
+                <div className={`px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider flex items-center justify-between ${
+                  isDark ? 'bg-[#0e1117] text-zinc-400' : 'bg-slate-50 text-slate-500'
+                }`}>
                   <span>Digital Twin Matches ({searchResults.length})</span>
-                  <span className="text-emerald-400">Click to fly to spot</span>
+                  <span className="text-emerald-500 font-semibold">Click to fly to spot</span>
                 </div>
                 {searchResults.map((res, i) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => handleSelectSearchResult(res)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-slate-900 transition-colors flex items-center justify-between gap-3 cursor-pointer group"
+                    className={`w-full text-left px-4 py-2.5 transition-colors flex items-center justify-between gap-3 cursor-pointer group ${
+                      isDark ? 'hover:bg-zinc-800/80' : 'hover:bg-slate-50'
+                    }`}
                   >
                     <div>
-                      <div className="font-bold text-xs text-white group-hover:text-emerald-400 flex items-center gap-1.5">
+                      <div className={`font-bold text-xs flex items-center gap-1.5 ${
+                        isDark ? 'text-zinc-100 group-hover:text-emerald-400' : 'text-slate-800 group-hover:text-emerald-600'
+                      }`}>
                         <span>{res.type === 'ROOM' ? '📍' : '🏢'}</span>
                         <span>{res.title}</span>
                       </div>
-                      <div className="text-[11px] text-slate-400">{res.subtitle}</div>
+                      <div className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>{res.subtitle}</div>
                     </div>
-                    <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/40">
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                      isDark
+                        ? 'text-emerald-400 bg-zinc-800 border-zinc-700'
+                        : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                    }`}>
                       Fly To →
                     </span>
                   </button>
@@ -420,10 +445,12 @@ export default function CampusMapSelector({
                     handleSelectBuildingInternal(chip.id, chip.id);
                   }
                 }}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all shrink-0 cursor-pointer border ${
                   activeBuildingId === chip.id
-                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                    : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-emerald-400'
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                    : isDark
+                    ? 'bg-[#0e1117] text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:text-white'
+                    : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 shadow-2xs'
                 }`}
               >
                 {chip.label}
@@ -434,7 +461,7 @@ export default function CampusMapSelector({
       </div>
 
       {/* Main Interactive Map Viewport Container */}
-      <div className="relative w-full bg-slate-950 overflow-hidden">
+      <div className={`relative w-full overflow-hidden ${isDark ? 'bg-[#0e1117]' : 'bg-[#f4f7f4]'}`}>
         {/* SVG Digital Twin Canvas */}
         <DigitalTwinCanvas
           svgRef={svgRef}
@@ -464,21 +491,27 @@ export default function CampusMapSelector({
         {/* Floating Camera & Layer Controls Toolbar */}
         <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
           {/* Zoom Buttons */}
-          <div className="bg-slate-900/90 backdrop-blur-md p-1 rounded-2xl border border-slate-700/80 shadow-xl flex flex-col items-center">
+          <div className={`p-1 rounded-2xl border shadow-xl flex flex-col items-center backdrop-blur-md ${
+            isDark ? 'bg-[#161b22]/90 border-zinc-800' : 'bg-white/95 border-slate-200'
+          }`}>
             <button
               type="button"
               title="Zoom In (or use mouse scroll)"
               onClick={() => setZoom((z) => Math.min(3.5, Number((z + 0.3).toFixed(2))))}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-white hover:bg-slate-800 text-sm font-black cursor-pointer transition-colors"
+              className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold cursor-pointer transition-colors ${
+                isDark ? 'text-zinc-100 hover:bg-zinc-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}
             >
               +
             </button>
-            <div className="text-[10px] font-mono text-slate-400 py-1">{Math.round(zoom * 100)}%</div>
+            <div className={`text-[10px] font-mono py-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>{Math.round(zoom * 100)}%</div>
             <button
               type="button"
               title="Zoom Out (or use mouse scroll)"
               onClick={() => setZoom((z) => Math.max(0.85, Number((z - 0.3).toFixed(2))))}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-white hover:bg-slate-800 text-sm font-black cursor-pointer transition-colors"
+              className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold cursor-pointer transition-colors ${
+                isDark ? 'text-zinc-100 hover:bg-zinc-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}
             >
               −
             </button>
@@ -486,28 +519,36 @@ export default function CampusMapSelector({
               type="button"
               title="Reset to Campus Overview"
               onClick={resetView}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-emerald-400 hover:bg-slate-800 text-xs font-bold cursor-pointer transition-colors border-t border-slate-800 mt-1"
+              className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold cursor-pointer transition-colors border-t mt-1 ${
+                isDark ? 'text-emerald-400 hover:bg-zinc-800 border-zinc-800' : 'text-emerald-600 hover:bg-slate-100 border-slate-200'
+              }`}
             >
               ⟲
             </button>
           </div>
 
           {/* Quick Layer & Theme Toggles */}
-          <div className="bg-slate-900/90 backdrop-blur-md p-1 rounded-2xl border border-slate-700/80 shadow-xl flex flex-col items-center gap-1">
+          <div className={`p-1 rounded-2xl border shadow-xl flex flex-col items-center gap-1 backdrop-blur-md ${
+            isDark ? 'bg-[#161b22]/90 border-zinc-800' : 'bg-white/95 border-slate-200'
+          }`}>
             <button
               type="button"
               title={`Switch to ${twinTheme === 'light' ? 'Dark' : 'Light'} Mode`}
-              onClick={() => setTwinTheme((t) => (t === 'light' ? 'architectural' : 'light'))}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-sm cursor-pointer hover:bg-slate-800 transition-colors"
+              onClick={() => setTwinThemeOverride((t) => (t === 'light' ? 'architectural' : 'light'))}
+              className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm cursor-pointer transition-colors ${
+                isDark ? 'hover:bg-zinc-800 text-zinc-300' : 'hover:bg-slate-100 text-slate-700'
+              }`}
             >
-              {twinTheme === 'light' ? '🌙' : '🌿'}
+              {twinTheme === 'light' ? '🌙' : '☀️'}
             </button>
             <button
               type="button"
               title={showLabels ? 'Hide Building Labels' : 'Show Building Labels'}
               onClick={() => setShowLabels((v) => !v)}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold cursor-pointer transition-colors ${
-                showLabels ? 'bg-emerald-600/30 text-emerald-300' : 'text-slate-400 hover:bg-slate-800'
+                showLabels
+                  ? isDark ? 'bg-zinc-800 text-emerald-400 border border-zinc-700' : 'bg-emerald-100 text-emerald-800'
+                  : isDark ? 'text-zinc-400 hover:bg-zinc-800' : 'text-slate-500 hover:bg-slate-100'
               }`}
             >
               🏷️
@@ -517,7 +558,9 @@ export default function CampusMapSelector({
               title={showPathsAndCourts ? 'Hide Walkways & Entrances' : 'Show Walkways & Entrances'}
               onClick={() => setShowPathsAndCourts((v) => !v)}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold cursor-pointer transition-colors ${
-                showPathsAndCourts ? 'bg-emerald-600/30 text-emerald-300' : 'text-slate-400 hover:bg-slate-800'
+                showPathsAndCourts
+                  ? isDark ? 'bg-zinc-800 text-emerald-400 border border-zinc-700' : 'bg-emerald-100 text-emerald-800'
+                  : isDark ? 'text-zinc-400 hover:bg-zinc-800' : 'text-slate-500 hover:bg-slate-100'
               }`}
             >
               🛣️
@@ -527,16 +570,18 @@ export default function CampusMapSelector({
 
         {/* Live Hover Telemetry Tooltip (Bottom Left) */}
         <div className="absolute bottom-3 left-3 z-20 pointer-events-none">
-          <div className="px-3.5 py-1.5 rounded-xl bg-slate-950/80 backdrop-blur-md border border-slate-800 text-[11px] text-slate-300 flex items-center gap-2 shadow-lg">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className={`px-3.5 py-1.5 rounded-xl border text-[11px] flex items-center gap-2 backdrop-blur-md shadow-md ${
+            isDark ? 'bg-[#161b22]/90 border-zinc-800 text-zinc-300' : 'bg-white/95 border-slate-200 text-slate-700'
+          }`}>
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
             {hoveredBuildingObj ? (
               <span>
-                <strong className="text-white">{hoveredBuildingObj.name}</strong> ·{' '}
-                <span className="text-emerald-400">{hoveredBuildingObj.category}</span>
-                <span className="hidden sm:inline text-slate-400 ml-1">· Click to inspect</span>
+                <strong className={isDark ? 'text-white' : 'text-slate-900'}>{hoveredBuildingObj.name}</strong> ·{' '}
+                <span className={isDark ? 'text-emerald-400' : 'text-emerald-600'}>{hoveredBuildingObj.category}</span>
+                <span className={`hidden sm:inline ml-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>· Click to inspect</span>
               </span>
             ) : (
-              <span className="text-slate-400">
+              <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
                 💡 Drag to pan · Scroll wheel to zoom · Click building to inspect
               </span>
             )}
@@ -545,22 +590,32 @@ export default function CampusMapSelector({
 
         {/* Interactive Floating Building Place Card (The "Not Selection Based" Explorer!) */}
         {showPlaceCard && activeBuildingObj && (
-          <div className="absolute top-4 right-4 bottom-4 w-80 sm:w-96 max-w-[92vw] z-30 flex flex-col rounded-2xl bg-slate-950/95 backdrop-blur-md border border-slate-700/80 shadow-2xl text-white overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-right-4">
+          <div className={`absolute top-4 right-4 bottom-4 w-80 sm:w-96 max-w-[92vw] z-30 flex flex-col rounded-2xl border shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-right-4 backdrop-blur-md ${
+            isDark ? 'bg-[#161b22]/95 border-zinc-800 text-zinc-100' : 'bg-white/98 border-slate-200 text-slate-900'
+          }`}>
             {/* Card Header */}
-            <div className="p-4 bg-slate-900 border-b border-slate-800 flex items-start justify-between gap-3">
+            <div className={`p-4 border-b flex items-start justify-between gap-3 ${
+              isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-slate-50 border-slate-200'
+            }`}>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-mono text-[10px] font-black tracking-wider">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-mono text-[10px] font-bold tracking-wider">
                     {activeBuildingObj.trace?.badge || activeBuildingObj.mapPin?.badge || 'CAMPUS'}
                   </span>
-                  <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+                  <span className={`text-[11px] font-bold uppercase tracking-wider ${
+                    isDark ? 'text-emerald-400' : 'text-emerald-700'
+                  }`}>
                     {activeBuildingObj.category}
                   </span>
                 </div>
-                <h3 className="text-sm sm:text-base font-black text-white leading-tight">
+                <h3 className={`text-sm sm:text-base font-black leading-tight ${
+                  isDark ? 'text-zinc-100' : 'text-slate-900'
+                }`}>
                   {activeBuildingObj.name}
                 </h3>
-                <div className="text-[11px] text-slate-400 font-mono">
+                <div className={`text-[11px] font-mono ${
+                  isDark ? 'text-zinc-400' : 'text-slate-500'
+                }`}>
                   📍 {activeBuildingObj.gps || 'Sector 24 Campus Core'}
                 </div>
               </div>
@@ -573,7 +628,9 @@ export default function CampusMapSelector({
                   setShowPlaceCard(false);
                   setActiveBuildingId(null);
                 }}
-                className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs font-bold cursor-pointer transition-colors"
+                className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-colors ${
+                  isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-600 hover:text-slate-900'
+                }`}
               >
                 ✕
               </button>
@@ -581,8 +638,10 @@ export default function CampusMapSelector({
 
             {/* Selected Location Pill */}
             {activeRoom && (
-              <div className="px-4 py-2 bg-emerald-950/80 border-b border-emerald-800/60 flex items-center justify-between text-xs text-emerald-200">
-                <div className="flex items-center gap-1.5 font-bold">
+              <div className={`px-4 py-2 border-b flex items-center justify-between text-xs font-semibold ${
+                isDark ? 'bg-zinc-800/90 border-zinc-700 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              }`}>
+                <div className="flex items-center gap-1.5">
                   <span>✓</span>
                   <span>Target: {activeRoom}</span>
                 </div>
@@ -592,7 +651,7 @@ export default function CampusMapSelector({
                     setActiveRoom('');
                     if (onSelectRoom) onSelectRoom('');
                   }}
-                  className="text-[10px] text-emerald-400 hover:text-white underline cursor-pointer"
+                  className={`text-[10px] underline cursor-pointer ${isDark ? 'text-zinc-300 hover:text-white' : 'text-emerald-700 hover:text-emerald-900'}`}
                 >
                   Clear
                 </button>
@@ -604,9 +663,11 @@ export default function CampusMapSelector({
               {/* Floor Switcher */}
               {availableFloors.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <div className={`text-[10px] font-mono uppercase tracking-wider flex items-center justify-between ${
+                    isDark ? 'text-zinc-400' : 'text-slate-500'
+                  }`}>
                     <span>Select Level / Floor:</span>
-                    <span className="text-emerald-400">{availableFloors.length} Levels</span>
+                    <span className={isDark ? 'text-emerald-400' : 'text-emerald-700'}>{availableFloors.length} Levels</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {availableFloors.map((fl) => {
@@ -616,10 +677,12 @@ export default function CampusMapSelector({
                           key={fl.id}
                           type="button"
                           onClick={() => setInspectorFloor(fl.id)}
-                          className={`px-2 py-1.5 rounded-xl text-xs font-bold text-center transition-all cursor-pointer border ${
+                          className={`px-2 py-1.5 rounded-xl text-xs font-semibold text-center transition-all cursor-pointer border ${
                             isActive
-                              ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
-                              : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'
+                              ? 'bg-emerald-600 text-white border-emerald-500 shadow-2xs'
+                              : isDark
+                              ? 'bg-[#0e1117] text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                              : 'bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300'
                           }`}
                         >
                           {fl.label}
@@ -632,9 +695,11 @@ export default function CampusMapSelector({
 
               {/* Rooms & Laboratories List */}
               <div className="space-y-2">
-                <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <div className={`text-[10px] font-mono uppercase tracking-wider flex items-center justify-between ${
+                  isDark ? 'text-zinc-400' : 'text-slate-500'
+                }`}>
                   <span>Rooms, Labs & Facilities:</span>
-                  <span className="text-slate-500">{inspectorRooms.length} Total</span>
+                  <span className={isDark ? 'text-zinc-500' : 'text-slate-400'}>{inspectorRooms.length} Total</span>
                 </div>
 
                 {inspectorRooms.length > 0 ? (
@@ -651,18 +716,24 @@ export default function CampusMapSelector({
                           }}
                           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-between cursor-pointer border ${
                             isSelected
-                              ? 'bg-emerald-600/30 text-emerald-200 border-emerald-500 font-bold shadow-xs'
-                              : 'bg-slate-900/80 text-slate-300 border-slate-800/80 hover:bg-slate-800 hover:text-white'
+                              ? isDark
+                                ? 'bg-zinc-800 text-emerald-400 border-emerald-600 font-bold'
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-500 font-bold'
+                              : isDark
+                              ? 'bg-[#0e1117] text-zinc-300 border-zinc-800/80 hover:bg-zinc-800/60 hover:text-white'
+                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
                           }`}
                         >
                           <span className="truncate">{roomName}</span>
-                          {isSelected && <span className="text-emerald-400 font-bold ml-2">✓</span>}
+                          {isSelected && <span className="text-emerald-500 font-bold ml-2">✓</span>}
                         </button>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-center text-xs text-slate-500">
+                  <div className={`p-4 rounded-xl border text-center text-xs ${
+                    isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-500'
+                  }`}>
                     General building facility zone. Click to select building for reporting.
                   </div>
                 )}
@@ -670,7 +741,9 @@ export default function CampusMapSelector({
             </div>
 
             {/* Card Action Footer */}
-            <div className="p-3.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-2">
+            <div className={`p-3.5 border-t flex items-center justify-between gap-2 ${
+              isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-slate-50 border-slate-200'
+            }`}>
               <button
                 type="button"
                 onClick={() => {
@@ -679,7 +752,9 @@ export default function CampusMapSelector({
                   const cy = activeBuildingObj.trace?.cy ?? P?.cy ?? 400;
                   flyTo(cx, cy, 2.0);
                 }}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 border ${
+                  isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-2xs'
+                }`}
               >
                 <span>🎯</span>
                 <span>Center</span>
@@ -692,7 +767,7 @@ export default function CampusMapSelector({
                   if (onSelectRoom && activeRoom) onSelectRoom(activeRoom);
                   setShowPlaceCard(false);
                 }}
-                className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
                 <span>📍</span>
                 <span>Confirm Location</span>

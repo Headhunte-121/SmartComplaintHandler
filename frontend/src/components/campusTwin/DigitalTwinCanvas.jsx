@@ -58,15 +58,19 @@ export default function DigitalTwinCanvas({
     const h = b.trace?.h || P?.h || 46;
     const baseColor = b.trace?.color || b.mapPin?.color || P?.color || '#0284c7';
 
-    const fillOpacity = isBlueprint ? 0.35 : isSelected ? 1 : 0.94;
-    const strokeColor = isSelected ? '#16a34a' : isHovered ? (isLight ? '#0f172a' : '#38bdf8') : '#ffffff';
-    const strokeWidth = isSelected ? 3.2 : isHovered ? 2.4 : 1.7;
+    const fillOpacity = isBlueprint ? 0.35 : isSelected ? 0.98 : isLight ? 0.92 : 0.88;
+    const strokeColor = isSelected
+      ? '#22c55e'
+      : isHovered
+      ? (isLight ? '#334155' : '#94a3b8')
+      : (isLight ? '#cbd5e1' : '#27272a');
+    const strokeWidth = isSelected ? 2.8 : isHovered ? 2.2 : 1.4;
 
     const wings = P?.wings || [];
     const courtyards = P?.courtyards || [];
     const entrances = b.entrances || P?.entrances || [];
 
-    const filterUrl = isSelected ? 'url(#activeGlow)' : isHovered ? 'url(#hoverGlow)' : undefined;
+    const filterUrl = isSelected ? 'url(#activeShadow)' : isHovered ? 'url(#hoverShadow)' : undefined;
 
     return (
       <g
@@ -88,7 +92,7 @@ export default function DigitalTwinCanvas({
             points={cyard.points}
             fill={baseColor}
             fillOpacity={0.85}
-            stroke="#ffffff"
+            stroke={isLight ? '#cbd5e1' : '#27272a'}
             strokeWidth={strokeWidth}
             strokeLinejoin="round"
           />
@@ -98,8 +102,8 @@ export default function DigitalTwinCanvas({
           <g key={`wing-${idx}`}>
             <polygon
               points={wing.points}
-              transform="translate(3.5, 4.5)"
-              fill={isLight ? 'rgba(15, 23, 42, 0.22)' : 'rgba(0, 0, 0, 0.5)'}
+              transform="translate(2.5, 3.5)"
+              fill={isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(0, 0, 0, 0.45)'}
             />
             <polygon
               points={wing.points}
@@ -138,8 +142,8 @@ export default function DigitalTwinCanvas({
                 cy={ent.y}
                 r={isEntHovered ? 7.5 : 4.5}
                 fill="#10b981"
-                stroke="#ffffff"
-                strokeWidth="1.6"
+                stroke={isLight ? '#ffffff' : '#161b22'}
+                strokeWidth="1.5"
                 className="transition-all duration-150 cursor-pointer"
                 onMouseEnter={(e) => {
                   e.stopPropagation();
@@ -176,11 +180,16 @@ export default function DigitalTwinCanvas({
     const pillHeight = 22;
 
     const pillBg = isSelected
-      ? '#16a34a'
+      ? '#15803d'
       : isLight
-      ? 'rgba(255, 255, 255, 0.97)'
-      : 'rgba(15, 23, 42, 0.95)';
-    const pillTextFill = isSelected ? '#ffffff' : isLight ? '#0f172a' : '#f8fafc';
+      ? 'rgba(255, 255, 255, 0.98)'
+      : 'rgba(22, 27, 34, 0.96)';
+    const pillTextFill = isSelected ? '#ffffff' : isLight ? '#0f172a' : '#f4f4f5';
+    const pillBorderColor = isSelected
+      ? '#166534'
+      : isLight
+      ? '#cbd5e1'
+      : '#27272a';
 
     return (
       <g
@@ -200,8 +209,8 @@ export default function DigitalTwinCanvas({
           y1={cy}
           x2={labelPos.x}
           y2={labelPos.y}
-          stroke={isSelected ? '#16a34a' : baseColor}
-          strokeWidth={isSelected ? '2.2' : '1.5'}
+          stroke={isSelected ? '#22c55e' : isLight ? '#94a3b8' : '#3f4b5c'}
+          strokeWidth={isSelected ? '2' : '1.2'}
           strokeDasharray={isSelected ? 'none' : '3 2'}
           opacity="0.85"
           pointerEvents="none"
@@ -214,9 +223,9 @@ export default function DigitalTwinCanvas({
             height={pillHeight}
             rx="6.5"
             fill={pillBg}
-            stroke={isSelected ? '#15803d' : baseColor}
-            strokeWidth={isSelected ? '2' : '1.3'}
-            filter={isSelected ? 'url(#activeGlow)' : undefined}
+            stroke={pillBorderColor}
+            strokeWidth={isSelected ? '1.8' : '1.2'}
+            filter={isSelected ? 'url(#activeShadow)' : undefined}
           />
           <rect
             x={-pillWidth / 2 + 3.5}
@@ -259,8 +268,8 @@ export default function DigitalTwinCanvas({
 
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-2xl border flex justify-center ${
-        isLight ? 'border-slate-200 bg-[#f4f7f4]' : 'border-slate-800 bg-[#080f1d]'
+      className={`relative w-full overflow-hidden flex justify-center ${
+        isLight ? 'border-slate-200 bg-[#f4f7f4]' : 'border-zinc-800 bg-[#0e1117]'
       }`}
     >
       <svg
@@ -282,16 +291,16 @@ export default function DigitalTwinCanvas({
             <polygon points={INNER_CAMPUS_CLIP_POINTS} />
           </clipPath>
 
-          <filter id="activeGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#16a34a" floodOpacity="0.45" />
+          <filter id="activeShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity={isLight ? "0.2" : "0.5"} />
           </filter>
 
-          <filter id="hoverGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#0284c7" floodOpacity="0.35" />
+          <filter id="hoverShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="2" floodColor="#000000" floodOpacity={isLight ? "0.15" : "0.4"} />
           </filter>
         </defs>
 
-        <rect x="0" y="0" width="1080" height="800" fill={isLight ? '#f4f7f4' : '#080f1d'} />
+        <rect x="0" y="0" width="1080" height="800" fill={isLight ? '#f4f7f4' : '#0e1117'} />
 
         <g
           transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}
@@ -301,7 +310,7 @@ export default function DigitalTwinCanvas({
           }}
         >
           <g clipPath="url(#iiitnrCampusClip)">
-            <polygon points={INNER_CAMPUS_CLIP_POINTS} fill={isLight ? '#e4f0e7' : '#0f1c30'} />
+            <polygon points={INNER_CAMPUS_CLIP_POINTS} fill={isLight ? '#e4f0e7' : '#161b22'} />
 
             {/* Roads */}
             <g fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -309,7 +318,7 @@ export default function DigitalTwinCanvas({
                 <polyline
                   key={`asphalt-${i}`}
                   points={r.points}
-                  stroke={isLight ? '#94a3b8' : '#334155'}
+                  stroke={isLight ? '#94a3b8' : '#272e3b'}
                   strokeWidth={r.width}
                 />
               ))}
@@ -322,8 +331,8 @@ export default function DigitalTwinCanvas({
                   <polyline
                     key={`fp-${idx}`}
                     points={p.points}
-                    stroke="#ffffff"
-                    strokeWidth="2"
+                    stroke={isLight ? '#94a3b8' : '#3f4b5c'}
+                    strokeWidth="1.8"
                     strokeDasharray="3 3"
                   />
                 ))}
@@ -335,7 +344,7 @@ export default function DigitalTwinCanvas({
           <polyline
             points="165,622 562,762 795,844"
             fill="none"
-            stroke="#16a34a"
+            stroke={isLight ? '#15803d' : '#2e7d32'}
             strokeWidth="2.4"
             pointerEvents="none"
           />
@@ -345,8 +354,8 @@ export default function DigitalTwinCanvas({
             <polygon
               points={IIITNR_CAMPUS_PERIMETER_POINTS}
               fill="none"
-              stroke={isLight ? '#16a34a' : '#38bdf8'}
-              strokeWidth="2"
+              stroke={isLight ? '#15803d' : '#475569'}
+              strokeWidth="1.8"
               strokeDasharray="8 5"
             />
           )}
@@ -364,11 +373,11 @@ export default function DigitalTwinCanvas({
                 width="130"
                 height="20"
                 rx="6"
-                fill="rgba(15, 23, 42, 0.95)"
-                stroke="#10b981"
+                fill={isLight ? 'rgba(255, 255, 255, 0.98)' : 'rgba(22, 27, 34, 0.98)'}
+                stroke={isLight ? '#cbd5e1' : '#27272a'}
                 strokeWidth="1.2"
               />
-              <text x="0" y="-4.5" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="bold">
+              <text x="0" y="-4.5" textAnchor="middle" fill={isLight ? '#0f172a' : '#f4f4f5'} fontSize="9" fontWeight="bold">
                 🚪 {hoveredEntrance.name}
               </text>
             </g>
@@ -377,8 +386,8 @@ export default function DigitalTwinCanvas({
           {/* Radar Target Focus Ring */}
           {radarTarget && (
             <g transform={`translate(${radarTarget.cx}, ${radarTarget.cy})`} pointerEvents="none">
-              <circle cx="0" cy="0" r="38" fill="none" stroke="#16a34a" strokeWidth="2.5" className="animate-ping" />
-              <circle cx="0" cy="0" r="6" fill="#16a34a" stroke="#ffffff" strokeWidth="2" />
+              <circle cx="0" cy="0" r="32" fill="none" stroke="#22c55e" strokeWidth="2" strokeDasharray="4 4" className="animate-spin" />
+              <circle cx="0" cy="0" r="5" fill="#22c55e" stroke={isLight ? '#ffffff' : '#0e1117'} strokeWidth="1.5" />
             </g>
           )}
         </g>
