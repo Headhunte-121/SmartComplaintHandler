@@ -9,13 +9,10 @@ Features:
 - Zero-downtime graceful fallback to local enhanced heuristic classifier
 - In-memory debounced query cache to eliminate redundant API calls
 """
-import hashlib
 import json
 import logging
 import os
 import re
-import threading
-import time
 from typing import Any, Dict, List, Optional
 import urllib.error
 import urllib.parse
@@ -26,82 +23,6 @@ from app.services.classifier import classify_ticket
 from app.services.priority_engine import calculate_priority
 
 logger = logging.getLogger(__name__)
-
-
-class TriageLRUCache:
-    """
-    High-performance, thread-safe application-level LRU cache for complaint classifications.
-    Normalizes text (case-folding, whitespace collapse, punctuation stripping) to avoid
-    redundant API calls for identical or cosmetically identical complaints.
-    """
-
-    def __init__(self, max_size: int = 1000, ttl_seconds: int = 900):
-        self.max_size = max_size
-        self.ttl_seconds = ttl_seconds
-        self._cache: Dict[str, Dict[str, Any]] = {}
-        self._lock = threading.Lock()
-        self.hits = 0
-        self.misses = 0
-
-    @staticmethod
-    def normalize_text(text: str) -> str:
-        """Strip punctuation noise, normalize whitespace, and convert to lowercase."""
-        t = (text or "").strip().lower()
-        t = re.sub(r"[^\w\s-]", "", t)
-        t = re.sub(r"\s+", " ", t)
-        return t
-
-    def get_key(self, title: str, description: str) -> str:
-        norm_title = self.normalize_text(title)
-        norm_desc = self.normalize_text(description)
-        raw = f"{norm_title}|||{norm_desc}"
-        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
-    def get(self, title: str, description: str) -> Optional[Dict[str, Any]]:
-        key = self.get_key(title, description)
-        now = time.time()
-        with self._lock:
-            if key in self._cache:
-                entry = self._cache[key]
-                if now - entry["timestamp"] < self.ttl_seconds:
-                    self.hits += 1
-                    cached_data = dict(entry["data"])
-                    cached_data["cached"] = True
-                    cached_data["cache_hits"] = self.hits
-                    return cached_data
-                else:
-                    del self._cache[key]
-            self.misses += 1
-            return None
-
-    def set(self, title: str, description: str, data: Dict[str, Any]):
-        key = self.get_key(title, description)
-        now = time.time()
-        with self._lock:
-            if len(self._cache) >= self.max_size and key not in self._cache:
-                # Evict oldest entry
-                oldest_key = min(self._cache.keys(), key=lambda k: self._cache[k]["timestamp"])
-                del self._cache[oldest_key]
-            self._cache[key] = {
-                "timestamp": now,
-                "data": dict(data),
-            }
-
-    def stats(self) -> Dict[str, Any]:
-        with self._lock:
-            total = self.hits + self.misses
-            ratio = round(self.hits / total, 3) if total > 0 else 0.0
-            return {
-                "size": len(self._cache),
-                "max_size": self.max_size,
-                "hits": self.hits,
-                "misses": self.misses,
-                "hit_ratio": ratio,
-            }
-
-
-# Global application-level cache instance (15 min TTL, 1000 items max)
-triage_cache = TriageLRUCache(max_size=1000, ttl_seconds=900)
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 GEMINI_FALLBACK_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
@@ -295,10 +216,6 @@ def classify_and_triage_with_ai(
     clean_title = (title or "").strip()
     clean_desc = (description or "").strip()
 
-    cached_result = triage_cache.get(clean_title, clean_desc)
-    if cached_result:
-        return cached_result
-
     ai_cfg = _get_active_ai_config(client_api_key, client_provider)
     provider = ai_cfg["provider"]
     api_key = ai_cfg["api_key"]
@@ -324,7 +241,7 @@ def classify_and_triage_with_ai(
             reason = str(ai_result.get("reason") or f"Assigned to {dept_name} with priority {priority}.")
             keywords = list(ai_result.get("matched_keywords", []))
 
-            result = {
+            return {
                 "department_id": dept_id,
                 "department_name": dept_name,
                 "category": dept_name,
@@ -338,9 +255,6 @@ def classify_and_triage_with_ai(
                 "provider": provider,
                 "model_used": ai_result.get("model_used", getattr(settings, "GROQ_MODEL", "allam-2-7b") if provider == "groq" else "gemini-2.0-flash"),
             }
-
-            triage_cache.set(clean_title, clean_desc, result)
-            return result
         except Exception as err:
             logger.warning(f"AI triage request to {provider} failed: {err}. Falling back to local heuristic engine.")
 
@@ -357,7 +271,7 @@ def classify_and_triage_with_ai(
         f"Priority '{priority_info['priority']}' assigned: {priority_info['reason']}"
     )
 
-    fallback_result = {
+    return {
         "department_id": classification_info["department_id"],
         "department_name": classification_info["department_name"],
         "category": classification_info["category"],
@@ -371,6 +285,3 @@ def classify_and_triage_with_ai(
         "provider": "local-heuristic",
         "model_used": "deterministic-rules",
     }
-
-    triage_cache.set(clean_title, clean_desc, fallback_result)
-    return fallback_result

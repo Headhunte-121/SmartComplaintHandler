@@ -65,7 +65,6 @@ def preview_triage(
         ai_powered=triage_info.get("ai_powered", False),
         provider=triage_info.get("provider", "local-heuristic"),
         model_used=triage_info.get("model_used"),
-        cached=triage_info.get("cached", False),
     )
 
 

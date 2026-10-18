@@ -188,11 +188,6 @@ export default function LiveTriageCard({ title = '', description = '' }) {
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800 text-cyan-400 font-bold">
             {triageData.model_used ? (triageData.model_used.includes('allam') ? 'ALLaM 2 7B' : triageData.model_used) : (triageData.ai_powered ? 'ALLaM 2 7B' : 'Local Heuristic')}
           </span>
-          {triageData.cached && (
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-400 font-bold">
-              ⚡ Cached
-            </span>
-          )}
         </div>
         <PriorityBadge priority={priorityKey} size="sm" dark={true} />
       </div>

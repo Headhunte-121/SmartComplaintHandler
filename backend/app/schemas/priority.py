@@ -61,7 +61,6 @@ class TriageResult(BaseModel):
     ai_powered: bool = Field(default=False, description="True if classified by generative AI")
     provider: Optional[str] = Field(default=None, description="Provider used for classification")
     model_used: Optional[str] = Field(default=None, description="Model used for classification (e.g. allam-2-7b)")
-    cached: bool = Field(default=False, description="True if retrieved from application LRU cache")
 
     if HAS_PYDANTIC_V2:
         model_config = ConfigDict(extra="ignore")
