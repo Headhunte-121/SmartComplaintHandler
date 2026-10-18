@@ -365,7 +365,7 @@ export default function Login() {
                 <div className="min-w-0 pr-2">
                   <div className="font-bold text-white truncate">{detectedProfile.name}</div>
                   <div className="text-[11px] text-emerald-400 truncate">
-                    {detectedProfile.identifier} · {detectedProfile.department_name}
+                    {detectedProfile.department_name}
                   </div>
                 </div>
                 <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">

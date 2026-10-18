@@ -120,28 +120,27 @@ export default function Register() {
     const clean = (rawEmail || '').trim().toLowerCase();
     if (!clean.endsWith(`@${ALLOWED_DOMAIN}`) || clean.startsWith('@')) return null;
     const prefix = clean.split('@')[0];
-    const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*?)(\d{2})(\d{2,5})$/i);
-    if (match) {
-      const rawName = match[1].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).trim();
-      const year = match[2];
-      const code = match[3];
-      let dept = 'Computer Science & Engineering';
-      let deptCode = 'CSE';
-      if (code.startsWith('101') || code.endsWith('01')) {
-        dept = 'Data Science & Artificial Intelligence';
-        deptCode = 'DSAI';
-      } else if (code.startsWith('102') || code.endsWith('02') || code === '302') {
-        dept = 'Electronics & Communication Engineering';
-        deptCode = 'ECE';
-      }
-      return { fullName: rawName, department: dept, deptCode, rollNo: `20${year}${deptCode}${code}` };
+
+    // Do not show preview card for emails that do not have roll numbers/digits
+    if (!/\d/.test(prefix)) {
+      return null;
     }
-    return {
-      fullName: prefix.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).trim(),
-      department: 'Computer Science & Engineering',
-      deptCode: 'IIIT-NR',
-      rollNo: prefix.toUpperCase(),
-    };
+
+    const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*?)(?:20)?(\d{2})(\d{2,5})$/i);
+    if (!match) return null;
+
+    const rawName = match[1].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).trim();
+    const code = match[3];
+    let dept = 'Computer Science & Engineering';
+    let deptCode = 'CSE';
+    if (code.startsWith('101') || code.endsWith('01')) {
+      dept = 'Data Science & Artificial Intelligence';
+      deptCode = 'DSAI';
+    } else if (code.startsWith('102') || code.endsWith('02') || code === '302') {
+      dept = 'Electronics & Communication Engineering';
+      deptCode = 'ECE';
+    }
+    return { fullName: rawName, department: dept, deptCode };
   };
 
   const livePreview = useMemo(() => parseEmailMetadata(email), [email]);
@@ -350,7 +349,7 @@ export default function Register() {
                   <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
                     <div className="min-w-0 pr-2">
                       <div className="font-bold text-white truncate">
-                        {livePreview.fullName} ({livePreview.rollNo})
+                        {livePreview.fullName}
                       </div>
                       <div className="text-[11px] text-emerald-400 truncate">
                         {livePreview.department}

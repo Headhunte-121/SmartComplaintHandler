@@ -89,9 +89,14 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
       email: cleanEmail,
       role: 'STUDENT',
       department_name: deptName,
-      identifier: `Roll: 20${year}${deptCode}${code} (Batch '20${year})`,
+      identifier: deptName,
       is_active: true,
     };
+  }
+
+  // Do not fabricate student profile for emails without numbers
+  if (!/\d/.test(prefix)) {
+    return null;
   }
 
   const fallbackName =
@@ -105,8 +110,8 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
     name: fallbackName,
     email: cleanEmail,
     role: 'STUDENT',
-    department_name: 'Computer Science & Engineering',
-    identifier: `Student ID: ${prefix.toUpperCase()}`,
+    department_name: 'IIIT-NR Scholar',
+    identifier: 'IIIT-NR Scholar',
     is_active: true,
   };
 }

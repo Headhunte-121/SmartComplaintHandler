@@ -219,11 +219,11 @@ export default function ResidenceInfo() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xs font-bold text-emerald-400 font-mono">
-                  {studentMeta?.identifier || `Roll: B.Tech Student`}
+                <div className="text-xs font-bold text-emerald-400">
+                  {currentUser.department || studentMeta?.department_name || 'B.Tech Program'}
                 </div>
                 <div className="text-[11px] text-slate-500 truncate max-w-[180px]">
-                  {currentUser.department || studentMeta?.department_name || 'B.Tech Program'}
+                  Undergraduate Scholar
                 </div>
               </div>
             </div>
