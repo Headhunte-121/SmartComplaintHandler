@@ -682,7 +682,7 @@ export default function CampusMapSelector({
                               ? 'bg-emerald-600 text-white border-emerald-500 shadow-2xs'
                               : isDark
                               ? 'bg-[#0e1117] text-zinc-300 border-zinc-800 hover:border-zinc-700'
-                              : 'bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300'
+                              : 'bg-[#eef2f6] text-slate-700 border-slate-300 hover:border-slate-400'
                           }`}
                         >
                           {fl.label}
@@ -721,7 +721,7 @@ export default function CampusMapSelector({
                                 : 'bg-emerald-50 text-emerald-800 border-emerald-500 font-bold'
                               : isDark
                               ? 'bg-[#0e1117] text-zinc-300 border-zinc-800/80 hover:bg-zinc-800/60 hover:text-white'
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                              : 'bg-[#eef2f6] text-slate-700 border-slate-300 hover:bg-slate-200 hover:text-slate-900'
                           }`}
                         >
                           <span className="truncate">{roomName}</span>
@@ -732,7 +732,7 @@ export default function CampusMapSelector({
                   </div>
                 ) : (
                   <div className={`p-4 rounded-xl border text-center text-xs ${
-                    isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-500'
+                    isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-500' : 'bg-[#eef2f6] border-slate-300 text-slate-500'
                   }`}>
                     General building facility zone. Click to select building for reporting.
                   </div>

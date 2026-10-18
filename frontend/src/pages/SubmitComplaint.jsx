@@ -215,7 +215,7 @@ export default function SubmitComplaint() {
 
   return (
     <div className={`w-full min-h-screen flex flex-col space-y-0 transition-colors animate-fade-in ${
-      isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-[#f1f5f9] text-slate-900'
+      isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-900'
     }`}>
       {/* Flush Command Deck Hero Header */}
       <div className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative transition-colors ${
@@ -255,7 +255,7 @@ export default function SubmitComplaint() {
               className={`px-4 py-2.5 rounded-xl border font-bold text-xs shadow-2xs transition-all inline-flex items-center gap-2 cursor-pointer ${
                 isDark
                   ? 'bg-[#0e1117] hover:bg-[#1c2128] border-zinc-700 text-emerald-400 hover:text-emerald-300'
-                  : 'bg-slate-100 hover:bg-slate-200/80 border-slate-300/80 text-emerald-700 hover:text-emerald-800'
+                  : 'bg-[#eef2f6] hover:bg-[#e2e8f0] border-slate-300 text-emerald-700 hover:text-emerald-800'
               }`}
             >
               <svg className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -268,7 +268,7 @@ export default function SubmitComplaint() {
               className={`px-4 py-2.5 rounded-xl border font-bold text-xs shadow-2xs transition-all inline-flex items-center gap-2 cursor-pointer ${
                 isDark
                   ? 'bg-[#0e1117] hover:bg-[#1c2128] border-zinc-700 text-zinc-200 hover:text-white'
-                  : 'bg-slate-100 hover:bg-slate-200/80 border-slate-300/80 text-slate-700 hover:text-slate-900'
+                  : 'bg-[#eef2f6] hover:bg-[#e2e8f0] border-slate-300 text-slate-700 hover:text-slate-900'
               }`}
             >
               My Requests →
@@ -279,14 +279,14 @@ export default function SubmitComplaint() {
 
       {/* Flush Workstation Layout */}
       <div className={`w-full px-4 sm:px-8 lg:px-12 py-8 lg:py-10 transition-colors ${
-        isDark ? 'bg-[#0e1117]' : 'bg-[#f1f5f9]'
+        isDark ? 'bg-[#0e1117]' : 'bg-white'
       }`}>
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main Request Form */}
           <form
             onSubmit={handleSubmit}
             className={`lg:col-span-7 xl:col-span-8 p-6 sm:p-8 space-y-6 rounded-2xl relative border shadow-sm transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
+              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f8fafc] border-slate-200 text-slate-900 shadow-sm'
             }`}
           >
             {/* Top card accent line */}
@@ -324,7 +324,7 @@ export default function SubmitComplaint() {
 
                 {/* 3-Mode Segmented Pill Bar */}
                 <div className={`inline-flex items-center p-1.5 rounded-2xl border gap-1.5 shadow-inner transition-colors ${
-                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-slate-200/80 border-slate-300/80'
+                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
                 }`}>
                   <button
                     type="button"
@@ -334,7 +334,7 @@ export default function SubmitComplaint() {
                         ? 'bg-emerald-600 text-white shadow-xs border border-emerald-600'
                         : isDark
                           ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-400 hover:text-zinc-100 border border-zinc-800'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/60 border border-transparent'
                     }`}
                   >
                     <span>🏠 My Room</span>
@@ -347,7 +347,7 @@ export default function SubmitComplaint() {
                         ? 'bg-emerald-600 text-white shadow-xs border border-emerald-600'
                         : isDark
                           ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-400 hover:text-zinc-100 border border-zinc-800'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/60 border border-transparent'
                     }`}
                   >
                     <span>🔍 Quick Search</span>
@@ -360,7 +360,7 @@ export default function SubmitComplaint() {
                         ? 'bg-emerald-600 text-white shadow-xs border border-emerald-600'
                         : isDark
                           ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-400 hover:text-zinc-100 border border-zinc-800'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/60 border border-transparent'
                     }`}
                   >
                     <span>🗺️ Browse / Map</span>
@@ -373,7 +373,7 @@ export default function SubmitComplaint() {
                 <div className={`p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                   isDark
                     ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700'
-                    : 'bg-slate-100/80 border-slate-200/90 hover:border-slate-300 shadow-2xs'
+                    : 'bg-[#eef2f6] border-slate-300 hover:border-slate-400 shadow-2xs'
                 }`}>
                   <div className="flex items-start sm:items-center gap-3.5">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
@@ -397,7 +397,7 @@ export default function SubmitComplaint() {
                         <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
                           isDark
                             ? 'bg-[#161b22] text-zinc-300 border-zinc-700'
-                            : 'bg-white text-slate-700 border-slate-300/80 shadow-2xs'
+                            : 'bg-white text-slate-700 border-slate-300 shadow-2xs'
                         }`}>
                           {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
                         </span>
@@ -421,7 +421,7 @@ export default function SubmitComplaint() {
                       className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
                         isDark
                           ? 'bg-[#161b22] hover:bg-[#1c2128] border-zinc-700 text-zinc-300'
-                          : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700 shadow-2xs'
+                          : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 shadow-2xs'
                       }`}
                     >
                       Search Other Spot
@@ -432,7 +432,7 @@ export default function SubmitComplaint() {
                       className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 ${
                         isDark
                           ? 'bg-[#161b22] hover:bg-[#1c2128] border-emerald-800 text-emerald-400'
-                          : 'bg-white hover:bg-slate-50 border-emerald-300 text-emerald-700 shadow-2xs'
+                          : 'bg-white hover:bg-emerald-50 border-emerald-300 text-emerald-700 shadow-2xs'
                       }`}
                     >
                       <span>🗺️</span>
@@ -445,7 +445,7 @@ export default function SubmitComplaint() {
               {/* MODE B: Inline Omni-Search */}
               {locationMode === 'SEARCH' && (
                 <div className={`space-y-3 p-4 rounded-xl border transition-colors ${
-                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-slate-100/80 border-slate-200/90'
+                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#eef2f6] border-slate-300'
                 }`}>
                   <div className="relative">
                     <input
@@ -492,7 +492,7 @@ export default function SubmitComplaint() {
                         className={`px-3 py-1.5 rounded-xl border text-xs font-bold shrink-0 cursor-pointer transition-all shadow-2xs ${
                           isDark
                             ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-300 hover:text-white border-zinc-700 hover:border-emerald-500/60'
-                            : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border-slate-300 hover:border-emerald-500'
+                            : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-300 hover:border-emerald-500'
                         }`}
                       >
                         {chip.label}
@@ -504,7 +504,7 @@ export default function SubmitComplaint() {
                     <div className={`rounded-xl border divide-y max-h-60 overflow-y-auto shadow-xl ${
                       isDark
                         ? 'bg-[#161b22] border-zinc-700 divide-zinc-800'
-                        : 'bg-white border-slate-200 divide-slate-100'
+                        : 'bg-white border-slate-300 divide-slate-200'
                     }`}>
                       {spotResults.length === 0 ? (
                         <div className={`p-4 text-center text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -525,7 +525,7 @@ export default function SubmitComplaint() {
                                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
                                   isDark
                                     ? 'bg-[#0e1117] text-emerald-400 border-zinc-700'
-                                    : 'bg-slate-100 text-emerald-700 border-slate-200'
+                                    : 'bg-[#eef2f6] text-emerald-700 border-slate-300'
                                 }`}>
                                   {item.badge}
                                 </span>
@@ -549,7 +549,7 @@ export default function SubmitComplaint() {
                   <div className={`p-3 rounded-xl border flex items-center justify-between gap-2 text-xs shadow-2xs ${
                     isDark
                       ? 'bg-[#161b22] border-emerald-800/80'
-                      : 'bg-white border-emerald-300'
+                      : 'bg-white border-emerald-400'
                   }`}>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] uppercase border ${
@@ -583,7 +583,7 @@ export default function SubmitComplaint() {
               {/* MODE C: Browse Building, Floor & Room */}
               {locationMode === 'BROWSE' && (
                 <div className={`space-y-3.5 p-4 rounded-xl border transition-colors ${
-                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-slate-100/80 border-slate-200/90'
+                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#eef2f6] border-slate-300'
                 }`}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="sm:col-span-2">
@@ -793,7 +793,7 @@ export default function SubmitComplaint() {
                   className={`w-full px-4 py-3 rounded-xl border text-sm transition-all shadow-2xs ${
                     isDark
                       ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-                      : 'bg-slate-50/80 hover:bg-white focus:bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600'
+                      : 'bg-[#eef2f6] hover:bg-white focus:bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600'
                   }`}
                 />
               </div>
@@ -823,7 +823,7 @@ export default function SubmitComplaint() {
                   className={`w-full px-4 py-3 rounded-xl border text-sm resize-none leading-relaxed transition-all shadow-2xs ${
                     isDark
                       ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-                      : 'bg-slate-50/80 hover:bg-white focus:bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600'
+                      : 'bg-[#eef2f6] hover:bg-white focus:bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600'
                   }`}
                 />
               </div>
@@ -846,7 +846,7 @@ export default function SubmitComplaint() {
 
             {/* Dispatch Target Card */}
             <div className={`p-5 sm:p-6 space-y-3.5 border shadow-sm rounded-2xl relative overflow-hidden transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
+              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f8fafc] border-slate-200 text-slate-900 shadow-sm'
             }`}>
               <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
               <div className="flex items-center justify-between">
@@ -859,7 +859,7 @@ export default function SubmitComplaint() {
                   <span className={`font-mono text-[10px] px-2.5 py-0.5 rounded-lg border font-bold shadow-2xs ${
                     isDark
                       ? 'bg-[#0e1117] text-emerald-400 border-zinc-700'
-                      : 'bg-slate-100 text-slate-700 border-slate-300'
+                      : 'bg-[#eef2f6] text-slate-700 border-slate-300'
                   }`}>
                     {activeBuildingObj?.mapPin?.badge || 'BLDG'}
                   </span>
@@ -880,7 +880,7 @@ export default function SubmitComplaint() {
               <div className={`font-mono text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between border shadow-2xs ${
                 isDark
                   ? 'bg-[#0e1117] border-zinc-800 text-zinc-200'
-                  : 'bg-slate-100/90 border-slate-300/80 text-slate-800'
+                  : 'bg-[#eef2f6] border-slate-300 text-slate-800'
               }`}>
                 <span className="flex items-center gap-1.5">
                   <span className={isDark ? 'text-emerald-400' : 'text-emerald-600'}>📍</span>
@@ -898,7 +898,7 @@ export default function SubmitComplaint() {
 
             {/* SLA Resolution Windows Matrix */}
             <div className={`p-5 sm:p-6 space-y-3.5 border shadow-sm rounded-2xl transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
+              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f8fafc] border-slate-200 text-slate-900 shadow-sm'
             }`}>
               <div className="flex items-center justify-between">
                 <span className={`font-bold uppercase tracking-wider font-mono text-[10px] block ${
@@ -916,7 +916,7 @@ export default function SubmitComplaint() {
                 <div className={`p-3 rounded-xl border flex items-center justify-between shadow-2xs transition-all ${
                   isDark
                     ? 'bg-[#0e1117] border-rose-900/60 hover:border-rose-700 text-rose-300'
-                    : 'bg-rose-50/90 border-rose-200 hover:border-rose-300 text-rose-800'
+                    : 'bg-[#eef2f6] border-rose-200/90 hover:border-rose-300 text-rose-800'
                 }`}>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
@@ -931,7 +931,7 @@ export default function SubmitComplaint() {
                 <div className={`p-3 rounded-xl border flex items-center justify-between shadow-2xs transition-all ${
                   isDark
                     ? 'bg-[#0e1117] border-amber-900/60 hover:border-amber-700 text-amber-300'
-                    : 'bg-amber-50/90 border-amber-200 hover:border-amber-300 text-amber-800'
+                    : 'bg-[#eef2f6] border-amber-200/90 hover:border-amber-300 text-amber-800'
                 }`}>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
@@ -946,7 +946,7 @@ export default function SubmitComplaint() {
                 <div className={`p-3 rounded-xl border flex items-center justify-between shadow-2xs transition-all ${
                   isDark
                     ? 'bg-[#0e1117] border-sky-900/60 hover:border-sky-700 text-sky-300'
-                    : 'bg-sky-50/90 border-sky-200 hover:border-sky-300 text-sky-800'
+                    : 'bg-[#eef2f6] border-sky-200/90 hover:border-sky-300 text-sky-800'
                 }`}>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
@@ -961,7 +961,7 @@ export default function SubmitComplaint() {
                 <div className={`p-3 rounded-xl border flex items-center justify-between shadow-2xs transition-all ${
                   isDark
                     ? 'bg-[#0e1117] border-emerald-900/60 hover:border-emerald-700 text-emerald-300'
-                    : 'bg-emerald-50/90 border-emerald-200 hover:border-emerald-300 text-emerald-800'
+                    : 'bg-[#eef2f6] border-emerald-200/90 hover:border-emerald-300 text-emerald-800'
                 }`}>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />

@@ -24,7 +24,7 @@ export default function Layout() {
       className={`min-h-screen flex flex-col font-sans antialiased transition-colors duration-200 ${
         isDark
           ? 'bg-[#0e1117] text-zinc-100 selection:bg-zinc-700 selection:text-white'
-          : 'bg-[#f1f5f9] text-slate-800 selection:bg-slate-200 selection:text-slate-900'
+          : 'bg-white text-slate-800 selection:bg-slate-200 selection:text-slate-900'
       }`}
     >
       <Navbar />

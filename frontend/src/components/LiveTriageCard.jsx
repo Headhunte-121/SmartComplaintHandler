@@ -99,7 +99,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
   if (cleanTitle.length < 5 || cleanDesc.length < 10) {
     return (
       <div className={`p-5 sm:p-6 space-y-4 rounded-2xl border transition-colors ${
-        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-[#f8fafc] border-slate-200 text-slate-900 shadow-sm'
       }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
               className={`p-2.5 rounded-xl border flex items-center justify-center gap-1.5 transition-colors text-xs font-semibold ${
                 isDark
                   ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700 text-zinc-300'
-                  : 'bg-slate-100 hover:bg-slate-200/80 border-slate-300/80 hover:border-slate-400 text-slate-700 shadow-2xs'
+                  : 'bg-[#f1f5f9] hover:bg-[#e2e8f0] border-slate-300 text-slate-800 shadow-2xs'
               }`}
             >
               <span className="text-sm">{dom.icon}</span>
@@ -167,10 +167,10 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
   return (
     <div className={`p-5 sm:p-6 space-y-4 rounded-2xl border transition-colors ${
-      isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+      isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-[#f8fafc] border-slate-200 text-slate-900 shadow-sm'
     }`}>
       <div className={`flex items-center justify-between border-b pb-3 ${
-        isDark ? 'border-zinc-800' : 'border-slate-100'
+        isDark ? 'border-zinc-800' : 'border-slate-200'
       }`}>
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -197,11 +197,11 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
       {/* Target Department Banner */}
       <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 ${
-        isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-slate-100/90 border-slate-300/80 shadow-2xs'
+        isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300 shadow-2xs'
       }`}>
         <div className="flex items-center gap-2.5">
           <span className={`w-9 h-9 rounded-xl border flex items-center justify-center text-lg ${
-            isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-slate-300/80 shadow-2xs'
+            isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-slate-300 shadow-2xs'
           }`}>
             {domainInfo.icon}
           </span>
@@ -233,7 +233,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
       {/* AI Rationale & Explanation */}
       {triageData.reason && (
         <div className={`p-3 rounded-xl border text-xs leading-relaxed font-sans ${
-          isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-300' : 'bg-slate-100/80 border-slate-300/80 text-slate-700 shadow-2xs'
+          isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-300' : 'bg-[#f1f5f9] border-slate-300 text-slate-700 shadow-2xs'
         }`}>
           <span className={`text-[10px] font-mono uppercase block font-semibold mb-0.5 ${
             isDark ? 'text-zinc-500' : 'text-slate-500'
@@ -275,7 +275,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
                 className={`px-2.5 py-0.5 rounded-lg text-[11px] font-mono font-semibold border ${
                   isDark
                     ? 'bg-[#0e1117] text-emerald-400 border-zinc-800'
-                    : 'bg-slate-100 text-emerald-700 border-slate-200'
+                    : 'bg-[#f1f5f9] text-emerald-800 border-slate-300'
                 }`}
               >
                 #{kw}
