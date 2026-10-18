@@ -336,7 +336,7 @@ export default function Register() {
                     type="email"
                     required
                     autoFocus
-                    placeholder="name26100@iiitnr.edu.in"
+                    placeholder="Email"
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);

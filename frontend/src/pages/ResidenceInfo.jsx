@@ -1,7 +1,7 @@
 /**
  * SmartComplaintHandler - Dedicated First-Time Residence Onboarding Page
  * Domain: One-time mandatory hostel & room collection exclusively for undergraduate
- *         B.Tech scholars (batches following the 26(100-102) schema).
+ *         B.Tech scholars (active batches from current year down to last 4 years).
  *         Non-undergraduate scholars (PhD, faculty, staff, technicians) bypass this page.
  */
 import React, { useState, useEffect, useMemo } from 'react';
@@ -155,7 +155,7 @@ export default function ResidenceInfo() {
               Hostel &amp; Residence Details
             </h1>
             <p className="text-xs text-slate-400 font-medium">
-              Mandatory one-time verification for IIIT-NR undergraduate scholars (Batch 26)
+              Mandatory one-time verification for IIIT-NR undergraduate B.Tech scholars (Current &amp; Active Batches)
             </p>
           </div>
         </div>
@@ -220,7 +220,7 @@ export default function ResidenceInfo() {
               </div>
               <div className="text-right">
                 <div className="text-xs font-bold text-emerald-400 font-mono">
-                  {studentMeta?.identifier || `Roll: 26xxx`}
+                  {studentMeta?.identifier || `Roll: B.Tech Student`}
                 </div>
                 <div className="text-[11px] text-slate-500 truncate max-w-[180px]">
                   {currentUser.department || studentMeta?.department_name || 'B.Tech Program'}

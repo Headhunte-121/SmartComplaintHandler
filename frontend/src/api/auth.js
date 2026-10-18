@@ -169,14 +169,65 @@ export async function loginWithGoogle(googleData) {
 }
 
 /**
- * Determine if an email belongs to an undergraduate student following the batch-branch roll schema:
- * e.g. name26100@iiitnr.edu.in (CSE), name26101@iiitnr.edu.in (DSAI), name26102@iiitnr.edu.in (ECE).
- * PhD scholars, staff, faculty, admin, technicians, and directorate do NOT follow this schema.
+ * Return array of valid 2-digit undergraduate batch years from current year down to last 4 years.
+ * For an institution like IIIT-NR with 4-year B.Tech programs:
+ * If current year is 2026, active undergraduate batches are:
+ * - 2026 (1st year / freshers): '26'
+ * - 2025 (2nd year / sophomores): '25'
+ * - 2024 (3rd year): '24'
+ * - 2023 (4th year / graduating): '23'
+ * - 2022 (recent batch / extended): '22'
+ */
+export function getActiveUndergradBatchYears(windowYears = 4) {
+  const currentFullYear = new Date().getFullYear();
+  const current2Digit = currentFullYear % 100;
+  const years = [];
+  for (let i = 0; i <= windowYears; i++) {
+    const yr = (current2Digit - i + 100) % 100;
+    years.push(String(yr).padStart(2, '0'));
+  }
+  return years;
+}
+
+/**
+ * Determine if an email belongs to an active undergraduate student following the batch-branch roll schema:
+ * Matches [name][batch_year][branch_code][roll]@iiitnr.edu.in
+ * Where batch_year is from current year down to the last 4 years (e.g., 26, 25, 24, 23, 22),
+ * and branch_code is in (100-102): 100 (CSE), 101 (DSAI), 102 (ECE).
+ * PhD scholars, M.Tech, faculty, staff, technicians, and older alumni bypass this.
  */
 export function isUndergradHostelStudent(email) {
   if (!email) return false;
   const clean = email.trim().toLowerCase();
-  return /^[a-z]+(?:[._][a-z]+)*?(?:26|\d{2})(100|101|102)\d*@iiitnr\.edu\.in$/i.test(clean);
+  if (!clean.endsWith(`@${ALLOWED_DOMAIN}`) || clean.startsWith('@')) return false;
+
+  const prefix = clean.split('@')[0];
+
+  // Exclude known institutional roles, staff, faculty, technicians, and PhD scholars
+  if (
+    prefix.startsWith('phd') ||
+    prefix.includes('scholar') ||
+    prefix.startsWith('mtech') ||
+    prefix.startsWith('tech.') ||
+    prefix.includes('technician') ||
+    prefix.startsWith('admin') ||
+    prefix.startsWith('faculty') ||
+    prefix.startsWith('staff') ||
+    prefix.startsWith('estate') ||
+    prefix.startsWith('facilities') ||
+    prefix === 'superadmin' ||
+    prefix === 'director'
+  ) {
+    return false;
+  }
+
+  // Undergrad roll match: [name][optional 20][2-digit-year][branch-code 100/101/102][optional sequence digits]
+  const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*?)(?:20)?(\d{2})(100|101|102)\d*$/i);
+  if (!match) return false;
+
+  const year = match[2];
+  const activeYears = getActiveUndergradBatchYears(4);
+  return activeYears.includes(year);
 }
 
 export async function sendOTP(email) {
