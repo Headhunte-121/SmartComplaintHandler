@@ -21,6 +21,7 @@ from app.services.priority_engine import (
     PRIORITY_LOW,
 )
 from app.services.classifier import classify_ticket
+from app.services.ai_triage_service import classify_and_triage_with_ai
 from app.services.sla_engine import (
     calculate_sla_deadline,
     calculate_sla_remaining_seconds,
@@ -83,17 +84,22 @@ def create_ticket(
     # 1. Collision-free tracking code
     final_code = tracking_code or generate_unique_tracking_code(db)
 
-    # 2. Automated domain taxonomy classification
+    # 2. Automated domain taxonomy classification & priority via AI (with cache & local fallback)
+    final_priority = str(priority).upper() if priority else None
+
+    if (department_id is None or not final_priority) and title and description:
+        ai_triage = classify_and_triage_with_ai(title, description)
+        if department_id is None:
+            department_id = ai_triage.get("department_id")
+        if not final_priority:
+            final_priority = str(ai_triage.get("priority") or PRIORITY_MEDIUM).upper()
+
+    if not final_priority:
+        final_priority = PRIORITY_MEDIUM
+
     if department_id is None and title and description:
         classification = classify_ticket(title, description)
         department_id = classification.get("department_id")
-
-    # 3. Dynamic deterministic priority scoring
-    if priority is None and title and description:
-        p_info = calculate_priority(title, description)
-        final_priority = p_info["priority"]
-    else:
-        final_priority = (priority or PRIORITY_MEDIUM).upper()
 
     # 4. Workload-balanced dispatch if available and unassigned
     if assigned_team_id is None and department_id is not None and select_optimal_team:

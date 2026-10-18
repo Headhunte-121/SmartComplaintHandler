@@ -7,44 +7,58 @@ import re
 from typing import Any, Dict, List, Set
 
 # Item 1: Department Taxonomy Registry
+# Item 1: Department Taxonomy Registry with Comprehensive Multi-Domain Vocabulary
 DEPARTMENTS_TAXONOMY: Dict[int, Dict[str, Any]] = {
     1: {
         "name": "Electrical",
         "keywords": {
-            "fan", "light", "bulb", "wire", "spark", "sparking", "switch", "socket",
-            "power", "blackout", "voltage", "ac", "cooler", "short circuit", "mcb",
-            "fuse", "tube light", "outlet", "switchboard", "electrical"
+            "fan", "ceiling fan", "regulator", "light", "bulb", "tube light", "led", "wire", "wiring",
+            "spark", "sparks", "sparking", "switch", "switchboard", "socket", "power", "power cut",
+            "blackout", "voltage", "fluctuation", "ac", "air conditioner", "cooler", "desert cooler",
+            "short circuit", "mcb", "fuse", "outlet", "plug", "inverter", "generator", "generator backup",
+            "choke", "starter", "lamp", "study lamp", "exhaust fan", "geyser thermostat", "electrical",
+            "shock", "current", "bijli", "panka"
         }
     },
     2: {
         "name": "Plumbing",
         "keywords": {
-            "pipe", "leak", "water", "tap", "drain", "flush", "tank", "sewage",
-            "faucet", "clog", "dripping", "overflow", "geyser", "washroom",
-            "sink", "flooding", "burst"
+            "pipe", "pipeline", "leak", "leaking", "leakage", "water", "tap", "drain", "drainage",
+            "clog", "clogged", "flush", "flushing", "cistern", "tank", "water tank", "sewage", "faucet",
+            "dripping", "overflow", "overflowing", "geyser", "water heater", "washroom", "bathroom",
+            "toilet", "commode", "sink", "washbasin", "urinal", "jet spray", "health faucet", "bidet",
+            "shower", "shower head", "siphon", "p-trap", "water cooler", "water purifier", "ro purifier",
+            "flooding", "burst", "pani", "nal"
         }
     },
     3: {
         "name": "Sanitation",
         "keywords": {
-            "garbage", "trash", "cleaning", "dustbin", "smell", "odor", "waste",
-            "dirty", "pest", "mosquito", "cockroach", "sanitary", "sweeping",
-            "litter", "hygiene"
+            "garbage", "trash", "cleaning", "dustbin", "bin", "smell", "foul smell", "stink", "stinking",
+            "odor", "waste", "dirty", "pest", "pests", "mosquito", "mosquitoes", "cockroach", "cockroaches",
+            "rat", "rats", "mice", "bedbug", "bedbugs", "termite", "termites", "sanitary", "sweeping",
+            "mopping", "litter", "hygiene", "vomit", "stained", "fungus", "mold", "dust", "spider web",
+            "cobweb", "kachra", "safai"
         }
     },
     4: {
         "name": "Carpentry",
         "category_alias": "Infrastructure",
         "keywords": {
-            "door", "window", "desk", "chair", "bench", "table", "cupboard",
-            "handle", "lock", "hinge", "wooden", "furniture", "board", "bed"
+            "door", "doors", "window", "windows", "desk", "study desk", "chair", "study chair", "bench",
+            "table", "cupboard", "almirah", "wardrobe", "drawer", "handle", "door handle", "lock",
+            "door lock", "padlock", "latch", "hinge", "hinges", "wooden", "furniture", "board",
+            "soft board", "notice board", "whiteboard", "bed", "bed frame", "cot", "plywood", "shelf",
+            "bookshelf", "curtain rod", "wood", "darwaza", "khidki"
         }
     },
     5: {
         "name": "IT Support",
         "keywords": {
-            "wifi", "internet", "network", "lan", "ethernet", "router", "printer",
-            "projector", "computer", "system", "portal", "login", "screen", "monitor"
+            "wifi", "wi-fi", "internet", "network", "lan", "lan port", "ethernet", "rj45", "cat6",
+            "cable", "router", "access point", "eduroam", "printer", "projector", "hdmi", "vga",
+            "computer", "lab pc", "desktop", "system", "portal", "student portal", "moodle", "login",
+            "screen", "monitor", "keyboard", "mouse", "ip address", "dns", "gateway", "firewall", "intranet"
         }
     },
     6: {

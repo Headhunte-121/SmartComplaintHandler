@@ -256,8 +256,8 @@ def test_service_override_ticket_priority_audit(db_session):
     ticket = create_ticket(
         db=db_session,
         tracking_code="TICK-M3-002",
-        title="Fire alarm test false alarm",
-        description="Heavy smoke was actually kitchen steam",
+        title="Heavy smoke and fire alarm",
+        description="Heavy smoke triggered alarm and evacuation",
         location="Hostel Block A",
     )
     assert ticket.priority == "CRITICAL"

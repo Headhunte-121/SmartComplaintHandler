@@ -69,32 +69,41 @@ const SLA_BY_PRIORITY = {
 
 export default function LiveTriageCard({ title = '', description = '' }) {
   const [triageData, setTriageData] = useState(null);
+  const [lastQueried, setLastQueried] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const cleanTitle = (title || '').trim();
     const cleanDesc = (description || '').trim();
 
-    if (cleanTitle.length < 5 || cleanDesc.length < 10) {
+    // Strict minimum character requirements to avoid premature queries
+    if (cleanTitle.length < 6 || cleanDesc.length < 15) {
       setTriageData(null);
       setLoading(false);
       return;
     }
 
+    const currentKey = `${cleanTitle.toLowerCase()}:::${cleanDesc.toLowerCase()}`;
+    if (currentKey === lastQueried) {
+      return; // Skip duplicate query
+    }
+
     setLoading(true);
+    // 1000ms (1 full second) idle debounce: only queries once user completely stops typing
     const timer = setTimeout(async () => {
       try {
         const result = await fetchTriagePreview(cleanTitle, cleanDesc);
         setTriageData(result);
+        setLastQueried(currentKey);
       } catch (_) {
         setTriageData(null);
       } finally {
         setLoading(false);
       }
-    }, 350);
+    }, 1000);
 
     return () => clearTimeout(timer);
-  }, [title, description]);
+  }, [title, description, lastQueried]);
 
   const cleanTitle = (title || '').trim();
   const cleanDesc = (description || '').trim();
@@ -174,8 +183,16 @@ export default function LiveTriageCard({ title = '', description = '' }) {
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
           </span>
           <span className="text-xs font-black text-white tracking-tight">
-            Live Triage Classification
+            AI Triage
           </span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800 text-cyan-400 font-bold">
+            {triageData.model_used ? (triageData.model_used.includes('allam') ? 'ALLaM 2 7B' : triageData.model_used) : (triageData.ai_powered ? 'ALLaM 2 7B' : 'Local Heuristic')}
+          </span>
+          {triageData.cached && (
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-400 font-bold">
+              ⚡ Cached
+            </span>
+          )}
         </div>
         <PriorityBadge priority={priorityKey} size="sm" dark={true} />
       </div>
@@ -209,6 +226,16 @@ export default function LiveTriageCard({ title = '', description = '' }) {
           </span>
         </div>
       </div>
+
+      {/* AI Rationale & Explanation */}
+      {triageData.reason && (
+        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 text-xs text-slate-300 leading-relaxed font-sans">
+          <span className="text-[10px] font-mono uppercase text-slate-500 block font-semibold mb-0.5">
+            AI Triage Rationale
+          </span>
+          {triageData.reason}
+        </div>
+      )}
 
       {/* Confidence Meter */}
       <div>

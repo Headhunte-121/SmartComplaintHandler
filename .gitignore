@@ -268,3 +268,10 @@ frontend/public/iiitnr_gis_*.jpg
 # Temporary & scratch files
 temp_*.js
 temp_*.py
+
+# Benchmark playground & local testing tools (kept local, not uploaded to git)
+benchmark_playground/
+benchmark_*.py
+benchmark_*.html
+local_ai_tester.*
+

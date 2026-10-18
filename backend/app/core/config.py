@@ -121,6 +121,12 @@ class Settings(BaseSettings):
         "http://localhost:5173,http://127.0.0.1:5173,https://smart-complaint-handler.vercel.app",
     )
 
+    # AI Classification & Triage Provider Configuration
+    GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
+    DEFAULT_AI_PROVIDER: str = os.getenv("DEFAULT_AI_PROVIDER", "groq")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "allam-2-7b")
+    GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
+
     @property
     def parsed_cors_origins(self) -> List[str]:
         raw = (self.CORS_ORIGINS or "").strip()

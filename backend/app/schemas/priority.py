@@ -36,12 +36,15 @@ class TriagePreviewRequest(BaseModel):
         max_length=2000,
         description="Detailed description of the problem",
     )
+    api_key: Optional[str] = Field(default=None, description="Optional Google Gemini or Groq API key")
+    provider: Optional[str] = Field(default=None, description="AI provider ('groq' or 'gemini')")
 
     if HAS_PYDANTIC_V2:
-        model_config = ConfigDict(str_strip_whitespace=True)
+        model_config = ConfigDict(str_strip_whitespace=True, extra="ignore")
     else:
         class Config:
             anystr_strip_whitespace = True
+            extra = "ignore"
 
 
 class TriageResult(BaseModel):
@@ -49,12 +52,20 @@ class TriageResult(BaseModel):
     priority: PriorityEnum = Field(..., description="Calculated institutional urgency tier")
     suggested_priority: Optional[str] = Field(default=None, description="Alias for priority to support closed-loop suites")
     category: str = Field(..., description="Predicted facility service domain")
+    department_id: Optional[int] = Field(default=None, description="Department ID 1-6")
+    department_name: Optional[str] = Field(default=None, description="Target department name")
     hazard_detected: bool = Field(..., description="True if a life-safety hazard keyword was identified")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Normalized classification confidence score")
     reason: str = Field(..., description="Human-readable explanation of triage determination")
     matched_keywords: List[str] = Field(default_factory=list, description="List of domain or hazard keywords identified")
+    ai_powered: bool = Field(default=False, description="True if classified by generative AI")
+    provider: Optional[str] = Field(default=None, description="Provider used for classification")
+    model_used: Optional[str] = Field(default=None, description="Model used for classification (e.g. allam-2-7b)")
+    cached: bool = Field(default=False, description="True if retrieved from application LRU cache")
 
     if HAS_PYDANTIC_V2:
+        model_config = ConfigDict(extra="ignore")
+
         @model_validator(mode="after")
         def populate_suggested_priority(self) -> "TriageResult":
             if self.suggested_priority is None and self.priority is not None:
