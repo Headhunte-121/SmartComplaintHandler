@@ -82,7 +82,7 @@ export default function Navbar() {
           : 'bg-white/95 border-slate-200 text-slate-800 shadow-xs'
       }`}
     >
-      <div className={`h-full ${isDarkTheme ? 'w-full px-4 sm:px-8 lg:px-12' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}`}>
+      <div className="h-full w-full px-4 sm:px-8 lg:px-12">
         <div className="flex items-center justify-between h-full gap-4">
           {/* Left: Brand Identity + Breadcrumb Divider + Horizontal Underline Tabs */}
           <div className="flex items-center gap-6 h-full">

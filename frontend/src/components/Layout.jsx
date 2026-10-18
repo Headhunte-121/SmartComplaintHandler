@@ -14,7 +14,10 @@ export default function Layout() {
     return <Navigate to="/login" replace />;
   }
 
-  const isFlushPage = location.pathname === '/' || location.pathname === '/map';
+  const isFlushPage =
+    location.pathname === '/' ||
+    location.pathname === '/map' ||
+    location.pathname === '/submit';
 
   return (
     <div
