@@ -89,7 +89,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
     }
 
     setLoading(true);
-    // 1000ms (1 full second) idle debounce: only queries once user completely stops typing
+    // 2500ms (2.5 full seconds) idle debounce: only queries once user completely stops typing for a few seconds
     const timer = setTimeout(async () => {
       try {
         const result = await fetchTriagePreview(cleanTitle, cleanDesc);
@@ -100,7 +100,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
       } finally {
         setLoading(false);
       }
-    }, 1000);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, [title, description, lastQueried]);

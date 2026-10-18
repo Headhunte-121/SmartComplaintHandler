@@ -18,9 +18,12 @@ function extractErrorMessage(data, defaultMsg) {
   return data.message || defaultMsg;
 }
 
+// High-performance client-side cache to eliminate redundant HTTP requests completely
+const clientTriageCache = new Map();
+
 /**
  * Dispatches a stateless complaint classification and priority triage preview request.
- * Debounced caller can invoke this when student pauses typing.
+ * Debounced caller can invoke this when student pauses typing for several seconds.
  *
  * @param {string} title - Complaint title (min 5 characters)
  * @param {string} description - Complaint narrative description (min 10 characters)
@@ -34,6 +37,25 @@ export async function fetchTriagePreview(title, description) {
   if (cleanTitle.length < 5 || cleanDesc.length < 10) {
     return null;
   }
+
+  // Normalize key for browser caching
+  const normKey = `${cleanTitle.toLowerCase().replace(/[^\w\s-]/g, '')}:::${cleanDesc.toLowerCase().replace(/[^\w\s-]/g, '')}`.replace(/\s+/g, ' ');
+
+  // 1. In-memory client cache hit (0ms, 0 network requests)
+  if (clientTriageCache.has(normKey)) {
+    const cached = clientTriageCache.get(normKey);
+    return { ...cached, cached: true };
+  }
+
+  // 2. SessionStorage cache hit (0ms, persists across tab reloads)
+  try {
+    const stored = sessionStorage.getItem(`triage_${normKey}`);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      clientTriageCache.set(normKey, parsed);
+      return { ...parsed, cached: true };
+    }
+  } catch (_) {}
 
   const endpoint = `${API_BASE_URL}/tickets/triage-preview`;
 
@@ -65,6 +87,13 @@ export async function fetchTriagePreview(title, description) {
     }
 
     const data = await response.json();
+
+    // Store in both in-memory map and sessionStorage
+    clientTriageCache.set(normKey, data);
+    try {
+      sessionStorage.setItem(`triage_${normKey}`, JSON.stringify(data));
+    } catch (_) {}
+
     return data;
   } catch (err) {
     console.error('[Triage API] Error fetching triage preview:', err);
