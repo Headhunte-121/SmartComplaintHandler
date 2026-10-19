@@ -66,10 +66,10 @@ export default function SubmissionSuccessModal({ isOpen, ticket, onClose }) {
         {/* Heading */}
         <div className="space-y-1">
           <h2 className={`text-xl font-black ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-            Request Logged &amp; Dispatched
+            Complaint Registered Successfully
           </h2>
           <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-            Your complaint was classified via AI auto-triage, routed to the target squad, and locked into an SLA timer.
+            Your maintenance complaint has been logged, routed to the relevant campus team, and assigned a resolution timer.
           </p>
         </div>
 

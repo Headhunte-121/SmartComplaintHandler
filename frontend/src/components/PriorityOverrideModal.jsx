@@ -10,10 +10,10 @@ import { overrideTicketPriority } from '../api/triage';
 import PriorityBadge from './PriorityBadge';
 
 const PRIORITY_OPTIONS = [
-  { value: 'CRITICAL', label: 'CRITICAL (4-Hour Emergency SLA)', desc: 'Life safety or catastrophic structural failure' },
-  { value: 'HIGH', label: 'HIGH (12-Hour Urgent SLA)', desc: 'Major operational disruption or facility outage' },
-  { value: 'MEDIUM', label: 'MEDIUM (24-Hour Standard SLA)', desc: 'Standard operational routine maintenance' },
-  { value: 'LOW', label: 'LOW (72-Hour Cosmetic SLA)', desc: 'Minor cosmetic defect or aesthetic touchup' },
+  { value: 'CRITICAL', label: 'CRITICAL (2-Hour SLA)', desc: 'Severe facility failure or urgent safety defect' },
+  { value: 'HIGH', label: 'HIGH (8-Hour SLA)', desc: 'Major room or lab disruption or locked out' },
+  { value: 'MEDIUM', label: 'MEDIUM (24-Hour SLA)', desc: 'Standard operational routine maintenance' },
+  { value: 'LOW', label: 'LOW (72-Hour SLA)', desc: 'Minor cosmetic defect or aesthetic touchup' },
 ];
 
 export default function PriorityOverrideModal({
@@ -99,7 +99,7 @@ export default function PriorityOverrideModal({
               Adjust Urgency Priority
             </h3>
             <p className={`text-xs mt-0.5 font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Incident #{ticket.tracking_code || ticket.id}
+              Complaint #{ticket.tracking_code || ticket.id}
             </p>
           </div>
           <button
@@ -126,7 +126,7 @@ export default function PriorityOverrideModal({
             <div className={`text-xs font-semibold uppercase tracking-wider ${
               isDark ? 'text-zinc-400' : 'text-slate-600'
             }`}>
-              Target Incident
+              Complaint Details
             </div>
             <p className={`text-sm font-semibold line-clamp-2 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
               {ticket.title}
@@ -187,7 +187,7 @@ export default function PriorityOverrideModal({
               value={overrideReason}
               onChange={(e) => setOverrideReason(e.target.value)}
               disabled={submitting}
-              placeholder="State reason for manual priority adjustment (e.g. site inspection confirmed false alarm, or issue escalated to flood danger)..."
+              placeholder="State reason for manual priority adjustment (e.g. routine tap leak rather than main pipe burst, or rescheduled maintenance)..."
               className={`w-full rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm shadow-sm transition-all focus:outline-none disabled:opacity-60 resize-none ${
                 isDark
                   ? 'bg-[#0e1117] border-zinc-800 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500'
@@ -195,7 +195,7 @@ export default function PriorityOverrideModal({
               }`}
             />
             <p className={`text-[11px] mt-1 ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-              This explanation is permanently committed into the incident audit notes alongside your identity.
+              This explanation is permanently committed into the ticket audit notes alongside your identity.
             </p>
           </div>
 

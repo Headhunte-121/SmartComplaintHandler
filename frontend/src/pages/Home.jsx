@@ -296,7 +296,7 @@ export default function Home() {
                     Campus Estate &amp; Engineering Contacts
                   </h3>
                   <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                    Duty engineers for emergency facility escalations
+                    Duty facility engineers for urgent maintenance escalations
                   </p>
                 </div>
               </div>

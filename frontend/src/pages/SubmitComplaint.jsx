@@ -232,7 +232,7 @@ export default function SubmitComplaint() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span>Smart Maintenance Dispatch</span>
+              <span>Campus Maintenance Portal</span>
               <span className={isDark ? 'text-emerald-500' : 'text-emerald-400'}>·</span>
               <span className={`font-mono text-[11px] ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Auto-Triage Active</span>
             </div>

@@ -158,14 +158,14 @@ export default function TechnicianWorkstation() {
         <div className="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3.5">
             <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-xl shrink-0 font-black shadow-md shadow-rose-600/20">
-              🚨
+              ⚡
             </div>
             <div>
               <h3 className="text-sm font-black text-rose-900 tracking-tight">
-                Emergency Priority Dispatch Alert ({criticalOrders.length} Critical/Escalated)
+                High-Urgency Complaints Queue ({criticalOrders.length} Critical / Expedited)
               </h3>
               <p className="text-xs text-rose-700 mt-0.5">
-                Immediate on-site response required for life-safety or escalated incidents in your squad queue.
+                Immediate attention required for high-priority facility complaints in your squad queue.
               </p>
             </div>
           </div>
@@ -173,7 +173,7 @@ export default function TechnicianWorkstation() {
             onClick={() => setActiveTab('ACTIVE')}
             className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all shrink-0 cursor-pointer"
           >
-            View Urgent Work Orders
+            View Urgent Complaints
           </button>
         </div>
       )}

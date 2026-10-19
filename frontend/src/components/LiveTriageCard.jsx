@@ -1,5 +1,5 @@
 /**
- * SmartComplaintHandler - Campus Facility Triage & SLA Dispatch Guide
+ * SmartComplaintHandler - Campus Facility Triage & SLA Guide
  * 100% Client-Side Standby Guide — 0 Background Network Calls & 0 Token Burn While Typing.
  * Classification & Dynamic SLA are executed strictly once upon submission.
  */
@@ -16,10 +16,10 @@ const DEPARTMENTS = [
 ];
 
 const SLA_TIERS = [
-  { level: 'CRITICAL', time: '2h SLA', desc: 'Immediate safety hazards, sparking, flooding', colorDark: 'text-rose-400 border-rose-800/80 bg-rose-950/40', colorLight: 'text-rose-700 border-rose-300 bg-rose-50' },
-  { level: 'HIGH', time: '8h SLA', desc: 'Major disruptions or security lock failures', colorDark: 'text-amber-400 border-amber-800/80 bg-amber-950/40', colorLight: 'text-amber-700 border-amber-300 bg-amber-50' },
-  { level: 'MEDIUM', time: '24h SLA', desc: 'Routine functional maintenance faults', colorDark: 'text-blue-400 border-blue-800/80 bg-blue-950/40', colorLight: 'text-blue-700 border-blue-300 bg-blue-50' },
-  { level: 'LOW', time: '72h SLA', desc: 'Minor cosmetic & non-blocking defects', colorDark: 'text-zinc-400 border-zinc-700 bg-zinc-800/50', colorLight: 'text-slate-700 border-slate-300 bg-slate-100' },
+  { level: 'CRITICAL', time: '2h SLA', desc: 'Severe facility failure (pipe burst, full power cut)', colorDark: 'text-rose-400 border-rose-800/80 bg-rose-950/40', colorLight: 'text-rose-700 border-rose-300 bg-rose-50' },
+  { level: 'HIGH', time: '8h SLA', desc: 'Major room/lab disruption or locked out', colorDark: 'text-amber-400 border-amber-800/80 bg-amber-950/40', colorLight: 'text-amber-700 border-amber-300 bg-amber-50' },
+  { level: 'MEDIUM', time: '24h SLA', desc: 'Routine functional maintenance (fans, taps)', colorDark: 'text-blue-400 border-blue-800/80 bg-blue-950/40', colorLight: 'text-blue-700 border-blue-300 bg-blue-50' },
+  { level: 'LOW', time: '72h SLA', desc: 'Minor cosmetic & non-urgent repairs', colorDark: 'text-zinc-400 border-zinc-700 bg-zinc-800/50', colorLight: 'text-slate-700 border-slate-300 bg-slate-100' },
 ];
 
 export default function LiveTriageCard({ title = '', description = '' }) {
@@ -61,7 +61,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
               isDark ? 'text-zinc-100' : 'text-slate-900'
             }`}
           >
-            Auto-Triage &amp; Dispatch Engine
+            Automated Facility Triage
           </span>
         </div>
         <span
@@ -75,15 +75,14 @@ export default function LiveTriageCard({ title = '', description = '' }) {
               : 'text-slate-600 bg-slate-200 border-slate-300'
           }`}
         >
-          {isReady ? 'Ready for Dispatch' : 'Awaiting Input'}
+          {isReady ? 'Ready to Submit' : 'Awaiting Input'}
         </span>
       </div>
 
       {/* Explanatory text */}
       <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-        Upon clicking <span className="font-bold underline decoration-emerald-500">Submit</span>,
-        our high-performance campus AI model classifies your complaint into the right department,
-        assesses safety hazard risks, and binds an authoritative resolution timer.
+        When you submit your complaint, it is automatically categorized to the right maintenance
+        department, assigned a resolution timeline, and sent to the campus squad.
       </p>
 
       {/* Campus Service Domains */}
@@ -93,7 +92,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
             isDark ? 'text-zinc-500' : 'text-slate-500'
           }`}
         >
-          6 Automated Target Domains
+          6 Maintenance Categories
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {DEPARTMENTS.map((dept) => (
@@ -134,7 +133,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
             isDark ? 'text-zinc-500' : 'text-slate-500'
           }`}
         >
-          AI Dynamic SLA Resolution Tiers
+          Resolution Timeline Standards
         </span>
         <div className="grid grid-cols-2 gap-2 text-xs">
           {SLA_TIERS.map((tier) => (
@@ -154,7 +153,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
         </div>
       </div>
 
-      {/* Zero Token Notice */}
+      {/* Routine Complaint Assurance */}
       <div
         className={`p-2.5 rounded-xl border flex items-center gap-2 text-[11px] ${
           isDark
@@ -162,9 +161,9 @@ export default function LiveTriageCard({ title = '', description = '' }) {
             : 'bg-[#e2e8f0] border-slate-300 text-slate-700 shadow-2xs'
         }`}
       >
-        <span className="text-emerald-500 font-bold">⚡ Efficiency Guarantee:</span>
+        <span className="text-emerald-500 font-bold">✓ Direct Routing:</span>
         <span className="leading-tight">
-          Single-token dispatch. Zero background pings while drafting.
+          No manual department selection needed. Type naturally and submit.
         </span>
       </div>
     </div>

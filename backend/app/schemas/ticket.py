@@ -16,7 +16,7 @@ else:
 
 class TicketCreate(BaseModel):
     title: str = Field(..., min_length=5, max_length=200, description="Brief summary of the physical issue")
-    description: str = Field(..., min_length=10, max_length=2000, description="Detailed explanation of the defect or emergency")
+    description: str = Field(..., min_length=10, max_length=2000, description="Detailed explanation of the defect or maintenance issue")
     location: str = Field(..., min_length=3, max_length=150, description="Specific campus location (Hostel, Room, Lab)")
     student_name: Optional[str] = Field(None, max_length=150, description="Student submitter name")
     student_email: Optional[str] = Field(None, max_length=150, description="Student university email")
