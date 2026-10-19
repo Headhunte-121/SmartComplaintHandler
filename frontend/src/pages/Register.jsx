@@ -280,23 +280,8 @@ export default function Register() {
         </>
       )}
 
-      {/* Top Header: Campus Portal Link & Theme Switcher */}
-      <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-6 sm:right-6 flex items-center justify-between z-20 pointer-events-auto">
-        <Link
-          to="/"
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-            isDark
-              ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white'
-              : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs'
-          }`}
-          title="Return to Facilities Campus Map"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span className="hidden sm:inline">Campus Map</span>
-        </Link>
-
+      {/* Top Theme Switcher */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 pointer-events-auto">
         <button
           type="button"
           onClick={toggleTheme}
