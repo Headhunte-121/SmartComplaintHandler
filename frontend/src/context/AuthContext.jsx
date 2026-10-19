@@ -52,7 +52,7 @@ export const CAMPUS_PERSONAS = [
     department_name: 'General Administration',
     avatar: '🛡️',
     badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
-    targetRoute: '/admin',
+    targetRoute: '/operations',
     description: 'Estate & Facilities supervisor overseeing queues, workload balancing, priority overrides, and SLA governance.',
   },
   {
@@ -91,7 +91,7 @@ function enrichUser(userData) {
   let avatar = '🎓';
   let roleLabel = 'Student';
   let badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
-  let targetRoute = '/submit';
+  let targetRoute = '/student';
 
   if (role === 'SUPER_ADMIN') {
     avatar = '👑';
@@ -102,7 +102,7 @@ function enrichUser(userData) {
     avatar = '🛡️';
     roleLabel = 'Facility Admin';
     badgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
-    targetRoute = '/admin';
+    targetRoute = '/operations';
   } else if (role === 'TECHNICIAN') {
     avatar = '🔧';
     roleLabel = 'Field Technician';

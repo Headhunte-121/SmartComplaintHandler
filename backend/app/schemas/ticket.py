@@ -84,6 +84,25 @@ class FeedbackSubmitRequest(BaseModel):
     student_name: Optional[str] = Field(None, max_length=150, description="Student submitter identity")
 
 
+class TicketDirectUpdateRequest(BaseModel):
+    title: Optional[str] = Field(None, min_length=3, max_length=200, description="Updated ticket headline")
+    description: Optional[str] = Field(None, min_length=5, max_length=2000, description="Updated defect details")
+    location: Optional[str] = Field(None, min_length=2, max_length=150, description="Updated campus room or facility location")
+    priority: Optional[str] = Field(None, max_length=20, description="Updated priority (LOW, MEDIUM, HIGH, CRITICAL)")
+    status: Optional[str] = Field(None, max_length=30, description="Updated lifecycle status")
+    department_id: Optional[int] = Field(None, description="Department ID")
+    department_name: Optional[str] = Field(None, description="Department Name string")
+    assigned_team_id: Optional[int] = Field(None, description="Assigned Squad ID")
+    resolution_notes: Optional[str] = Field(None, description="Supervisory or repair resolution notes")
+
+    if HAS_PYDANTIC_V2:
+        model_config = ConfigDict(str_strip_whitespace=True)
+    else:
+        class Config:
+            anystr_strip_whitespace = True
+
+
 ComplaintCreate = TicketCreate
 ComplaintResponse = TicketResponse
 FeedbackCreate = FeedbackSubmitRequest
+TicketUpdate = TicketDirectUpdateRequest

@@ -126,7 +126,7 @@ export default function Home() {
               )}
               {canAccessOperations && (
                 <Link
-                  to="/admin"
+                  to="/operations"
                   className={`px-4 py-2 rounded-lg border font-semibold text-xs transition-colors cursor-pointer inline-flex items-center gap-2 ${
                     isDark
                       ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-200 hover:text-white'

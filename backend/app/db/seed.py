@@ -4,6 +4,7 @@ Blueprint Reference: V1/M1/backend/08_seed_data.md
 Role: Idempotently seeds authentic IIIT Naya Raipur campus departments, maintenance squads,
       official administrative staff, and production User schema columns upon boot or manual CLI invocation.
 """
+from datetime import datetime, timedelta, timezone
 import logging
 from sqlalchemy import text
 from sqlalchemy.orm import Session

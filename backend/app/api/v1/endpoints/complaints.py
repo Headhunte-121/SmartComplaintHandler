@@ -4,14 +4,21 @@ Blueprint Reference: V1/M2/backend/05_complaint_endpoints.md
 Role: REST routes for student complaint submission (POST), status tracking by code (GET),
       and IDOR-protected listing & feedback endpoints.
 """
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.api.deps import get_db, get_optional_current_user
+from app.api.deps import get_db, get_optional_current_user, require_roles
 from app.core.config import settings
+from app.models.department import Department
 from app.models.ticket import Ticket
-from app.schemas.ticket import FeedbackSubmitRequest, TicketCreate, TicketResponse
+from app.schemas.ticket import (
+    FeedbackSubmitRequest,
+    TicketCreate,
+    TicketDirectUpdateRequest,
+    TicketResponse,
+)
 from app.schemas.user import UserResponse
 from app.services.ticket_service import create_ticket, list_tickets, submit_ticket_feedback
 
@@ -70,7 +77,7 @@ def submit_complaint(
 )
 def get_complaints(
     skip: int = Query(0, ge=0, description="Pagination offset"),
-    limit: int = Query(100, ge=1, le=200, description="Maximum records to return (capped at 200)"),
+    limit: int = Query(100, ge=1, le=1000, description="Maximum records to return (capped at 1000)"),
     priority: Optional[str] = None,
     department_id: Optional[int] = None,
     status_filter: Optional[str] = Query(None, alias="status"),
@@ -197,6 +204,75 @@ def track_complaint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Ticket with tracking code '{tracking_code}' not found",
         )
+
+    response = TicketResponse.model_validate(ticket)
+    if ticket.department:
+        response.department_name = ticket.department.name
+    if ticket.assigned_team:
+        response.assigned_team_name = ticket.assigned_team.name
+    return response
+
+
+@router.patch(
+    "/{ticket_id}",
+    response_model=TicketResponse,
+    summary="Supervisory direct update of ticket attributes (Admin / Super Admin / Tech)",
+)
+def update_ticket_direct(
+    ticket_id: int,
+    payload: TicketDirectUpdateRequest,
+    current_user: Optional[UserResponse] = Depends(require_roles(["ADMIN", "SUPER_ADMIN", "TECHNICIAN"])),
+    db: Session = Depends(get_db),
+) -> TicketResponse:
+    """
+    Directly update a ticket's attributes (title, description, location, priority, status, department, notes).
+    Restricted to Campus Staff and Administrators.
+    """
+    ticket = (
+        db.query(Ticket)
+        .options(joinedload(Ticket.department), joinedload(Ticket.assigned_team))
+        .filter(Ticket.id == ticket_id)
+        .first()
+    )
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Ticket #{ticket_id} not found.",
+        )
+
+    if payload.title is not None and payload.title.strip():
+        ticket.title = payload.title.strip()
+
+    if payload.description is not None and payload.description.strip():
+        ticket.description = payload.description.strip()
+
+    if payload.location is not None and payload.location.strip():
+        ticket.location = payload.location.strip()
+
+    if payload.priority is not None and payload.priority.strip():
+        ticket.priority = payload.priority.strip().upper()
+
+    if payload.status is not None and payload.status.strip():
+        new_status = payload.status.strip().upper()
+        ticket.status = new_status
+        if new_status in ("RESOLVED", "CLOSED") and not ticket.resolved_at:
+            ticket.resolved_at = datetime.now(timezone.utc)
+
+    if payload.department_id is not None:
+        ticket.department_id = payload.department_id
+    elif payload.department_name is not None and payload.department_name.strip():
+        dept = db.query(Department).filter(Department.name.ilike(payload.department_name.strip())).first()
+        if dept:
+            ticket.department_id = dept.id
+
+    if payload.assigned_team_id is not None:
+        ticket.assigned_team_id = payload.assigned_team_id
+
+    if payload.resolution_notes is not None:
+        ticket.resolution_notes = payload.resolution_notes.strip()
+
+    db.commit()
+    db.refresh(ticket)
 
     response = TicketResponse.model_validate(ticket)
     if ticket.department:

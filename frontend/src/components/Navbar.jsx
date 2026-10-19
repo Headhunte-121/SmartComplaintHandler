@@ -135,32 +135,19 @@ export default function Navbar() {
             <nav className={`hidden md:flex items-center h-full border-l pl-4 space-x-1 ${
               isDarkTheme ? 'border-slate-800' : 'border-slate-200'
             }`}>
-              <NavLink
-                to="/"
-                end
-                className={({ isActive }) =>
-                  navTabClasses({ isActive: isActive || location.pathname === '/map' })
-                }
-              >
-                <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                <span>Campus Map</span>
-              </NavLink>
-
               {isStudent && (
                 <>
-                  <NavLink to="/submit" className={navTabClasses}>
-                    <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Submit Request</span>
-                  </NavLink>
                   <NavLink to="/student" className={navTabClasses}>
                     <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                     <span>My Issues</span>
+                  </NavLink>
+                  <NavLink to="/submit" className={navTabClasses}>
+                    <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Submit Request</span>
                   </NavLink>
                   <NavLink to="/track" className={navTabClasses}>
                     <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -168,29 +155,35 @@ export default function Navbar() {
                     </svg>
                     <span>Track Status</span>
                   </NavLink>
+                  <NavLink to="/map" className={navTabClasses}>
+                    <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <span>Campus Map</span>
+                  </NavLink>
                 </>
               )}
 
               {isTechnician && (
                 <>
                   <NavLink to="/technician" className={navTabClasses}>
-                    <span>Work Orders</span>
+                    <span>Workstation</span>
                   </NavLink>
                   <NavLink to="/track" className={navTabClasses}>
                     <span>Track Status</span>
                   </NavLink>
-                  <NavLink to="/submit" className={navTabClasses}>
-                    <span>Submit Request</span>
+                  <NavLink to="/map" className={navTabClasses}>
+                    <span>Campus Map</span>
                   </NavLink>
                 </>
               )}
 
               {isAdmin && !isSuperAdmin && (
                 <>
-                  <NavLink to="/admin" className={navTabClasses}>
+                  <NavLink to="/operations" className={navTabClasses}>
                     <span>Operations</span>
                   </NavLink>
-                  <NavLink to="/technician" className={navTabClasses}>
+                  <NavLink to="/squads" className={navTabClasses}>
                     <span>Squads</span>
                   </NavLink>
                   <NavLink to="/track" className={navTabClasses}>
@@ -198,6 +191,9 @@ export default function Navbar() {
                   </NavLink>
                   <NavLink to="/submit" className={navTabClasses}>
                     <span>Submit Request</span>
+                  </NavLink>
+                  <NavLink to="/map" className={navTabClasses}>
+                    <span>Campus Map</span>
                   </NavLink>
                 </>
               )}
@@ -207,20 +203,23 @@ export default function Navbar() {
                   <NavLink to="/superadmin" end className={navTabClasses}>
                     <span>Directorate</span>
                   </NavLink>
-                  <NavLink to="/superadmin/editor" className={navTabClasses}>
-                    <span className="text-[#A7AD89] font-semibold">Data Studio</span>
-                  </NavLink>
-                  <NavLink to="/admin" className={navTabClasses}>
+                  <NavLink to="/operations" className={navTabClasses}>
                     <span>Operations</span>
                   </NavLink>
-                  <NavLink to="/technician" className={navTabClasses}>
+                  <NavLink to="/squads" className={navTabClasses}>
                     <span>Squads</span>
+                  </NavLink>
+                  <NavLink to="/superadmin/staff" className={navTabClasses}>
+                    <span>Staff &amp; RBAC</span>
                   </NavLink>
                   <NavLink to="/track" className={navTabClasses}>
                     <span>Track Status</span>
                   </NavLink>
                   <NavLink to="/submit" className={navTabClasses}>
                     <span>Submit Request</span>
+                  </NavLink>
+                  <NavLink to="/map" className={navTabClasses}>
+                    <span>Campus Map</span>
                   </NavLink>
                 </>
               )}
@@ -353,18 +352,18 @@ export default function Navbar() {
                     </div>
 
                     <div className="py-1">
-                      {(isSuperAdmin || isAdmin) && (
+                      {isSuperAdmin && (
                         <Link
-                          to="/superadmin/editor"
+                          to="/superadmin/staff"
                           onClick={() => setProfileMenuOpen(false)}
                           className={`w-full px-3.5 py-2 text-left flex items-center gap-2 ${
                             isDarkTheme ? 'text-zinc-300 hover:text-white hover:bg-zinc-800/80' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                           }`}
                         >
-                          <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <svg className="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                           </svg>
-                          <span>Campus Data Studio</span>
+                          <span>Staff &amp; RBAC Directory</span>
                         </Link>
                       )}
 
@@ -452,35 +451,86 @@ export default function Navbar() {
           <div className={`md:hidden py-3 border-t space-y-1 ${
             isDarkTheme ? 'bg-[#161b22] border-zinc-800' : 'bg-white border-slate-200'
           }`}>
-            <NavLink
-              to="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 text-xs font-medium rounded-lg ${
-                isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              Campus Map
-            </NavLink>
-            <NavLink
-              to="/submit"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 text-xs font-semibold rounded-lg ${
-                isDarkTheme ? 'text-emerald-400 hover:bg-zinc-800' : 'text-green-700 hover:bg-green-50'
-              }`}
-            >
-              Submit Request
-            </NavLink>
             {isStudent && (
+              <>
+                <NavLink
+                  to="/student"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-3 py-2 text-xs font-medium rounded-lg ${
+                    isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  My Issues
+                </NavLink>
+                <NavLink
+                  to="/submit"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-3 py-2 text-xs font-semibold rounded-lg ${
+                    isDarkTheme ? 'text-emerald-400 hover:bg-zinc-800' : 'text-green-700 hover:bg-green-50'
+                  }`}
+                >
+                  Submit Request
+                </NavLink>
+              </>
+            )}
+
+            {isTechnician && (
               <NavLink
-                to="/student"
+                to="/technician"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`block px-3 py-2 text-xs font-medium rounded-lg ${
                   isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
-                My Issues
+                Workstation
               </NavLink>
             )}
+
+            {(isAdmin || isSuperAdmin) && (
+              <>
+                {isSuperAdmin && (
+                  <NavLink
+                    to="/superadmin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`block px-3 py-2 text-xs font-medium rounded-lg ${
+                      isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    Directorate
+                  </NavLink>
+                )}
+                <NavLink
+                  to="/operations"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-3 py-2 text-xs font-medium rounded-lg ${
+                    isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  Operations
+                </NavLink>
+                <NavLink
+                  to="/squads"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-3 py-2 text-xs font-medium rounded-lg ${
+                    isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  Squads
+                </NavLink>
+                {isSuperAdmin && (
+                  <NavLink
+                    to="/superadmin/staff"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`block px-3 py-2 text-xs font-medium rounded-lg ${
+                      isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    Staff &amp; RBAC
+                  </NavLink>
+                )}
+              </>
+            )}
+
             <NavLink
               to="/track"
               onClick={() => setMobileMenuOpen(false)}
@@ -489,6 +539,15 @@ export default function Navbar() {
               }`}
             >
               Track Status
+            </NavLink>
+            <NavLink
+              to="/map"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3 py-2 text-xs font-medium rounded-lg ${
+                isDarkTheme ? 'text-zinc-200 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Campus Map
             </NavLink>
           </div>
         )}

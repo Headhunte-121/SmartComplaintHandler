@@ -1,8 +1,10 @@
 /**
  * SmartComplaintHandler - Field Technician Workstation
- * Flush Edge-to-Edge Field Operations Console with Full Width Layout & Dual Theme Palette
+ * Dedicated boots-on-the-ground repair console strictly for Technicians.
+ * Auto-detects assigned squad, provides live SLA countdowns, parts-needed hold gates,
+ * and closed-loop resolution verification.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -27,21 +29,52 @@ export default function TechnicianWorkstation() {
   const { isDark } = useTheme();
   const activeUser = currentUser || currentPersona;
 
-  const [selectedTeamId, setSelectedTeamId] = useState(activeUser?.teamId || 1);
+  // Auto-detect assigned squad based on employee profile
+  const assignedSquad = useMemo(() => {
+    if (activeUser?.teamId) {
+      const match = CAMPUS_SQUADS.find((s) => s.id === Number(activeUser.teamId));
+      if (match) return match;
+    }
+    const email = (activeUser?.email || '').toLowerCase();
+    const dept = (activeUser?.department_name || '').toLowerCase();
+
+    if (email.includes('parvinder') || dept.includes('it')) {
+      return CAMPUS_SQUADS.find((s) => s.id === 5); // Network & Wi-Fi Squad
+    }
+    if (email.includes('ramesh') || dept.includes('elect')) {
+      return CAMPUS_SQUADS.find((s) => s.id === 6); // Hostel Electrical Squad 1
+    }
+    if (dept.includes('plumb')) {
+      return CAMPUS_SQUADS.find((s) => s.id === 7); // Hostel Plumbing Squad 2
+    }
+    if (dept.includes('sanit')) {
+      return CAMPUS_SQUADS.find((s) => s.id === 3); // Sanitation Rapid Response
+    }
+    if (dept.includes('carp')) {
+      return CAMPUS_SQUADS.find((s) => s.id === 4); // Structural Fixtures Crew
+    }
+    return CAMPUS_SQUADS[0];
+  }, [activeUser]);
+
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('ACTIVE');
+  const [activeTab, setActiveTab] = useState('ACTIVE'); // 'ACTIVE' | 'COMPLETED'
   const [actionSuccess, setActionSuccess] = useState(null);
+
+  // Resolution modal state
   const [resolvingTicket, setResolvingTicket] = useState(null);
 
-  const selectedSquad = CAMPUS_SQUADS.find((s) => s.id === Number(selectedTeamId)) || CAMPUS_SQUADS[0];
+  // Hold / Parts Needed modal state
+  const [holdingTicket, setHoldingTicket] = useState(null);
+  const [holdReason, setHoldReason] = useState('Awaiting replacement spare parts from central institutional inventory.');
+  const [submittingHold, setSubmittingHold] = useState(false);
 
   const loadWorkOrders = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchComplaints({ team_id: selectedTeamId, limit: 100 });
+      const data = await fetchComplaints({ team_id: assignedSquad.id, limit: 100 });
       setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Unable to load squad work orders.');
@@ -53,14 +86,14 @@ export default function TechnicianWorkstation() {
 
   useEffect(() => {
     loadWorkOrders();
-  }, [selectedTeamId]);
+  }, [assignedSquad.id]);
 
   const handleStartWork = async (ticket) => {
     try {
       await updateTicketStatus(
         ticket.id,
         'IN_PROGRESS',
-        `Technician ${activeUser?.name || 'Staff'} commenced on-site diagnostics and repair work.`,
+        `Technician ${activeUser?.name || 'Staff'} commenced on-site diagnostics and physical repair work.`,
         activeUser?.name || 'Field Technician'
       );
       setTickets((prev) =>
@@ -73,6 +106,30 @@ export default function TechnicianWorkstation() {
     }
   };
 
+  const handleConfirmHold = async (e) => {
+    e.preventDefault();
+    if (!holdingTicket) return;
+    setSubmittingHold(true);
+    try {
+      await updateTicketStatus(
+        holdingTicket.id,
+        'ON_HOLD',
+        `Work paused: ${holdReason.trim()}`,
+        activeUser?.name || 'Field Technician'
+      );
+      setTickets((prev) =>
+        prev.map((t) => (t.id === holdingTicket.id ? { ...t, status: 'ON_HOLD' } : t))
+      );
+      setActionSuccess(`Work order ${holdingTicket.tracking_code} placed ON_HOLD.`);
+      setHoldingTicket(null);
+      setTimeout(() => setActionSuccess(null), 3500);
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Failed to place ticket on hold.');
+    } finally {
+      setSubmittingHold(false);
+    }
+  };
+
   const handleTicketResolved = (updatedTicket) => {
     setTickets((prev) =>
       prev.map((t) => (t.id === updatedTicket.id ? { ...t, ...updatedTicket, status: 'RESOLVED' } : t))
@@ -82,7 +139,7 @@ export default function TechnicianWorkstation() {
   };
 
   const activeWorkOrders = tickets.filter(
-    (t) => t.status === 'SUBMITTED' || t.status === 'IN_PROGRESS' || t.status === 'ESCALATED'
+    (t) => t.status === 'SUBMITTED' || t.status === 'IN_PROGRESS' || t.status === 'ESCALATED' || t.status === 'ON_HOLD'
   );
   const completedWorkOrders = tickets.filter(
     (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
@@ -98,7 +155,7 @@ export default function TechnicianWorkstation() {
         isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
       }`}
     >
-      {/* Flush Workstation Header */}
+      {/* Flush Field Operations Hero Header */}
       <div
         className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden transition-colors ${
           isDark
@@ -106,52 +163,39 @@ export default function TechnicianWorkstation() {
             : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xs'
         }`}
       >
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-start sm:items-center space-x-4">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="flex items-center space-x-4">
             <div
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xs shrink-0 border ${
-                isDark
-                  ? 'bg-emerald-950/60 border-emerald-800 text-emerald-400'
-                  : 'bg-emerald-100 border-emerald-300 text-emerald-800'
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border ${
+                isDark ? 'bg-zinc-800/80 border-zinc-700 text-emerald-400' : 'bg-slate-100 border-slate-300 text-emerald-700'
               }`}
             >
-              {activeUser?.avatar || '🔧'}
+              🛠️
             </div>
             <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                  Field Squad Workstation
-                </h1>
-                <span
-                  className={`text-[10px] uppercase font-mono font-bold tracking-widest px-2.5 py-0.5 rounded-full border ${
-                    isDark
-                      ? 'bg-zinc-800 border-zinc-700 text-emerald-400'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                  }`}
-                >
-                  {activeUser?.name}
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                  Field Technician Console
+                </span>
+                <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>•</span>
+                <span className={`text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                  {activeUser?.name || 'Authorized Field Staff'}
                 </span>
               </div>
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                On-site repair execution, diagnostics progress logging, and resolution verification.
-              </p>
-              <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
-                <span className={`font-bold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>Active Squad Queue:</span>
-                <select
-                  value={selectedTeamId}
-                  onChange={(e) => setSelectedTeamId(Number(e.target.value))}
-                  className={`border font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none ${
-                    isDark
-                      ? 'bg-[#0e1117] border-zinc-700 text-zinc-100'
-                      : 'bg-white border-slate-300 text-slate-900 shadow-2xs'
-                  }`}
-                >
-                  {CAMPUS_SQUADS.map((s) => (
-                    <option key={s.id} value={s.id} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                      {s.name} ({s.dept})
-                    </option>
-                  ))}
-                </select>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+                {assignedSquad.name}
+              </h1>
+              <div className="pt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                <span className={`px-2.5 py-1 rounded-lg border font-mono font-bold text-xs ${
+                  isDark ? 'bg-zinc-800 border-zinc-700 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                }`}>
+                  Trade: {assignedSquad.dept}
+                </span>
+                <span className={`px-2.5 py-1 rounded-lg border font-mono text-[11px] ${
+                  isDark ? 'bg-zinc-800/60 border-zinc-700 text-zinc-300' : 'bg-white border-slate-300 text-slate-700'
+                }`}>
+                  Shift: Active On-Duty Dispatch
+                </span>
               </div>
             </div>
           </div>
@@ -163,7 +207,7 @@ export default function TechnicianWorkstation() {
               className={`px-4 py-2.5 rounded-xl border font-bold text-xs shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer ${
                 isDark
                   ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white'
-                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800'
+                  : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-800'
               }`}
             >
               <svg className={`w-4 h-4 text-emerald-500 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -238,7 +282,7 @@ export default function TechnicianWorkstation() {
                 {activeWorkOrders.length}
               </div>
               <span className={`text-[11px] mt-0.5 block ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                {selectedSquad.name}
+                {assignedSquad.name}
               </span>
             </div>
             <div
@@ -314,10 +358,10 @@ export default function TechnicianWorkstation() {
           >
             <div>
               <h2 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                Squad Work Orders — {selectedSquad.name}
+                Work Orders — {assignedSquad.name}
               </h2>
               <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Start on-site repair work or record formal resolution proof.
+                Start physical triage, pause for parts, and document closure proof with replaced parts.
               </p>
             </div>
 
@@ -386,15 +430,16 @@ export default function TechnicianWorkstation() {
               </div>
               <h3 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>Queue Clear</h3>
               <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                No work orders in this state for {selectedSquad.name}.
+                No work orders in this state for {assignedSquad.name}.
               </p>
             </div>
           ) : (
             <div className={`divide-y ${isDark ? 'divide-zinc-800/80' : 'divide-slate-200'}`}>
               {displayedOrders.map((ticket) => {
                 const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
-                const isSubmitted = ticket.status === 'SUBMITTED';
+                const isSubmitted = ticket.status === 'SUBMITTED' || ticket.status === 'ASSIGNED' || ticket.status === 'PENDING';
                 const isInProgress = ticket.status === 'IN_PROGRESS' || ticket.status === 'ESCALATED';
+                const isOnHold = ticket.status === 'ON_HOLD';
 
                 return (
                   <div
@@ -403,7 +448,7 @@ export default function TechnicianWorkstation() {
                       isDark ? 'hover:bg-zinc-800/40 text-zinc-200' : 'hover:bg-[#cbd5e1]/30 text-slate-800'
                     }`}
                   >
-                    <div className="space-y-2.5 flex-1 min-w-0">
+                    <div className="space-y-3 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         <Link
                           to={`/track?code=${ticket.tracking_code}`}
@@ -426,39 +471,58 @@ export default function TechnicianWorkstation() {
                               ? isDark
                                 ? 'bg-rose-950/80 text-rose-400 border-rose-800 animate-pulse'
                                 : 'bg-rose-100 text-rose-800 border-rose-300 animate-pulse'
+                              : ticket.status === 'ON_HOLD'
+                              ? isDark
+                                ? 'bg-amber-950/80 text-amber-400 border-amber-800'
+                                : 'bg-amber-100 text-amber-800 border-amber-300'
                               : ticket.status === 'RESOLVED'
                               ? isDark
                                 ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800'
                                 : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                               : isDark
-                              ? 'bg-amber-950/80 text-amber-400 border-amber-800'
-                              : 'bg-amber-100 text-amber-800 border-amber-300'
+                              ? 'bg-zinc-800 text-zinc-300 border-zinc-700'
+                              : 'bg-slate-200 text-slate-700 border-slate-300'
                           }`}
                         >
                           {ticket.status}
                         </span>
-                        {ticket.student_name && (
-                          <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                            Reported by: <strong className={isDark ? 'text-zinc-200' : 'text-slate-700'}>{ticket.student_name}</strong>
-                          </span>
-                        )}
                       </div>
 
                       <div>
                         <h3 className={`text-sm sm:text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
                           {ticket.title}
                         </h3>
-                        <p className={`text-xs mt-0.5 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                        <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
                           {ticket.description}
                         </p>
                       </div>
 
-                      <div className={`flex flex-wrap items-center gap-y-1 gap-x-4 text-[11px] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                        <span>📍 Location: <strong className={isDark ? 'text-zinc-300' : 'text-slate-700'}>{ticket.location}</strong></span>
-                        <span>•</span>
-                        <span>
-                          Logged: {new Date(ticket.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                      {/* Prominent Physical Location & Contact Info */}
+                      <div className="flex flex-wrap items-center gap-3 text-xs pt-1">
+                        <div className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 font-bold ${
+                          isDark ? 'bg-zinc-800/80 border-zinc-700 text-zinc-200' : 'bg-white border-slate-300 text-slate-800'
+                        }`}>
+                          <span>📍 Location:</span>
+                          <span className="text-emerald-500">{ticket.location}</span>
+                        </div>
+
+                        {ticket.student_name && (
+                          <div className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 text-[11px] ${
+                            isDark ? 'bg-zinc-800/40 border-zinc-700 text-zinc-300' : 'bg-white border-slate-300 text-slate-700'
+                          }`}>
+                            <span>👤 Submitter:</span>
+                            <strong>{ticket.student_name}</strong>
+                            {ticket.student_email && (
+                              <a
+                                href={`mailto:${ticket.student_email}?subject=Regarding Grievance ${ticket.tracking_code}`}
+                                className="ml-1 text-emerald-500 underline hover:text-emerald-400 font-mono"
+                                title="Click to email student"
+                              >
+                                {ticket.student_email}
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {ticket.resolution_notes && (
@@ -473,6 +537,18 @@ export default function TechnicianWorkstation() {
                           <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed">
                             {ticket.resolution_notes}
                           </pre>
+                        </div>
+                      )}
+
+                      {/* Closed Loop Student Feedback Display */}
+                      {isResolved && ticket.feedback_rating && (
+                        <div className={`p-3 rounded-xl border flex items-center gap-3 ${
+                          isDark ? 'bg-amber-950/20 border-amber-800/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800'
+                        }`}>
+                          <span className="text-base font-bold">★ {ticket.feedback_rating}/5</span>
+                          <span className="text-xs italic">
+                            "{ticket.feedback_comments || 'Student confirmed satisfaction with resolution.'}"
+                          </span>
                         </div>
                       )}
                     </div>
@@ -497,35 +573,40 @@ export default function TechnicianWorkstation() {
                         <div className="space-y-1 text-left sm:text-right">
                           <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500 flex items-center sm:justify-end space-x-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span>Completed</span>
+                            <span>Closed &amp; Verified</span>
                           </span>
-                          {ticket.feedback_rating && (
-                            <div className="text-xs font-bold text-amber-500">
-                              {'★'.repeat(ticket.feedback_rating)} ({ticket.feedback_rating}/5)
-                            </div>
-                          )}
                         </div>
                       )}
 
-                      <div className="flex items-center space-x-2 w-full sm:w-auto">
-                        {isSubmitted && (
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        {(isSubmitted || isOnHold) && (
                           <button
                             type="button"
                             onClick={() => handleStartWork(ticket)}
-                            className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                           >
-                            ▶ Start Repair
+                            ▶ {isOnHold ? 'Resume Repair' : 'Commence Work'}
                           </button>
                         )}
 
                         {isInProgress && (
-                          <button
-                            type="button"
-                            onClick={() => setResolvingTicket(ticket)}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
-                          >
-                            ✓ Complete &amp; Resolve
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setHoldingTicket(ticket)}
+                              className="px-3 py-2 bg-amber-700/80 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                            >
+                              ⏳ Hold (Parts)
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setResolvingTicket(ticket)}
+                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                            >
+                              ✓ Complete &amp; Log
+                            </button>
+                          </>
                         )}
 
                         <Link
@@ -533,7 +614,7 @@ export default function TechnicianWorkstation() {
                           className={`px-3 py-2 text-xs font-bold rounded-xl border transition-colors text-center ${
                             isDark
                               ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white'
-                              : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800'
+                              : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-800'
                           }`}
                         >
                           Details
@@ -547,6 +628,53 @@ export default function TechnicianWorkstation() {
           )}
         </div>
       </div>
+
+      {/* Hold Reason Modal */}
+      {holdingTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in">
+          <div className={`w-full max-w-md p-6 rounded-2xl border shadow-2xl space-y-4 animate-scale-up ${
+            isDark ? 'bg-[#161b22] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
+          }`}>
+            <h3 className="text-base font-bold">Pause Work Order (Parts / Delay Gate)</h3>
+            <p className="text-xs text-slate-400">
+              Provide the justification for pausing work order <strong>{holdingTicket.tracking_code}</strong> (e.g. required replacement parts or awaiting specialized tools).
+            </p>
+            <form onSubmit={handleConfirmHold} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Reason / Required Inventory</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={holdReason}
+                  onChange={(e) => setHoldReason(e.target.value)}
+                  placeholder="e.g. Awaiting 3/4 inch brass gate valve from central store..."
+                  className={`w-full p-3 rounded-xl border text-xs focus:outline-none ${
+                    isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
+                  }`}
+                />
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-inherit">
+                <button
+                  type="button"
+                  onClick={() => setHoldingTicket(null)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border cursor-pointer ${
+                    isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-slate-100 text-slate-700 border-slate-300'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingHold}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white cursor-pointer shadow-sm"
+                >
+                  {submittingHold ? 'Recording...' : 'Confirm Hold Status'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {resolvingTicket && (
         <ResolutionNotesModal

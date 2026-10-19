@@ -112,4 +112,13 @@ export async function fetchAnalyticsSummary() {
   }
 }
 
+/**
+ * Directly update ticket attributes (status, priority, location, department, notes).
+ * Used by Supervisory Admin and SuperAdmin consoles.
+ */
+export async function updateTicketDirect(ticketId, payload) {
+  const response = await apiClient.patch(`/tickets/${ticketId}`, payload);
+  return response.data;
+}
+
 

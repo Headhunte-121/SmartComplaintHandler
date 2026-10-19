@@ -2,7 +2,7 @@
  * SmartComplaintHandler - Master Application Router
  * Blueprint Reference: V1/M1/frontend/04_app_router.md
  * Role: Declarative client-side routing hierarchy enforcing strict role-based access control (RBAC).
- * Domain: Restricts students strictly to Lodge Grievance (/submit), My History (/student), and Tracker (/track).
+ * Enforces role-specific default home redirects, strict technician isolation, and clean path nomenclature.
  */
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
@@ -13,13 +13,39 @@ import TrackTicket from '../pages/TrackTicket';
 import AdminDashboard from '../pages/AdminDashboard';
 import StudentDashboard from '../pages/StudentDashboard';
 import TechnicianWorkstation from '../pages/TechnicianWorkstation';
+import SquadsPage from '../pages/SquadsPage';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
-import SuperAdminDataEditor from '../pages/SuperAdminDataEditor';
+import StaffDirectoryPage from '../pages/StaffDirectoryPage';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import ResidenceInfo from '../pages/ResidenceInfo';
 import DeveloperLab from '../pages/DeveloperLab';
 import { useAuth } from '../context/AuthContext';
+
+/**
+ * Smart role-based home redirector.
+ * Automatically lands authenticated users on their primary operational workplace.
+ */
+function RoleHomeRedirect() {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  switch (currentUser.role) {
+    case 'STUDENT':
+      return <Navigate to="/student" replace />;
+    case 'TECHNICIAN':
+      return <Navigate to="/technician" replace />;
+    case 'ADMIN':
+      return <Navigate to="/operations" replace />;
+    case 'SUPER_ADMIN':
+      return <Navigate to="/superadmin" replace />;
+    default:
+      return <Navigate to="/map" replace />;
+  }
+}
 
 /**
  * Route protection guard checking authenticated role permissions.
@@ -33,7 +59,14 @@ function ProtectedRoute({ children, allowedRoles, fallbackRoute = '/student' }) 
 
   if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
     // Redirect unauthorized attempts to their default workplace
-    const redirect = currentUser.role === 'STUDENT' ? '/student' : currentUser.role === 'SUPER_ADMIN' ? '/superadmin' : '/admin';
+    const redirect =
+      currentUser.role === 'STUDENT'
+        ? '/student'
+        : currentUser.role === 'TECHNICIAN'
+        ? '/technician'
+        : currentUser.role === 'SUPER_ADMIN'
+        ? '/superadmin'
+        : '/operations';
     return <Navigate to={redirect} replace />;
   }
 
@@ -79,11 +112,13 @@ export default function AppRouter() {
 
         {/* Main Application Shell (Strictly Protected - Requires Authentication) */}
         <Route path="/" element={<Layout />}>
-          {/* Institutional Campus Map & Facility Hub */}
-          <Route index element={<Home />} />
+          {/* Dynamic Role-Based Home Landing */}
+          <Route index element={<RoleHomeRedirect />} />
+
+          {/* Institutional Campus Map & Digital Twin Locator */}
           <Route path="map" element={<Home />} />
 
-          {/* Grievance Submission — Accessible to students, staff, and faculty */}
+          {/* Grievance Submission */}
           <Route
             path="submit"
             element={
@@ -103,7 +138,7 @@ export default function AppRouter() {
             }
           />
 
-          {/* Student Self-Service Grievance Portal — Accessible to Students & Admins */}
+          {/* Student Self-Service Grievance Portal */}
           <Route
             path="student"
             element={
@@ -113,65 +148,69 @@ export default function AppRouter() {
             }
           />
 
-          {/* Field Squad Technician Workstation — Protected for Staff & Admins */}
+          {/* Field Squad Technician Workstation — STRICTLY TECHNICIAN ONLY */}
           <Route
             path="technician"
             element={
-              <ProtectedRoute allowedRoles={['TECHNICIAN', 'ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['TECHNICIAN']} fallbackRoute="/student">
                 <TechnicianWorkstation />
               </ProtectedRoute>
             }
           />
 
-          {/* Facilities Staff Operations Console — Strictly Protected from Students */}
+          {/* Facilities Operations Console — Replaces /admin with /operations */}
           <Route
-            path="admin"
+            path="operations"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} fallbackRoute="/submit">
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} fallbackRoute="/student">
                 <AdminDashboard />
               </ProtectedRoute>
             }
           />
+          {/* Backward-compatibility alias for /admin */}
+          <Route path="admin" element={<Navigate to="/operations" replace />} />
 
-          {/* Super Admin Control Directorate — Strictly Protected for SUPER_ADMIN */}
+          {/* Maintenance Squads & Dispatch Workload Balancer */}
+          <Route
+            path="squads"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} fallbackRoute="/student">
+                <SquadsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Super Admin Directorate Overview */}
           <Route
             path="superadmin"
             element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/admin">
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/operations">
                 <SuperAdminDashboard />
               </ProtectedRoute>
             }
           />
+
+          {/* Super Admin Staff Directory & RBAC Governance */}
           <Route
-            path="superadmin/editor"
+            path="superadmin/staff"
             element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/admin">
-                <SuperAdminDataEditor />
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/operations">
+                <StaffDirectoryPage />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="superadmin/data"
-            element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/admin">
-                <SuperAdminDataEditor />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="data-editor"
-            element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']} fallbackRoute="/submit">
-                <SuperAdminDataEditor />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="staff" element={<Navigate to="/superadmin/staff" replace />} />
+
+          {/* Data Editor deactivated for now (redirects to /superadmin) */}
+          <Route path="superadmin/editor" element={<Navigate to="/superadmin" replace />} />
+          <Route path="superadmin/data" element={<Navigate to="/superadmin" replace />} />
+          <Route path="data-editor" element={<Navigate to="/superadmin" replace />} />
 
           {/* Technical Architecture & Component Verification */}
           <Route
             path="developer"
             element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/submit">
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/operations">
                 <DeveloperLab />
               </ProtectedRoute>
             }

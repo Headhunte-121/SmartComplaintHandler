@@ -4,6 +4,7 @@
  * Role: Responsive grid displaying squad capacity meters with dynamic color thresholds and dual theme support.
  */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { fetchSquadWorkloads } from '../api/assignment';
 
@@ -60,20 +61,33 @@ export default function TeamWorkloadView({ onSelectSquad }) {
             Real-time queue depth monitoring across campus facility maintenance squads.
           </p>
         </div>
-        <button
-          onClick={loadWorkloads}
-          disabled={loading}
-          className={`self-start sm:self-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer border ${
-            isDark
-              ? 'bg-[#0e1117] hover:bg-zinc-800 text-zinc-200 border-zinc-700'
-              : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-800 border-slate-300'
-          }`}
-        >
-          <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>Refresh Queues</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-center">
+          <Link
+            to="/squads"
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-1.5 border ${
+              isDark
+                ? 'bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-400 border-emerald-800'
+                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+            }`}
+          >
+            <span>Squads Balancer</span>
+            <span>→</span>
+          </Link>
+          <button
+            onClick={loadWorkloads}
+            disabled={loading}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer border ${
+              isDark
+                ? 'bg-[#0e1117] hover:bg-zinc-800 text-zinc-200 border-zinc-700'
+                : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-800 border-slate-300'
+            }`}
+          >
+            <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Refresh Queues</span>
+          </button>
+        </div>
       </div>
 
       {error && (

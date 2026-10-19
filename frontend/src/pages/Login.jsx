@@ -116,10 +116,10 @@ export default function Login() {
       user.role === 'SUPER_ADMIN'
         ? '/superadmin'
         : user.role === 'ADMIN'
-        ? '/admin'
+        ? '/operations'
         : user.role === 'TECHNICIAN'
         ? '/technician'
-        : '/submit';
+        : '/student';
     navigate(targetRoute, { replace: true });
   };
 
