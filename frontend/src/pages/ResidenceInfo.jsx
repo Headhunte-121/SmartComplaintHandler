@@ -13,6 +13,8 @@ import {
   HOSTEL_FLOORS,
   getHostelBuildings,
   getRoomsForBuilding,
+  fetchAndCacheCampusBuildings,
+  IIITNR_MAP_UPDATED_EVENT,
 } from '../data/iiitnrCampusData';
 
 export default function ResidenceInfo() {
@@ -20,7 +22,18 @@ export default function ResidenceInfo() {
   const { currentUser, updateProfile, authInitializing } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
-  const hostels = useMemo(() => getHostelBuildings(), []);
+  const [hostelList, setHostelList] = useState(() => getHostelBuildings());
+
+  useEffect(() => {
+    fetchAndCacheCampusBuildings().then((buildings) => {
+      setHostelList(getHostelBuildings(buildings));
+    });
+    const onMapUpdated = () => setHostelList(getHostelBuildings());
+    window.addEventListener(IIITNR_MAP_UPDATED_EVENT, onMapUpdated);
+    return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, onMapUpdated);
+  }, []);
+
+  const hostels = hostelList;
 
   const [selectedHostel, setSelectedHostel] = useState(
     currentUser?.hostel_name || hostels[0]?.name || 'Ramanujan House (Boys Hostel 1)'

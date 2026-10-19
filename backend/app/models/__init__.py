@@ -7,6 +7,7 @@ from app.models.department import Department
 from app.models.team import Team, MaintenanceTeam
 from app.models.ticket import Ticket
 from app.models.user import User
+from app.models.campus import CampusBuilding, CampusRoad
 
 __all__ = [
     "Department",
@@ -14,4 +15,6 @@ __all__ = [
     "MaintenanceTeam",
     "Ticket",
     "User",
+    "CampusBuilding",
+    "CampusRoad",
 ]

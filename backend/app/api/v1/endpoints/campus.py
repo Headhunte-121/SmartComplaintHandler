@@ -1,329 +1,261 @@
 """
 SmartComplaintHandler - Campus Digital Twin Infrastructure Endpoints
 Role: Manages persistent campus buildings, floors, rooms, and geospatial coordinates
-      for IIIT Naya Raipur campus.
+      directly in the database (Supabase PostgreSQL / SQLite).
+Data Source: Authoritative ground-truth GIS entities from frontend/public/iiitnr_gis_studio.html.
 """
-import json
-import os
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
-from app.api.deps import require_roles
+from app.api.deps import get_db, require_roles
+from app.models.campus import CampusBuilding, CampusRoad
+from app.schemas.campus import BuildingBase, RoadBase, CampusSyncRequest
 from app.schemas.user import UserResponse
+from app.db.seed import seed_campus_infrastructure
 
 router = APIRouter()
 
-CAMPUS_DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "campus_buildings.json")
 
-# Default IIIT Naya Raipur institutional campus buildings
-DEFAULT_CAMPUS_BUILDINGS = [
-    {
-        "id": "academic_block",
-        "name": "Main Academic & Administrative Building",
-        "shortName": "Academic Block",
-        "category": "ACADEMIC",
-        "floors": [
-            {
-                "id": "G",
-                "label": "Ground Floor (G)",
-                "rooms": [
-                    "Classroom 101",
-                    "Classroom 102",
-                    "Classroom 103",
-                    "Computer Lab 1",
-                    "Admin Office",
-                    "Conference Hall",
-                ],
-            },
-            {
-                "id": "1",
-                "label": "First Floor (1)",
-                "rooms": [
-                    "Classroom 201",
-                    "Classroom 202",
-                    "Faculty Cubicles 1-12",
-                    "Library Reading Hall",
-                ],
-            },
-            {
-                "id": "2",
-                "label": "Second Floor (2)",
-                "rooms": [
-                    "Classroom 301",
-                    "IoT & Embedded Lab",
-                    "Data Science Lab",
-                    "Faculty Offices",
-                ],
-            },
-            {
-                "id": "3",
-                "label": "Third Floor (3)",
-                "rooms": [
-                    "Server Room NOC",
-                    "Research Scholar Lab",
-                    "Seminar Hall 3",
-                ],
-            },
-        ],
-        "trace": {
-            "badge": "ACADEMIC CORE",
-            "color": "#10b981",
-            "shape": "circle",
-            "lat": 21.1278,
-            "lng": 81.7661,
-        },
-    },
-    {
-        "id": "canteen",
-        "name": "Student Activity Centre & Dining Canteen",
-        "shortName": "Canteen & SAC",
-        "category": "AMENITY",
-        "floors": [
-            {
-                "id": "G",
-                "label": "Ground Floor",
-                "rooms": ["Main Dining Hall", "Food Counters 1-4", "Kitchen", "Juice Bar"],
-            },
-            {
-                "id": "1",
-                "label": "First Floor",
-                "rooms": ["Music Room", "Dance Studio", "Student Council Room"],
-            },
-        ],
-        "trace": {
-            "badge": "DINING & CLUBS",
-            "color": "#f59e0b",
-            "shape": "circle",
-            "lat": 21.1272,
-            "lng": 81.7656,
-        },
-    },
-    {
-        "id": "auditorium",
-        "name": "Central Campus Auditorium & Amphitheatre",
-        "shortName": "Auditorium",
-        "category": "AMENITY",
-        "floors": [
-            {
-                "id": "G",
-                "label": "Main Hall",
-                "rooms": ["Main Auditorium Hall", "Green Room A", "Green Room B", "Control Booth"],
-            }
-        ],
-        "trace": {
-            "badge": "AUDITORIUM",
-            "color": "#8b5cf6",
-            "shape": "circle",
-            "lat": 21.1285,
-            "lng": 81.7654,
-        },
-    },
-    {
-        "id": "ramanujan_house",
-        "name": "Ramanujan House (Boys Hostel 1)",
-        "shortName": "Ramanujan House",
-        "category": "HOSTEL",
-        "floors": ["G", "1", "2", "3"],
-        "trace": {
-            "badge": "BH-1",
-            "color": "#3b82f6",
-            "shape": "poly",
-            "lat": 21.1292,
-            "lng": 81.7675,
-        },
-    },
-    {
-        "id": "bhabha_house",
-        "name": "Bhabha House (Boys Hostel 2)",
-        "shortName": "Bhabha House",
-        "category": "HOSTEL",
-        "floors": ["G", "1", "2", "3"],
-        "trace": {
-            "badge": "BH-2",
-            "color": "#3b82f6",
-            "shape": "poly",
-            "lat": 21.1283,
-            "lng": 81.7682,
-        },
-    },
-    {
-        "id": "bose_house",
-        "name": "Bose House (Boys Hostel 3)",
-        "shortName": "Bose House",
-        "category": "HOSTEL",
-        "floors": ["G", "1", "2", "3"],
-        "trace": {
-            "badge": "BH-3",
-            "color": "#3b82f6",
-            "shape": "poly",
-            "lat": 21.1273,
-            "lng": 81.7688,
-        },
-    },
-    {
-        "id": "raman_house",
-        "name": "Raman House (Girls Hostel 1)",
-        "shortName": "Raman House",
-        "category": "HOSTEL",
-        "floors": ["G", "1", "2", "3"],
-        "trace": {
-            "badge": "GH-1",
-            "color": "#ec4899",
-            "shape": "poly",
-            "lat": 21.1264,
-            "lng": 81.7645,
-        },
-    },
-    {
-        "id": "shabri_house",
-        "name": "Shabri House (Girls Hostel 2)",
-        "shortName": "Shabri House",
-        "category": "HOSTEL",
-        "floors": ["G", "1", "2", "3"],
-        "trace": {
-            "badge": "GH-2",
-            "color": "#ec4899",
-            "shape": "poly",
-            "lat": 21.1257,
-            "lng": 81.7652,
-        },
-    },
-    {
-        "id": "sports_complex",
-        "name": "Athletics Ground, Courts & Gymnasium",
-        "shortName": "Sports Ground",
-        "category": "SPORTS",
-        "floors": [
-            {
-                "id": "G",
-                "label": "Ground Level",
-                "rooms": [
-                    "Football Turf",
-                    "Cricket Pitch",
-                    "Basketball Court",
-                    "Badminton Indoor Court",
-                    "Gymnasium Hall",
-                ],
-            }
-        ],
-        "trace": {
-            "badge": "SPORTS",
-            "color": "#06b6d4",
-            "shape": "poly",
-            "lat": 21.1305,
-            "lng": 81.7660,
-        },
-    },
-]
+@router.get("/buildings", summary="Get Campus Infrastructure Buildings from Database")
+def get_buildings(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    """
+    Returns the authoritative list of campus buildings, floors, rooms, and GIS polygons
+    persisted in the database.
+    """
+    buildings = db.query(CampusBuilding).order_by(CampusBuilding.display_order, CampusBuilding.name).all()
+    if not buildings:
+        # If DB is empty, automatically seed with canonical GIS studio entities
+        seed_campus_infrastructure(db)
+        buildings = db.query(CampusBuilding).order_by(CampusBuilding.display_order, CampusBuilding.name).all()
+
+    return [b.to_dict() for b in buildings]
 
 
-def _read_campus_data() -> List[Dict[str, Any]]:
-    try:
-        if os.path.exists(CAMPUS_DATA_FILE):
-            with open(CAMPUS_DATA_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if isinstance(data, list) and len(data) > 0:
-                    return data
-    except Exception:
-        pass
-    return list(DEFAULT_CAMPUS_BUILDINGS)
-
-
-def _write_campus_data(data: List[Dict[str, Any]]) -> None:
-    try:
-        os.makedirs(os.path.dirname(CAMPUS_DATA_FILE), exist_ok=True)
-        with open(CAMPUS_DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-    except Exception as e:
+@router.get("/buildings/{building_id}", summary="Get Campus Building by ID")
+def get_building_by_id(building_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Returns a specific campus building record from the database."""
+    building = db.query(CampusBuilding).filter(CampusBuilding.id == building_id).first()
+    if not building:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to persist campus data: {str(e)}",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Building with ID '{building_id}' was not found in campus database.",
         )
+    return building.to_dict()
 
 
-class BuildingSchema(BaseModel):
-    id: str = Field(..., min_length=2, max_length=100)
-    name: str = Field(..., min_length=2, max_length=200)
-    shortName: Optional[str] = None
-    category: str = Field("ACADEMIC", max_length=50)
-    floors: Optional[Any] = None
-    trace: Optional[Dict[str, Any]] = None
-
-
-@router.get("/buildings", summary="Get Campus Infrastructure Buildings")
-def get_buildings() -> List[Dict[str, Any]]:
-    """Returns persistent list of campus buildings, floors, and rooms."""
-    return _read_campus_data()
-
-
-@router.post("/buildings", summary="Add Campus Building Entity")
+@router.post("/buildings", summary="Add Campus Building Entity to Database")
 def create_building(
-    building: BuildingSchema,
+    building_data: BuildingBase,
+    db: Session = Depends(get_db),
     current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN", "ADMIN"])),
 ) -> Dict[str, Any]:
-    """Adds a new building to the campus digital twin."""
-    buildings = _read_campus_data()
-    if any(b["id"] == building.id for b in buildings):
+    """SuperAdmin / Admin endpoint to create a new campus building in the database."""
+    existing = db.query(CampusBuilding).filter(CampusBuilding.id == building_data.id).first()
+    if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Building with ID '{building.id}' already exists.",
+            detail=f"Building with ID '{building_data.id}' already exists in database.",
         )
-    b_dict = building.model_dump() if hasattr(building, "model_dump") else building.dict()
-    buildings.append(b_dict)
-    _write_campus_data(buildings)
-    return b_dict
+
+    pin = building_data.mapPin or building_data.map_pin
+    if not pin and building_data.trace:
+        pin = {"lat": building_data.trace.get("lat"), "lng": building_data.trace.get("lng")}
+
+    max_order = db.query(CampusBuilding).count()
+    new_b = CampusBuilding(
+        id=building_data.id,
+        name=building_data.name,
+        short_name=building_data.shortName or building_data.short_name or building_data.name,
+        badge=building_data.badge or (building_data.trace.get("badge") if building_data.trace else ""),
+        category=building_data.category or "ACADEMIC",
+        color=building_data.color or (building_data.trace.get("color") if building_data.trace else "#4f46e5"),
+        map_pin=pin,
+        wings=building_data.wings or [],
+        floors=building_data.floors or ["G", "1", "2", "3"],
+        rooms_per_floor=building_data.roomsPerFloor or building_data.rooms_per_floor or 24,
+        custom_rooms=building_data.customRooms or building_data.custom_rooms or [],
+        description=building_data.description or "",
+        polygons=building_data.polygons or [],
+        entrances=building_data.entrances or [],
+        display_order=max_order,
+    )
+    db.add(new_b)
+    db.commit()
+    db.refresh(new_b)
+    return new_b.to_dict()
 
 
-@router.put("/buildings/{building_id}", summary="Update Campus Building Entity")
+@router.put("/buildings/{building_id}", summary="Update Campus Building in Database")
 def update_building(
     building_id: str,
-    building: BuildingSchema,
+    building_data: BuildingBase,
+    db: Session = Depends(get_db),
     current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN", "ADMIN"])),
 ) -> Dict[str, Any]:
-    """Updates an existing campus building."""
-    buildings = _read_campus_data()
-    found = False
-    updated_b = None
-    for idx, b in enumerate(buildings):
-        if b["id"] == building_id:
-            b_dict = building.model_dump() if hasattr(building, "model_dump") else building.dict()
-            b_dict["id"] = building_id
-            buildings[idx] = b_dict
-            updated_b = b_dict
-            found = True
-            break
-    if not found:
+    """Updates an existing building record in the database."""
+    building = db.query(CampusBuilding).filter(CampusBuilding.id == building_id).first()
+    if not building:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Building '{building_id}' not found.",
+            detail=f"Building '{building_id}' not found in database.",
         )
-    _write_campus_data(buildings)
-    return updated_b
+
+    pin = building_data.mapPin or building_data.map_pin
+    if not pin and building_data.trace:
+        pin = {"lat": building_data.trace.get("lat"), "lng": building_data.trace.get("lng")}
+
+    building.name = building_data.name
+    building.short_name = building_data.shortName or building_data.short_name or building.short_name
+    building.badge = building_data.badge or building.badge
+    building.category = building_data.category or building.category
+    building.color = building_data.color or building.color
+    if pin:
+        building.map_pin = pin
+    if building_data.wings is not None:
+        building.wings = building_data.wings
+    if building_data.floors is not None:
+        building.floors = building_data.floors
+    if building_data.roomsPerFloor or building_data.rooms_per_floor:
+        building.rooms_per_floor = building_data.roomsPerFloor or building_data.rooms_per_floor
+    if building_data.customRooms is not None or building_data.custom_rooms is not None:
+        building.custom_rooms = building_data.customRooms or building_data.custom_rooms
+    if building_data.description is not None:
+        building.description = building_data.description
+    if building_data.polygons is not None:
+        building.polygons = building_data.polygons
+    if building_data.entrances is not None:
+        building.entrances = building_data.entrances
+
+    db.commit()
+    db.refresh(building)
+    return building.to_dict()
 
 
-@router.delete("/buildings/{building_id}", summary="Delete Campus Building Entity")
+@router.delete("/buildings/{building_id}", summary="Delete Campus Building from Database")
 def delete_building(
     building_id: str,
+    db: Session = Depends(get_db),
     current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN"])),
 ) -> Dict[str, str]:
-    """SuperAdmin action to delete a building entity."""
-    buildings = _read_campus_data()
-    initial_len = len(buildings)
-    buildings = [b for b in buildings if b["id"] != building_id]
-    if len(buildings) == initial_len:
+    """SuperAdmin action to delete a building from the database."""
+    building = db.query(CampusBuilding).filter(CampusBuilding.id == building_id).first()
+    if not building:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Building '{building_id}' not found.",
+            detail=f"Building '{building_id}' not found in database.",
         )
-    _write_campus_data(buildings)
-    return {"message": f"Building '{building_id}' deleted successfully."}
+    db.delete(building)
+    db.commit()
+    return {"message": f"Building '{building_id}' deleted successfully from database."}
 
 
-@router.post("/reset", summary="Reset Campus Catalog to Institutional Defaults")
+@router.get("/roads", summary="Get Campus Road Network from Database")
+def get_roads(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    """Returns vehicular roads and pedestrian footpaths stored in the database."""
+    roads = db.query(CampusRoad).all()
+    if not roads:
+        seed_campus_infrastructure(db)
+        roads = db.query(CampusRoad).all()
+    return [r.to_dict() for r in roads]
+
+
+@router.post("/sync", summary="Bulk Synchronize GIS Studio Data to Database")
+def sync_campus_data(
+    payload: CampusSyncRequest,
+    db: Session = Depends(get_db),
+    current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN", "ADMIN"])),
+) -> Dict[str, Any]:
+    """
+    Directly persists buildings and roads drawn in frontend/public/iiitnr_gis_studio.html
+    into the database.
+    """
+    synced_b = 0
+    synced_r = 0
+
+    if payload.buildings:
+        for idx, b in enumerate(payload.buildings):
+            b_id = b.get("id")
+            if not b_id:
+                continue
+            existing = db.query(CampusBuilding).filter(CampusBuilding.id == b_id).first()
+            pin = b.get("mapPin") or b.get("map_pin")
+            if not existing:
+                nb = CampusBuilding(
+                    id=b_id,
+                    name=b.get("name", "Unnamed Building"),
+                    short_name=b.get("shortName") or b.get("name"),
+                    badge=b.get("badge") or "",
+                    category=b.get("category", "ACADEMIC"),
+                    color=b.get("color") or "#4f46e5",
+                    map_pin=pin,
+                    wings=b.get("wings") or [],
+                    floors=b.get("floors") or ["G", "1", "2", "3"],
+                    rooms_per_floor=b.get("roomsPerFloor") or 24,
+                    custom_rooms=b.get("customRooms") or [],
+                    description=b.get("description") or "",
+                    polygons=b.get("polygons") or [],
+                    entrances=b.get("entrances") or [],
+                    display_order=idx,
+                )
+                db.add(nb)
+            else:
+                existing.name = b.get("name", existing.name)
+                existing.short_name = b.get("shortName") or b.get("name") or existing.short_name
+                existing.badge = b.get("badge") or existing.badge
+                existing.category = b.get("category", existing.category)
+                existing.color = b.get("color") or existing.color
+                if pin:
+                    existing.map_pin = pin
+                existing.wings = b.get("wings") or existing.wings
+                existing.floors = b.get("floors") or existing.floors
+                existing.rooms_per_floor = b.get("roomsPerFloor") or existing.rooms_per_floor
+                existing.custom_rooms = b.get("customRooms") or existing.custom_rooms
+                existing.description = b.get("description") or existing.description
+                existing.polygons = b.get("polygons") or existing.polygons
+                existing.entrances = b.get("entrances") or existing.entrances
+                existing.display_order = idx
+            synced_b += 1
+
+    if payload.roads:
+        for r in payload.roads:
+            r_id = r.get("id")
+            if not r_id:
+                continue
+            existing_road = db.query(CampusRoad).filter(CampusRoad.id == r_id).first()
+            if not existing_road:
+                road = CampusRoad(
+                    id=r_id,
+                    name=r.get("name", "Road"),
+                    road_type=r.get("type", "road"),
+                    width=r.get("width", 14),
+                    color=r.get("color", "#944b24"),
+                    latlngs=r.get("latlngs") or [],
+                )
+                db.add(road)
+            else:
+                existing_road.name = r.get("name", existing_road.name)
+                existing_road.road_type = r.get("type", existing_road.road_type)
+                existing_road.width = r.get("width", existing_road.width)
+                existing_road.color = r.get("color", existing_road.color)
+                existing_road.latlngs = r.get("latlngs") or existing_road.latlngs
+            synced_r += 1
+
+    db.commit()
+    return {
+        "status": "success",
+        "message": f"Successfully synchronized {synced_b} buildings and {synced_r} roads into database.",
+        "buildings_count": db.query(CampusBuilding).count(),
+        "roads_count": db.query(CampusRoad).count(),
+    }
+
+
+@router.post("/reset", summary="Reset Campus Database to Institutional GIS Defaults")
 def reset_buildings(
+    db: Session = Depends(get_db),
     current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN"])),
 ) -> List[Dict[str, Any]]:
-    """SuperAdmin action to restore official IIIT Naya Raipur campus directory."""
-    _write_campus_data(DEFAULT_CAMPUS_BUILDINGS)
-    return DEFAULT_CAMPUS_BUILDINGS
+    """SuperAdmin action to restore official IIIT Naya Raipur campus directory in database."""
+    seed_campus_infrastructure(db)
+    buildings = db.query(CampusBuilding).order_by(CampusBuilding.display_order, CampusBuilding.name).all()
+    return [b.to_dict() for b in buildings]

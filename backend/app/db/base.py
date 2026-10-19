@@ -7,3 +7,5 @@ from app.models.base import Base
 from app.models.department import Department
 from app.models.team import MaintenanceTeam
 from app.models.ticket import Ticket
+from app.models.user import User
+from app.models.campus import CampusBuilding, CampusRoad

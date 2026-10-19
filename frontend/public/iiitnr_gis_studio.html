@@ -583,6 +583,7 @@
 
     <!-- Quick Export -->
     <div style="display: flex; gap: 8px;">
+      <button class="btn emerald" id="btn-sync-db" onclick="syncToDatabase()" style="background: #047857; font-weight: 800;">💾 Save to Database</button>
       <button class="btn emerald" onclick="copyJsonConfig()">📋 Copy Labeled JSON</button>
       <button class="btn sky" onclick="downloadGeoJSON()">📥 Export GeoJSON</button>
     </div>
@@ -3208,6 +3209,44 @@
     // --- JSON & GeoJSON & campusGeometry.js Exporters ---
     function saveBuildingsToStorage() {
       localStorage.setItem('iiitnr_advanced_gis_buildings_v2', JSON.stringify(buildings));
+      // Quiet background database sync
+      try {
+        const roadsData = roadLayers.map(l => l.roadData).filter(Boolean);
+        fetch('/api/v1/campus/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ buildings, roads: roadsData }),
+        }).catch(() => {});
+      } catch (_) {}
+    }
+
+    async function syncToDatabase() {
+      const btn = document.getElementById('btn-sync-db');
+      if (btn) {
+        btn.textContent = '⏳ Saving...';
+        btn.disabled = true;
+      }
+      try {
+        const roadsData = roadLayers.map(l => l.roadData).filter(Boolean);
+        const res = await fetch('/api/v1/campus/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ buildings, roads: roadsData }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`✓ Database Synced! ${data.buildings_count || buildings.length} buildings saved to server.`);
+        } else {
+          showToast(`⚠️ Sync notice: ${data.detail || 'Saved locally'}`);
+        }
+      } catch (err) {
+        showToast('⚠️ Note: Saved to browser storage (API offline)');
+      } finally {
+        if (btn) {
+          btn.textContent = '💾 Save to Database';
+          btn.disabled = false;
+        }
+      }
     }
 
     function updateJsonOutput() {

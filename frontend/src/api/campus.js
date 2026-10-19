@@ -38,9 +38,26 @@ export async function deleteCampusBuilding(buildingId) {
 }
 
 /**
- * Reset campus buildings catalog to institutional defaults.
+ * Fetch campus road and footpath network from database.
+ */
+export async function fetchCampusRoads() {
+  const response = await apiClient.get('/campus/roads');
+  return response.data;
+}
+
+/**
+ * Bulk synchronize GIS Studio entities directly into database.
+ */
+export async function syncCampusData(payload) {
+  const response = await apiClient.post('/campus/sync', payload);
+  return response.data;
+}
+
+/**
+ * Reset campus buildings catalog to institutional defaults in database.
  */
 export async function resetCampusBuildings() {
   const response = await apiClient.post('/campus/reset');
   return response.data;
 }
+

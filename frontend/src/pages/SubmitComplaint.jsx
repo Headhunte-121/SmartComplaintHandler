@@ -13,6 +13,7 @@ import CampusMapSelector from '../components/CampusMapSelector';
 import {
   IIITNR_MAP_UPDATED_EVENT,
   getCampusBuildings,
+  fetchAndCacheCampusBuildings,
   getHostelBuildings,
   getNonHostelBuildings,
   getFloorsForBuilding,
@@ -54,6 +55,9 @@ export default function SubmitComplaint() {
   const [allBuildings, setAllBuildings] = useState(() => getCampusBuildings());
 
   useEffect(() => {
+    fetchAndCacheCampusBuildings().then((b) => {
+      if (Array.isArray(b) && b.length > 0) setAllBuildings(b);
+    });
     const syncBuildings = () => setAllBuildings(getCampusBuildings());
     window.addEventListener(IIITNR_MAP_UPDATED_EVENT, syncBuildings);
     return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, syncBuildings);

@@ -5,7 +5,9 @@ Role: Idempotently seeds authentic IIIT Naya Raipur campus departments, maintena
       official administrative staff, and production User schema columns upon boot or manual CLI invocation.
 """
 from datetime import datetime, timedelta, timezone
+import json
 import logging
+import os
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal, engine
@@ -14,6 +16,7 @@ from app.models.department import Department
 from app.models.team import MaintenanceTeam, Team  # noqa: F401
 from app.models.ticket import Ticket
 from app.models.user import User
+from app.models.campus import CampusBuilding, CampusRoad
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -249,6 +252,93 @@ def seed_database(db: Session) -> None:
             .count()
         )
     db.commit()
+
+    # Seed authentic campus buildings and roads from GIS Studio ground truth
+    seed_campus_infrastructure(db)
+
+
+def seed_campus_infrastructure(db: Session) -> None:
+    """
+    Populates campus_buildings and campus_roads tables in database with authentic
+    ground-truth GIS entities from frontend/public/iiitnr_gis_studio.html.
+    """
+    json_path = os.path.join(os.path.dirname(__file__), "canonical_gis_data.json")
+    if not os.path.exists(json_path):
+        return
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        logger.warning(f"Could not load canonical GIS data: {e}")
+        return
+
+    buildings_data = data.get("buildings", [])
+    for idx, b in enumerate(buildings_data):
+        b_id = b.get("id")
+        if not b_id:
+            continue
+        existing = db.query(CampusBuilding).filter(CampusBuilding.id == b_id).first()
+        if not existing:
+            building = CampusBuilding(
+                id=b_id,
+                name=b.get("name", "Unnamed Building"),
+                short_name=b.get("shortName") or b.get("name"),
+                badge=b.get("badge") or "",
+                category=b.get("category", "ACADEMIC"),
+                color=b.get("color") or "#4f46e5",
+                map_pin=b.get("mapPin"),
+                wings=b.get("wings") or [],
+                floors=b.get("floors") or ["G", "1", "2", "3"],
+                rooms_per_floor=b.get("roomsPerFloor") or 24,
+                custom_rooms=b.get("customRooms") or [],
+                description=b.get("description") or "",
+                polygons=b.get("polygons") or [],
+                entrances=b.get("entrances") or [],
+                display_order=idx,
+            )
+            db.add(building)
+        else:
+            existing.name = b.get("name", existing.name)
+            existing.short_name = b.get("shortName") or b.get("name") or existing.short_name
+            existing.badge = b.get("badge") or existing.badge
+            existing.category = b.get("category", existing.category)
+            existing.color = b.get("color") or existing.color
+            existing.map_pin = b.get("mapPin") or existing.map_pin
+            existing.wings = b.get("wings") or existing.wings
+            existing.floors = b.get("floors") or existing.floors
+            existing.rooms_per_floor = b.get("roomsPerFloor") or existing.rooms_per_floor
+            existing.custom_rooms = b.get("customRooms") or existing.custom_rooms
+            existing.description = b.get("description") or existing.description
+            existing.polygons = b.get("polygons") or existing.polygons
+            existing.entrances = b.get("entrances") or existing.entrances
+            existing.display_order = idx
+
+    roads_data = data.get("roads", [])
+    for r in roads_data:
+        r_id = r.get("id")
+        if not r_id:
+            continue
+        existing_road = db.query(CampusRoad).filter(CampusRoad.id == r_id).first()
+        if not existing_road:
+            road = CampusRoad(
+                id=r_id,
+                name=r.get("name", "Road"),
+                road_type=r.get("type", "road"),
+                width=r.get("width", 14),
+                color=r.get("color", "#944b24"),
+                latlngs=r.get("latlngs") or [],
+            )
+            db.add(road)
+        else:
+            existing_road.name = r.get("name", existing_road.name)
+            existing_road.road_type = r.get("type", existing_road.road_type)
+            existing_road.width = r.get("width", existing_road.width)
+            existing_road.color = r.get("color", existing_road.color)
+            existing_road.latlngs = r.get("latlngs") or existing_road.latlngs
+
+    db.commit()
+    logger.info(f"Campus infrastructure seeded: {len(buildings_data)} buildings, {len(roads_data)} roads.")
 
 
 def seed_data() -> None:
