@@ -1,13 +1,29 @@
+# ==============================================================================
+# Vercel Deployment Exclusion List (Backend)
+# Purpose: Excludes all tests, test runners, local sqlite databases, and dev caches
+# ==============================================================================
 venv/
 .venv/
 __pycache__/
 *.pyc
+*.pyo
 .pytest_cache/
 tests/
+test_*.py
+*_test.py
+seed_and_test_*.py
 seed_and_test_m5.py
+htmlcov/
+.coverage
+.coverage.*
+
 .env
 .env.*
 !.env.example
+
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
+smart_complaints.db

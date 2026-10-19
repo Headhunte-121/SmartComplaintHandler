@@ -1,0 +1,56 @@
+# ==============================================================================
+# Vercel Deployment Exclusion List (Root)
+# Blueprint Reference: V1/M1/01_config_and_env.md
+# Purpose: Excludes all test suites, test runners, local databases, virtual environments,
+#          and development documentation from production Vercel serverless builds.
+# ==============================================================================
+
+# Test Suites, Runners & Caches
+backend/tests/
+tests/
+*.test.*
+*.spec.*
+test_*.py
+*_test.py
+seed_and_test_*.py
+backend/seed_and_test_m5.py
+.pytest_cache/
+backend/.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# SQLite Databases & Local Storage
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+smart_complaints.db
+backend/smart_complaints.db
+
+# Virtual Environments & Dependencies
+venv/
+.venv/
+backend/venv/
+node_modules/
+frontend/node_modules/
+__pycache__/
+backend/**/__pycache__/
+*.pyc
+*.pyo
+
+# Local Dev Tools, Benchmarks & Design History
+docs/
+scripts/
+benchmark_playground/
+benchmark_*.py
+benchmark_*.html
+local_ai_tester.*
+
+# Local Environment Secrets (never package into build bundle)
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env

@@ -275,3 +275,17 @@ benchmark_*.py
 benchmark_*.html
 local_ai_tester.*
 
+
+# ==========================================
+# Automated Tests, Suites & Fixtures (Kept local, excluded from Git)
+# ==========================================
+backend/tests/
+tests/
+test_*.py
+*_test.py
+*.test.*
+*.spec.*
+seed_and_test_*.py
+backend/seed_and_test_m5.py
+backend/.pytest_cache/
+.pytest_cache/

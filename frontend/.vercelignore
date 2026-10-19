@@ -1,5 +1,15 @@
+# ==============================================================================
+# Vercel Deployment Exclusion List (Frontend)
+# Purpose: Excludes node_modules, local envs, test files, and test caches
+# ==============================================================================
 node_modules/
 dist/
 .env
 .env.*
 !.env.example
+
+*.test.*
+*.spec.*
+__tests__/
+coverage/
+.cache/

@@ -1,1 +1,0 @@
-# SmartComplaintHandler - Tests package
