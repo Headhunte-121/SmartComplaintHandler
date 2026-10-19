@@ -20,8 +20,8 @@ import {
 
 export default function StudentDashboard() {
   const { isDark } = useTheme();
-  const { currentPersona, currentUser, updateProfile } = useAuth();
-  const activeUser = currentUser || currentPersona;
+  const { currentUser, updateProfile } = useAuth();
+  const activeUser = currentUser;
 
   const [allBuildings, setAllBuildings] = useState(() => getCampusBuildings());
   const [tickets, setTickets] = useState([]);

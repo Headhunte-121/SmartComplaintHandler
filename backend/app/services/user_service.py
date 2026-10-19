@@ -261,39 +261,10 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
     if clean_email in IIITNR_KNOWN_STAFF:
         return dict(IIITNR_KNOWN_STAFF[clean_email])
 
-    prefix = clean_email.split("@")[0].lower()
-
-    if prefix in ("superadmin", "director", "super.admin"):
-        return {
-            "name": "Prof. (Dr.) Om Prakash Vyas (Director)",
-            "role": "SUPER_ADMIN",
-            "department_name": "Office of the Director",
-            "identifier": "Directorate (DIR-01)",
-        }
-    if (
-        prefix in ("admin", "estate", "facilities", "supervisor", "estate.admin", "estate_admin")
-        or prefix.endswith(".admin")
-    ):
-        dept = "General Administration"
-        if "electrical" in prefix:
-            dept = "Electrical"
-        elif "plumbing" in prefix:
-            dept = "Plumbing"
-        elif "it" in prefix or "network" in prefix:
-            dept = "IT Support"
-        return {
-            "name": "Estate & Facilities Supervisor",
-            "role": "ADMIN",
-            "department_name": dept,
-            "identifier": "Supervisor (FAC-01)",
-        }
-    if prefix.startswith("tech.") or "technician" in prefix:
-        return {
-            "name": prefix.replace("tech.", "").replace(".", " ").title(),
-            "role": "TECHNICIAN",
-            "department_name": "Electrical",
-            "identifier": "Field Technician",
-        }
+    prefix = clean_email.split("@")[0].lower() if "@" in clean_email else clean_email
+    # Enterprise Security: Administrative roles (SUPER_ADMIN, ADMIN, TECHNICIAN) are strictly restricted
+    # to pre-authorized institutional accounts in IIITNR_KNOWN_STAFF or provisioned by SuperAdmin via add_admin_user.
+    # Self-registered accounts can NEVER elevate their role to ADMIN/SUPER_ADMIN via crafted email prefixes.
 
     match = STUDENT_PATTERN.match(clean_email)
     if match:

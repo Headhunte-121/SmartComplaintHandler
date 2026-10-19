@@ -54,7 +54,7 @@ class CampusBuilding(Base):
             "mapPin": pin,
             "map_pin": pin,
             "wings": self.wings or [],
-            "floors": self.floors or ["G", "1", "2", "3"],
+            "floors": self.floors or ["1", "2", "3", "4"],
             "roomsPerFloor": self.rooms_per_floor or 24,
             "rooms_per_floor": self.rooms_per_floor or 24,
             "customRooms": self.custom_rooms or [],

@@ -47,9 +47,9 @@ function inferFloorFromRoomString(roomStr = '') {
 }
 
 export default function SubmitComplaint() {
-  const { currentPersona, currentUser, updateProfile } = useAuth();
+  const { currentUser, updateProfile } = useAuth();
   const { isDark } = useTheme();
-  const activeUser = currentUser || currentPersona;
+  const activeUser = currentUser;
   const [searchParams] = useSearchParams();
 
   const [allBuildings, setAllBuildings] = useState(() => getCampusBuildings());
@@ -145,12 +145,10 @@ export default function SubmitComplaint() {
     setBuilding(newBuildingName);
     setCustomRoomOverride('');
     const targetFloors = getFloorsForBuilding(newBuildingName, allBuildings);
-    const nextFloor = targetFloors[0]?.id || 'G';
+    const nextFloor = targetFloors[0]?.id || '1';
     setSelectedFloor(nextFloor);
     const targetRooms = getRoomsForBuilding(newBuildingName, nextFloor, null, allBuildings);
-    if (targetRooms.length > 0) {
-      setSpecificLocation(targetRooms[0]);
-    }
+    setSpecificLocation(targetRooms.length > 0 ? targetRooms[0] : 'None');
   };
 
   const handleUseMySavedRoom = () => {
@@ -658,11 +656,17 @@ export default function SubmitComplaint() {
                             : 'bg-white border-slate-300 text-slate-900 focus:border-emerald-600 shadow-2xs'
                         }`}
                       >
-                        {availableFloors.map((f) => (
-                          <option key={f.id} value={f.id} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                            {f.label}
+                        {availableFloors.length > 0 ? (
+                          availableFloors.map((f) => (
+                            <option key={f.id} value={f.id} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
+                              {f.label}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="None" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
+                            None
                           </option>
-                        ))}
+                        )}
                       </select>
                     </div>
 
@@ -699,11 +703,17 @@ export default function SubmitComplaint() {
                             : 'bg-white border-slate-300 text-slate-900 focus:border-emerald-600 shadow-2xs'
                         }`}
                       >
-                        {availableRooms.map((rm) => (
-                          <option key={rm} value={rm} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                            {rm}
+                        {availableRooms.length > 0 ? (
+                          availableRooms.map((rm) => (
+                            <option key={rm} value={rm} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
+                              {rm}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="None" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
+                            None
                           </option>
-                        ))}
+                        )}
                       </select>
                     </div>
 

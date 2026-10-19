@@ -17,9 +17,9 @@ import SLABreachTable from '../components/SLABreachTable';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 
 export default function AdminDashboard() {
-  const { currentPersona, currentUser, isTechnician, isAdmin } = useAuth();
+  const { currentUser, isTechnician, isAdmin } = useAuth();
   const { isDark } = useTheme();
-  const activeUser = currentUser || currentPersona;
+  const activeUser = currentUser;
 
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);

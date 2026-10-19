@@ -220,11 +220,10 @@
       ],
       "roomsPerFloor": 6,
       "customRooms": [
-        "Main Auditorium Hall",
-        "Balcony Seating",
-        "Stage & Green Rooms",
-        "AV Control Booth",
-        "Foyer & Reception"
+        "Main Acoustic Auditorium Hall (800 Seater)",
+        "Green Room 1",
+        "Green Room 2",
+        "AV Control Booth"
       ],
       "description": "Main campus auditorium located west of the central spine",
       "polygons": [
@@ -354,13 +353,7 @@
         "1"
       ],
       "roomsPerFloor": 6,
-      "customRooms": [
-        "Main Dining Hall",
-        "Juice & Snacks Counter",
-        "Outdoor Dining Arcade",
-        "Kitchen & Service Area",
-        "Staff Dining Section"
-      ],
+      "customRooms": [],
       "description": "Iconic circular canteen rotunda with curved dining arcade",
       "polygons": [
         {
@@ -497,7 +490,9 @@
         "1",
         "2",
         "3",
-        "4"
+        "4",
+        "5",
+        "6"
       ],
       "roomsPerFloor": 24,
       "customRooms": [],
@@ -962,10 +957,8 @@
       ],
       "roomsPerFloor": 24,
       "customRooms": [
-        "Indoor Badminton Courts",
-        "Table Tennis Arena",
-        "Gymnasium & Weights",
-        "Sports Officer Office"
+        "Baksetball",
+        "Badminton"
       ],
       "description": "Sports Complex",
       "polygons": [
@@ -1017,12 +1010,7 @@
       "wings": [],
       "floors": [],
       "roomsPerFloor": 24,
-      "customRooms": [
-        "Basketball Court",
-        "East Hoop",
-        "West Hoop",
-        "Team Bench Area"
-      ],
+      "customRooms": [],
       "description": "Outdoor full-sized basketball court",
       "polygons": [
         {
@@ -1066,12 +1054,7 @@
       "wings": [],
       "floors": [],
       "roomsPerFloor": 24,
-      "customRooms": [
-        "Main Lawn Area",
-        "Palm Grove Walkway",
-        "Gazebo Seating",
-        "East Perimeter Path"
-      ],
+      "customRooms": [],
       "description": "Landscaped green park situated between the canteen, auditorium, and sports grounds",
       "polygons": [],
       "entrances": [],
@@ -1180,14 +1163,7 @@
         "2"
       ],
       "roomsPerFloor": 24,
-      "customRooms": [
-        "VIP Suite 1",
-        "VIP Suite 2",
-        "Guest Room 101",
-        "Guest Room 102",
-        "Dining Hall",
-        "Reception Lounge"
-      ],
+      "customRooms": [],
       "description": "Institute guest house for visiting faculty, delegates, and guests",
       "polygons": [
         {
@@ -1288,12 +1264,7 @@
       "wings": [],
       "floors": [],
       "roomsPerFloor": 24,
-      "customRooms": [
-        "Court #1",
-        "Court #2",
-        "Referee Stand",
-        "Spectator Seating"
-      ],
+      "customRooms": [],
       "description": "Outdoor volleyball arena",
       "polygons": [],
       "entrances": []
@@ -1314,11 +1285,7 @@
         "1"
       ],
       "roomsPerFloor": 24,
-      "customRooms": [
-        "Central Performance Stage",
-        "Circular Tiered Seating",
-        "Audio/Lighting Desk"
-      ],
+      "customRooms": [],
       "description": "Large circular open-air amphitheater",
       "polygons": [
         {
@@ -1559,11 +1526,7 @@
         "1"
       ],
       "roomsPerFloor": 24,
-      "customRooms": [
-        "Amphitheater Stage",
-        "Tiered Stone Seating",
-        "Backstage Area"
-      ],
+      "customRooms": [],
       "description": "Open-air amphitheater with tiered seating",
       "polygons": [
         {
@@ -1631,12 +1594,7 @@
       "wings": [],
       "floors": [],
       "roomsPerFloor": 24,
-      "customRooms": [
-        "Football Turf",
-        "North Goal Area",
-        "South Goal Area",
-        "Team Dugout & Player Bench"
-      ],
+      "customRooms": [],
       "description": "Full-sized outdoor football sports turf and athletic field",
       "polygons": [],
       "entrances": [],

@@ -6,31 +6,40 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true
-      },
-      '/health': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true
-      }
-    }
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-icons': ['lucide-react'],
-          'vendor-api': ['axios'],
+export default defineConfig(({ mode }) => {
+  const isProd = mode === 'production';
+  return {
+    plugins: [react()],
+    esbuild: {
+      drop: isProd ? ['console', 'debugger'] : [],
+      legalComments: 'none',
+    },
+    server: {
+      port: 5173,
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+        '/health': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
         },
       },
     },
-    chunkSizeWarningLimit: 600,
-  },
+    build: {
+      sourcemap: false,
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-icons': ['lucide-react'],
+            'vendor-api': ['axios'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 600,
+    },
+  };
 });

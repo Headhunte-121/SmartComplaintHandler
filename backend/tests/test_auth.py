@@ -317,6 +317,8 @@ def test_bug4_cors_restriction_security_headers_and_health_check():
     assert resp.headers.get("X-Content-Type-Options") == "nosniff"
     assert resp.headers.get("X-Frame-Options") == "DENY"
     assert resp.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+    assert resp.headers.get("Content-Security-Policy") == "default-src 'self'; frame-ancestors 'none'; object-src 'none';"
+    assert resp.headers.get("Permissions-Policy") == "geolocation=(), camera=(), microphone=()"
     assert resp.headers.get("Access-Control-Allow-Origin") != "https://evil-phishing.com"
 
     resp_vercel = client.get("/health", headers={"Origin": "https://smart-complaint-handler.vercel.app"})
@@ -555,4 +557,28 @@ def test_unregistered_login_blocked_and_registration_allowed():
     )
     assert resp_google_subsequent.status_code == 200
     assert resp_google_subsequent.json()["user"]["email"] == unregistered_email
+
+
+def test_privilege_escalation_on_registration_blocked():
+    """
+    Verify that self-registering an account with an email prefix like 'rogue.admin@iiitnr.edu.in'
+    or 'fake.director@iiitnr.edu.in' CANNOT acquire ADMIN or SUPER_ADMIN role.
+    It must strictly receive role='STUDENT'.
+    """
+    reset_rate_limiters()
+    rogue_email = f"rogue.admin{uuid.uuid4().hex[:4]}@iiitnr.edu.in"
+    resp = client.post(
+        "/api/v1/auth/register",
+        json={
+            "name": "Rogue Attacker",
+            "email": rogue_email,
+            "password": "Password123!",
+            "remember_me": False,
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["user"]["role"] == "STUDENT"
+    assert data["user"]["role"] != "ADMIN"
+    assert data["user"]["role"] != "SUPER_ADMIN"
 

@@ -25,9 +25,9 @@ const CAMPUS_SQUADS = [
 ];
 
 export default function TechnicianWorkstation() {
-  const { currentPersona, currentUser } = useAuth();
+  const { currentUser } = useAuth();
   const { isDark } = useTheme();
-  const activeUser = currentUser || currentPersona;
+  const activeUser = currentUser;
 
   // Auto-detect assigned squad based on employee profile
   const assignedSquad = useMemo(() => {
@@ -38,10 +38,10 @@ export default function TechnicianWorkstation() {
     const email = (activeUser?.email || '').toLowerCase();
     const dept = (activeUser?.department_name || '').toLowerCase();
 
-    if (email.includes('parvinder') || dept.includes('it')) {
+    if (dept.includes('it') || dept.includes('network')) {
       return CAMPUS_SQUADS.find((s) => s.id === 5); // Network & Wi-Fi Squad
     }
-    if (email.includes('ramesh') || dept.includes('elect')) {
+    if (dept.includes('elect') || dept.includes('power')) {
       return CAMPUS_SQUADS.find((s) => s.id === 6); // Hostel Electrical Squad 1
     }
     if (dept.includes('plumb')) {

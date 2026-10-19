@@ -17,73 +17,29 @@ import {
   isTokenExpired,
 } from '../api/client';
 
-/**
- * Institutional IIIT-NR Personas for Role-Based Access & Quick Testing:
- * 1. STUDENT: Lodges complaints (/submit), tracks personal grievances (/student, /track). Strictly isolated from admin desks.
- * 2. ADMIN: Facilities supervisor overseeing triage, queues, reassignment, and SLA governance (/admin).
- * 3. SUPER_ADMIN: Directorate authority managing admins, technicians, data sanitization, and campus catalog (/superadmin).
- * 4. TECHNICIAN: Field squad technician servicing assigned tickets (/technician).
- */
-export const CAMPUS_PERSONAS = [
-  {
-    id: 'student_nikhil',
-    name: 'Nikhil (Student)',
-    role: 'STUDENT',
-    roleLabel: 'Student',
-    email: 'nikhil26100@iiitnr.edu.in',
-    identifier: 'Roll: 2026CSE100',
-    department: 'Computer Science & Engineering',
-    department_name: 'Computer Science & Engineering',
-    hostel_name: 'Raman House (Boys Hostel 1)',
-    room_number: 'Room 204',
-    avatar: '🎓',
-    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-    targetRoute: '/submit',
-    description: 'Undergraduate student residing in Ramanujan House (Room 204) reporting campus facility issues.',
-  },
-  {
-    id: 'admin_verma',
-    name: 'Rakesh Kumar Mishra (Estate Officer)',
-    role: 'ADMIN',
-    roleLabel: 'Estate Officer',
-    email: 'admin@iiitnr.edu.in',
-    identifier: 'Estate Officer (0771-2474104)',
-    department: 'General Administration',
-    department_name: 'General Administration',
-    avatar: '🛡️',
-    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
-    targetRoute: '/operations',
-    description: 'Estate & Facilities supervisor overseeing queues, workload balancing, priority overrides, and SLA governance.',
-  },
-  {
-    id: 'super_admin',
-    name: 'Prof. (Dr.) Om Prakash Vyas (Director)',
-    role: 'SUPER_ADMIN',
-    roleLabel: 'Super Admin',
-    email: 'superadmin@iiitnr.edu.in',
-    identifier: 'Directorate (DIR-01)',
-    department: 'Office of the Director',
-    department_name: 'Office of the Director',
-    avatar: '👑',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-300',
-    targetRoute: '/superadmin',
-    description: 'Directorate administrator with full authority to manage facility admins, purge records, and audit telemetry.',
-  },
-  {
-    id: 'tech_ramesh',
-    name: 'Ramesh Kumar',
-    role: 'TECHNICIAN',
-    roleLabel: 'Field Technician',
-    email: 'tech.ramesh@iiitnr.edu.in',
-    identifier: 'Squad Tech #1',
-    department: 'Electrical Services',
-    department_name: 'Electrical Services',
-    avatar: '🔧',
-    badgeClass: 'bg-[#8C906D]/20 text-[#3C4233] border-[#8C906D]/40',
-    targetRoute: '/technician',
-    description: 'Field squad technician servicing assigned repair tickets and updating resolution notes.',
-  },
-];
+// Enterprise Security: Mock testing personas are strictly stripped and disabled in production builds.
+// In production, user state is strictly verified against cryptographic server-side JWT tokens.
+export const CAMPUS_PERSONAS = import.meta.env.DEV
+  ? [
+      {
+        id: 'dev_student',
+        name: 'Sample Student',
+        role: 'STUDENT',
+        roleLabel: 'Student',
+        email: 'student.sample@iiitnr.edu.in',
+        identifier: 'Student Account',
+        department: 'Computer Science & Engineering',
+        department_name: 'Computer Science & Engineering',
+        hostel_name: 'Ramanujan House (Boys Hostel 1)',
+        room_number: 'Room 204',
+        avatar: '🎓',
+        badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+        targetRoute: '/submit',
+        description: 'Testing persona for student grievance intake.',
+      },
+    ]
+  : [];
+
 
 function enrichUser(userData) {
   if (!userData) return null;
@@ -344,14 +300,16 @@ export function AuthProvider({ children }) {
   };
 
   const updateProfile = async (profileUpdates) => {
-    const activeEmail = (currentUser?.email || CAMPUS_PERSONAS[0].email).trim().toLowerCase();
-    localStorage.setItem(
-      `iiitnr_residence_${activeEmail}`,
-      JSON.stringify({
-        hostel_name: profileUpdates.hostel_name ?? currentUser?.hostel_name ?? null,
-        room_number: profileUpdates.room_number ?? currentUser?.room_number ?? null,
-      })
-    );
+    const activeEmail = (currentUser?.email || '').trim().toLowerCase();
+    if (activeEmail) {
+      localStorage.setItem(
+        `iiitnr_residence_${activeEmail}`,
+        JSON.stringify({
+          hostel_name: profileUpdates.hostel_name ?? currentUser?.hostel_name ?? null,
+          room_number: profileUpdates.room_number ?? currentUser?.room_number ?? null,
+        })
+      );
+    }
 
     try {
       const updatedUser = await updateUserProfile(profileUpdates);
@@ -361,30 +319,39 @@ export function AuthProvider({ children }) {
       const storage = isPersistent ? localStorage : sessionStorage;
       storage.setItem(AUTH_USER_KEY, JSON.stringify(enriched));
       return enriched;
-    } catch (_) {
-      // Fallback to local state update if unauthenticated demo persona is active
-      const merged = enrichUser({
-        ...(currentUser || CAMPUS_PERSONAS[0]),
-        ...profileUpdates,
-      });
-      setCurrentUser(merged);
-      return merged;
+    } catch (err) {
+      if (currentUser) {
+        const merged = enrichUser({
+          ...currentUser,
+          ...profileUpdates,
+        });
+        setCurrentUser(merged);
+        return merged;
+      }
+      throw err;
     }
   };
 
   const switchPersona = async (personaId) => {
+    if (import.meta.env.PROD) {
+      return;
+    }
     const found = CAMPUS_PERSONAS.find((p) => p.id === personaId);
     if (found) {
-      const data = await loginUser(found.email, 'password123', true);
-      const enriched = enrichUser({
-        ...data.user,
-        hostel_name: data.user?.hostel_name || found.hostel_name || null,
-        room_number: data.user?.room_number || found.room_number || null,
-      });
-      setCurrentUser(enriched);
-      persistAuthSession(data, enriched, true);
-      setRememberedEmail(found.email);
-      setIsPersonaModalOpen(false);
+      try {
+        const data = await loginUser(found.email, 'password123', true);
+        const enriched = enrichUser({
+          ...data.user,
+          hostel_name: data.user?.hostel_name || found.hostel_name || null,
+          room_number: data.user?.room_number || found.room_number || null,
+        });
+        setCurrentUser(enriched);
+        persistAuthSession(data, enriched, true);
+        setRememberedEmail(found.email);
+        setIsPersonaModalOpen(false);
+      } catch (e) {
+        // Dev only notice
+      }
     }
   };
 
@@ -399,7 +366,7 @@ export function AuthProvider({ children }) {
       value={{
         currentUser,
         authInitializing,
-        currentPersona: currentUser || CAMPUS_PERSONAS[0],
+        currentPersona: currentUser || null,
         personas: CAMPUS_PERSONAS,
         rememberedEmail,
         login,

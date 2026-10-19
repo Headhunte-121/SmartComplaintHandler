@@ -20,7 +20,7 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
 
   if (prefix === 'superadmin' || prefix === 'director' || prefix === 'super.admin') {
     return {
-      name: providedName || 'Prof. (Dr.) Om Prakash Vyas (Director)',
+      name: providedName || 'Directorate Administrator',
       email: cleanEmail,
       role: 'SUPER_ADMIN',
       department_name: 'Office of the Director',
@@ -33,34 +33,25 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
     prefix === 'admin' ||
     prefix === 'estate' ||
     prefix === 'facilities' ||
-    prefix === 'rakesh' ||
-    prefix === 'ranjeet' ||
-    prefix === 'abir' ||
-    prefix === 'ambika' ||
     prefix.endsWith('.admin')
   ) {
     return {
-      name: providedName || 'Rakesh Kumar Mishra (Estate Officer)',
+      name: providedName || 'Campus Administration Staff',
       email: cleanEmail,
       role: 'ADMIN',
       department_name: 'General Administration',
-      identifier: 'Estate Officer (0771-2474104)',
+      identifier: 'Campus Administration',
       is_active: true,
     };
   }
 
-  if (prefix.startsWith('tech.') || prefix.includes('technician') || prefix === 'parvinder') {
+  if (prefix.startsWith('tech.') || prefix.includes('technician')) {
     return {
-      name:
-        providedName ||
-        prefix
-          .replace('tech.', '')
-          .replace(/\./g, ' ')
-          .replace(/\b\w/g, (c) => c.toUpperCase()),
+      name: providedName || 'Maintenance Technician',
       email: cleanEmail,
       role: 'TECHNICIAN',
-      department_name: 'Electrical',
-      identifier: 'Field Technician',
+      department_name: 'Maintenance Services',
+      identifier: 'Maintenance Squad',
       is_active: true,
     };
   }
