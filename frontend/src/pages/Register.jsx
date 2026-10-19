@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { fetchAuthConfig, isUndergradHostelStudent } from '../api/auth';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
@@ -74,6 +75,7 @@ function evaluatePasswordStrength(pw) {
 export default function Register() {
   const navigate = useNavigate();
   const { register, loginGoogle, currentUser } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
@@ -258,15 +260,75 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-[#080C14] text-slate-100 relative overflow-hidden">
+    <div
+      className={`min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden transition-colors duration-200 ${
+        isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
+      }`}
+    >
       {/* Ambient background glows & mesh */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[540px] h-[540px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 right-1/4 w-[420px] h-[420px] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
+      {isDark ? (
+        <>
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[540px] h-[540px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-32 right-1/4 w-[420px] h-[420px] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none" />
+        </>
+      ) : (
+        <>
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[540px] h-[540px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-32 right-1/4 w-[420px] h-[420px] bg-slate-300/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
+        </>
+      )}
+
+      {/* Top Header: Campus Portal Link & Theme Switcher */}
+      <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-6 sm:right-6 flex items-center justify-between z-20 pointer-events-auto">
+        <Link
+          to="/"
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+            isDark
+              ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white'
+              : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs'
+          }`}
+          title="Return to Facilities Campus Map"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="hidden sm:inline">Campus Map</span>
+        </Link>
+
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+          title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+          className={`p-2 rounded-xl border transition-colors cursor-pointer flex items-center justify-center ${
+            isDark
+              ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-amber-400'
+              : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs'
+          }`}
+        >
+          {isDark ? (
+            <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+        </button>
+      </div>
 
       <div className="relative z-10 w-full max-w-md space-y-6">
         <div className="text-center space-y-3">
-          <div className="inline-flex p-3 rounded-2xl bg-[#0B101D] border border-slate-800 shadow-xl shadow-black/40 ring-1 ring-emerald-500/20">
+          <div
+            className={`inline-flex p-3 rounded-2xl border transition-colors ${
+              isDark
+                ? 'bg-[#161b22] border-zinc-800 shadow-xl shadow-black/40 ring-1 ring-emerald-500/20'
+                : 'bg-[#f1f5f9] border-slate-300 shadow-sm'
+            }`}
+          >
             <img
               src="/iiitnr_logo.png"
               alt="IIIT Naya Raipur"
@@ -274,26 +336,44 @@ export default function Register() {
             />
           </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <div
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 border ${
+                isDark
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : 'bg-emerald-100 border-emerald-300 text-emerald-800'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? 'bg-emerald-400' : 'bg-emerald-600'}`}></span>
               Institutional Onboarding
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">
+            <h1 className={`text-2xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
               Create IIIT-NR Account
             </h1>
-            <p className="text-xs text-slate-400 font-medium">
+            <p className={`text-xs font-medium ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
               Step {step === 'password' ? '2' : '1'} of 2 · Student &amp; Staff Registration
             </p>
           </div>
         </div>
 
-        <div className="bg-[#0B101D] rounded-3xl border border-slate-800 shadow-2xl shadow-black/60 p-7 sm:p-8 space-y-5 text-white relative overflow-hidden ring-1 ring-slate-800/80">
+        <div
+          className={`rounded-3xl border p-7 sm:p-8 space-y-5 relative overflow-hidden transition-colors ${
+            isDark
+              ? 'bg-[#161b22] border-zinc-800 shadow-2xl shadow-black/60 text-zinc-100'
+              : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
+          }`}
+        >
           {/* Top emerald accent line */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
 
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-semibold flex items-center gap-2">
-              <svg className="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+              className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                isDark
+                  ? 'bg-rose-950/60 border-rose-800/80 text-rose-300'
+                  : 'bg-rose-50 border-rose-300 text-rose-800'
+              }`}
+            >
+              <svg className={`w-4 h-4 shrink-0 ${isDark ? 'text-rose-400' : 'text-rose-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>{error}</span>
@@ -306,7 +386,11 @@ export default function Register() {
                 type="button"
                 onClick={handleContinueWithGoogle}
                 disabled={googleLoading || loading}
-                className="w-full py-3 px-4 bg-slate-900/90 hover:bg-slate-800 hover:border-emerald-500/40 border border-slate-700/90 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+                className={`w-full py-3 px-4 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50 border ${
+                  isDark
+                    ? 'bg-[#0e1117] hover:bg-zinc-800 hover:border-emerald-500/40 border-zinc-800 text-zinc-100'
+                    : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 hover:border-slate-400 text-slate-800 hover:text-slate-950'
+                }`}
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
@@ -318,16 +402,16 @@ export default function Register() {
               </button>
 
               <div className="relative flex py-1 items-center">
-                <div className="grow border-t border-slate-800" />
-                <span className="shrink mx-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <div className={`grow border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`} />
+                <span className={`shrink mx-3 text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
                   or email
                 </span>
-                <div className="grow border-t border-slate-800" />
+                <div className={`grow border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`} />
               </div>
 
               <form onSubmit={handleContinueWithEmail} className="space-y-3.5">
                 <div>
-                  <label htmlFor="register-email" className="block text-xs font-bold text-slate-300 mb-1.5">
+                  <label htmlFor="register-email" className={`block text-xs font-bold mb-1.5 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
                     Institutional Email Address
                   </label>
                   <input
@@ -341,21 +425,37 @@ export default function Register() {
                       setEmail(e.target.value);
                       setError(null);
                     }}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-mono"
+                    className={`w-full rounded-xl border px-4 py-3 text-xs sm:text-sm font-mono transition-all ${
+                      isDark
+                        ? 'border-zinc-800 bg-[#0e1117] text-zinc-100 placeholder-zinc-500 hover:border-zinc-700 focus:bg-[#161b22] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
+                        : 'border-slate-300 bg-[#e2e8f0] text-slate-900 placeholder-slate-500 hover:border-slate-400 focus:bg-white focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
+                    }`}
                   />
                 </div>
 
                 {livePreview && (
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
+                  <div
+                    className={`p-3 rounded-xl border flex items-center justify-between text-xs ${
+                      isDark
+                        ? 'bg-[#0e1117] border-emerald-500/30 text-zinc-100'
+                        : 'bg-[#e2e8f0] border-emerald-300 text-slate-900'
+                    }`}
+                  >
                     <div className="min-w-0 pr-2">
-                      <div className="font-bold text-white truncate">
+                      <div className={`font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {livePreview.fullName}
                       </div>
-                      <div className="text-[11px] text-emerald-400 truncate">
+                      <div className={`text-[11px] truncate ${isDark ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>
                         {livePreview.department}
                       </div>
                     </div>
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">
+                    <span
+                      className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${
+                        isDark
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                          : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      }`}
+                    >
                       {livePreview.deptCode}
                     </span>
                   </div>
@@ -371,19 +471,29 @@ export default function Register() {
             </div>
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+              <div
+                className={`flex items-center justify-between p-3 rounded-2xl border ${
+                  isDark
+                    ? 'bg-[#0e1117] border-zinc-800 text-zinc-200'
+                    : 'bg-[#e2e8f0] border-slate-300 text-slate-900'
+                }`}
+              >
                 <div className="min-w-0 pr-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
                     Email
                   </span>
-                  <span className="text-xs font-bold text-slate-200 truncate block font-mono">
+                  <span className={`text-xs font-bold truncate block font-mono ${isDark ? 'text-zinc-200' : 'text-slate-900'}`}>
                     {email}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setStep('email')}
-                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 px-2.5 py-1 rounded-lg hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                  className={`text-xs font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                    isDark
+                      ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10'
+                      : 'text-emerald-700 hover:text-emerald-800 hover:bg-emerald-100'
+                  }`}
                 >
                   Change
                 </button>
@@ -392,11 +502,13 @@ export default function Register() {
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold text-slate-300">Password</label>
+                    <label className={`text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>Password</label>
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-xs font-bold text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                      className={`text-xs font-bold transition-colors cursor-pointer ${
+                        isDark ? 'text-zinc-400 hover:text-emerald-400' : 'text-slate-600 hover:text-emerald-700'
+                      }`}
                     >
                       {showPassword ? 'Hide' : 'Show'}
                     </button>
@@ -407,14 +519,18 @@ export default function Register() {
                     placeholder="Minimum 6 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
+                    className={`w-full rounded-xl border px-4 py-3 text-xs sm:text-sm transition-all ${
+                      isDark
+                        ? 'border-zinc-800 bg-[#0e1117] text-zinc-100 placeholder-zinc-500 hover:border-zinc-700 focus:bg-[#161b22] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
+                        : 'border-slate-300 bg-[#e2e8f0] text-slate-900 placeholder-slate-500 hover:border-slate-400 focus:bg-white focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
+                    }`}
                   />
                   <div className="mt-2 grid grid-cols-4 gap-1.5 h-1">
                     {[1, 2, 3, 4].map((bar) => (
                       <div
                         key={bar}
                         className={`rounded-full transition-all ${
-                          pwStrength.score >= bar ? pwStrength.color : 'bg-slate-800'
+                          pwStrength.score >= bar ? pwStrength.color : (isDark ? 'bg-zinc-800' : 'bg-slate-300')
                         }`}
                       />
                     ))}
@@ -422,7 +538,7 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
                     Confirm Password
                   </label>
                   <input
@@ -431,7 +547,11 @@ export default function Register() {
                     placeholder="Re-enter password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
+                    className={`w-full rounded-xl border px-4 py-3 text-xs sm:text-sm transition-all ${
+                      isDark
+                        ? 'border-zinc-800 bg-[#0e1117] text-zinc-100 placeholder-zinc-500 hover:border-zinc-700 focus:bg-[#161b22] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
+                        : 'border-slate-300 bg-[#e2e8f0] text-slate-900 placeholder-slate-500 hover:border-slate-400 focus:bg-white focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
+                    }`}
                   />
                 </div>
               </div>
@@ -446,9 +566,14 @@ export default function Register() {
             </form>
           )}
 
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Already registered?</span>
-            <Link to="/login" className="font-bold text-emerald-400 hover:text-emerald-300 transition-colors inline-flex items-center gap-1">
+          <div className={`pt-4 border-t flex items-center justify-between text-xs ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
+            <span className={isDark ? 'text-zinc-400' : 'text-slate-600'}>Already registered?</span>
+            <Link
+              to="/login"
+              className={`font-bold transition-colors inline-flex items-center gap-1 ${
+                isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-700 hover:text-emerald-800'
+              }`}
+            >
               <span>Sign in</span>
               <span>→</span>
             </Link>
