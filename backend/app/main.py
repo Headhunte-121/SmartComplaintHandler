@@ -22,10 +22,19 @@ from app.db.seed import ensure_schema, seed_database
 
 logger = logging.getLogger(__name__)
 
-# Allow localhost dev origins and Vercel deployment origins (*.vercel.app) without wildcard reflection of arbitrary external domains
-SAFE_ORIGIN_PATTERN = re.compile(
-    r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.vercel\.app$"
+# Default CORS regex pattern: Allows localhost, project-specific Vercel preview/production deployments,
+# and official IIIT-NR institutional domains without granting open wildcard access to arbitrary external domains.
+DEFAULT_SAFE_ORIGIN_REGEX = (
+    r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|"
+    r"^https://([a-zA-Z0-9-]+\.)?iiitnr\.edu\.in$|"
+    r"^https://([a-zA-Z0-9-]+\.)?iiitnr\.ac\.in$|"
+    r"^https://(smart-complaint-[a-zA-Z0-9_-]+|.*iiitnr.*)\.vercel\.app$"
 )
+
+
+def _get_allowed_origin_regex() -> re.Pattern:
+    raw_pattern = getattr(settings, "CORS_ALLOWED_REGEX", None) or DEFAULT_SAFE_ORIGIN_REGEX
+    return re.compile(raw_pattern)
 
 
 def _is_allowed_origin(origin: str) -> bool:
@@ -35,7 +44,7 @@ def _is_allowed_origin(origin: str) -> bool:
     configured = settings.parsed_cors_origins
     if "*" in configured or normalized in configured:
         return True
-    return bool(SAFE_ORIGIN_PATTERN.match(normalized))
+    return bool(_get_allowed_origin_regex().match(normalized))
 
 
 def _initialize_database() -> None:
@@ -93,10 +102,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.parsed_cors_origins if "*" not in settings.parsed_cors_origins else [],
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.vercel\.app$",
+    allow_origin_regex=getattr(settings, "CORS_ALLOWED_REGEX", None) or DEFAULT_SAFE_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+    allow_headers=["*"],
+    expose_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 

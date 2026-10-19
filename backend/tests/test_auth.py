@@ -657,3 +657,66 @@ def test_public_tracking_masks_student_pii():
     assert admin_data["student_email"] == student_a_email
 
 
+def test_cross_site_vercel_deployment_and_api_security():
+    """
+    Verification of Decoupled Multi-Site Vercel Architecture & Zero-Trust API Security:
+    1. Legitimate frontend origin on Vercel sends preflight OPTIONS and receives status 200 with credentials.
+    2. Legitimate preview branches (smart-complaint-*.vercel.app) pass CORS.
+    3. Unrelated / malicious Vercel apps (e.g. attacker-phishing.vercel.app) are rejected by CORS.
+    4. Custom institutional domains in CORS_ORIGINS (e.g. https://complaints.iiitnr.ac.in) are allowed.
+    5. Wildcard header support in preflight (Authorization, X-AI-API-Key, Content-Type) succeeds.
+    6. /api/v1/auth/me rejects unauthenticated callers with 401 and validates JWT Bearer tokens.
+    """
+    # 1. Preflight OPTIONS from legitimate frontend deployment
+    resp_options = client.options(
+        "/api/v1/tickets/",
+        headers={
+            "Origin": "https://smart-complaint-handler.vercel.app",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "authorization,content-type,x-ai-api-key",
+        },
+    )
+    assert resp_options.status_code == 200
+    assert resp_options.headers.get("access-control-allow-origin") == "https://smart-complaint-handler.vercel.app"
+    assert resp_options.headers.get("access-control-allow-credentials") == "true"
+
+    # 2. Preview branch on Vercel matching project pattern
+    resp_preview = client.get(
+        "/health",
+        headers={"Origin": "https://smart-complaint-pr-42.vercel.app"},
+    )
+    assert resp_preview.headers.get("access-control-allow-origin") == "https://smart-complaint-pr-42.vercel.app"
+
+    # 3. Unrelated malicious Vercel site is rejected
+    resp_malicious_vercel = client.get(
+        "/health",
+        headers={"Origin": "https://attacker-phishing.vercel.app"},
+    )
+    assert resp_malicious_vercel.headers.get("access-control-allow-origin") != "https://attacker-phishing.vercel.app"
+
+    # 4. Custom institutional domain support via CORS_ORIGINS
+    prev_origins = settings.CORS_ORIGINS
+    try:
+        settings.CORS_ORIGINS = "https://complaints.iiitnr.ac.in,http://localhost:5173"
+        resp_custom = client.get(
+            "/health",
+            headers={"Origin": "https://complaints.iiitnr.ac.in"},
+        )
+        assert resp_custom.headers.get("access-control-allow-origin") == "https://complaints.iiitnr.ac.in"
+    finally:
+        settings.CORS_ORIGINS = prev_origins
+
+    # 5. /api/v1/auth/me authentication guard
+    resp_unauth_me = client.get("/api/v1/auth/me")
+    assert resp_unauth_me.status_code == 401
+
+    token = _mint_role_token("teststudent@iiitnr.edu.in", "STUDENT", "Test Student")
+    resp_auth_me = client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp_auth_me.status_code == 200
+    assert resp_auth_me.json()["email"] == "teststudent@iiitnr.edu.in"
+
+
+

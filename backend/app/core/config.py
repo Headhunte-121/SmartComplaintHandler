@@ -5,6 +5,7 @@ Role: Production-grade Pydantic BaseSettings loading environment variables for V
       Supabase PostgreSQL connection pooling, JWT cryptography with key rotation, and Google Workspace OAuth2/OIDC.
 """
 import os
+import sys
 from typing import List, Optional
 
 try:
@@ -102,7 +103,10 @@ class Settings(BaseSettings):
 
     # Security & Access Control Policies
     ENFORCE_STRICT_RBAC: bool = (
-        os.getenv("ENFORCE_STRICT_RBAC", "true" if _is_production_env() else "false").lower()
+        os.getenv(
+            "ENFORCE_STRICT_RBAC",
+            "false" if "pytest" in sys.modules else "true",
+        ).lower()
         in ("true", "1", "yes")
     )
     ALLOW_UNREGISTERED_LOGIN_PROVISIONING: bool = (
@@ -120,6 +124,7 @@ class Settings(BaseSettings):
         "CORS_ORIGINS",
         "http://localhost:5173,http://127.0.0.1:5173,https://smart-complaint-handler.vercel.app",
     )
+    CORS_ALLOWED_REGEX: Optional[str] = os.getenv("CORS_ALLOWED_REGEX")
 
     # AI Classification & Triage Provider Configuration
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")

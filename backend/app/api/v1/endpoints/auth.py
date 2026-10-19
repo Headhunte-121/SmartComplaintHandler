@@ -202,17 +202,10 @@ def update_profile_endpoint(
 
 @router.get("/me", response_model=UserResponse, summary="Get Current Authenticated User")
 def get_me(
-    authorization: Optional[str] = Header(None),
-    db: Session = Depends(get_db),
+    current_user: UserResponse = Depends(get_current_user),
 ) -> UserResponse:
     """Fetch active user profile using cryptographic JWT Bearer token."""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing or malformed Authorization header. Expected 'Bearer <token>'.",
-        )
-    token = authorization.split("Bearer ", 1)[1].strip()
-    return get_current_user_from_token(token, db)
+    return current_user
 
 
 @router.get(
