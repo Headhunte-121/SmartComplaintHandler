@@ -235,7 +235,7 @@ export default function Navbar() {
               className={`hidden lg:flex items-center justify-between gap-5 px-3 py-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
                 isDarkTheme
                   ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-slate-200'
-                  : 'bg-slate-100 hover:bg-slate-200/80 border-slate-300/80 text-slate-600 hover:text-slate-800'
+                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-900'
               }`}
               title="Quick-locate any room or laboratory"
             >
@@ -246,7 +246,7 @@ export default function Navbar() {
                 <span>Find room or lab...</span>
               </span>
               <kbd className={`px-1.5 py-0.5 text-[10px] font-mono rounded border ${
-                isDarkTheme ? 'bg-slate-950 text-slate-400 border-slate-800' : 'bg-white text-slate-500 border-slate-300/80'
+                isDarkTheme ? 'bg-slate-950 text-slate-400 border-slate-800' : 'bg-white text-slate-600 border-slate-300'
               }`}>
                 ⌘K
               </kbd>
@@ -258,7 +258,7 @@ export default function Navbar() {
                 className={`hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
                   isDarkTheme
                     ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-200 hover:border-zinc-700'
-                    : 'bg-slate-100 hover:bg-slate-200 border-slate-300/80 text-slate-800'
+                    : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800'
                 }`}
                 title="Your default hostel residence"
               >
@@ -280,7 +280,7 @@ export default function Navbar() {
               className={`p-2 rounded-lg border transition-colors cursor-pointer flex items-center justify-center ${
                 isDarkTheme
                   ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-amber-400'
-                  : 'bg-slate-100 hover:bg-slate-200 border-slate-300/80 text-slate-700 hover:text-slate-900 shadow-2xs'
+                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs'
               }`}
             >
               {isDarkTheme ? (

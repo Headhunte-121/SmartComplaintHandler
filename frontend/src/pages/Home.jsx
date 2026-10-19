@@ -208,7 +208,7 @@ export default function Home() {
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Hostels & Campus Spots */}
           <div className={`lg:col-span-7 p-6 sm:p-7 space-y-5 rounded-2xl border transition-colors ${
-            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f8fafc] border-slate-200 text-slate-900 shadow-sm'
+            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
           }`}>
             <div className={`flex items-center justify-between border-b pb-4 ${
               isDark ? 'border-zinc-800' : 'border-slate-200'
@@ -246,7 +246,7 @@ export default function Home() {
                     className={`p-3.5 rounded-xl border transition-colors cursor-pointer space-y-2 group ${
                       isDark
                         ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60'
-                        : 'bg-[#eef2f6] border-slate-300 hover:border-slate-400 hover:bg-white hover:shadow-xs'
+                        : 'bg-[#e2e8f0] border-slate-300 hover:border-slate-400 hover:bg-white hover:shadow-xs'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -284,7 +284,7 @@ export default function Home() {
 
           {/* Campus Estate & Engineering Contacts */}
           <div className={`lg:col-span-5 p-6 sm:p-7 space-y-5 rounded-2xl border transition-colors ${
-            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f8fafc] border-slate-200 text-slate-900 shadow-sm'
+            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
           }`}>
             <div className={`flex items-center justify-between border-b pb-4 ${
               isDark ? 'border-zinc-800' : 'border-slate-200'
@@ -303,7 +303,7 @@ export default function Home() {
               <span className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border ${
                 isDark
                   ? 'text-zinc-400 bg-zinc-800 border-zinc-700'
-                  : 'text-slate-600 bg-[#eef2f6] border-slate-300'
+                  : 'text-slate-700 bg-[#e2e8f0] border-slate-300'
               }`}>
                 24/7 Support
               </span>
@@ -318,7 +318,7 @@ export default function Home() {
                     className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 text-xs transition-colors ${
                       isDark
                         ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700'
-                        : 'bg-[#eef2f6] border-slate-300 hover:border-slate-400'
+                        : 'bg-[#e2e8f0] border-slate-300 hover:border-slate-400'
                     }`}
                   >
                     <div className="space-y-1">

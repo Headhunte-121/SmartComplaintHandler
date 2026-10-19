@@ -492,14 +492,14 @@ export default function CampusMapSelector({
         <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
           {/* Zoom Buttons */}
           <div className={`p-1 rounded-2xl border shadow-xl flex flex-col items-center backdrop-blur-md ${
-            isDark ? 'bg-[#161b22]/90 border-zinc-800' : 'bg-white/95 border-slate-200'
+            isDark ? 'bg-[#161b22]/90 border-zinc-800' : 'bg-[#f1f5f9]/95 border-slate-300'
           }`}>
             <button
               type="button"
               title="Zoom In (or use mouse scroll)"
               onClick={() => setZoom((z) => Math.min(3.5, Number((z + 0.3).toFixed(2))))}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold cursor-pointer transition-colors ${
-                isDark ? 'text-zinc-100 hover:bg-zinc-800' : 'text-slate-800 hover:bg-slate-100'
+                isDark ? 'text-zinc-100 hover:bg-zinc-800' : 'text-slate-800 hover:bg-slate-200'
               }`}
             >
               +
@@ -510,7 +510,7 @@ export default function CampusMapSelector({
               title="Zoom Out (or use mouse scroll)"
               onClick={() => setZoom((z) => Math.max(0.85, Number((z - 0.3).toFixed(2))))}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold cursor-pointer transition-colors ${
-                isDark ? 'text-zinc-100 hover:bg-zinc-800' : 'text-slate-800 hover:bg-slate-100'
+                isDark ? 'text-zinc-100 hover:bg-zinc-800' : 'text-slate-800 hover:bg-slate-200'
               }`}
             >
               −
@@ -520,7 +520,7 @@ export default function CampusMapSelector({
               title="Reset to Campus Overview"
               onClick={resetView}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold cursor-pointer transition-colors border-t mt-1 ${
-                isDark ? 'text-emerald-400 hover:bg-zinc-800 border-zinc-800' : 'text-emerald-600 hover:bg-slate-100 border-slate-200'
+                isDark ? 'text-emerald-400 hover:bg-zinc-800 border-zinc-800' : 'text-emerald-600 hover:bg-slate-200 border-slate-300'
               }`}
             >
               ⟲
@@ -529,14 +529,14 @@ export default function CampusMapSelector({
 
           {/* Quick Layer & Theme Toggles */}
           <div className={`p-1 rounded-2xl border shadow-xl flex flex-col items-center gap-1 backdrop-blur-md ${
-            isDark ? 'bg-[#161b22]/90 border-zinc-800' : 'bg-white/95 border-slate-200'
+            isDark ? 'bg-[#161b22]/90 border-zinc-800' : 'bg-[#f1f5f9]/95 border-slate-300'
           }`}>
             <button
               type="button"
               title={`Switch to ${twinTheme === 'light' ? 'Dark' : 'Light'} Mode`}
               onClick={() => setTwinThemeOverride((t) => (t === 'light' ? 'architectural' : 'light'))}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm cursor-pointer transition-colors ${
-                isDark ? 'hover:bg-zinc-800 text-zinc-300' : 'hover:bg-slate-100 text-slate-700'
+                isDark ? 'hover:bg-zinc-800 text-zinc-300' : 'hover:bg-slate-200 text-slate-700'
               }`}
             >
               {twinTheme === 'light' ? '🌙' : '☀️'}
@@ -548,7 +548,7 @@ export default function CampusMapSelector({
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold cursor-pointer transition-colors ${
                 showLabels
                   ? isDark ? 'bg-zinc-800 text-emerald-400 border border-zinc-700' : 'bg-emerald-100 text-emerald-800'
-                  : isDark ? 'text-zinc-400 hover:bg-zinc-800' : 'text-slate-500 hover:bg-slate-100'
+                  : isDark ? 'text-zinc-400 hover:bg-zinc-800' : 'text-slate-500 hover:bg-slate-200'
               }`}
             >
               🏷️
@@ -560,7 +560,7 @@ export default function CampusMapSelector({
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold cursor-pointer transition-colors ${
                 showPathsAndCourts
                   ? isDark ? 'bg-zinc-800 text-emerald-400 border border-zinc-700' : 'bg-emerald-100 text-emerald-800'
-                  : isDark ? 'text-zinc-400 hover:bg-zinc-800' : 'text-slate-500 hover:bg-slate-100'
+                  : isDark ? 'text-zinc-400 hover:bg-zinc-800' : 'text-slate-500 hover:bg-slate-200'
               }`}
             >
               🛣️
@@ -591,11 +591,11 @@ export default function CampusMapSelector({
         {/* Interactive Floating Building Place Card (The "Not Selection Based" Explorer!) */}
         {showPlaceCard && activeBuildingObj && (
           <div className={`absolute top-4 right-4 bottom-4 w-80 sm:w-96 max-w-[92vw] z-30 flex flex-col rounded-2xl border shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-right-4 backdrop-blur-md ${
-            isDark ? 'bg-[#161b22]/95 border-zinc-800 text-zinc-100' : 'bg-white/98 border-slate-200 text-slate-900'
+            isDark ? 'bg-[#161b22]/95 border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9]/98 border-slate-300 text-slate-900'
           }`}>
             {/* Card Header */}
             <div className={`p-4 border-b flex items-start justify-between gap-3 ${
-              isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-slate-50 border-slate-200'
+              isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
             }`}>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -742,7 +742,7 @@ export default function CampusMapSelector({
 
             {/* Card Action Footer */}
             <div className={`p-3.5 border-t flex items-center justify-between gap-2 ${
-              isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-slate-50 border-slate-200'
+              isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
             }`}>
               <button
                 type="button"
@@ -753,7 +753,7 @@ export default function CampusMapSelector({
                   flyTo(cx, cy, 2.0);
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 border ${
-                  isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-2xs'
+                  isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300 shadow-2xs'
                 }`}
               >
                 <span>🎯</span>
