@@ -338,19 +338,48 @@ export default function Login() {
 
           {error && (
             <div
-              className={`p-3.5 rounded-xl border text-xs font-semibold space-y-2 ${
-                isDark
+              className={`p-3.5 rounded-xl border text-xs font-semibold space-y-2.5 ${
+                error.toLowerCase().includes('google sign-in')
+                  ? isDark
+                    ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
+                    : 'bg-amber-50 border-amber-300 text-amber-900'
+                  : isDark
                   ? 'bg-rose-950/60 border-rose-800/80 text-rose-300'
                   : 'bg-rose-50 border-rose-300 text-rose-800'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <svg className={`w-4 h-4 shrink-0 ${isDark ? 'text-rose-400' : 'text-rose-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{error}</span>
+              <div className="flex items-start gap-2">
+                {error.toLowerCase().includes('google sign-in') ? (
+                  <svg className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : (
+                  <svg className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-rose-400' : 'text-rose-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+                <span className="leading-relaxed">{error}</span>
               </div>
-              {(error.toLowerCase().includes('not found') || error.toLowerCase().includes('register')) && (
+              {error.toLowerCase().includes('google sign-in') ? (
+                <div className={`pt-2 border-t flex flex-col sm:flex-row items-center justify-between gap-2 ${isDark ? 'border-amber-900/60' : 'border-amber-200'}`}>
+                  <span className={`text-[11px] font-normal ${isDark ? 'text-amber-300/90' : 'text-amber-800'}`}>
+                    Click below to authenticate via Google:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleContinueWithGoogle}
+                    disabled={googleLoading}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors border ${
+                      isDark
+                        ? 'bg-amber-500/20 text-amber-200 border-amber-500/40 hover:bg-amber-500/30'
+                        : 'bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-500 shadow-xs'
+                    }`}
+                  >
+                    <span>Sign In With Google</span>
+                    <span>→</span>
+                  </button>
+                </div>
+              ) : (error.toLowerCase().includes('not found') || error.toLowerCase().includes('register')) && (
                 <div className={`pt-2 border-t flex items-center justify-between ${isDark ? 'border-rose-900/60' : 'border-rose-200'}`}>
                   <span className={`text-[11px] ${isDark ? 'text-rose-300/80' : 'text-rose-700'}`}>Unregistered institutional account?</span>
                   <Link

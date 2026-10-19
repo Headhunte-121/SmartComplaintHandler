@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import SetPasswordModal from './SetPasswordModal';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function Navbar() {
   const [backendHealthy, setBackendHealthy] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -379,6 +381,37 @@ export default function Navbar() {
                         </svg>
                         <span>My Requests &amp; Room</span>
                       </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileMenuOpen(false);
+                          setPasswordModalOpen(true);
+                        }}
+                        className={`w-full px-3.5 py-2 text-left flex items-center justify-between cursor-pointer ${
+                          isDarkTheme ? 'text-zinc-300 hover:text-white hover:bg-zinc-800/80' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                          </svg>
+                          <span className="truncate">
+                            {(!currentUser?.has_password || currentUser?.auth_provider === 'google')
+                              ? 'Set Account Password'
+                              : 'Change Password'}
+                          </span>
+                        </div>
+                        {(!currentUser?.has_password || currentUser?.auth_provider === 'google') && (
+                          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold border shrink-0 ${
+                            isDarkTheme
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}>
+                            Dual Login
+                          </span>
+                        )}
+                      </button>
                     </div>
 
                     <div className={`border-t pt-1 ${isDarkTheme ? 'border-zinc-800' : 'border-slate-100'}`}>
@@ -552,6 +585,11 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      <SetPasswordModal
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
     </header>
   );
 }

@@ -10,6 +10,7 @@ import { fetchComplaints, submitFeedback } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import CampusMapSelector from '../components/CampusMapSelector';
+import SetPasswordModal from '../components/SetPasswordModal';
 import {
   IIITNR_MAP_UPDATED_EVENT,
   HOSTEL_FLOORS,
@@ -40,6 +41,7 @@ export default function StudentDashboard() {
   const [selectedRoom, setSelectedRoom] = useState(activeUser?.room_number || 'Room 204');
   const [customRoomInput, setCustomRoomInput] = useState('');
   const [savingResidence, setSavingResidence] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const [selectedTicketForFeedback, setSelectedTicketForFeedback] = useState(null);
   const [ratingScore, setRatingScore] = useState(5);
@@ -248,6 +250,19 @@ export default function StudentDashboard() {
                 >
                   🗺️ {showCampusMap ? 'Hide Map' : 'Campus Map'}
                 </button>
+                {(!activeUser?.has_password || activeUser?.auth_provider === 'google') && (
+                  <button
+                    type="button"
+                    onClick={() => setIsPasswordModalOpen(true)}
+                    className={`px-3 py-1 rounded-xl border text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
+                      isDark
+                        ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/40 text-amber-300'
+                        : 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 shadow-2xs'
+                    }`}
+                  >
+                    <span>🔑 Set Password (Dual Login)</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -781,6 +796,11 @@ export default function StudentDashboard() {
           </div>
         </div>
       )}
+
+      <SetPasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+      />
     </div>
   );
 }

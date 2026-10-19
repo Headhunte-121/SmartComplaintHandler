@@ -188,6 +188,7 @@ class UserResponse(BaseModel):
     room_number: Optional[str] = None
     avatar_url: Optional[str] = None
     auth_provider: Optional[str] = "password"
+    has_password: bool = True
     email_verified: bool = True
     is_active: bool = True
     last_login_at: Optional[datetime] = None

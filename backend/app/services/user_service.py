@@ -518,6 +518,7 @@ def _build_auth_response(user_resp: UserResponse, remember_me: bool) -> AuthResp
         "room_number": user_resp.room_number,
         "id": user_resp.id,
         "auth_provider": user_resp.auth_provider or "password",
+        "has_password": getattr(user_resp, "has_password", True),
     }
     access_token = create_access_token(data=token_claims, expires_delta=expires_delta)
     refresh_token = create_refresh_token(
@@ -607,7 +608,7 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
             db_user.failed_login_attempts = 0
             db_user.locked_until = None
             db_user.last_login_at = now_utc
-            if db_user.auth_provider == "password" and db_user.hashed_password:
+            if db_user.hashed_password:
                 db_user.auth_provider = "both"
             elif not db_user.auth_provider:
                 db_user.auth_provider = "google"
@@ -616,11 +617,7 @@ def authenticate_google_user(req: GoogleAuthRequest, db: Session) -> AuthRespons
             db.refresh(db_user)
             user_entity = db_user
         else:
-            if not getattr(req, "is_registration", False):
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Account not found. Please create an account on the registration page first.",
-                )
+            # Just-In-Time (JIT) Auto-Provisioning for verified @iiitnr.edu.in Google accounts
             user_entity = User(
                 name=full_name,
                 email=email,
@@ -676,6 +673,7 @@ def to_user_response(user: User) -> UserResponse:
         room_number=getattr(user, "room_number", None),
         avatar_url=getattr(user, "avatar_url", None),
         auth_provider=getattr(user, "auth_provider", None) or "password",
+        has_password=bool(getattr(user, "hashed_password", None)),
         email_verified=bool(getattr(user, "email_verified", True)),
         is_active=user.is_active,
         last_login_at=getattr(user, "last_login_at", None),
@@ -875,22 +873,30 @@ def register_user(req: RegisterRequest, db: Session) -> AuthResponse:
 
     if existing:
         if getattr(existing, "auth_provider", None) == "google" or not existing.hashed_password:
-            existing.hashed_password = hash_password(req.password)
-            existing.auth_provider = "both"
-            existing.failed_login_attempts = 0
-            existing.locked_until = None
-            existing.last_login_at = now_utc
-            if req.name and req.name.strip():
-                existing.name = req.name.strip()
-            if req.phone and req.phone.strip():
-                existing.phone = req.phone.strip()
-            if req.hostel_name and req.hostel_name.strip():
-                existing.hostel_name = req.hostel_name.strip()
-            if req.room_number and req.room_number.strip():
-                existing.room_number = req.room_number.strip()
-            db.commit()
-            db.refresh(existing)
-            return _build_auth_response(to_user_response(existing), remember_me=req.remember_me)
+            if req.otp and verify_otp(clean_email, req.otp, req.otp_token):
+                existing.hashed_password = hash_password(req.password)
+                existing.auth_provider = "both"
+                existing.failed_login_attempts = 0
+                existing.locked_until = None
+                existing.last_login_at = now_utc
+                if req.name and req.name.strip():
+                    existing.name = req.name.strip()
+                if req.phone and req.phone.strip():
+                    existing.phone = req.phone.strip()
+                if req.hostel_name and req.hostel_name.strip():
+                    existing.hostel_name = req.hostel_name.strip()
+                if req.room_number and req.room_number.strip():
+                    existing.room_number = req.room_number.strip()
+                db.commit()
+                db.refresh(existing)
+                return _build_auth_response(to_user_response(existing), remember_me=req.remember_me)
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"An account with '{clean_email}' was created with Google Sign-In. "
+                    "Please sign in with Google. Once signed in, you can set a password in your Profile to enable password login."
+                ),
+            )
 
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -1004,10 +1010,15 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
                     detail="Invalid institutional email or password.",
                 )
         else:
-            # First-time password initialization for pre-seeded or Google-only accounts
-            db_user.hashed_password = hash_password(req.password)
-            if getattr(db_user, "auth_provider", None) == "google":
-                db_user.auth_provider = "both"
+            # Account was created with Google Sign-In and has not set a password yet
+            _record_failed_login(clean_email, db_user, db)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "This account was registered using Google Sign-In and does not have a password set yet. "
+                    "Please sign in with Google. Once signed in, you can set a password in your Profile to enable password login."
+                ),
+            )
 
         _clear_failed_login(clean_email, db_user)
         db_user.last_login_at = now_utc
@@ -1112,18 +1123,29 @@ def change_user_password(
             detail="Authenticated user record was not found in the database.",
         )
 
-    if user.hashed_password and getattr(user, "auth_provider", "password") != "google":
+    # Require current password ONLY if user already has a password set and is not a Google-only account
+    has_existing_password = bool(user.hashed_password)
+    if has_existing_password and getattr(user, "auth_provider", "password") != "google":
         if not current_password or not verify_password(current_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Current password is incorrect.",
             )
 
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 6 characters.",
+        )
+
     user.hashed_password = hash_password(new_password)
     user.failed_login_attempts = 0
     user.locked_until = None
-    if getattr(user, "auth_provider", None) == "google":
+    if getattr(user, "google_sub", None) or getattr(user, "auth_provider", None) in ("google", "both"):
         user.auth_provider = "both"
+    else:
+        user.auth_provider = "password"
+
     db.commit()
     db.refresh(user)
     return to_user_response(user)

@@ -7,6 +7,7 @@ import {
   refreshSession,
   registerUser,
   updateUserProfile,
+  changePassword,
 } from '../api/auth';
 import {
   AUTH_EXPIRED_EVENT,
@@ -85,9 +86,13 @@ function enrichUser(userData) {
 
   const hostelName = userData.hostel_name || cachedResidence?.hostel_name || null;
   const roomNumber = userData.room_number || cachedResidence?.room_number || null;
+  const authProvider = userData.auth_provider || 'password';
+  const hasPassword = userData.has_password !== undefined ? Boolean(userData.has_password) : (authProvider !== 'google');
 
   return {
     ...userData,
+    auth_provider: authProvider,
+    has_password: hasPassword,
     department: resolvedDept,
     department_name: resolvedDept,
     hostel_name: hostelName,
@@ -332,6 +337,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updatePassword = async (currentPassword, newPassword) => {
+    const updatedUser = await changePassword(currentPassword, newPassword);
+    const enriched = enrichUser(updatedUser);
+    setCurrentUser(enriched);
+    const isPersistent = Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
+    const storage = isPersistent ? localStorage : sessionStorage;
+    storage.setItem(AUTH_USER_KEY, JSON.stringify(enriched));
+    return enriched;
+  };
+
   const switchPersona = async (personaId) => {
     if (import.meta.env.PROD) {
       return;
@@ -373,6 +388,7 @@ export function AuthProvider({ children }) {
         loginGoogle,
         register,
         updateProfile,
+        updatePassword,
         logout,
         switchPersona,
         isPersonaModalOpen,
