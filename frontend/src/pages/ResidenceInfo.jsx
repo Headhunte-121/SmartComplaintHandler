@@ -36,7 +36,7 @@ export default function ResidenceInfo() {
   const hostels = hostelList;
 
   const [selectedHostel, setSelectedHostel] = useState(
-    currentUser?.hostel_name || hostels[0]?.name || 'Ramanujan House (Boys Hostel 1)'
+    currentUser?.hostel_name || hostels[0]?.name || 'Raman House (Boys Hostel 1)'
   );
   const [selectedFloor, setSelectedFloor] = useState('2');
   const [selectedRoomNumber, setSelectedRoomNumber] = useState(

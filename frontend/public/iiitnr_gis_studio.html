@@ -581,8 +581,9 @@
       <button class="btn" id="btn-edit-mode" onclick="toggleGlobalEditMode()">✏️ Edit Vertices</button>
     </div>
 
-    <!-- Quick Export -->
+    <!-- Quick Export & Storage Extraction -->
     <div style="display: flex; gap: 8px;">
+      <button class="btn sky" onclick="extractActiveLocalStorageJSON()" style="background: #2563eb; color: #fff; font-weight: 800; border: 1px solid #60a5fa;" title="Extract and download all data currently in Edge/Chrome localStorage">⚡ Extract LocalStorage</button>
       <button class="btn emerald" id="btn-sync-db" onclick="syncToDatabase()" style="background: #047857; font-weight: 800;">💾 Save to Database</button>
       <button class="btn emerald" onclick="copyJsonConfig()">📋 Copy Labeled JSON</button>
       <button class="btn sky" onclick="downloadGeoJSON()">📥 Export GeoJSON</button>
@@ -858,6 +859,20 @@
 
       <!-- TAB 3: EXPORT & CODE -->
       <div class="sidebar-body" id="tab-content-export" style="display:none;">
+        <!-- LOCALSTORAGE EXTRACTOR -->
+        <div class="card" style="border: 2px solid #3b82f6; background: rgba(37, 99, 235, 0.12);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3 style="color:#60a5fa;margin:0;">⚡ Live Browser LocalStorage Extractor</h3>
+            <button class="btn sky" style="padding:4px 10px;font-size:11px;" onclick="extractActiveLocalStorageJSON()">📥 Download .JSON</button>
+          </div>
+          <p style="font-size:11px;color:var(--muted);margin-top:4px;">Extracts the exact version currently stored inside Microsoft Edge / Chrome's localStorage.</p>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="btn" style="flex:1;font-size:11px;" onclick="copyLocalStorageRaw('buildings')">📋 Copy Buildings</button>
+            <button class="btn" style="flex:1;font-size:11px;" onclick="copyLocalStorageRaw('roads')">📋 Copy Roads</button>
+            <button class="btn emerald" style="flex:1;font-size:11px;" onclick="copyLocalStorageRaw('both')">📋 Copy All</button>
+          </div>
+        </div>
+
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <h3>📦 Labeled Buildings &amp; Wings JSON</h3>
@@ -1389,7 +1404,7 @@
     },
     {
         "id": "ramanujan_house",
-        "name": "Ramanujan House (Boys Hostel 1)",
+        "name": "Ramanujan House (Boys Hostel 3)",
         "shortName": "Ramanujan House",
         "badge": "BH-3",
         "category": "HOSTEL",
@@ -1446,7 +1461,7 @@
     },
     {
         "id": "bose_house",
-        "name": "Bose House (Boys Hostel 3)",
+        "name": "Bose House (Boys Hostel 2)",
         "shortName": "Bose House",
         "badge": "BH-3",
         "category": "HOSTEL",
@@ -1474,7 +1489,7 @@
     },
     {
         "id": "raman_house",
-        "name": "Raman House (Girls Hostel)",
+        "name": "Raman House (Boys Hostel 1)",
         "shortName": "Raman House",
         "badge": "BH-1",
         "category": "HOSTEL",
@@ -3396,6 +3411,76 @@
       a.click();
       URL.revokeObjectURL(url);
       showToast('✓ Complete GeoJSON downloaded!');
+    }
+
+    // --- Browser LocalStorage Extractor (Edge / Chrome) ---
+    function extractActiveLocalStorageJSON() {
+      const bRaw = localStorage.getItem('iiitnr_advanced_gis_buildings_v2');
+      const rRaw = localStorage.getItem('iiitnr_advanced_gis_roads_v2');
+      let bList = [];
+      let rList = [];
+      try { if (bRaw) bList = JSON.parse(bRaw); } catch(_) {}
+      try { if (rRaw) rList = JSON.parse(rRaw); } catch(_) {}
+
+      if (!bList.length && typeof buildings !== 'undefined' && buildings.length) bList = buildings;
+      if (!rList.length && typeof roadLayers !== 'undefined' && roadLayers.length) rList = roadLayers.map(l => l.roadData).filter(Boolean);
+
+      const dump = {
+        extracted_at: new Date().toISOString(),
+        source: 'Microsoft Edge / Chrome LocalStorage',
+        buildings_count: bList.length,
+        roads_count: rList.length,
+        buildings: bList,
+        roads: rList
+      };
+
+      const jsonStr = JSON.stringify(dump, null, 2);
+
+      // 1. Trigger File Download
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'iiitnr_edge_localstorage_dump.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // 2. Copy to clipboard
+      try {
+        navigator.clipboard.writeText(jsonStr);
+      } catch(_) {}
+
+      // 3. Attempt direct sync to backend if server is up
+      try {
+        fetch('http://127.0.0.1:8000/api/v1/campus/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ buildings: bList, roads: rList })
+        }).catch(() => {});
+      } catch(_) {}
+
+      showToast(`⚡ Extracted ${bList.length} buildings & ${rList.length} roads to Downloads & Clipboard!`);
+    }
+
+    function copyLocalStorageRaw(target) {
+      let data = {};
+      if (target === 'buildings') {
+        data = JSON.parse(localStorage.getItem('iiitnr_advanced_gis_buildings_v2') || '[]');
+        if (!data.length && typeof buildings !== 'undefined') data = buildings;
+      } else if (target === 'roads') {
+        data = JSON.parse(localStorage.getItem('iiitnr_advanced_gis_roads_v2') || '[]');
+        if (!data.length && typeof roadLayers !== 'undefined') data = roadLayers.map(l => l.roadData).filter(Boolean);
+      } else {
+        data = {
+          buildings: JSON.parse(localStorage.getItem('iiitnr_advanced_gis_buildings_v2') || '[]'),
+          roads: JSON.parse(localStorage.getItem('iiitnr_advanced_gis_roads_v2') || '[]')
+        };
+      }
+      navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
+        showToast(`✓ Copied ${target} from LocalStorage to clipboard!`);
+      });
     }
 
     // --- Sidebar Tabs ---

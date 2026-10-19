@@ -34,7 +34,7 @@ export const CAMPUS_PERSONAS = [
     identifier: 'Roll: 2026CSE100',
     department: 'Computer Science & Engineering',
     department_name: 'Computer Science & Engineering',
-    hostel_name: 'Ramanujan House (Boys Hostel 1)',
+    hostel_name: 'Raman House (Boys Hostel 1)',
     room_number: 'Room 204',
     avatar: '🎓',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',

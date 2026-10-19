@@ -158,7 +158,7 @@ export default function SuperAdminDataEditor() {
           tracking_code: 'TICK-1002',
           title: 'Wi-Fi router offline in Ramanujan House, 2nd Floor',
           description: 'The ceiling Wi-Fi access point near Room 204 in Ramanujan House is blinking red.',
-          location: 'Ramanujan House (Boys Hostel 1), 2nd Floor, Room 204',
+          location: 'Raman House (Boys Hostel 1), 2nd Floor, Room 204',
           priority: 'MEDIUM',
           status: 'PENDING',
           department_name: 'IT Support',

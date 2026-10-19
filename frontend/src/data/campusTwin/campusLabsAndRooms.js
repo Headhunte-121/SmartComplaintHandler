@@ -42,21 +42,16 @@ export const IIITNR_CAMPUS_METADATA = {
       office: 'Academic Block, Ground Floor, Room 131E',
     },
   ],
-
 };
 
 export const HOSTEL_FLOORS = [
-  { id: 'G', label: 'Ground Floor (G)' },
-  { id: '1', label: '1st Floor (1xx)' },
-  { id: '2', label: '2nd Floor (2xx)' },
-  { id: '3', label: '3rd Floor (3xx)' },
+  { id: '1', label: 'Floor 1 (1xx)' },
+  { id: '2', label: 'Floor 2 (2xx)' },
+  { id: '3', label: 'Floor 3 (3xx)' },
+  { id: '4', label: 'Floor 4 (4xx)' },
 ];
 
-export const HOSTEL_WINGS = [
-  { id: 'Wing A', label: 'Wing A / Block A' },
-  { id: 'Wing B', label: 'Wing B / Block B' },
-  { id: 'Common Area', label: 'Corridor / Washroom / Court / Utility' },
-];
+export const HOSTEL_WINGS = [];
 
 export const HOSTEL_COMMON_ZONES = [
   'Corridor RO Water Cooler',
@@ -67,6 +62,8 @@ export const HOSTEL_COMMON_ZONES = [
   'Wi-Fi Ceiling Access Point',
 ];
 
+// Institutional Canonical Campus Buildings & Labs Catalog (IIIT Naya Raipur)
+// Auto-generated from canonical_gis_data.json
 export const DEFAULT_IIITNR_BUILDINGS = [
   {
     "id": "academic_block",
@@ -74,7 +71,7 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "shortName": "Academic Block",
     "badge": "ACAD",
     "category": "ACADEMIC",
-    "color": "#4f46e5",
+    "color": "#0284c7",
     "mapPin": {
       "lat": 21.12836,
       "lng": 81.76615
@@ -89,15 +86,14 @@ export const DEFAULT_IIITNR_BUILDINGS = [
       "2",
       "3"
     ],
-    "roomsPerFloor": 24,
+    "roomsPerFloor": 20,
     "customRooms": [],
-    "description": "",
+    "description": "Iconic central academic rotunda dome and classroom/laboratory complex",
     "polygons": [
       {
-        "building_id": "academic_block",
-        "id": "wing_1",
+        "id": "wing_1792073780860",
         "name": "Academic Block Wing #1",
-        "color": "#4f46e5",
+        "color": "#0284c7",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -257,21 +253,18 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "entrances": [
       {
-        "building_id": "academic_block",
-        "id": "ent_1",
-        "name": "Entrance",
+        "id": "ent_acad_main",
+        "name": "Front Main Portico Entrance",
         "lat": 21.128164,
         "lng": 81.766357
       },
       {
-        "building_id": "academic_block",
-        "id": "ent_2",
-        "name": "Entrance",
+        "id": "ent_acad_west",
+        "name": "West Wing Entrance",
         "lat": 21.128375,
         "lng": 81.765889
       }
-    ],
-    "courtyards": []
+    ]
   },
   {
     "id": "auditorium_hall",
@@ -279,29 +272,29 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "shortName": "Auditorium",
     "badge": "AUD",
     "category": "AMENITY",
-    "color": "#4f46e5",
+    "color": "#e11d48",
     "mapPin": {
       "lat": 21.128255,
       "lng": 81.765376
     },
     "wings": [],
     "floors": [
-      "G"
+      "1"
     ],
-    "roomsPerFloor": 24,
+    "roomsPerFloor": 6,
     "customRooms": [
-      "Main Acoustic Auditorium Hall (800 Seater)",
-      "Green Room 1",
-      "Green Room 2",
-      "AV Control Booth"
+      "Main Auditorium Hall",
+      "Balcony Seating",
+      "Stage & Green Rooms",
+      "AV Control Booth",
+      "Foyer & Reception"
     ],
-    "description": "",
+    "description": "Main campus auditorium located west of the central spine",
     "polygons": [
       {
-        "building_id": "auditorium_hall",
-        "id": "wing_2",
+        "id": "wing_1792074374091",
         "name": "Auditorium Wing #1",
-        "color": "#4f46e5",
+        "color": "#e11d48",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -389,28 +382,24 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "entrances": [
       {
-        "building_id": "auditorium_hall",
-        "id": "ent_3",
-        "name": "Entrance",
+        "id": "ent_audi_front",
+        "name": "Auditorium Front Plaza Entrance",
         "lat": 21.12841,
         "lng": 81.765606
       },
       {
-        "building_id": "auditorium_hall",
-        "id": "ent_4",
-        "name": "Entrance",
+        "id": "ent_1792074395963",
+        "name": "Auditorium Entrance Back",
         "lat": 21.12807,
         "lng": 81.765484
       },
       {
-        "building_id": "auditorium_hall",
-        "id": "ent_5",
-        "name": "Entrance",
+        "id": "ent_1792074432755",
+        "name": "Auditorium Entrance Side",
         "lat": 21.128325,
         "lng": 81.765177
       }
-    ],
-    "courtyards": []
+    ]
   },
   {
     "id": "canteen_block",
@@ -418,24 +407,29 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "shortName": "Canteen",
     "badge": "CANTEEN",
     "category": "AMENITY",
-    "color": "#4f46e5",
+    "color": "#f59e0b",
     "mapPin": {
       "lat": 21.127927,
       "lng": 81.765653
     },
     "wings": [],
     "floors": [
-      "G"
+      "1"
     ],
-    "roomsPerFloor": 24,
-    "customRooms": [],
-    "description": "",
+    "roomsPerFloor": 6,
+    "customRooms": [
+      "Main Dining Hall",
+      "Juice & Snacks Counter",
+      "Outdoor Dining Arcade",
+      "Kitchen & Service Area",
+      "Staff Dining Section"
+    ],
+    "description": "Iconic circular canteen rotunda with curved dining arcade",
     "polygons": [
       {
-        "building_id": "canteen_block",
-        "id": "wing_3",
+        "id": "wing_1792075246395",
         "name": "Canteen Wing #1",
-        "color": "#4f46e5",
+        "color": "#f59e0b",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -543,18 +537,16 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "entrances": [
       {
-        "building_id": "canteen_block",
-        "id": "ent_6",
-        "name": "Entrance",
+        "id": "ent_canteen_entry",
+        "name": "Canteen Arcade Entry",
         "lat": 21.128031,
         "lng": 81.765661
       }
-    ],
-    "courtyards": []
+    ]
   },
   {
     "id": "ramanujan_house",
-    "name": "Ramanujan House (Boys Hostel 1)",
+    "name": "Ramanujan House (Boys Hostel 3)",
     "shortName": "Ramanujan House",
     "badge": "BH-3",
     "category": "HOSTEL",
@@ -568,17 +560,14 @@ export const DEFAULT_IIITNR_BUILDINGS = [
       "1",
       "2",
       "3",
-      "4",
-      "5",
-      "6"
+      "4"
     ],
     "roomsPerFloor": 24,
     "customRooms": [],
-    "description": "",
+    "description": "Boys Hostel 3 in the northeast residential sector",
     "polygons": [
       {
-        "building_id": "ramanujan_house",
-        "id": "wing_4",
+        "id": "wing_1792119138596",
         "name": "Ramanujan House Wing #1",
         "color": "#4f46e5",
         "fillOpacity": 0.45,
@@ -710,8 +699,7 @@ export const DEFAULT_IIITNR_BUILDINGS = [
         ]
       }
     ],
-    "entrances": [],
-    "courtyards": []
+    "entrances": []
   },
   {
     "id": "bhabha_house",
@@ -719,16 +707,12 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "shortName": "Bhabha House",
     "badge": "GH-2",
     "category": "HOSTEL",
-    "color": "#4f46e5",
+    "color": "#ec4899",
     "mapPin": {
       "lat": 21.127835,
       "lng": 81.764087
     },
-    "wings": [
-      "Wing A",
-      "Wing B",
-      "Wing C"
-    ],
+    "wings": [],
     "floors": [
       "1",
       "2",
@@ -737,11 +721,10 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "roomsPerFloor": 24,
     "customRooms": [],
-    "description": "",
+    "description": "Girls Hostel 2 located in the southwestern hostel zone",
     "polygons": [
       {
-        "building_id": "bhabha_house",
-        "id": "wing_5",
+        "id": "wing_1792095410995",
         "name": "Bhabha House Wing #1",
         "color": "#4f46e5",
         "fillOpacity": 0.45,
@@ -827,18 +810,16 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "entrances": [
       {
-        "building_id": "bhabha_house",
-        "id": "ent_7",
-        "name": "Entrance",
+        "id": "ent_1792095506597",
+        "name": "Bhabha House Entrance #1",
         "lat": 21.127807,
         "lng": 81.764242
       }
-    ],
-    "courtyards": []
+    ]
   },
   {
     "id": "bose_house",
-    "name": "Bose House (Boys Hostel 3)",
+    "name": "Bose House (Boys Hostel 2)",
     "shortName": "Bose House",
     "badge": "BH-2",
     "category": "HOSTEL",
@@ -847,24 +828,19 @@ export const DEFAULT_IIITNR_BUILDINGS = [
       "lat": 21.127634,
       "lng": 81.76469
     },
-    "wings": [
-      "Wing A",
-      "Wing B",
-      "Wing C"
-    ],
+    "wings": [],
     "floors": [
-      "G",
       "1",
       "2",
-      "3"
+      "3",
+      "4"
     ],
     "roomsPerFloor": 24,
     "customRooms": [],
-    "description": "",
+    "description": "Boys Hostel 2 in the southwestern hostel zone",
     "polygons": [
       {
-        "building_id": "bose_house",
-        "id": "wing_6",
+        "id": "wing_1792095363652",
         "name": "Bose House Wing #1",
         "color": "#4f46e5",
         "fillOpacity": 0.45,
@@ -930,18 +906,16 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "entrances": [
       {
-        "building_id": "bose_house",
-        "id": "ent_8",
-        "name": "Entrance",
+        "id": "ent_1792095376708",
+        "name": "Bose House Entrance #1",
         "lat": 21.12768,
         "lng": 81.764521
       }
-    ],
-    "courtyards": []
+    ]
   },
   {
     "id": "raman_house",
-    "name": "Raman House (Girls Hostel)",
+    "name": "Raman House (Boys Hostel 1)",
     "shortName": "Raman House",
     "badge": "BH-1",
     "category": "HOSTEL",
@@ -959,13 +933,12 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "roomsPerFloor": 24,
     "customRooms": [],
-    "description": "",
+    "description": "Boys Hostel 1 located east of the central library & academic complex",
     "polygons": [
       {
-        "building_id": "raman_house",
-        "id": "wing_7",
+        "id": "wing_1792095680796",
         "name": "Raman House Wing #1",
-        "color": "#4f46e5",
+        "color": "#db2777",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -1040,30 +1013,29 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "shortName": "Sports Complex",
     "badge": "SC",
     "category": "INFRASTRUCTURE",
-    "color": "#4f46e5",
+    "color": "#6366f1",
     "mapPin": {
       "lat": 21.131072,
       "lng": 81.764771
     },
     "wings": [],
     "floors": [
-      "G",
       "1",
-      "2",
-      "3"
+      "2"
     ],
     "roomsPerFloor": 24,
     "customRooms": [
-      "Baksetball",
-      "Badminton"
+      "Indoor Badminton Courts",
+      "Table Tennis Arena",
+      "Gymnasium & Weights",
+      "Sports Officer Office"
     ],
-    "description": "",
+    "description": "Sports Complex",
     "polygons": [
       {
-        "building_id": "bldg_1792074173914",
-        "id": "wing_8",
+        "id": "wing_1792095278735",
         "name": "Sports Complex Wing #1",
-        "color": "#4f46e5",
+        "color": "#6366f1",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -1087,42 +1059,39 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "entrances": [
       {
-        "building_id": "bldg_1792074173914",
-        "id": "ent_9",
-        "name": "Entrance",
+        "id": "ent_1792095296515",
+        "name": "Sports Complex Entrance #1",
         "lat": 21.131186,
         "lng": 81.764627
       }
-    ],
-    "courtyards": []
+    ]
   },
   {
     "id": "bldg_1792097005723",
     "name": "Basketball Court Out Doors",
-    "shortName": "Basketball Court ",
+    "shortName": "Basketball Court",
     "badge": "BC",
     "category": "INFRASTRUCTURE",
-    "color": "#4f46e5",
+    "color": "#6366f1",
     "mapPin": {
       "lat": 21.128975,
       "lng": 81.766248
     },
     "wings": [],
-    "floors": [
-      "G",
-      "1",
-      "2",
-      "3"
-    ],
+    "floors": [],
     "roomsPerFloor": 24,
-    "customRooms": [],
-    "description": "",
+    "customRooms": [
+      "Basketball Court",
+      "East Hoop",
+      "West Hoop",
+      "Team Bench Area"
+    ],
+    "description": "Outdoor full-sized basketball court",
     "polygons": [
       {
-        "building_id": "bldg_1792097005723",
-        "id": "wing_9",
+        "id": "wing_1792119020812",
         "name": "Basketball Wing #1",
-        "color": "#4f46e5",
+        "color": "#6366f1",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -1144,8 +1113,7 @@ export const DEFAULT_IIITNR_BUILDINGS = [
         ]
       }
     ],
-    "entrances": [],
-    "courtyards": []
+    "entrances": []
   },
   {
     "id": "bldg_1792119172307",
@@ -1153,31 +1121,30 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "shortName": "Palm Park",
     "badge": "P",
     "category": "AMENITY",
-    "color": "#4f46e5",
+    "color": "#6366f1",
     "mapPin": {
       "lat": 21.127524,
       "lng": 81.76553
     },
-    "wings": [
-      "Wing A",
-      "Wing B"
-    ],
-    "floors": [
-      "G",
-      "1",
-      "2",
-      "3"
-    ],
+    "wings": [],
+    "floors": [],
     "roomsPerFloor": 24,
-    "customRooms": [],
-    "description": "",
+    "customRooms": [
+      "Main Lawn Area",
+      "Palm Grove Walkway",
+      "Gazebo Seating",
+      "East Perimeter Path"
+    ],
+    "description": "Landscaped green park situated between the canteen, auditorium, and sports grounds",
     "polygons": [],
     "entrances": [],
     "courtyards": [
       {
-        "building_id": "bldg_1792119172307",
-        "id": "court_1",
+        "id": "court_1792119214668",
         "name": "Palm Park Courtyard #1",
+        "type": "courtyard",
+        "color": "#10b981",
+        "fillOpacity": 0.55,
         "latlngs": [
           [
             21.127407367046377,
@@ -1205,11 +1172,11 @@ export const DEFAULT_IIITNR_BUILDINGS = [
   },
   {
     "id": "bldg_1792128996063",
-    "name": "Sabari",
-    "shortName": "Sabari",
+    "name": "Sabari House (Girls Hostel 1)",
+    "shortName": "Sabari House",
     "badge": "GH-1",
     "category": "HOSTEL",
-    "color": "#4f46e5",
+    "color": "#ec4899",
     "mapPin": {
       "lat": 21.129551,
       "lng": 81.7663
@@ -1223,13 +1190,12 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "roomsPerFloor": 24,
     "customRooms": [],
-    "description": "",
+    "description": "Girls Hostel 1 located in the northern residential sector",
     "polygons": [
       {
-        "building_id": "bldg_1792128996063",
-        "id": "wing_10",
+        "id": "wing_1792129078377",
         "name": "Sabari Wing #1",
-        "color": "#4f46e5",
+        "color": "#030577",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -1253,45 +1219,44 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "entrances": [
       {
-        "building_id": "bldg_1792128996063",
-        "id": "ent_10",
-        "name": "Entrance",
+        "id": "ent_1792129083792",
+        "name": "Sabari Entrance #1",
         "lat": 21.129726,
         "lng": 81.76622
       }
-    ],
-    "courtyards": []
+    ]
   },
   {
     "id": "bldg_1792132762957",
     "name": "Aranya Guest House",
-    "shortName": "Guest House ",
+    "shortName": "Guest House",
     "badge": "AGH",
     "category": "AMENITY",
-    "color": "#4f46e5",
+    "color": "#6366f1",
     "mapPin": {
       "lat": 21.128381,
       "lng": 81.764857
     },
-    "wings": [
-      "Wing A",
-      "Wing B"
-    ],
+    "wings": [],
     "floors": [
-      "G",
       "1",
-      "2",
-      "3"
+      "2"
     ],
     "roomsPerFloor": 24,
-    "customRooms": [],
-    "description": "",
+    "customRooms": [
+      "VIP Suite 1",
+      "VIP Suite 2",
+      "Guest Room 101",
+      "Guest Room 102",
+      "Dining Hall",
+      "Reception Lounge"
+    ],
+    "description": "Institute guest house for visiting faculty, delegates, and guests",
     "polygons": [
       {
-        "building_id": "bldg_1792132762957",
-        "id": "wing_11",
+        "id": "wing_1792134536830",
         "name": "Guest House  Wing #1",
-        "color": "#4f46e5",
+        "color": "#6366f1",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -1374,31 +1339,27 @@ export const DEFAULT_IIITNR_BUILDINGS = [
   },
   {
     "id": "bldg_1792159282829",
-    "name": "Vollyball Court",
-    "shortName": "Vollyball Court",
+    "name": "Volleyball Court",
+    "shortName": "Volleyball Court",
     "badge": "VC",
     "category": "INFRASTRUCTURE",
-    "color": "#4f46e5",
+    "color": "#6366f1",
     "mapPin": {
       "lat": 21.128054,
       "lng": 81.7651
     },
-    "wings": [
-      "Wing A",
-      "Wing B"
-    ],
-    "floors": [
-      "G",
-      "1",
-      "2",
-      "3"
-    ],
+    "wings": [],
+    "floors": [],
     "roomsPerFloor": 24,
-    "customRooms": [],
-    "description": "",
+    "customRooms": [
+      "Court #1",
+      "Court #2",
+      "Referee Stand",
+      "Spectator Seating"
+    ],
+    "description": "Outdoor volleyball arena",
     "polygons": [],
-    "entrances": [],
-    "courtyards": []
+    "entrances": []
   },
   {
     "id": "bldg_1792159326181",
@@ -1406,24 +1367,27 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "shortName": "New Amphi",
     "badge": "Am-2",
     "category": "AMENITY",
-    "color": "#4f46e5",
+    "color": "#1d1f90",
     "mapPin": {
       "lat": 21.127579,
       "lng": 81.766785
     },
     "wings": [],
     "floors": [
-      "G"
+      "1"
     ],
     "roomsPerFloor": 24,
-    "customRooms": [],
-    "description": "",
+    "customRooms": [
+      "Central Performance Stage",
+      "Circular Tiered Seating",
+      "Audio/Lighting Desk"
+    ],
+    "description": "Large circular open-air amphitheater",
     "polygons": [
       {
-        "building_id": "bldg_1792159326181",
-        "id": "wing_12",
+        "id": "wing_1792159385694",
         "name": "Building 14 Wing #1",
-        "color": "#4f46e5",
+        "color": "#6366f1",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -1532,9 +1496,11 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "entrances": [],
     "courtyards": [
       {
-        "building_id": "bldg_1792159326181",
-        "id": "court_2",
+        "id": "court_1792159435877",
         "name": "Building 14 Courtyard #1",
+        "type": "courtyard",
+        "color": "#10b981",
+        "fillOpacity": 0.55,
         "latlngs": [
           [
             21.12740737618014,
@@ -1642,34 +1608,31 @@ export const DEFAULT_IIITNR_BUILDINGS = [
   },
   {
     "id": "bldg_1792159559173",
-    "name": "Old Amphitheter",
+    "name": "Old Amphitheater",
     "shortName": "Old Amphi",
     "badge": "Am-1",
     "category": "AMENITY",
-    "color": "#4f46e5",
+    "color": "#6366f1",
     "mapPin": {
       "lat": 21.128898,
       "lng": 81.765888
     },
-    "wings": [
-      "Wing A",
-      "Wing B"
-    ],
+    "wings": [],
     "floors": [
-      "G",
-      "1",
-      "2",
-      "3"
+      "1"
     ],
     "roomsPerFloor": 24,
-    "customRooms": [],
-    "description": "",
+    "customRooms": [
+      "Amphitheater Stage",
+      "Tiered Stone Seating",
+      "Backstage Area"
+    ],
+    "description": "Open-air amphitheater with tiered seating",
     "polygons": [
       {
-        "building_id": "bldg_1792159559173",
-        "id": "wing_13",
+        "id": "wing_1792159615829",
         "name": "Building 15 Wing #1",
-        "color": "#4f46e5",
+        "color": "#6366f1",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -1715,40 +1678,38 @@ export const DEFAULT_IIITNR_BUILDINGS = [
         ]
       }
     ],
-    "entrances": [],
-    "courtyards": []
+    "entrances": []
   },
   {
     "id": "bldg_1792159926765",
     "name": "Football Ground",
-    "shortName": "Football Ground ",
+    "shortName": "Football Ground",
     "badge": "FG",
     "category": "INFRASTRUCTURE",
-    "color": "#4f46e5",
+    "color": "#6366f1",
     "mapPin": {
       "lat": 21.129261,
       "lng": 81.765586
     },
-    "wings": [
-      "Wing A",
-      "Wing B"
-    ],
-    "floors": [
-      "G",
-      "1",
-      "2",
-      "3"
-    ],
+    "wings": [],
+    "floors": [],
     "roomsPerFloor": 24,
-    "customRooms": [],
-    "description": "",
+    "customRooms": [
+      "Football Turf",
+      "North Goal Area",
+      "South Goal Area",
+      "Team Dugout & Player Bench"
+    ],
+    "description": "Full-sized outdoor football sports turf and athletic field",
     "polygons": [],
     "entrances": [],
     "courtyards": [
       {
-        "building_id": "bldg_1792159926765",
-        "id": "court_3",
+        "id": "court_1792159967413",
         "name": "Football Ground  Courtyard #1",
+        "type": "courtyard",
+        "color": "#10b981",
+        "fillOpacity": 0.55,
         "latlngs": [
           [
             21.129658789598494,
@@ -1780,7 +1741,7 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     "shortName": "Incubation Center",
     "badge": "B-17",
     "category": "AMENITY",
-    "color": "#4f46e5",
+    "color": "#6366f1",
     "mapPin": {
       "lat": 21.128913,
       "lng": 81.76686
@@ -1798,13 +1759,12 @@ export const DEFAULT_IIITNR_BUILDINGS = [
       "clinic",
       "Incubation center"
     ],
-    "description": "",
+    "description": "Newly placed building on campus",
     "polygons": [
       {
-        "building_id": "bldg_1792221838963",
-        "id": "wing_14",
+        "id": "wing_1792221980227",
         "name": "Incubation Center Wing #1",
-        "color": "#4f46e5",
+        "color": "#6366f1",
         "fillOpacity": 0.45,
         "latlngs": [
           [
@@ -1828,13 +1788,11 @@ export const DEFAULT_IIITNR_BUILDINGS = [
     ],
     "entrances": [
       {
-        "building_id": "bldg_1792221838963",
-        "id": "ent_11",
-        "name": "Entrance",
+        "id": "ent_1792221988747",
+        "name": "Incubation Center Entrance #1",
         "lat": 21.12902,
         "lng": 81.767016
       }
-    ],
-    "courtyards": []
+    ]
   }
 ];

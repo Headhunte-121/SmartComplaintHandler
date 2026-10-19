@@ -132,7 +132,7 @@ export function getFloorsForBuilding(buildingNameOrId, customBuildingsList = nul
     if (typeof target.floors[0] === 'string') {
       return target.floors.map((fl) => ({
         id: fl,
-        label: fl === 'G' ? 'Ground Floor (G)' : `Floor ${fl}`,
+        label: `Floor ${fl}`,
       }));
     }
     return target.floors.map((f) => ({ id: f.id, label: f.label || `Floor ${f.id}` }));
@@ -155,14 +155,15 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
   const strFloor = String(floorId || '1');
 
   // 1. Hostels: Generate authentic room numbers based on roomsPerFloor + common zones
+  // Rule: Floors are 1, 2, 3, 4 (No G, no wings). Floor 1 -> 101+, Floor 2 -> 201+, Floor 3 -> 301+, Floor 4 -> 401+
   if (target.category === 'HOSTEL') {
     const roomsCount = Number(target.roomsPerFloor || target.rooms_per_floor) || 24;
-    const prefix = strFloor === 'G' ? 'G' : strFloor;
-    const rooms = [];
+    const seriesNum = parseInt(strFloor, 10) || 1;
 
+    const rooms = [];
     for (let i = 1; i <= roomsCount; i++) {
-      const numStr = i < 10 ? `0${i}` : `${i}`;
-      rooms.push(`Room ${prefix}${numStr}`);
+      const roomNum = seriesNum * 100 + i;
+      rooms.push(`Room ${roomNum}`);
     }
 
     // Common facilities on every hostel floor
@@ -174,8 +175,11 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
   }
 
   // 2. Academic Block: Authentic classroom & laboratory catalog
+  // Floor 1 -> 100 series (Classrooms 101, 104, Labs 131C, 131E)
+  // Floor 2 -> 200 series (Classrooms 201, Labs 206, 208, 210, 212)
+  // Floor 3 -> 300 series (Classrooms 301, Labs 302, 303, 305, 308)
   if (target.id === 'academic_block' || target.category === 'ACADEMIC') {
-    if (strFloor === 'G') {
+    if (strFloor === '1' || strFloor === 'G') {
       return [
         'Smart E-Classroom E-101',
         'Smart E-Classroom E-102',
@@ -190,7 +194,7 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
         'Registrar Office',
       ];
     }
-    if (strFloor === '1') {
+    if (strFloor === '2') {
       return [
         'Smart E-Classroom E-201',
         'Smart E-Classroom E-202',
@@ -201,7 +205,7 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
         'Room 216 (Big Data Lab)',
       ];
     }
-    if (strFloor === '2') {
+    if (strFloor === '3') {
       return [
         'Smart E-Classroom E-301',
         'Room 302 (Electronic Circuit Lab)',
@@ -213,7 +217,7 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
         'Room 317 (Robotics Lab)',
       ];
     }
-    if (strFloor === '3') {
+    if (strFloor === '4') {
       return [
         'Research Scholar Workstation Lab',
         'Dean Academic Office',
@@ -246,7 +250,15 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
     ];
   }
 
-  // 5. Sports Complex & Athletic Grounds
+  // 5. Generic custom rooms if defined on building (parks, specific courts, grounds)
+  if (Array.isArray(target.customRooms) && target.customRooms.length > 0) {
+    return target.customRooms;
+  }
+  if (Array.isArray(target.custom_rooms) && target.custom_rooms.length > 0) {
+    return target.custom_rooms;
+  }
+
+  // 6. Sports Complex & Athletic Grounds fallback
   if (target.id === 'bldg_1792074173914' || target.category === 'INFRASTRUCTURE') {
     return [
       'Basketball Court (Indoor)',
@@ -256,14 +268,6 @@ export function getRoomsForBuilding(buildingNameOrId, floorId = '1', wingId = 'W
       'Outdoor Football Turf Pitch',
       'Volleyball Court',
     ];
-  }
-
-  // 6. Generic custom rooms if defined on building
-  if (Array.isArray(target.customRooms) && target.customRooms.length > 0) {
-    return target.customRooms;
-  }
-  if (Array.isArray(target.custom_rooms) && target.custom_rooms.length > 0) {
-    return target.custom_rooms;
   }
 
   return ['Room 101', 'Room 102', 'Room 103', 'Room 104', 'Room 105'];

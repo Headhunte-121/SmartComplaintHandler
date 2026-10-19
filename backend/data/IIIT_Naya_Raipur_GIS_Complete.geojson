@@ -556,7 +556,7 @@
       "properties": {
         "entity": "building",
         "id": "ramanujan_house",
-        "name": "Ramanujan House (Boys Hostel 1)",
+        "name": "Ramanujan House (Boys Hostel 3)",
         "shortName": "Ramanujan House",
         "badge": "BH-3",
         "category": "HOSTEL",
@@ -569,7 +569,8 @@
           "5",
           "6"
         ],
-        "customRooms": []
+        "customRooms": [],
+        "color": "#4f46e5"
       },
       "geometry": {
         "type": "Point",
@@ -584,8 +585,11 @@
       "properties": {
         "entity": "wing_polygon",
         "building_id": "ramanujan_house",
-        "building_name": "Ramanujan House (Boys Hostel 1)",
-        "wing_name": "Ramanujan House Wing #1"
+        "building_name": "Ramanujan House (Boys Hostel 3)",
+        "wing_name": "Ramanujan House Wing #1",
+        "badge": "BH-3",
+        "category": "HOSTEL",
+        "color": "#4f46e5"
       },
       "geometry": {
         "type": "Polygon",
@@ -739,7 +743,8 @@
           "3",
           "4"
         ],
-        "customRooms": []
+        "customRooms": [],
+        "color": "#ec4899"
       },
       "geometry": {
         "type": "Point",
@@ -755,7 +760,10 @@
         "entity": "wing_polygon",
         "building_id": "bhabha_house",
         "building_name": "Bhabha House (Girls Hostel 2)",
-        "wing_name": "Bhabha House Wing #1"
+        "wing_name": "Bhabha House Wing #1",
+        "badge": "GH-2",
+        "category": "HOSTEL",
+        "color": "#ec4899"
       },
       "geometry": {
         "type": "Polygon",
@@ -846,7 +854,10 @@
       "properties": {
         "entity": "building_entrance",
         "building_id": "bhabha_house",
-        "entrance_name": "Bhabha House Entrance #1"
+        "entrance_name": "Bhabha House Entrance #1",
+        "badge": "GH-2",
+        "category": "HOSTEL",
+        "color": "#ec4899"
       },
       "geometry": {
         "type": "Point",
@@ -861,7 +872,7 @@
       "properties": {
         "entity": "building",
         "id": "bose_house",
-        "name": "Bose House (Boys Hostel 3)",
+        "name": "Bose House (Boys Hostel 2)",
         "shortName": "Bose House",
         "badge": "BH-2",
         "category": "HOSTEL",
@@ -876,7 +887,8 @@
           "2",
           "3"
         ],
-        "customRooms": []
+        "customRooms": [],
+        "color": "#4f46e5"
       },
       "geometry": {
         "type": "Point",
@@ -891,8 +903,11 @@
       "properties": {
         "entity": "wing_polygon",
         "building_id": "bose_house",
-        "building_name": "Bose House (Boys Hostel 3)",
-        "wing_name": "Bose House Wing #1"
+        "building_name": "Bose House (Boys Hostel 2)",
+        "wing_name": "Bose House Wing #1",
+        "badge": "BH-2",
+        "category": "HOSTEL",
+        "color": "#4f46e5"
       },
       "geometry": {
         "type": "Polygon",
@@ -963,7 +978,10 @@
       "properties": {
         "entity": "building_entrance",
         "building_id": "bose_house",
-        "entrance_name": "Bose House Entrance #1"
+        "entrance_name": "Bose House Entrance #1",
+        "badge": "BH-2",
+        "category": "HOSTEL",
+        "color": "#4f46e5"
       },
       "geometry": {
         "type": "Point",
@@ -978,7 +996,7 @@
       "properties": {
         "entity": "building",
         "id": "raman_house",
-        "name": "Raman House (Girls Hostel)",
+        "name": "Raman House (Boys Hostel 1)",
         "shortName": "Raman House",
         "badge": "BH-1",
         "category": "HOSTEL",
@@ -989,7 +1007,8 @@
           "3",
           "4"
         ],
-        "customRooms": []
+        "customRooms": [],
+        "color": "#4f46e5"
       },
       "geometry": {
         "type": "Point",
@@ -1004,8 +1023,11 @@
       "properties": {
         "entity": "wing_polygon",
         "building_id": "raman_house",
-        "building_name": "Raman House (Girls Hostel)",
-        "wing_name": "Raman House Wing #1"
+        "building_name": "Raman House (Boys Hostel 1)",
+        "wing_name": "Raman House Wing #1",
+        "badge": "BH-1",
+        "category": "HOSTEL",
+        "color": "#4f46e5"
       },
       "geometry": {
         "type": "Polygon",
@@ -1279,7 +1301,7 @@
       "properties": {
         "entity": "building",
         "id": "bldg_1792128996063",
-        "name": "Sabari",
+        "name": "Sabari House (Girls Hostel 1)",
         "shortName": "Sabari",
         "badge": "GH-1",
         "category": "HOSTEL",
@@ -1290,7 +1312,8 @@
           "3",
           "4"
         ],
-        "customRooms": []
+        "customRooms": [],
+        "color": "#ec4899"
       },
       "geometry": {
         "type": "Point",
@@ -1305,8 +1328,11 @@
       "properties": {
         "entity": "wing_polygon",
         "building_id": "bldg_1792128996063",
-        "building_name": "Sabari",
-        "wing_name": "Sabari Wing #1"
+        "building_name": "Sabari House (Girls Hostel 1)",
+        "wing_name": "Sabari Wing #1",
+        "badge": "GH-1",
+        "category": "HOSTEL",
+        "color": "#ec4899"
       },
       "geometry": {
         "type": "Polygon",
@@ -1337,7 +1363,10 @@
       "properties": {
         "entity": "building_entrance",
         "building_id": "bldg_1792128996063",
-        "entrance_name": "Sabari Entrance #1"
+        "entrance_name": "Sabari Entrance #1",
+        "badge": "GH-1",
+        "category": "HOSTEL",
+        "color": "#ec4899"
       },
       "geometry": {
         "type": "Point",
@@ -1469,7 +1498,7 @@
       "properties": {
         "entity": "building",
         "id": "bldg_1792159282829",
-        "name": "Vollyball Court",
+        "name": "Volleyball Court",
         "shortName": "Vollyball Court",
         "badge": "VC",
         "category": "INFRASTRUCTURE",
@@ -1753,7 +1782,7 @@
       "properties": {
         "entity": "building",
         "id": "bldg_1792159559173",
-        "name": "Old Amphitheter",
+        "name": "Old Amphitheater",
         "shortName": "Old Amphi",
         "badge": "Am-1",
         "category": "HOSTEL",
