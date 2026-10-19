@@ -582,3 +582,78 @@ def test_privilege_escalation_on_registration_blocked():
     assert data["user"]["role"] != "ADMIN"
     assert data["user"]["role"] != "SUPER_ADMIN"
 
+
+def test_public_tracking_masks_student_pii():
+    """
+    Public Ticket Tracking Privacy & PII Protection:
+    1. Submitting a grievance records the student's name and email in the database.
+    2. An unauthenticated public visitor querying /api/v1/tickets/{tracking_code}
+       receives masked student name (e.g. 'D*****h P***l') and email (e.g. 'd*********2@iiitnr.edu.in').
+    3. An unrelated student querying the ticket also receives masked PII.
+    4. The authentic ticket owner (or Admin/SuperAdmin) receives unmasked student PII.
+    """
+    student_a_email = f"devansh26{uuid.uuid4().hex[:4]}@iiitnr.edu.in"
+    student_b_email = f"other26{uuid.uuid4().hex[:4]}@iiitnr.edu.in"
+    student_a_token = _mint_role_token(student_a_email, "STUDENT", "Devansh Patel")
+    student_b_token = _mint_role_token(student_b_email, "STUDENT", "Other Student")
+    admin_token = _mint_role_token("admin@iiitnr.edu.in", "ADMIN", "Facilities Admin")
+
+    resp_create = client.post(
+        "/api/v1/tickets/",
+        headers={"Authorization": f"Bearer {student_a_token}"},
+        json={
+            "title": "Air conditioner tripping breaker in Room 302",
+            "description": "Short circuiting MCB whenever compressor starts.",
+            "location": "Hostel Ramanujan Block B, Room 302",
+            "student_name": "Devansh Patel",
+            "student_email": student_a_email,
+        },
+    )
+    assert resp_create.status_code == 201
+    created = resp_create.json()
+    tracking_code = created["tracking_code"]
+
+    # 1. Unauthenticated public visitor tracking ticket
+    resp_anon = client.get(f"/api/v1/tickets/{tracking_code}")
+    assert resp_anon.status_code == 200
+    anon_data = resp_anon.json()
+    assert anon_data["tracking_code"] == tracking_code
+    assert anon_data["title"] == "Air conditioner tripping breaker in Room 302"
+    assert anon_data["student_name"] != "Devansh Patel"
+    assert anon_data["student_name"].startswith("D") and anon_data["student_name"].endswith("l")
+    assert "*" in anon_data["student_name"]
+    assert anon_data["student_email"] != student_a_email
+    assert "*" in anon_data["student_email"]
+    assert anon_data["student_email"].endswith("@iiitnr.edu.in")
+
+    # 2. Unrelated student tracking ticket
+    resp_student_b = client.get(
+        f"/api/v1/tickets/{tracking_code}",
+        headers={"Authorization": f"Bearer {student_b_token}"},
+    )
+    assert resp_student_b.status_code == 200
+    b_data = resp_student_b.json()
+    assert b_data["student_name"] == anon_data["student_name"]
+    assert b_data["student_email"] == anon_data["student_email"]
+
+    # 3. Authentic ticket owner tracking ticket
+    resp_owner = client.get(
+        f"/api/v1/tickets/{tracking_code}",
+        headers={"Authorization": f"Bearer {student_a_token}"},
+    )
+    assert resp_owner.status_code == 200
+    owner_data = resp_owner.json()
+    assert owner_data["student_name"] == "Devansh Patel"
+    assert owner_data["student_email"] == student_a_email
+
+    # 4. Facilities Admin tracking ticket
+    resp_admin = client.get(
+        f"/api/v1/tickets/{tracking_code}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp_admin.status_code == 200
+    admin_data = resp_admin.json()
+    assert admin_data["student_name"] == "Devansh Patel"
+    assert admin_data["student_email"] == student_a_email
+
+

@@ -6,12 +6,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { fetchTicketByCode, fetchComplaints } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 
 export default function TrackTicket() {
   const { isDark } = useTheme();
+  const { currentUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchCode, setSearchCode] = useState(searchParams.get('code') || '');
   const [ticket, setTicket] = useState(null);
@@ -38,12 +40,16 @@ export default function TrackTicket() {
   };
 
   useEffect(() => {
-    fetchComplaints({ limit: 6 })
+    if (!currentUser?.email) {
+      setRecentTickets([]);
+      return;
+    }
+    fetchComplaints({ limit: 6, student_email: currentUser.email })
       .then((list) => {
         if (Array.isArray(list)) setRecentTickets(list.slice(0, 6));
       })
       .catch(() => {});
-  }, []);
+  }, [currentUser?.email]);
 
   useEffect(() => {
     const initialCode = searchParams.get('code');
@@ -215,13 +221,13 @@ export default function TrackTicket() {
               </button>
             </form>
 
-            {/* Recent Ticket Chips */}
-            {recentTickets.length > 0 && (
+            {/* Recent Ticket Chips (Authenticated Student Only) */}
+            {currentUser && recentTickets.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
                 <span className={`text-[11px] font-bold uppercase tracking-wider font-mono ${
                   isDark ? 'text-zinc-500' : 'text-slate-600'
                 }`}>
-                  Recent:
+                  Your Recent Grievances:
                 </span>
                 {recentTickets.map((item) => (
                   <button

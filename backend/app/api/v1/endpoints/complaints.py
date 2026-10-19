@@ -22,6 +22,36 @@ from app.schemas.ticket import (
 from app.schemas.user import UserResponse
 from app.services.ticket_service import create_ticket, list_tickets, submit_ticket_feedback
 
+
+def _mask_display_name(name: Optional[str]) -> Optional[str]:
+    """Masks personal names (e.g. 'Aarav Sharma' -> 'A***v S****a') to protect student privacy."""
+    if not name:
+        return name
+    parts = name.strip().split()
+    masked = []
+    for part in parts:
+        if len(part) <= 2:
+            masked.append(part[0] + "*")
+        else:
+            masked.append(part[0] + ("*" * (len(part) - 2)) + part[-1])
+    return " ".join(masked)
+
+
+def _mask_display_email(email: Optional[str]) -> Optional[str]:
+    """Masks email addresses (e.g. 'student@iiitnr.edu.in' -> 's*****t@iiitnr.edu.in') to protect student PII."""
+    if not email:
+        return email
+    email = email.strip()
+    if "@" not in email:
+        return _mask_display_name(email)
+    user_part, domain_part = email.split("@", 1)
+    if len(user_part) <= 2:
+        masked_user = user_part[0] + "*"
+    else:
+        masked_user = user_part[0] + ("*" * (len(user_part) - 2)) + user_part[-1]
+    return f"{masked_user}@{domain_part}"
+
+
 router = APIRouter()
 
 
@@ -123,6 +153,14 @@ def get_complaints(
             item.department_name = t.department.name
         if t.assigned_team:
             item.assigned_team_name = t.assigned_team.name
+        # Mask student PII if unauthenticated or student viewing another student's record
+        if current_user is None or (
+            current_user.role == "STUDENT"
+            and item.student_email
+            and item.student_email.strip().lower() != current_user.email.strip().lower()
+        ):
+            item.student_name = _mask_display_name(item.student_name)
+            item.student_email = _mask_display_email(item.student_email)
         results.append(item)
     return results
 
@@ -188,10 +226,13 @@ def submit_feedback(
 )
 def track_complaint(
     tracking_code: str,
+    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
     db: Session = Depends(get_db),
 ) -> TicketResponse:
     """
     Tracking endpoint by high-entropy CSPRNG tracking code (`SCH-YYYYMMDD-XXXXXX`).
+    Enforces student privacy: personal submitter PII (full name, email) is masked for unauthenticated
+    visitors or third-party students, preventing public identity scraping while preserving transparency.
     """
     ticket = (
         db.query(Ticket)
@@ -210,6 +251,23 @@ def track_complaint(
         response.department_name = ticket.department.name
     if ticket.assigned_team:
         response.assigned_team_name = ticket.assigned_team.name
+
+    # PII Protection: Only ticket creator or staff (Admin, SuperAdmin, Technician) can view unmasked PII
+    is_authorized_viewer = False
+    if current_user is not None:
+        if current_user.role in ("ADMIN", "SUPER_ADMIN", "TECHNICIAN"):
+            is_authorized_viewer = True
+        elif (
+            ticket.student_email
+            and current_user.email
+            and current_user.email.strip().lower() == ticket.student_email.strip().lower()
+        ):
+            is_authorized_viewer = True
+
+    if not is_authorized_viewer:
+        response.student_name = _mask_display_name(response.student_name)
+        response.student_email = _mask_display_email(response.student_email)
+
     return response
 
 

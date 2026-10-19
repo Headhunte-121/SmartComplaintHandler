@@ -583,6 +583,7 @@
 
     <!-- Quick Export & Storage Extraction -->
     <div style="display: flex; gap: 8px;">
+      <a href="/admin" class="btn" style="text-decoration: none; display: flex; align-items: center; gap: 4px; background: #1e293b; color: #cbd5e1; font-weight: 600; border: 1px solid #334155;">← Admin Portal</a>
       <button class="btn sky" onclick="extractActiveLocalStorageJSON()" style="background: #2563eb; color: #fff; font-weight: 800; border: 1px solid #60a5fa;" title="Extract and download all data currently in Edge/Chrome localStorage">⚡ Extract LocalStorage</button>
       <button class="btn emerald" id="btn-sync-db" onclick="syncToDatabase()" style="background: #047857; font-weight: 800;">💾 Save to Database</button>
       <button class="btn emerald" onclick="copyJsonConfig()">📋 Copy Labeled JSON</button>
@@ -903,6 +904,34 @@
   <div class="toast" id="toast">Saved to clipboard!</div>
 
   <script>
+    // --- Enterprise Access Control: Restrict GIS Studio to Administrators ---
+    (function enforceAdminSession() {
+      try {
+        const token = localStorage.getItem('smart_complaint_auth_token');
+        const userJson = localStorage.getItem('smart_complaint_user');
+        let user = null;
+        if (userJson) {
+          user = JSON.parse(userJson);
+        }
+        if (!token || !user || !['SUPER_ADMIN', 'ADMIN'].includes(user.role)) {
+          alert('Access Denied: Enterprise GIS Satellite Studio is restricted to Facilities Administrators and Super Admins. Please log in with an administrative account.');
+          window.location.replace('/login');
+          return;
+        }
+      } catch (err) {
+        window.location.replace('/login');
+      }
+    })();
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem('smart_complaint_auth_token') || '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
+      return headers;
+    }
+
     // --- Ground-Truth IIIT Naya Raipur Authentic Campus Entities ---
     const INITIAL_BUILDINGS = [
     {
@@ -3224,12 +3253,12 @@
     // --- JSON & GeoJSON & campusGeometry.js Exporters ---
     function saveBuildingsToStorage() {
       localStorage.setItem('iiitnr_advanced_gis_buildings_v2', JSON.stringify(buildings));
-      // Quiet background database sync
+      // Quiet background database sync with authenticated admin token
       try {
         const roadsData = roadLayers.map(l => l.roadData).filter(Boolean);
         fetch('/api/v1/campus/sync', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ buildings, roads: roadsData }),
         }).catch(() => {});
       } catch (_) {}
@@ -3245,7 +3274,7 @@
         const roadsData = roadLayers.map(l => l.roadData).filter(Boolean);
         const res = await fetch('/api/v1/campus/sync', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ buildings, roads: roadsData }),
         });
         const data = await res.json();
@@ -3454,9 +3483,9 @@
 
       // 3. Attempt direct sync to backend if server is up
       try {
-        fetch('http://127.0.0.1:8000/api/v1/campus/sync', {
+        fetch('/api/v1/campus/sync', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ buildings: bList, roads: rList })
         }).catch(() => {});
       } catch(_) {}
