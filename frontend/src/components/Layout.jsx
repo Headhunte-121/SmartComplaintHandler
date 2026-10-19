@@ -17,7 +17,8 @@ export default function Layout() {
   const isFlushPage =
     location.pathname === '/' ||
     location.pathname === '/map' ||
-    location.pathname === '/submit';
+    location.pathname === '/submit' ||
+    location.pathname === '/student';
 
   return (
     <div
