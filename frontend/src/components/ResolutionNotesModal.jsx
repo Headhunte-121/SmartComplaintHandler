@@ -1,9 +1,10 @@
 /**
  * SmartComplaintHandler - Staff Ticket Resolution Modal
  * Blueprint Reference: V1/M5/frontend/03_resolution_notes_modal.md
- * Role: Mandatory closure gate requiring min 10 chars of resolution notes, parts, and technician metadata.
+ * Role: Mandatory closure gate requiring min 10 chars of resolution notes, parts, and technician metadata with dual theme styling.
  */
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import { resolveTicket } from '../api/sla';
 
 export default function ResolutionNotesModal({
@@ -12,6 +13,7 @@ export default function ResolutionNotesModal({
   onClose,
   onResolved,
 }) {
+  const { isDark } = useTheme();
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [partsReplaced, setPartsReplaced] = useState('');
   const [technicianName, setTechnicianName] = useState('');
@@ -85,23 +87,38 @@ export default function ResolutionNotesModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="resolve-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in"
       onClick={() => {
         if (!isSubmitting) onClose();
       }}
     >
       <div
-        className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transition-all"
+        className={`w-full max-w-lg rounded-2xl shadow-2xl border overflow-hidden transition-all ${
+          isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div
+          className={`flex items-start justify-between border-b p-6 ${
+            isDark ? 'border-zinc-800 bg-[#161b22]' : 'border-slate-300 bg-[#e2e8f0]/60'
+          }`}
+        >
           <div>
-            <h3 id="resolve-modal-title" className="text-lg font-bold text-slate-900">
+            <span
+              className={`text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${
+                isDark
+                  ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800'
+                  : 'text-emerald-800 bg-emerald-100 border-emerald-300'
+              }`}
+            >
+              Incident Resolution Gate
+            </span>
+            <h3 id="resolve-modal-title" className={`text-base font-bold mt-1 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
               Resolve Complaint
             </h3>
-            <p className="mt-1 text-xs text-slate-500">
-              <span className="font-mono font-semibold text-slate-700">{ticket.tracking_code}</span>
+            <p className={`mt-1 text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+              <span className={`font-mono font-bold ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>{ticket.tracking_code}</span>
               {' — '}
               {ticket.title}
             </p>
@@ -110,37 +127,39 @@ export default function ResolutionNotesModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 ${
+              isDark ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+            }`}
             aria-label="Close modal"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            ✕
           </button>
         </div>
 
         {/* Error Alert Banner */}
         {errorMessage && (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+          <div
+            className={`m-6 mb-0 rounded-xl border p-3 text-xs ${
+              isDark ? 'bg-rose-950/60 border-rose-800 text-rose-300' : 'bg-rose-100 border-rose-300 text-rose-800'
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <svg className="h-4 w-4 flex-shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <span>⚠️</span>
               <span>{errorMessage}</span>
             </div>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Resolution Notes Field */}
           <div>
-            <div className="flex items-center justify-between">
-              <label htmlFor="resolution_notes" className="block text-xs font-semibold text-slate-700">
-                Detailed Resolution & Work Performed <span className="text-rose-500">*</span>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="resolution_notes" className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                Detailed Resolution &amp; Work Performed <span className="text-rose-500">*</span>
               </label>
-              <span className={`text-[11px] font-medium ${trimmedLength >= 10 ? 'text-green-700 font-bold' : 'text-slate-400'}`}>
-                {trimmedLength} / 1000 characters (min 10)
+              <span className={`text-[11px] font-mono ${trimmedLength >= 10 ? 'text-emerald-500 font-bold' : isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                {trimmedLength} / 1000 chars (min 10)
               </span>
             </div>
             <textarea
@@ -154,14 +173,16 @@ export default function ResolutionNotesModal({
                 if (!touched) setTouched(true);
               }}
               placeholder="Detail the physical repairs completed, components replaced, or verification performed..."
-              className={`mt-1.5 w-full rounded-xl border p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 disabled:bg-slate-50 ${
+              className={`w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:ring-2 resize-none ${
                 showValidationError
                   ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
-                  : 'border-slate-200 focus:border-green-500 focus:ring-green-500/20'
+                  : isDark
+                  ? 'bg-[#0e1117] border-zinc-800 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:ring-emerald-500/20'
+                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-emerald-500/20'
               }`}
             />
             {showValidationError && (
-              <p className="mt-1 text-[11px] text-rose-500">
+              <p className="mt-1 text-[11px] text-rose-400">
                 Please enter at least 10 characters detailing the repair.
               </p>
             )}
@@ -169,8 +190,8 @@ export default function ResolutionNotesModal({
 
           {/* Parts Replaced Field */}
           <div>
-            <label htmlFor="parts_replaced" className="block text-xs font-semibold text-slate-700">
-              Parts Replaced / Materials Consumed <span className="text-slate-400 font-normal">(Optional)</span>
+            <label htmlFor="parts_replaced" className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+              Parts Replaced / Materials Consumed <span className={`text-[11px] font-normal ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>(Optional)</span>
             </label>
             <input
               type="text"
@@ -179,14 +200,18 @@ export default function ResolutionNotesModal({
               value={partsReplaced}
               onChange={(e) => setPartsReplaced(e.target.value)}
               placeholder="e.g., 2x PVC Elbow 1-inch, 1x 15A Circuit Breaker"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 disabled:bg-slate-50"
+              className={`w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:ring-2 ${
+                isDark
+                  ? 'bg-[#0e1117] border-zinc-800 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:ring-emerald-500/20'
+                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-emerald-500/20'
+              }`}
             />
           </div>
 
           {/* Technician Name Field */}
           <div>
-            <label htmlFor="technician_name" className="block text-xs font-semibold text-slate-700">
-              Technician / Staff Name <span className="text-slate-400 font-normal">(Optional)</span>
+            <label htmlFor="technician_name" className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+              Technician / Staff Name <span className={`text-[11px] font-normal ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>(Optional)</span>
             </label>
             <input
               type="text"
@@ -195,24 +220,36 @@ export default function ResolutionNotesModal({
               value={technicianName}
               onChange={(e) => setTechnicianName(e.target.value)}
               placeholder="e.g., Dave Miller (Electrical Squad)"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 disabled:bg-slate-50"
+              className={`w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:ring-2 ${
+                isDark
+                  ? 'bg-[#0e1117] border-zinc-800 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:ring-emerald-500/20'
+                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-emerald-500/20'
+              }`}
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-6 flex items-center justify-end gap-3 pt-2">
+          <div
+            className={`p-4 -mx-6 -mb-6 border-t flex items-center justify-end space-x-2 ${
+              isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0]/60 border-slate-300'
+            }`}
+          >
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-50"
+              className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer disabled:opacity-50 ${
+                isDark
+                  ? 'bg-[#161b22] hover:bg-zinc-800 text-zinc-300 border-zinc-700'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!isNotesValid || isSubmitting}
-              className="flex items-center gap-2 rounded-xl bg-green-600 hover:bg-green-700 px-5 py-2.5 text-xs font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 text-xs font-bold text-white shadow-xs disabled:cursor-not-allowed disabled:opacity-50 transition-colors cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -223,7 +260,7 @@ export default function ResolutionNotesModal({
                   <span>Resolving Ticket...</span>
                 </>
               ) : (
-                <span>Confirm Resolution & Close</span>
+                <span>Confirm Resolution &amp; Close</span>
               )}
             </button>
           </div>
