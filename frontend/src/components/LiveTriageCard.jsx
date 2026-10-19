@@ -1,289 +1,172 @@
 /**
- * SmartComplaintHandler - Auto-Detection AI Triage Inspector Card
- * Dark Command Twin Theme with High-Contrast Telemetry
+ * SmartComplaintHandler - Campus Facility Triage & SLA Dispatch Guide
+ * 100% Client-Side Standby Guide — 0 Background Network Calls & 0 Token Burn While Typing.
+ * Classification & Dynamic SLA are executed strictly once upon submission.
  */
-import React, { useState, useEffect } from 'react';
-import { fetchTriagePreview } from '../api/triage';
+import React from 'react';
 import { useTheme } from '../context/ThemeContext';
-import PriorityBadge from './PriorityBadge';
 
-const DOMAIN_META = {
-  Electrical: {
-    label: 'Electrical & Power',
-    icon: '⚡',
-  },
-  Plumbing: {
-    label: 'Plumbing & Water',
-    icon: '💧',
-  },
-  'IT Support': {
-    label: 'IT & Campus Wi-Fi',
-    icon: '📶',
-  },
-  Carpentry: {
-    label: 'Carpentry & Civil',
-    icon: '🪚',
-  },
-  Infrastructure: {
-    label: 'Carpentry & Civil',
-    icon: '🪚',
-  },
-  Sanitation: {
-    label: 'Sanitation & Hygiene',
-    icon: '🧹',
-  },
-  General: {
-    label: 'General Facilities',
-    icon: '🏢',
-  },
-};
-
-const STANDBY_DOMAINS = [
-  { name: 'Electrical', icon: '⚡' },
-  { name: 'Plumbing', icon: '💧' },
-  { name: 'IT & Wi-Fi', icon: '📶' },
-  { name: 'Carpentry', icon: '🪚' },
-  { name: 'Sanitation', icon: '🧹' },
-  { name: 'Facilities', icon: '🏢' },
+const DEPARTMENTS = [
+  { name: 'Electrical', icon: '⚡', scope: 'Power, lights, fans, AC, MCB, geysers' },
+  { name: 'Plumbing', icon: '💧', scope: 'Pipes, leaks, taps, RO, flush, drains' },
+  { name: 'Sanitation', icon: '🧹', scope: 'Garbage, cleaning, hygiene, pests' },
+  { name: 'Carpentry', icon: '🪚', scope: 'Doors, windows, furniture, locks, hinges' },
+  { name: 'IT Support', icon: '📶', scope: 'Wi-Fi, LAN, internet, smart displays' },
+  { name: 'Facilities', icon: '🏢', scope: 'Roads, gates, signage, civil campus infra' },
 ];
 
-const SLA_BY_PRIORITY = {
-  CRITICAL: '2 Hours',
-  HIGH: '8 Hours',
-  MEDIUM: '24 Hours',
-  LOW: '72 Hours',
-};
+const SLA_TIERS = [
+  { level: 'CRITICAL', time: '2h SLA', desc: 'Immediate safety hazards, sparking, flooding', colorDark: 'text-rose-400 border-rose-800/80 bg-rose-950/40', colorLight: 'text-rose-700 border-rose-300 bg-rose-50' },
+  { level: 'HIGH', time: '8h SLA', desc: 'Major disruptions or security lock failures', colorDark: 'text-amber-400 border-amber-800/80 bg-amber-950/40', colorLight: 'text-amber-700 border-amber-300 bg-amber-50' },
+  { level: 'MEDIUM', time: '24h SLA', desc: 'Routine functional maintenance faults', colorDark: 'text-blue-400 border-blue-800/80 bg-blue-950/40', colorLight: 'text-blue-700 border-blue-300 bg-blue-50' },
+  { level: 'LOW', time: '72h SLA', desc: 'Minor cosmetic & non-blocking defects', colorDark: 'text-zinc-400 border-zinc-700 bg-zinc-800/50', colorLight: 'text-slate-700 border-slate-300 bg-slate-100' },
+];
 
 export default function LiveTriageCard({ title = '', description = '' }) {
   const { isDark } = useTheme();
-  const [triageData, setTriageData] = useState(null);
-  const [lastQueried, setLastQueried] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const cleanTitle = (title || '').trim();
-    const cleanDesc = (description || '').trim();
-
-    // Strict minimum character requirements to avoid premature queries
-    if (cleanTitle.length < 6 || cleanDesc.length < 15) {
-      setTriageData(null);
-      setLoading(false);
-      return;
-    }
-
-    const currentKey = `${cleanTitle.toLowerCase()}:::${cleanDesc.toLowerCase()}`;
-    if (currentKey === lastQueried) {
-      return; // Skip duplicate query
-    }
-
-    setLoading(true);
-    // 2500ms (2.5 full seconds) idle debounce: only queries once user completely stops typing for a few seconds
-    const timer = setTimeout(async () => {
-      try {
-        const result = await fetchTriagePreview(cleanTitle, cleanDesc);
-        setTriageData(result);
-        setLastQueried(currentKey);
-      } catch (_) {
-        setTriageData(null);
-      } finally {
-        setLoading(false);
-      }
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, [title, description, lastQueried]);
 
   const cleanTitle = (title || '').trim();
   const cleanDesc = (description || '').trim();
+  const isReady = cleanTitle.length >= 5 && cleanDesc.length >= 10;
 
-  if (cleanTitle.length < 5 || cleanDesc.length < 10) {
-    return (
-      <div className={`p-5 sm:p-6 space-y-4 rounded-2xl border transition-colors ${
-        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
-      }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className={`text-xs font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-              Auto-Triage Inspector
-            </span>
-          </div>
-          <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
-            isDark
-              ? 'text-emerald-400 bg-zinc-800 border-zinc-700'
-              : 'text-emerald-700 bg-emerald-50 border-emerald-200'
-          }`}>
-            ● Standby
+  return (
+    <div
+      className={`p-5 sm:p-6 space-y-4 rounded-2xl border transition-colors ${
+        isDark
+          ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl'
+          : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
+      }`}
+    >
+      {/* Header bar */}
+      <div
+        className={`flex items-center justify-between border-b pb-3 ${
+          isDark ? 'border-zinc-800' : 'border-slate-300'
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                isReady ? 'bg-emerald-400' : 'bg-cyan-400'
+              }`}
+            />
+            <span
+              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                isReady ? 'bg-emerald-500' : 'bg-cyan-500'
+              }`}
+            />
+          </span>
+          <span
+            className={`text-xs font-bold tracking-tight ${
+              isDark ? 'text-zinc-100' : 'text-slate-900'
+            }`}
+          >
+            Auto-Triage &amp; Dispatch Engine
           </span>
         </div>
+        <span
+          className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+            isReady
+              ? isDark
+                ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800'
+                : 'text-emerald-800 bg-emerald-100 border-emerald-300'
+              : isDark
+              ? 'text-zinc-400 bg-zinc-800 border-zinc-700'
+              : 'text-slate-600 bg-slate-200 border-slate-300'
+          }`}
+        >
+          {isReady ? 'Ready for Dispatch' : 'Awaiting Input'}
+        </span>
+      </div>
 
-        <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-          Start typing your issue summary and details. The classification engine automatically assigns the{' '}
-          <span className={isDark ? 'text-emerald-400 font-semibold' : 'text-emerald-700 font-semibold'}>Department</span>,{' '}
-          <span className={isDark ? 'text-emerald-400 font-semibold' : 'text-emerald-700 font-semibold'}>Squad</span>, and{' '}
-          <span className={isDark ? 'text-emerald-400 font-semibold' : 'text-emerald-700 font-semibold'}>SLA Priority</span>.
-        </p>
+      {/* Explanatory text */}
+      <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+        Upon clicking <span className="font-bold underline decoration-emerald-500">Submit</span>,
+        our high-performance campus AI model classifies your complaint into the right department,
+        assesses safety hazard risks, and binds an authoritative resolution timer.
+      </p>
 
-        {/* Domain Accent Badges */}
-        <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
-          {STANDBY_DOMAINS.map((dom) => (
+      {/* Campus Service Domains */}
+      <div className="space-y-1.5">
+        <span
+          className={`text-[10px] font-mono uppercase tracking-wider block font-bold ${
+            isDark ? 'text-zinc-500' : 'text-slate-500'
+          }`}
+        >
+          6 Automated Target Domains
+        </span>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {DEPARTMENTS.map((dept) => (
             <div
-              key={dom.name}
-              className={`p-2.5 rounded-xl border flex items-center justify-center gap-1.5 transition-colors text-xs font-semibold ${
+              key={dept.name}
+              className={`p-2.5 rounded-xl border flex flex-col justify-between transition-colors ${
                 isDark
-                  ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700 text-zinc-300'
-                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800 shadow-2xs'
+                  ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700'
+                  : 'bg-[#e2e8f0] border-slate-300 hover:border-slate-400 shadow-2xs'
               }`}
             >
-              <span className="text-sm">{dom.icon}</span>
-              <span className="truncate">{dom.name}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-base">{dept.icon}</span>
+                <span
+                  className={`text-xs font-bold truncate ${
+                    isDark ? 'text-zinc-200' : 'text-slate-800'
+                  }`}
+                >
+                  {dept.name}
+                </span>
+              </div>
+              <span
+                className={`text-[10px] mt-1 line-clamp-1 ${
+                  isDark ? 'text-zinc-400' : 'text-slate-600'
+                }`}
+              >
+                {dept.scope}
+              </span>
             </div>
           ))}
         </div>
       </div>
-    );
-  }
 
-  if (loading && !triageData) {
-    return (
-      <div className={`p-5 space-y-3 rounded-2xl border animate-pulse ${
-        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
-      }`}>
-        <div className="flex justify-between items-center">
-          <div className={`h-4 w-36 rounded ${isDark ? 'bg-zinc-800' : 'bg-slate-200'}`} />
-          <div className={`h-4 w-16 rounded ${isDark ? 'bg-zinc-800' : 'bg-slate-200'}`} />
-        </div>
-        <div className={`h-2 w-full rounded ${isDark ? 'bg-zinc-800' : 'bg-slate-200'}`} />
-      </div>
-    );
-  }
-
-  if (!triageData) return null;
-
-  const confidencePct = Math.round((triageData.confidence || 0) * 100);
-  const rawCat = triageData.category || 'General';
-  const domainInfo = DOMAIN_META[rawCat] || DOMAIN_META.General;
-  const priorityKey = (triageData.priority || 'MEDIUM').toUpperCase();
-
-  return (
-    <div className={`p-5 sm:p-6 space-y-4 rounded-2xl border transition-colors ${
-      isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
-    }`}>
-      <div className={`flex items-center justify-between border-b pb-3 ${
-        isDark ? 'border-zinc-800' : 'border-slate-300'
-      }`}>
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-          <span className={`text-xs font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-            AI Triage
-          </span>
-          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold border ${
-            isDark ? 'bg-zinc-800 text-cyan-400 border-zinc-700' : 'bg-cyan-50 text-cyan-800 border-cyan-200'
-          }`}>
-            {triageData.model_used ? (triageData.model_used.includes('allam') ? 'ALLaM 2 7B' : triageData.model_used) : (triageData.ai_powered ? 'ALLaM 2 7B' : 'Local Heuristic')}
-          </span>
-        </div>
-        <PriorityBadge priority={priorityKey} size="sm" dark={isDark} />
-      </div>
-
-      {triageData.hazard_detected && (
-        <div className={`rounded-xl border p-3 text-xs font-semibold flex items-center gap-2 ${
-          isDark ? 'bg-rose-950/80 border-rose-800 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-700'
-        }`}>
-          <span>⚠️</span>
-          <span>Safety Hazard Detected — Escalated to CRITICAL (2-Hour Emergency SLA)</span>
-        </div>
-      )}
-
-      {/* Target Department Banner */}
-      <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 ${
-        isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300 shadow-2xs'
-      }`}>
-        <div className="flex items-center gap-2.5">
-          <span className={`w-9 h-9 rounded-xl border flex items-center justify-center text-lg ${
-            isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-slate-300 shadow-2xs'
-          }`}>
-            {domainInfo.icon}
-          </span>
-          <div>
-            <span className={`text-[10px] font-mono uppercase tracking-wider block font-semibold ${
-              isDark ? 'text-zinc-500' : 'text-slate-500'
-            }`}>
-              Detected Department
-            </span>
-            <span className={`text-sm font-bold mt-0.5 block ${
-              isDark ? 'text-zinc-100' : 'text-slate-900'
-            }`}>
-              {domainInfo.label}
-            </span>
-          </div>
-        </div>
-        <div className="text-right">
-          <span className={`text-[10px] font-mono uppercase block font-semibold ${
+      {/* Dynamic SLA Commitments */}
+      <div className="space-y-1.5 pt-1">
+        <span
+          className={`text-[10px] font-mono uppercase tracking-wider block font-bold ${
             isDark ? 'text-zinc-500' : 'text-slate-500'
-          }`}>Target SLA</span>
-          <span className={`text-xs font-mono font-bold mt-0.5 block ${
-            isDark ? 'text-emerald-400' : 'text-emerald-700'
-          }`}>
-            {SLA_BY_PRIORITY[priorityKey] || '24 Hours'}
-          </span>
+          }`}
+        >
+          AI Dynamic SLA Resolution Tiers
+        </span>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          {SLA_TIERS.map((tier) => (
+            <div
+              key={tier.level}
+              className={`p-2.5 rounded-xl border flex items-center justify-between ${
+                isDark ? tier.colorDark : tier.colorLight
+              }`}
+            >
+              <div>
+                <span className="block font-black text-xs">{tier.level}</span>
+                <span className="block text-[10px] opacity-80">{tier.desc}</span>
+              </div>
+              <span className="font-mono font-black text-xs shrink-0 ml-1">{tier.time}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* AI Rationale & Explanation */}
-      {triageData.reason && (
-        <div className={`p-3 rounded-xl border text-xs leading-relaxed font-sans ${
-          isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-300' : 'bg-[#e2e8f0] border-slate-300 text-slate-800 shadow-2xs'
-        }`}>
-          <span className={`text-[10px] font-mono uppercase block font-semibold mb-0.5 ${
-            isDark ? 'text-zinc-500' : 'text-slate-500'
-          }`}>
-            AI Triage Rationale
-          </span>
-          {triageData.reason}
-        </div>
-      )}
-
-      {/* Confidence Meter */}
-      <div>
-        <div className="flex items-center justify-between text-xs mb-1.5">
-          <span className={isDark ? 'text-zinc-400 font-semibold' : 'text-slate-600 font-semibold'}>Classification Match</span>
-          <span className={`font-mono font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>{confidencePct}%</span>
-        </div>
-        <div className={`w-full rounded-full h-2 overflow-hidden border ${
-          isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-slate-200 border-slate-300'
-        }`}>
-          <div
-            className="h-full rounded-full transition-all duration-300 bg-emerald-500"
-            style={{ width: `${Math.max(12, confidencePct)}%` }}
-          />
-        </div>
+      {/* Zero Token Notice */}
+      <div
+        className={`p-2.5 rounded-xl border flex items-center gap-2 text-[11px] ${
+          isDark
+            ? 'bg-[#0e1117] border-zinc-800 text-zinc-400'
+            : 'bg-[#e2e8f0] border-slate-300 text-slate-700 shadow-2xs'
+        }`}
+      >
+        <span className="text-emerald-500 font-bold">⚡ Efficiency Guarantee:</span>
+        <span className="leading-tight">
+          Single-token dispatch. Zero background pings while drafting.
+        </span>
       </div>
-
-      {/* Matched Keywords */}
-      {triageData.matched_keywords && triageData.matched_keywords.length > 0 && (
-        <div className="space-y-1.5 pt-1">
-          <span className={`text-[10px] font-mono uppercase tracking-wider block font-semibold ${
-            isDark ? 'text-zinc-500' : 'text-slate-500'
-          }`}>
-            Matched Telemetry Signals
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {triageData.matched_keywords.map((kw, idx) => (
-              <span
-                key={idx}
-                className={`px-2.5 py-0.5 rounded-lg text-[11px] font-mono font-semibold border ${
-                  isDark
-                    ? 'bg-[#0e1117] text-emerald-400 border-zinc-800'
-                    : 'bg-[#e2e8f0] text-emerald-800 border-slate-300'
-                }`}
-              >
-                #{kw}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -246,9 +246,9 @@ def test_service_create_ticket_dynamic_priority(db_session):
     assert ticket.priority == "CRITICAL"
     assert ticket.department_id == 1
     assert ticket.sla_deadline is not None
-    # Critical SLA is 4 hours
+    # Critical SLA is 2 hours
     diff_hours = (ticket.sla_deadline - ticket.created_at).total_seconds() / 3600
-    assert abs(diff_hours - 4.0) < 0.1
+    assert abs(diff_hours - 2.0) < 0.1
 
 
 def test_service_override_ticket_priority_audit(db_session):

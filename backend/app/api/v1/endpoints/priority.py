@@ -58,6 +58,7 @@ def preview_triage(
         category=triage_info["category"],
         department_id=triage_info.get("department_id"),
         department_name=triage_info.get("department_name"),
+        sla_hours=triage_info.get("sla_hours"),
         hazard_detected=triage_info["hazard_detected"],
         confidence=triage_info["confidence"],
         reason=triage_info["reason"],

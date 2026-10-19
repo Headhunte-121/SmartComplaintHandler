@@ -15,8 +15,8 @@ from app.services.sla_engine import (
 
 
 def test_sla_policy_durations():
-    assert SLA_POLICIES["CRITICAL"] == 4
-    assert SLA_POLICIES["HIGH"] == 12
+    assert SLA_POLICIES["CRITICAL"] == 2
+    assert SLA_POLICIES["HIGH"] == 8
     assert SLA_POLICIES["MEDIUM"] == 24
     assert SLA_POLICIES["LOW"] == 72
     assert DEFAULT_SLA_HOURS == 24
@@ -26,10 +26,10 @@ def test_calculate_sla_deadline_utc():
     now = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
     
     crit_deadline = calculate_sla_deadline(now, "CRITICAL")
-    assert crit_deadline == now + timedelta(hours=4)
+    assert crit_deadline == now + timedelta(hours=2)
     
     high_deadline = calculate_sla_deadline(now, "HIGH")
-    assert high_deadline == now + timedelta(hours=12)
+    assert high_deadline == now + timedelta(hours=8)
     
     med_deadline = calculate_sla_deadline(now, "MEDIUM")
     assert med_deadline == now + timedelta(hours=24)

@@ -86,6 +86,7 @@ def create_ticket(
 
     # 2. Automated domain taxonomy classification & priority via AI (with cache & local fallback)
     final_priority = str(priority).upper() if priority else None
+    ai_sla_hours = None
 
     if (department_id is None or not final_priority) and title and description:
         ai_triage = classify_and_triage_with_ai(title, description)
@@ -93,6 +94,7 @@ def create_ticket(
             department_id = ai_triage.get("department_id")
         if not final_priority:
             final_priority = str(ai_triage.get("priority") or PRIORITY_MEDIUM).upper()
+        ai_sla_hours = ai_triage.get("sla_hours")
 
     if not final_priority:
         final_priority = PRIORITY_MEDIUM
@@ -115,8 +117,12 @@ def create_ticket(
         except Exception:
             assigned_team_id = None
 
-    # 5. SLA Deadline calculation based on assigned priority
-    calculated_deadline = calculate_sla_deadline(created_at=now, priority=final_priority)
+    # 5. SLA Deadline calculation based on assigned priority (with dynamic AI custom_hours)
+    calculated_deadline = calculate_sla_deadline(
+        created_at=now,
+        priority=final_priority,
+        custom_hours=ai_sla_hours
+    )
 
     db_ticket = Ticket(
         tracking_code=final_code,

@@ -28,40 +28,29 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini
 GEMINI_FALLBACK_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-TRIAGE_SYSTEM_PROMPT = """CRITICAL INSTRUCTION: You are the official Campus Facility & Institutional AI Classifier for IIIT Naya Raipur.
-Your task is to analyze maintenance grievances or campus queries lodged by students or faculty and assign the exact service department, squad classification, and SLA priority tier.
+TRIAGE_SYSTEM_PROMPT = """Classify routine facility complaints and campus queries from students/faculty across the entire IIIT Naya Raipur campus. These are maintenance tickets, not emergency dispatches. Return ONLY valid JSON.
 
-DEPARTMENTS (You MUST select exactly one of these 6 strings - NEVER invent new category names like "General Maintenance", "Civil", "Hostel", or "Security"):
-1. "Electrical" (id: 1) - power supply, switches, lights, bulbs, ceiling fans, AC units, desert coolers, MCB tripping, electrical wiring, sparking, sockets, geyser heating coil/element failure.
-2. "Plumbing" (id: 2) - water pipes, leakage, dripping taps, water coolers/RO lines, flush valves, cisterns, washbasins, jet sprays, commodes, drainage clogs, sewage overflow, indoor water flooding, geyser inlet/outlet water leaks.
-3. "Sanitation" (id: 3) - garbage disposal, trash bins, washroom cleanliness/sweeping, pest control (cockroach, rat, bedbug, mosquito breeding), foul odors, hygiene, waste accumulation.
-4. "Carpentry" (id: 4) - doors, windows, wooden furniture, study tables, chairs, almirahs/wardrobes, door locks, padlocks, latches, hinges, bed frames, whiteboard frames.
-5. "IT Support" (id: 5) - campus Wi-Fi access points, LAN ports, ethernet cables, student intranet portal, lab computers, classroom projectors, screen monitors, network connectivity.
-6. "General Administration" (id: 6) - campus grounds, security gates, signage, civil infrastructure, keys & access, miscellaneous facility requests.
+DEPARTMENTS:
+1 Electrical: power, lights, fans, AC, wiring, MCB, geyser heating.
+2 Plumbing: pipes, leaks, taps, RO, flush, drains, sewage, flooding, geyser water leaks.
+3 Sanitation: garbage, cleaning, odors, hygiene, pests.
+4 Carpentry: doors, windows, furniture, locks, hinges, latches, drawers.
+5 IT Support: Wi-Fi, LAN, internet, computers, projectors, monitors.
+6 General Administration: grounds, roads, buildings, gates, signage, access, miscellaneous facilities.
 
-DISAMBIGUATION & CONSISTENCY RULES:
-- PLUMBING vs. SANITATION: Any physical water pipe leak, leaking geyser valve, dripping tap, clogged washbasin, flush tank failure, or puddle from plumbing lines is ALWAYS "Plumbing", EVEN IF IT IS IN A WASHROOM OR TOILET. Assign "Sanitation" ONLY for trash, sweeping, foul odors, cleaning requests, or insect/pest infestations.
-- GEYSER DEFECTS: Water dripping or pipe leaking from a geyser is "Plumbing". Geyser electrical coil not heating water, switch sparking, or tripping the MCB is "Electrical".
-- DOOR LOCKS & FURNITURE: Broken door locks, room latches, loose hinges, or stuck almirah drawers are ALWAYS "Carpentry".
-- CRITICAL HAZARDS: Active electrical sparks, smoking appliances, burning smells, exposed live wires, or major indoor water flooding threatening electronics MUST be assigned "CRITICAL" priority and hazard_detected=true (SLA: 2 Hours).
+RULES: Water leaks/clogs/flush faults = Plumbing; cleaning/garbage/odors/pests = Sanitation. Geyser water leak = Plumbing; heating/electrical fault = Electrical. Locks/furniture = Carpentry. Select the main defect's department.
 
-PRIORITY LEVELS & SLA MATRIX:
-- "CRITICAL": Direct life-safety hazard or imminent danger (active fire, sparks, electric shock risk, gas leak, massive indoor flooding, elevator trapped, structural collapse). SLA: 2 Hours.
-- "HIGH": Severe operational disruption without immediate physical danger (entire wing/floor blackout, main room/hostel lock broken leaving room insecure, no running water in hostel, sewage backup). SLA: 8 Hours.
-- "MEDIUM": Standard everyday functional defect (broken fan speed regulator, individual LAN port dead, slowly dripping tap, single fused bulb, squeaky chair). SLA: 24 Hours.
-- "LOW": Minor cosmetic or aesthetic defect (scuffed wall paint, minor stain, loose non-vital screw, slight squeak). SLA: 72 Hours.
+PRIORITY/SLA:
+CRITICAL=2h: explicit immediate hazards.
+HIGH=8h: major service disruption or serious security defect.
+MEDIUM=24h: ordinary functional maintenance faults.
+LOW=72h: minor cosmetic defects.
+Use CRITICAL only for clearly described immediate danger, not merely because a complaint mentions a fault. Choose the highest justified priority. Set sla_hours dynamically: CRITICAL=2, HIGH=8, MEDIUM=24, LOW=72. hazard_detected=true only for explicit safety hazards; otherwise false. Never invent facts.
 
-Return ONLY a valid JSON object matching this schema:
-{
-  "department_id": integer (1-6),
-  "department_name": string (one of the 6 above),
-  "category": string (same as department_name),
-  "priority": string ("CRITICAL", "HIGH", "MEDIUM", "LOW"),
-  "hazard_detected": boolean,
-  "confidence": float between 0.85 and 0.99,
-  "reason": string (1-2 clear sentences explaining why this department and priority were chosen),
-  "matched_keywords": array of relevant technical keywords identified
-}"""
+OUTPUT JSON ONLY:
+{"department_id":1,"department_name":"Electrical","category":"Electrical","priority":"MEDIUM","sla_hours":24,"hazard_detected":false,"confidence":0.95,"reason":"Brief explanation.","matched_keywords":["relevant terms"]}
+
+Use exact department names; ID/category must match. Confidence 0.85-0.99. No extra keys or text."""
 
 
 def _get_active_ai_config(client_api_key: Optional[str] = None, client_provider: Optional[str] = None) -> Dict[str, Optional[str]]:
@@ -164,7 +153,7 @@ def _call_groq_api(api_key: str, title: str, description: str, model: Optional[s
             ],
             "temperature": 0.0,
             "seed": 42,
-            "max_tokens": 400,
+            "max_tokens": 200,
             "response_format": {"type": "json_object"},
         }
 
@@ -208,10 +197,9 @@ def classify_and_triage_with_ai(
 ) -> Dict[str, Any]:
     """
     Primary AI Triage Entry Point.
-    Attempts classification using Google Gemini (or Groq). If an API key is available
-    and the request succeeds, returns rich AI diagnostics.
+    Attempts classification using Groq / Gemini in strict single-call mode with dynamic SLA.
     If no API key is provided, or in offline/error conditions, seamlessly falls back to
-    the local deterministic classification and priority engine.
+    the local deterministic classification and priority engine as a safety backup.
     """
     clean_title = (title or "").strip()
     clean_desc = (description or "").strip()
@@ -235,6 +223,17 @@ def classify_and_triage_with_ai(
             if priority not in ("CRITICAL", "HIGH", "MEDIUM", "LOW"):
                 priority = "MEDIUM"
 
+            # Dynamic SLA hours with priority fallback
+            raw_sla = ai_result.get("sla_hours")
+            try:
+                sla_hours = int(raw_sla) if raw_sla is not None else None
+            except (ValueError, TypeError):
+                sla_hours = None
+
+            if not sla_hours or sla_hours <= 0:
+                sla_map = {"CRITICAL": 2, "HIGH": 8, "MEDIUM": 24, "LOW": 72}
+                sla_hours = sla_map.get(priority, 24)
+
             hazard_detected = bool(ai_result.get("hazard_detected", priority == "CRITICAL"))
             confidence = float(ai_result.get("confidence", 0.95))
             confidence = max(0.1, min(1.0, confidence))
@@ -247,6 +246,7 @@ def classify_and_triage_with_ai(
                 "category": dept_name,
                 "priority": priority,
                 "suggested_priority": priority,
+                "sla_hours": sla_hours,
                 "hazard_detected": hazard_detected,
                 "confidence": round(confidence, 2),
                 "reason": reason,
@@ -256,9 +256,9 @@ def classify_and_triage_with_ai(
                 "model_used": ai_result.get("model_used", getattr(settings, "GROQ_MODEL", "allam-2-7b") if provider == "groq" else "gemini-2.0-flash"),
             }
         except Exception as err:
-            logger.warning(f"AI triage request to {provider} failed: {err}. Falling back to local heuristic engine.")
+            logger.warning(f"AI triage request to {provider} failed: {err}. Falling back to local heuristic backup engine.")
 
-    # 2. Local Deterministic Semantic Engine Fallback
+    # 2. Local Deterministic Semantic Engine Fallback (Backup Only)
     priority_info = calculate_priority(clean_title, clean_desc)
     classification_info = classify_ticket(clean_title, clean_desc)
 
@@ -271,17 +271,21 @@ def classify_and_triage_with_ai(
         f"Priority '{priority_info['priority']}' assigned: {priority_info['reason']}"
     )
 
+    sla_map = {"CRITICAL": 2, "HIGH": 8, "MEDIUM": 24, "LOW": 72}
+    sla_hours = sla_map.get(priority_info["priority"], 24)
+
     return {
         "department_id": classification_info["department_id"],
         "department_name": classification_info["department_name"],
         "category": classification_info["category"],
         "priority": priority_info["priority"],
         "suggested_priority": priority_info["priority"],
+        "sla_hours": sla_hours,
         "hazard_detected": priority_info["hazard_detected"],
         "confidence": classification_info["confidence"],
         "reason": reason,
         "matched_keywords": all_keywords,
         "ai_powered": False,
         "provider": "local-heuristic",
-        "model_used": "deterministic-rules",
+        "model_used": "deterministic-rules-backup",
     }

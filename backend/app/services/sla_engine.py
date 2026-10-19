@@ -8,10 +8,10 @@ from typing import Any, Dict, Optional
 
 # Authoritative SLA duration commitments in hours by priority tier
 SLA_POLICIES: Dict[str, int] = {
-    "CRITICAL": 4,   # 4 Hours: Life safety, severe structural or complete electrical/water failure
-    "HIGH": 12,       # 12 Hours: Major utility outage or room-level impediment
-    "MEDIUM": 24,     # 24 Hours: Routine physical repairs, single socket, leaking tap
-    "LOW": 72,        # 72 Hours: Cosmetic imperfections, minor furniture adjustments
+    "CRITICAL": 2,   # 2 Hours: Life safety, severe structural or complete electrical/water failure
+    "HIGH": 8,       # 8 Hours: Major utility outage or room-level impediment
+    "MEDIUM": 24,    # 24 Hours: Routine physical repairs, single socket, leaking tap
+    "LOW": 72,       # 72 Hours: Cosmetic imperfections, minor furniture adjustments
 }
 
 DEFAULT_SLA_HOURS: int = 24
@@ -25,18 +25,20 @@ def _ensure_utc(dt: datetime) -> datetime:
     return dt.astimezone(timezone.utc)
 
 
-def calculate_sla_deadline(created_at: datetime, priority: str) -> datetime:
+def calculate_sla_deadline(
+    created_at: datetime,
+    priority: str,
+    custom_hours: Optional[float] = None
+) -> datetime:
     """
     Calculate the contractual resolution deadline timestamp from intake time and priority.
-    
-    Args:
-        created_at: The initial grievance intake timestamp.
-        priority: Priority string ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW').
-        
-    Returns:
-        Timezone-aware UTC datetime of the calculated SLA deadline.
+    If custom_hours (e.g. from dynamic AI triage) is provided and positive, it uses that duration.
+    Otherwise falls back to the authoritative SLA_POLICIES duration commitment.
     """
     normalized_created_at = _ensure_utc(created_at)
+    if custom_hours is not None and custom_hours > 0:
+        return normalized_created_at + timedelta(hours=float(custom_hours))
+
     normalized_priority = (priority or "MEDIUM").strip().upper()
     duration_hours = SLA_POLICIES.get(normalized_priority, DEFAULT_SLA_HOURS)
     return normalized_created_at + timedelta(hours=duration_hours)
