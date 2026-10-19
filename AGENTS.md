@@ -300,10 +300,28 @@ npm run build
 
 ---
 
-## 6. Checklist for AI Agents Before Completing Any Turn
+## 6. Cloud Infrastructure & Deployment Architecture (Vercel & Supabase)
+
+> [!IMPORTANT]
+> **Production Hosting & Database Platform Details:**
+> - **Frontend & Serverless API Deployment: Vercel**
+>   - The Single-Page Application (Vite / React) and backend serverless endpoints are deployed and hosted on **Vercel**.
+>   - Backend routes run through the serverless bridge in `api/index.py` configured via `vercel.json` (`@vercel/python` builder, routed in region `bom1` Mumbai).
+> - **Production Database: Supabase (Managed PostgreSQL)**
+>   - Production data is stored on a **Supabase PostgreSQL** cluster.
+>   - Connection pooling and direct URLs are injected via Vercel environment variables (`DATABASE_URL`, `POSTGRES_URL`, `SUPABASE_DB_URL`).
+>   - **Local Fallback:** Local development and automated pytest test suites fall back cleanly to SQLite (`smart_complaints.db`).
+>   - **Dual-Engine Compatibility Directive:** All SQLAlchemy models, column types, relationships, and queries MUST remain strictly compatible with both Supabase PostgreSQL and SQLite. Never write engine-specific SQL without conditional compatibility logic.
+> - **Credentials & Secrets:** Production keys (Google OAuth Client ID/Secret, Groq API Keys, JWT HMAC keys) are managed in Vercel Environment Variables.
+
+---
+
+## 7. Checklist for AI Agents Before Completing Any Turn
 
 - [ ] Have all code modifications been tested with pytest and `npm run build`?
 - [ ] If any changes, bug fixes, or reconciliations were made to a module, was an entry added to the **"Additional Changes & Development Modifications"** section in `docs/V1/M<N>/`?
 - [ ] Are all blueprint verification sections written in the **"What it is responsible for / What it should perform / How to see it performing"** format?
 - [ ] Is git status clean and free of temporary scratch files?
-- [ ] Did you avoid running `git push`? (Keep commits strictly local unless requested).
+- [ ] Are all models and queries compatible with both Supabase PostgreSQL and SQLite?
+- [ ] Did you avoid running `git push` unless explicitly instructed by the user? (Run only when requested).
+
