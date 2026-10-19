@@ -14,12 +14,6 @@ export default function Layout() {
     return <Navigate to="/login" replace />;
   }
 
-  const isFlushPage =
-    location.pathname === '/' ||
-    location.pathname === '/map' ||
-    location.pathname === '/submit' ||
-    location.pathname === '/student';
-
   return (
     <div
       className={`min-h-screen flex flex-col font-sans antialiased transition-colors duration-200 ${
@@ -29,7 +23,7 @@ export default function Layout() {
       }`}
     >
       <Navbar />
-      <main className={`flex-1 w-full ${isFlushPage ? 'p-0 m-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
+      <main className="flex-1 w-full p-0 m-0">
         <Outlet />
       </main>
       <Footer isDark={isDark} />

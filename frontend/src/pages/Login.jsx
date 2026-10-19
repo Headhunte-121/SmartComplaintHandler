@@ -266,21 +266,6 @@ export default function Login() {
         isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
       }`}
     >
-      {/* Ambient background glows & mesh */}
-      {isDark ? (
-        <>
-          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[540px] h-[540px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-32 right-1/4 w-[420px] h-[420px] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none" />
-        </>
-      ) : (
-        <>
-          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[540px] h-[540px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-32 right-1/4 w-[420px] h-[420px] bg-slate-300/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
-        </>
-      )}
-
       {/* Top Theme Switcher */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 pointer-events-auto">
         <button
@@ -349,7 +334,7 @@ export default function Login() {
           }`}
         >
           {/* Top emerald accent line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
 
           {error && (
             <div
@@ -511,7 +496,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/25 transition-all cursor-pointer disabled:opacity-50"
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -575,7 +560,7 @@ export default function Login() {
                     launchGoogleWorkspaceFlow(cleaned);
                   }
                 }}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 text-white text-xs font-bold shadow-sm cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
               >
                 Save &amp; Continue
               </button>

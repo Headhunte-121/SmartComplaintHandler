@@ -255,7 +255,7 @@ export default function StudentDashboard() {
           <div className="flex items-center space-x-2.5 shrink-0">
             <Link
               to="/submit"
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-black text-xs shadow-md shadow-emerald-700/25 transition-all inline-flex items-center gap-2 cursor-pointer border border-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0"
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
               + Submit Issue
             </Link>
@@ -302,7 +302,7 @@ export default function StudentDashboard() {
                 : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
             }`}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
             <div>
               <span className={`text-[11px] font-bold uppercase tracking-wider block font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
                 Active Issues
@@ -327,7 +327,7 @@ export default function StudentDashboard() {
                 : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
             }`}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
             <div>
               <span className={`text-[11px] font-bold uppercase tracking-wider block font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
                 Resolved
@@ -352,7 +352,7 @@ export default function StudentDashboard() {
                 : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
             }`}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-indigo-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-sky-500" />
             <div>
               <span className={`text-[11px] font-bold uppercase tracking-wider block font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
                 Avg Satisfaction
@@ -381,7 +381,7 @@ export default function StudentDashboard() {
               : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
           }`}
         >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
 
           <div
             className={`p-5 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
@@ -466,7 +466,7 @@ export default function StudentDashboard() {
               <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>No maintenance requests found.</p>
               <Link
                 to="/submit"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold text-xs shadow-md transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors"
               >
                 + Submit Issue
               </Link>
@@ -580,7 +580,7 @@ export default function StudentDashboard() {
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
 
             <div className={`flex items-center justify-between border-b pb-3 ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
               <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Select Your Hostel &amp; Room</h3>
@@ -702,7 +702,7 @@ export default function StudentDashboard() {
                 <button
                   type="submit"
                   disabled={savingResidence}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {savingResidence ? 'Saving...' : 'Save Room'}
                 </button>
@@ -724,7 +724,7 @@ export default function StudentDashboard() {
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-yellow-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
 
             <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
               Rate Repair ({selectedTicketForFeedback.tracking_code})
@@ -772,7 +772,7 @@ export default function StudentDashboard() {
                 <button
                   type="submit"
                   disabled={isSubmittingFeedback}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Submit Rating
                 </button>

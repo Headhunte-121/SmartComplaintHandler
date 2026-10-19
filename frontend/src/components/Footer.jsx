@@ -9,7 +9,7 @@ export default function Footer({ isDark = false }) {
       className={`border-t mt-auto transition-colors ${
         isDark
           ? 'bg-[#161b22] text-zinc-400 border-zinc-800'
-          : 'bg-white text-slate-500 border-slate-200'
+          : 'bg-[#f1f5f9] text-slate-600 border-slate-300'
       }`}
     >
       <div className="w-full px-4 sm:px-8 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
