@@ -158,7 +158,7 @@ export const EXACT_BUILDING_POLYGONS = {
     "cy": 631.8,
     "w": 60.7,
     "h": 63.8,
-    "color": "#6366f1",
+    "color": "#2563eb",
     "badge": "BH-2",
     "wings": [
       {
@@ -176,7 +176,7 @@ export const EXACT_BUILDING_POLYGONS = {
     "cy": 514.7,
     "w": 73.7,
     "h": 72.2,
-    "color": "#7c3aed",
+    "color": "#0ea5e9",
     "badge": "BH-1",
     "wings": [
       {
@@ -192,7 +192,7 @@ export const EXACT_BUILDING_POLYGONS = {
     "cy": 122.9,
     "w": 51.6,
     "h": 66.0,
-    "color": "#0891b2",
+    "color": "#0d9488",
     "badge": "SC",
     "wings": [
       {
@@ -226,7 +226,7 @@ export const EXACT_BUILDING_POLYGONS = {
     "cy": 648.0,
     "w": 128.1,
     "h": 100.0,
-    "color": "#16a34a",
+    "color": "#22c55e",
     "badge": "P",
     "wings": [],
     "courtyards": [
@@ -260,7 +260,7 @@ export const EXACT_BUILDING_POLYGONS = {
     "cy": 521.2,
     "w": 51.4,
     "h": 57.5,
-    "color": "#0d9488",
+    "color": "#059669",
     "badge": "AGH",
     "wings": [
       {
@@ -276,7 +276,7 @@ export const EXACT_BUILDING_POLYGONS = {
     "cy": 569.6,
     "w": 35.0,
     "h": 22.0,
-    "color": "#2563eb",
+    "color": "#d97706",
     "badge": "VC",
     "wings": [
       {
@@ -313,7 +313,7 @@ export const EXACT_BUILDING_POLYGONS = {
     "cy": 444.7,
     "w": 72.5,
     "h": 66.4,
-    "color": "#d97706",
+    "color": "#b45309",
     "badge": "Am-1",
     "wings": [
       {
@@ -345,7 +345,7 @@ export const EXACT_BUILDING_POLYGONS = {
     "cy": 440.5,
     "w": 64.0,
     "h": 65.0,
-    "color": "#6366f1",
+    "color": "#7c3aed",
     "badge": "B-17",
     "wings": [
       {

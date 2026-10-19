@@ -56,7 +56,7 @@ export default function DigitalTwinCanvas({
     const cy = b.trace?.cy ?? P?.cy ?? 524;
     const w = b.trace?.w || P?.w || 54;
     const h = b.trace?.h || P?.h || 46;
-    const baseColor = b.trace?.color || b.mapPin?.color || P?.color || '#0284c7';
+    const baseColor = b.color || b.trace?.color || b.mapPin?.color || P?.color || '#0284c7';
 
     const fillOpacity = isBlueprint ? 0.35 : isSelected ? 0.98 : isLight ? 0.92 : 0.88;
     const strokeColor = isSelected
@@ -168,7 +168,7 @@ export default function DigitalTwinCanvas({
     const P = EXACT_BUILDING_POLYGONS[b.id];
     const cx = b.trace?.cx ?? P?.cx ?? 606;
     const cy = b.trace?.cy ?? P?.cy ?? 524;
-    const baseColor = b.trace?.color || b.mapPin?.color || P?.color || '#0284c7';
+    const baseColor = b.color || b.trace?.color || b.mapPin?.color || P?.color || '#0284c7';
     const labelPos = LABEL_POSITIONS[b.id] || { x: cx, y: cy - 32 };
 
     const badgeText = b.trace?.badge || b.mapPin?.badge || P?.badge || 'ZONE';

@@ -639,7 +639,7 @@
       "shortName": "Bhabha House",
       "badge": "GH-2",
       "category": "HOSTEL",
-      "color": "#ec4899",
+      "color": "#9333ea",
       "mapPin": {
         "lat": 21.127835,
         "lng": 81.764087
@@ -755,7 +755,7 @@
       "shortName": "Bose House",
       "badge": "BH-2",
       "category": "HOSTEL",
-      "color": "#4f46e5",
+      "color": "#2563eb",
       "mapPin": {
         "lat": 21.127634,
         "lng": 81.76469
@@ -851,7 +851,7 @@
       "shortName": "Raman House",
       "badge": "BH-1",
       "category": "HOSTEL",
-      "color": "#4f46e5",
+      "color": "#0ea5e9",
       "mapPin": {
         "lat": 21.128425,
         "lng": 81.767507
@@ -945,7 +945,7 @@
       "shortName": "Sports Complex",
       "badge": "SC",
       "category": "INFRASTRUCTURE",
-      "color": "#6366f1",
+      "color": "#0d9488",
       "mapPin": {
         "lat": 21.131072,
         "lng": 81.764771
@@ -1002,7 +1002,7 @@
       "shortName": "Basketball Court",
       "badge": "BC",
       "category": "INFRASTRUCTURE",
-      "color": "#6366f1",
+      "color": "#ea580c",
       "mapPin": {
         "lat": 21.128975,
         "lng": 81.766248
@@ -1046,7 +1046,7 @@
       "shortName": "Palm Park",
       "badge": "P",
       "category": "AMENITY",
-      "color": "#6366f1",
+      "color": "#22c55e",
       "mapPin": {
         "lat": 21.127524,
         "lng": 81.76553
@@ -1096,7 +1096,7 @@
       "shortName": "Sabari House",
       "badge": "GH-1",
       "category": "HOSTEL",
-      "color": "#ec4899",
+      "color": "#db2777",
       "mapPin": {
         "lat": 21.129551,
         "lng": 81.7663
@@ -1152,7 +1152,7 @@
       "shortName": "Guest House",
       "badge": "AGH",
       "category": "AMENITY",
-      "color": "#6366f1",
+      "color": "#059669",
       "mapPin": {
         "lat": 21.128381,
         "lng": 81.764857
@@ -1256,7 +1256,7 @@
       "shortName": "Volleyball Court",
       "badge": "VC",
       "category": "INFRASTRUCTURE",
-      "color": "#6366f1",
+      "color": "#d97706",
       "mapPin": {
         "lat": 21.128054,
         "lng": 81.7651
@@ -1275,7 +1275,7 @@
       "shortName": "New Amphi",
       "badge": "Am-2",
       "category": "AMENITY",
-      "color": "#1d1f90",
+      "color": "#10b981",
       "mapPin": {
         "lat": 21.127579,
         "lng": 81.766785
@@ -1516,7 +1516,7 @@
       "shortName": "Old Amphi",
       "badge": "Am-1",
       "category": "AMENITY",
-      "color": "#6366f1",
+      "color": "#b45309",
       "mapPin": {
         "lat": 21.128898,
         "lng": 81.765888
@@ -1586,7 +1586,7 @@
       "shortName": "Football Ground",
       "badge": "FG",
       "category": "INFRASTRUCTURE",
-      "color": "#6366f1",
+      "color": "#15803d",
       "mapPin": {
         "lat": 21.129261,
         "lng": 81.765586
@@ -1636,7 +1636,7 @@
       "shortName": "Incubation Center",
       "badge": "B-17",
       "category": "AMENITY",
-      "color": "#6366f1",
+      "color": "#7c3aed",
       "mapPin": {
         "lat": 21.128913,
         "lng": 81.76686
