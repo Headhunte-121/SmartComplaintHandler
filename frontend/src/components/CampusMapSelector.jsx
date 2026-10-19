@@ -15,6 +15,7 @@ import { useTheme } from '../context/ThemeContext';
 import {
   IIITNR_MAP_UPDATED_EVENT,
   getCampusBuildings,
+  fetchAndCacheCampusBuildings,
   resetCampusBuildingsToDefault,
   getFloorsForBuilding,
   getRoomsForBuilding,
@@ -104,7 +105,20 @@ export default function CampusMapSelector({
   }, [selectedRoom]);
 
   useEffect(() => {
-    const handleUpdate = () => setBuildings(getCampusBuildings());
+    // Proactively fetch campus buildings from backend database on mount
+    fetchAndCacheCampusBuildings().then((remote) => {
+      if (Array.isArray(remote) && remote.length > 0) {
+        setBuildings(remote);
+      }
+    });
+
+    const handleUpdate = (e) => {
+      if (e?.detail && Array.isArray(e.detail) && e.detail.length > 0) {
+        setBuildings(e.detail);
+      } else {
+        setBuildings(getCampusBuildings());
+      }
+    };
     window.addEventListener(IIITNR_MAP_UPDATED_EVENT, handleUpdate);
     return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, handleUpdate);
   }, []);
@@ -487,6 +501,15 @@ export default function CampusMapSelector({
           handleTouchMove={handleTouchMove}
           handleTouchEnd={handleTouchEnd}
         />
+
+        {buildings.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-2xs z-30 pointer-events-none">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-zinc-900/90 text-zinc-100 border border-zinc-700 shadow-xl">
+              <div className="w-3.5 h-3.5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs font-medium tracking-wide">Connecting to campus database...</span>
+            </div>
+          </div>
+        )}
 
         {/* Floating Camera & Layer Controls Toolbar */}
         <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">

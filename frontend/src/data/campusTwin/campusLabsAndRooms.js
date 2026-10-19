@@ -3,7 +3,8 @@
  *
  * Lightweight client metadata presets for IIIT Naya Raipur.
  * Canonical campus entities (buildings, polygons, floors, and rooms) are stored
- * and managed in the database (API: /api/v1/campus/buildings & /campus/roads).
+ * and managed strictly in the backend database (API: /api/v1/campus/buildings & /campus/roads).
+ * Zero static building dictionaries in frontend bundle.
  */
 
 export const IIITNR_CAMPUS_METADATA = {
@@ -66,6 +67,6 @@ export const HOSTEL_COMMON_ZONES = [
   'Wi-Fi Ceiling Access Point',
 ];
 
-// No 50KB static JSON blob sitting in the frontend bundle.
-// All campus buildings are loaded dynamically from the backend database via /api/v1/campus/buildings.
+// Zero static building details in frontend bundle.
+// All campus buildings and rooms are loaded dynamically from the backend database via /api/v1/campus/buildings.
 export const DEFAULT_IIITNR_BUILDINGS = [];

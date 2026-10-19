@@ -114,18 +114,29 @@ def ensure_schema() -> None:
     try:
         with engine.begin() as conn:
             if "sqlite" not in str(engine.url):
+                # Ensure users table columns exist in PostgreSQL / Supabase
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hostel_name VARCHAR(120);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS room_number VARCHAR(60);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_name VARCHAR(100);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_id INTEGER;"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50) DEFAULT 'password';"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT TRUE;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'STUDENT';"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0;"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP WITH TIME ZONE;"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE;"))
+
+                # Ensure tickets table columns exist in PostgreSQL / Supabase
+                conn.execute(text("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS student_name VARCHAR(150);"))
+                conn.execute(text("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS student_email VARCHAR(150);"))
+                conn.execute(text("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS feedback_rating INTEGER;"))
+                conn.execute(text("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS feedback_comments TEXT;"))
+                conn.execute(text("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS feedback_submitted_at TIMESTAMP WITH TIME ZONE;"))
                 return
 
             res = conn.execute(text("PRAGMA table_info(tickets);"))

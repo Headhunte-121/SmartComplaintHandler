@@ -18,7 +18,9 @@ from app.core.config import settings
 from app.core.database import engine, SessionLocal
 from app.db.base import Base  # noqa: F401
 from app.api.v1.router import api_router
-from app.db.seed import ensure_schema, seed_database
+from app.models.department import Department
+from app.models.campus import CampusBuilding
+from app.db.seed import ensure_schema, seed_database, seed_campus_infrastructure
 
 logger = logging.getLogger(__name__)
 
@@ -49,27 +51,26 @@ def _is_allowed_origin(origin: str) -> bool:
 
 def _initialize_database() -> None:
     """
-    Run DDL schema checks only on local SQLite, pytest, or when RUN_SCHEMA_MIGRATION=true.
+    Idempotently verifies schema tables and baseline institutional data.
+    Automatically self-heals empty SQLite or Supabase PostgreSQL databases.
     """
     try:
-        is_pytest = "pytest" in sys.modules
-        is_sqlite = "sqlite" in str(engine.url)
-        run_migration = os.getenv("RUN_SCHEMA_MIGRATION", "false").lower() in ("true", "1", "yes")
-
-        if is_sqlite or is_pytest or run_migration:
-            ensure_schema()
-
-        auto_seed = getattr(
-            settings,
-            "AUTO_SEED_ON_STARTUP",
-            os.getenv("AUTO_SEED_ON_STARTUP", "false").lower() in ("true", "1", "yes"),
-        )
-        if auto_seed or is_pytest:
-            db = SessionLocal()
-            try:
+        ensure_schema()
+        db = SessionLocal()
+        try:
+            # Check baseline departments
+            dept_count = db.query(Department).count()
+            if dept_count == 0:
+                logger.info("Database unseeded: populating institutional departments, teams, and staff...")
                 seed_database(db)
-            finally:
-                db.close()
+            else:
+                # Ensure campus digital twin infrastructure is seeded
+                bldg_count = db.query(CampusBuilding).count()
+                if bldg_count == 0:
+                    logger.info("Campus infrastructure unseeded: populating GIS digital twin buildings and roads...")
+                    seed_campus_infrastructure(db)
+        finally:
+            db.close()
     except Exception as e:
         logger.warning(f"Database initialization notice: {e}")
 

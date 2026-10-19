@@ -12,7 +12,7 @@ from app.api.deps import get_db, require_roles
 from app.models.campus import CampusBuilding, CampusRoad
 from app.schemas.campus import BuildingBase, RoadBase, CampusSyncRequest
 from app.schemas.user import UserResponse
-from app.db.seed import seed_campus_infrastructure
+from app.db.seed import ensure_schema, seed_campus_infrastructure
 
 router = APIRouter()
 
@@ -23,7 +23,13 @@ def get_buildings(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
     Returns the authoritative list of campus buildings, floors, rooms, and GIS polygons
     persisted in the database.
     """
-    buildings = db.query(CampusBuilding).order_by(CampusBuilding.display_order, CampusBuilding.name).all()
+    try:
+        buildings = db.query(CampusBuilding).order_by(CampusBuilding.display_order, CampusBuilding.name).all()
+    except Exception:
+        db.rollback()
+        ensure_schema()
+        buildings = []
+
     if not buildings:
         # If DB is empty, automatically seed with canonical GIS studio entities
         seed_campus_infrastructure(db)
