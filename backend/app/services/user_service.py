@@ -121,6 +121,36 @@ IIITNR_KNOWN_STAFF: Dict[str, Dict[str, Any]] = {
         "department_name": "IT Support",
         "identifier": "Network Engineer (Room 131E)",
     },
+    "tech.ramesh@iiitnr.edu.in": {
+        "name": "Ramesh Kumar (Electrical Tech Lead)",
+        "role": "TECHNICIAN",
+        "department_name": "Electrical",
+        "identifier": "Electrical Field Tech (Squad 1)",
+    },
+    "tech.suresh@iiitnr.edu.in": {
+        "name": "Suresh Patel (Plumbing Specialist)",
+        "role": "TECHNICIAN",
+        "department_name": "Plumbing",
+        "identifier": "Plumbing Field Tech (Squad 2)",
+    },
+    "tech.rajesh@iiitnr.edu.in": {
+        "name": "Rajesh Baghel (Sanitation Supervisor)",
+        "role": "TECHNICIAN",
+        "department_name": "Sanitation",
+        "identifier": "Sanitation Field Crew (Squad 3)",
+    },
+    "tech.vikram@iiitnr.edu.in": {
+        "name": "Vikram Sahu (Master Carpenter)",
+        "role": "TECHNICIAN",
+        "department_name": "Carpentry",
+        "identifier": "Carpentry and Civil Crew (Squad 4)",
+    },
+    "tech.amit@iiitnr.edu.in": {
+        "name": "Amit Sharma (Estate and Facility Tech)",
+        "role": "TECHNICIAN",
+        "department_name": "General Administration",
+        "identifier": "Facilities and Civil Tech (Squad 8)",
+    },
     "ambika@iiitnr.edu.in": {
         "name": "Ambika Prasad Choubey (Assistant Registrar)",
         "role": "ADMIN",
