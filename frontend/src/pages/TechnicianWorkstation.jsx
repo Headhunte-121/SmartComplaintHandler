@@ -567,6 +567,8 @@ export default function TechnicianWorkstation() {
                             slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
                             priority={ticket.priority}
                             status={ticket.status}
+                            resolvedAt={ticket.resolved_at}
+                            dark={isDark}
                           />
                         </div>
                       ) : (

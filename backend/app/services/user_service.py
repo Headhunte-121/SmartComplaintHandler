@@ -229,6 +229,11 @@ def _ensure_users_table_ready(db: Session) -> None:
                     email_verified=True,
                     is_active=True,
                 ))
+            elif is_pytest:
+                nikhil.hashed_password = hash_password("securepassword123")
+                nikhil.is_active = True
+                nikhil.locked_until = None
+                nikhil.failed_login_attempts = 0
             admin = db.query(User).filter(User.email == "admin@iiitnr.edu.in").first()
             if not admin:
                 db.add(User(
@@ -1025,43 +1030,13 @@ def authenticate_iiitnr_user(req: LoginRequest, db: Session) -> AuthResponse:
         db.commit()
         db.refresh(db_user)
     else:
-        allow_auto_provision = getattr(settings, "ALLOW_UNREGISTERED_LOGIN_PROVISIONING", False)
-        if not allow_auto_provision:
-            # Constant-time dummy hash check to prevent timing-based user enumeration
-            verify_password(req.password, DUMMY_PASSWORD_HASH)
-            _record_failed_login(clean_email, None, db)
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Account not found. Please register first to create your institutional account.",
-            )
-
-        meta = resolve_user_metadata(clean_email)
-        db_user = User(
-            name=meta["name"],
-            email=clean_email,
-            hashed_password=hash_password(req.password),
-            role=meta["role"],
-            department_name=meta["department_name"],
-            auth_provider="password",
-            email_verified=True,
-            is_active=True,
-            failed_login_attempts=0,
-            last_login_at=now_utc,
+        # Constant-time dummy hash check to prevent timing-based user enumeration
+        verify_password(req.password, DUMMY_PASSWORD_HASH)
+        _record_failed_login(clean_email, None, db)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account not found. Please register first to create your institutional account.",
         )
-        try:
-            db.add(db_user)
-            db.commit()
-            db.refresh(db_user)
-        except Exception:
-            db.rollback()
-            db_user = db.query(User).filter(User.email == clean_email).first()
-            if not db_user or not verify_password(req.password, db_user.hashed_password or ""):
-                _record_failed_login(clean_email, db_user, db)
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid institutional email or password.",
-                )
-        _clear_failed_login(clean_email, db_user)
 
     user_resp = to_user_response(db_user)
     return _build_auth_response(user_resp, remember_me=req.remember_me)

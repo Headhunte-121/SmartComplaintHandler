@@ -3,14 +3,14 @@ SmartComplaintHandler - SLA & Lifecycle Schemas
 Blueprint Reference: V1/M5/backend/03_sla_schemas.md
 Role: DTOs for lifecycle status updates, closure documentation, and active breach reporting.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
 
 HAS_PYDANTIC_V2 = hasattr(BaseModel, "model_validate")
 if HAS_PYDANTIC_V2:
-    from pydantic import ConfigDict
+    from pydantic import ConfigDict, field_serializer
 else:
     from pydantic import root_validator
 
@@ -85,6 +85,16 @@ class SLABreachResponse(BaseModel):
 
     if HAS_PYDANTIC_V2:
         model_config = ConfigDict(from_attributes=True)
+
+        @field_serializer("sla_deadline", when_used="json-unless-none")
+        def _serialize_sla_deadline_utc(self, dt: Optional[datetime]) -> Optional[str]:
+            if dt is None:
+                return None
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            return dt.isoformat()
     else:
         class Config:
             orm_mode = True

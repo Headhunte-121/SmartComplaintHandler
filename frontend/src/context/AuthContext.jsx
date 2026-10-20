@@ -11,6 +11,7 @@ import {
 } from '../api/auth';
 import {
   AUTH_EXPIRED_EVENT,
+  AUTH_FORBIDDEN_EVENT,
   AUTH_EXPIRES_AT_KEY,
   AUTH_TOKEN_KEY,
   AUTH_USER_KEY,
@@ -18,29 +19,17 @@ import {
   isTokenExpired,
 } from '../api/client';
 
-// Enterprise Security: Mock testing personas are strictly stripped and disabled in production builds.
-// In production, user state is strictly verified against cryptographic server-side JWT tokens.
-export const CAMPUS_PERSONAS = import.meta.env.DEV
-  ? [
-      {
-        id: 'dev_student',
-        name: 'Sample Student',
-        role: 'STUDENT',
-        roleLabel: 'Student',
-        email: 'student.sample@iiitnr.edu.in',
-        identifier: 'Student Account',
-        department: 'Computer Science & Engineering',
-        department_name: 'Computer Science & Engineering',
-        hostel_name: 'Ramanujan House (Boys Hostel 1)',
-        room_number: 'Room 204',
-        avatar: '🎓',
-        badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-        targetRoute: '/submit',
-        description: 'Testing persona for student grievance intake.',
-      },
-    ]
-  : [];
+const AUTH_CHANNEL_NAME = 'smart_complaint_auth_sync';
 
+function broadcastAuthMessage(message) {
+  if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+    try {
+      const channel = new BroadcastChannel(AUTH_CHANNEL_NAME);
+      channel.postMessage(message);
+      channel.close();
+    } catch (_) {}
+  }
+}
 
 function enrichUser(userData) {
   if (!userData) return null;
@@ -174,12 +163,12 @@ export function AuthProvider({ children }) {
   });
 
   const [authInitializing, setAuthInitializing] = useState(true);
-  const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
   const [rememberedEmail, setRememberedEmail] = useState('');
 
   const logout = useCallback(() => {
     setCurrentUser(null);
     clearAuthStorage();
+    broadcastAuthMessage({ type: 'AUTH_LOGOUT' });
     if (typeof window !== 'undefined' && window.google?.accounts?.id?.disableAutoSelect) {
       try {
         window.google.accounts.id.disableAutoSelect();
@@ -249,6 +238,7 @@ export function AuthProvider({ children }) {
     const handleSessionExpired = () => {
       setCurrentUser(null);
       clearAuthStorage();
+      broadcastAuthMessage({ type: 'AUTH_LOGOUT' });
     };
 
     window.addEventListener(AUTH_EXPIRED_EVENT, handleSessionExpired);
@@ -256,6 +246,162 @@ export function AuthProvider({ children }) {
       window.removeEventListener(AUTH_EXPIRED_EVENT, handleSessionExpired);
     };
   }, []);
+
+  // 1. Cross-tab BroadcastChannel real-time synchronization
+  useEffect(() => {
+    let channel = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        channel = new BroadcastChannel(AUTH_CHANNEL_NAME);
+        channel.onmessage = (event) => {
+          const { type, user } = event.data || {};
+          if (type === 'AUTH_LOGOUT') {
+            setCurrentUser(null);
+            clearAuthStorage();
+          } else if (type === 'AUTH_LOGIN' || type === 'AUTH_USER_UPDATED') {
+            if (user) {
+              const enriched = enrichUser(user);
+              setCurrentUser(enriched);
+            }
+          }
+        };
+      } catch (_) {}
+    }
+    return () => {
+      if (channel) {
+        try {
+          channel.close();
+        } catch (_) {}
+      }
+    };
+  }, []);
+
+  // 2. Native window storage event listener (cross-tab localStorage change fallback)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (
+        e.key === AUTH_TOKEN_KEY ||
+        e.key === AUTH_USER_KEY ||
+        e.key === REFRESH_TOKEN_KEY ||
+        e.key === null
+      ) {
+        const rawToken =
+          localStorage.getItem(AUTH_TOKEN_KEY) ||
+          sessionStorage.getItem(AUTH_TOKEN_KEY);
+        const rawUser =
+          localStorage.getItem(AUTH_USER_KEY) ||
+          sessionStorage.getItem(AUTH_USER_KEY);
+
+        if (!rawToken || !rawUser) {
+          setCurrentUser(null);
+          clearAuthStorage();
+        } else {
+          try {
+            const parsed = enrichUser(JSON.parse(rawUser));
+            setCurrentUser(parsed);
+          } catch (_) {
+            setCurrentUser(null);
+            clearAuthStorage();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // 3. Tab visibility & focus change synchronization latch
+  useEffect(() => {
+    const syncSessionWithStorage = () => {
+      const rawToken =
+        localStorage.getItem(AUTH_TOKEN_KEY) ||
+        sessionStorage.getItem(AUTH_TOKEN_KEY);
+      const rawUser =
+        localStorage.getItem(AUTH_USER_KEY) ||
+        sessionStorage.getItem(AUTH_USER_KEY);
+
+      if (!rawToken || !rawUser) {
+        if (currentUser !== null) {
+          setCurrentUser(null);
+          clearAuthStorage();
+        }
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(rawUser);
+        const cleanCurrentEmail = (currentUser?.email || '').trim().toLowerCase();
+        const cleanStoredEmail = (parsed?.email || '').trim().toLowerCase();
+        const currentRole = currentUser?.role || '';
+        const storedRole = parsed?.role || '';
+
+        if (cleanCurrentEmail !== cleanStoredEmail || currentRole !== storedRole) {
+          setCurrentUser(enrichUser(parsed));
+        }
+      } catch (_) {
+        setCurrentUser(null);
+        clearAuthStorage();
+      }
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        syncSessionWithStorage();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+    };
+  }, [currentUser]);
+
+  // 4. Global 403 Forbidden interceptor listener
+  useEffect(() => {
+    const handleForbidden = () => {
+      const rawUser =
+        localStorage.getItem(AUTH_USER_KEY) ||
+        sessionStorage.getItem(AUTH_USER_KEY);
+      if (rawUser) {
+        try {
+          const parsed = enrichUser(JSON.parse(rawUser));
+          if (
+            parsed &&
+            (parsed.email !== currentUser?.email || parsed.role !== currentUser?.role)
+          ) {
+            setCurrentUser(parsed);
+            return;
+          }
+        } catch (_) {}
+      }
+      fetchMe()
+        .then((fresh) => {
+          if (fresh) {
+            const enriched = enrichUser(fresh);
+            if (enriched.role !== currentUser?.role) {
+              setCurrentUser(enriched);
+            }
+          }
+        })
+        .catch((err) => {
+          if (err.response?.status === 401 || err.response?.status === 403) {
+            setCurrentUser(null);
+            clearAuthStorage();
+          }
+        });
+    };
+
+    window.addEventListener(AUTH_FORBIDDEN_EVENT, handleForbidden);
+    return () => {
+      window.removeEventListener(AUTH_FORBIDDEN_EVENT, handleForbidden);
+    };
+  }, [currentUser]);
 
   const login = async (email, password, rememberMe = false) => {
     const data = await loginUser(email, password, rememberMe);
@@ -265,6 +411,7 @@ export function AuthProvider({ children }) {
     if (rememberMe) {
       setRememberedEmail(enriched.email);
     }
+    broadcastAuthMessage({ type: 'AUTH_LOGIN', user: enriched });
     return enriched;
   };
 
@@ -291,6 +438,7 @@ export function AuthProvider({ children }) {
     if (rememberMe) {
       setRememberedEmail(enriched.email);
     }
+    broadcastAuthMessage({ type: 'AUTH_LOGIN', user: enriched });
     return enriched;
   };
 
@@ -301,6 +449,7 @@ export function AuthProvider({ children }) {
     setCurrentUser(enriched);
     persistAuthSession(data, enriched, rememberMe);
     setRememberedEmail(enriched.email);
+    broadcastAuthMessage({ type: 'AUTH_LOGIN', user: enriched });
     return enriched;
   };
 
@@ -323,6 +472,7 @@ export function AuthProvider({ children }) {
       const isPersistent = Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
       const storage = isPersistent ? localStorage : sessionStorage;
       storage.setItem(AUTH_USER_KEY, JSON.stringify(enriched));
+      broadcastAuthMessage({ type: 'AUTH_USER_UPDATED', user: enriched });
       return enriched;
     } catch (err) {
       if (currentUser) {
@@ -331,6 +481,7 @@ export function AuthProvider({ children }) {
           ...profileUpdates,
         });
         setCurrentUser(merged);
+        broadcastAuthMessage({ type: 'AUTH_USER_UPDATED', user: merged });
         return merged;
       }
       throw err;
@@ -344,30 +495,8 @@ export function AuthProvider({ children }) {
     const isPersistent = Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
     const storage = isPersistent ? localStorage : sessionStorage;
     storage.setItem(AUTH_USER_KEY, JSON.stringify(enriched));
+    broadcastAuthMessage({ type: 'AUTH_USER_UPDATED', user: enriched });
     return enriched;
-  };
-
-  const switchPersona = async (personaId) => {
-    if (import.meta.env.PROD) {
-      return;
-    }
-    const found = CAMPUS_PERSONAS.find((p) => p.id === personaId);
-    if (found) {
-      try {
-        const data = await loginUser(found.email, 'password123', true);
-        const enriched = enrichUser({
-          ...data.user,
-          hostel_name: data.user?.hostel_name || found.hostel_name || null,
-          room_number: data.user?.room_number || found.room_number || null,
-        });
-        setCurrentUser(enriched);
-        persistAuthSession(data, enriched, true);
-        setRememberedEmail(found.email);
-        setIsPersonaModalOpen(false);
-      } catch (e) {
-        // Dev only notice
-      }
-    }
   };
 
   const isStudent = currentUser?.role === 'STUDENT';
@@ -381,8 +510,6 @@ export function AuthProvider({ children }) {
       value={{
         currentUser,
         authInitializing,
-        currentPersona: currentUser || null,
-        personas: CAMPUS_PERSONAS,
         rememberedEmail,
         login,
         loginGoogle,
@@ -390,10 +517,6 @@ export function AuthProvider({ children }) {
         updateProfile,
         updatePassword,
         logout,
-        switchPersona,
-        isPersonaModalOpen,
-        openPersonaModal: () => setIsPersonaModalOpen(true),
-        closePersonaModal: () => setIsPersonaModalOpen(false),
         isStudent,
         isAdmin,
         isSuperAdmin,

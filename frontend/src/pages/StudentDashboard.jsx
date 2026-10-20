@@ -13,10 +13,11 @@ import CampusMapSelector from '../components/CampusMapSelector';
 import SetPasswordModal from '../components/SetPasswordModal';
 import {
   IIITNR_MAP_UPDATED_EVENT,
-  HOSTEL_FLOORS,
   getCampusBuildings,
   getHostelBuildings,
+  getFloorsForBuilding,
   getRoomsForBuilding,
+  inferFloorFromItem,
 } from '../data/iiitnrCampusData';
 
 export default function StudentDashboard() {
@@ -37,8 +38,10 @@ export default function StudentDashboard() {
   const [selectedHostel, setSelectedHostel] = useState(
     activeUser?.hostel_name || hostelsList[0]?.name || 'Ramanujan House (Boys Hostel)'
   );
-  const [selectedFloor, setSelectedFloor] = useState('2');
-  const [selectedRoom, setSelectedRoom] = useState(activeUser?.room_number || 'Room 204');
+  const [selectedFloor, setSelectedFloor] = useState(() => {
+    return inferFloorFromItem(activeUser?.room_number) || '2';
+  });
+  const [selectedRoom, setSelectedRoom] = useState(activeUser?.room_number || '');
   const [customRoomInput, setCustomRoomInput] = useState('');
   const [savingResidence, setSavingResidence] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -49,7 +52,7 @@ export default function StudentDashboard() {
   const [feedbackComments, setFeedbackComments] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
-  const studentEmail = activeUser?.email || 'nikhil26100@iiitnr.edu.in';
+  const studentEmail = activeUser?.email || null;
 
   useEffect(() => {
     const sync = () => setAllBuildings(getCampusBuildings());
@@ -57,16 +60,70 @@ export default function StudentDashboard() {
     return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, sync);
   }, []);
 
+  const availableFloors = useMemo(
+    () => getFloorsForBuilding(selectedHostel, allBuildings),
+    [selectedHostel, allBuildings]
+  );
+
   const availableRooms = useMemo(
     () => getRoomsForBuilding(selectedHostel, selectedFloor, null, allBuildings),
     [selectedHostel, selectedFloor, allBuildings]
   );
 
+  const filteredRooms = useMemo(() => {
+    const onlyRooms = availableRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
+    return onlyRooms.length > 0 ? onlyRooms : availableRooms;
+  }, [availableRooms]);
+
+  const handleSelectHostel = (newHostelName) => {
+    setSelectedHostel(newHostelName);
+    setCustomRoomInput('');
+    const targetFloors = getFloorsForBuilding(newHostelName, allBuildings);
+    const validFloorIds = targetFloors.map((f) => String(f.id));
+    const nextFloor = validFloorIds.includes(String(selectedFloor))
+      ? selectedFloor
+      : (targetFloors[0]?.id || '1');
+    setSelectedFloor(nextFloor);
+    const targetRooms = getRoomsForBuilding(newHostelName, nextFloor, null, allBuildings);
+    const roomCandidates = targetRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
+    const finalRoomList = roomCandidates.length > 0 ? roomCandidates : targetRooms;
+    if (finalRoomList.length > 0) {
+      setSelectedRoom(finalRoomList[0]);
+    } else {
+      setSelectedRoom('');
+    }
+  };
+
+  const handleSelectFloor = (newFloor) => {
+    setSelectedFloor(newFloor);
+    setCustomRoomInput('');
+    const nextRooms = getRoomsForBuilding(selectedHostel, newFloor, null, allBuildings);
+    const roomCandidates = nextRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
+    const finalRoomList = roomCandidates.length > 0 ? roomCandidates : nextRooms;
+    if (finalRoomList.length > 0) {
+      setSelectedRoom(finalRoomList[0]);
+    } else {
+      setSelectedRoom('');
+    }
+  };
+
+  // Keep selectedRoom aligned if filteredRooms changes
+  useEffect(() => {
+    if (filteredRooms.length > 0 && !filteredRooms.includes(selectedRoom) && !customRoomInput) {
+      setSelectedRoom(filteredRooms[0]);
+    }
+  }, [filteredRooms]);
+
   const loadStudentTickets = async () => {
+    if (!studentEmail) {
+      setTickets([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const data = await fetchComplaints({ student_email: studentEmail, limit: 100 });
-      setTickets(data);
+      setTickets(Array.isArray(data) ? data : []);
     } catch (_) {
       // handled gracefully
     } finally {
@@ -299,7 +356,7 @@ export default function StudentDashboard() {
             studentSavedHostel={currentHostelLabel}
             studentSavedRoom={currentRoomLabel}
             onSelectBuilding={(bName) => {
-              setSelectedHostel(bName);
+              handleSelectHostel(bName);
               setIsResidenceModalOpen(true);
             }}
           />
@@ -544,6 +601,7 @@ export default function StudentDashboard() {
                           slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
                           priority={ticket.priority}
                           status={ticket.status}
+                          resolvedAt={ticket.resolved_at}
                           dark={isDark}
                         />
                       ) : (
@@ -620,10 +678,7 @@ export default function StudentDashboard() {
                     <button
                       key={h.id}
                       type="button"
-                      onClick={() => {
-                        setSelectedHostel(h.name);
-                        setCustomRoomInput('');
-                      }}
+                      onClick={() => handleSelectHostel(h.name)}
                       className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         active
                           ? isDark
@@ -648,18 +703,24 @@ export default function StudentDashboard() {
                   <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>Floor</label>
                   <select
                     value={selectedFloor}
-                    onChange={(e) => setSelectedFloor(e.target.value)}
+                    onChange={(e) => handleSelectFloor(e.target.value)}
                     className={`w-full px-3 py-2 rounded-xl text-xs transition-all border ${
                       isDark
                         ? 'bg-[#0e1117] border-zinc-800 text-white focus:bg-[#161b22] focus:border-emerald-500'
                         : 'bg-[#e2e8f0] border-slate-300 text-slate-900 focus:bg-white focus:border-emerald-600'
                     }`}
                   >
-                    {HOSTEL_FLOORS.map((f) => (
-                      <option key={f.id} value={f.id} className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
-                        {f.label}
+                    {availableFloors.length > 0 ? (
+                      availableFloors.map((f) => (
+                        <option key={f.id} value={f.id} className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                          {f.label}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="1" className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                        Floor 1
                       </option>
-                    ))}
+                    )}
                   </select>
                 </div>
                 <div>
@@ -676,13 +737,17 @@ export default function StudentDashboard() {
                         : 'bg-[#e2e8f0] border-slate-300 text-slate-900 focus:bg-white focus:border-emerald-600'
                     }`}
                   >
-                    {availableRooms
-                      .filter((r) => r.includes('Room') || r.includes('Suite'))
-                      .map((r) => (
+                    {filteredRooms.length > 0 ? (
+                      filteredRooms.map((r) => (
                         <option key={r} value={r} className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
                           {r}
                         </option>
-                      ))}
+                      ))
+                    ) : (
+                      <option value="" className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                        No rooms on this floor
+                      </option>
+                    )}
                   </select>
                 </div>
               </div>

@@ -53,23 +53,20 @@ def get_optional_current_user(
 
 def require_roles(allowed_roles: Sequence[str]) -> Callable:
     """
-    Factory dependency enforcing role-based access control (RBAC) for protected endpoints.
-    - Whenever a Bearer token is supplied, strictly verifies the user holds one of `allowed_roles`.
-    - When `settings.ENFORCE_STRICT_RBAC` is True (enabled automatically in production/Vercel),
-      rejects unauthenticated requests lacking a Bearer token with 401 Unauthorized.
+    Factory dependency enforcing strict role-based access control (RBAC) for protected endpoints.
+    - Requires a valid authenticated session (rejects missing/invalid Bearer token with 401 Unauthorized).
+    - Strictly verifies that the authenticated user holds one of `allowed_roles` (else 403 Forbidden).
     """
     normalized_roles = {r.upper() for r in allowed_roles}
 
     def _role_checker(
         current_user: Optional[UserResponse] = Depends(get_optional_current_user),
-    ) -> Optional[UserResponse]:
+    ) -> UserResponse:
         if current_user is None:
-            if getattr(settings, "ENFORCE_STRICT_RBAC", False):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Authentication required to access this protected institutional resource.",
-                )
-            return None
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to access this protected institutional resource.",
+            )
 
         if (current_user.role or "").upper() not in normalized_roles:
             raise HTTPException(

@@ -4,21 +4,27 @@
  * Role: Dynamic countdown pill ticking every second; high-contrast dark command center styling.
  */
 import React, { useState, useEffect } from 'react';
+import { parseUtcTimestamp } from '../utils/dateUtils';
 
 export default function SLACountdownTimer({
   slaDeadline,
+  deadline,
   status = 'SUBMITTED',
   resolvedAt = null,
+  resolved_at = null,
   showIcon = true,
   dark = true,
 }) {
   const [now, setNow] = useState(Date.now());
 
+  const effectiveDeadline = slaDeadline || deadline;
+  const effectiveResolvedAt = resolvedAt || resolved_at;
+
   const isTerminal = ['RESOLVED', 'CLOSED', 'CANCELLED'].includes(status);
 
   // Set up ticking interval for active tickets
   useEffect(() => {
-    if (isTerminal || !slaDeadline) {
+    if (isTerminal || !effectiveDeadline) {
       return;
     }
 
@@ -27,9 +33,11 @@ export default function SLACountdownTimer({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isTerminal, slaDeadline]);
+  }, [isTerminal, effectiveDeadline]);
 
-  if (!slaDeadline) {
+  const deadlineDate = parseUtcTimestamp(effectiveDeadline);
+
+  if (!deadlineDate) {
     return (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
@@ -45,7 +53,8 @@ export default function SLACountdownTimer({
 
   // Handle Terminal States (RESOLVED, CLOSED, CANCELLED)
   if (status === 'RESOLVED') {
-    const isPastSla = resolvedAt && slaDeadline && new Date(resolvedAt) > new Date(slaDeadline);
+    const resolvedDate = parseUtcTimestamp(effectiveResolvedAt);
+    const isPastSla = resolvedDate && deadlineDate && resolvedDate.getTime() > deadlineDate.getTime();
     if (isPastSla) {
       return (
         <span
@@ -115,7 +124,7 @@ export default function SLACountdownTimer({
   }
 
   // Active Ticket Calculation
-  const deadlineTime = new Date(slaDeadline).getTime();
+  const deadlineTime = deadlineDate.getTime();
   const totalSeconds = Math.floor((deadlineTime - now) / 1000);
   const isBreached = totalSeconds < 0;
 

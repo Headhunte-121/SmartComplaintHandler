@@ -19,6 +19,7 @@ import {
   resetCampusBuildingsToDefault,
   getFloorsForBuilding,
   getRoomsForBuilding,
+  inferFloorFromItem,
   EXACT_BUILDING_POLYGONS,
 } from '../data/iiitnrCampusData';
 import DigitalTwinCanvas from './campusTwin/DigitalTwinCanvas';
@@ -101,8 +102,27 @@ export default function CampusMapSelector({
   useEffect(() => {
     if (selectedRoom) {
       setActiveRoom(selectedRoom);
+      const inferred = inferFloorFromItem(selectedRoom);
+      if (inferred) {
+        setInspectorFloor(inferred);
+      }
     }
   }, [selectedRoom]);
+
+  // Keep inspector floor synchronized with available floors of the active building
+  useEffect(() => {
+    if (availableFloors.length > 0) {
+      const validIds = availableFloors.map((f) => String(f.id));
+      if (!validIds.includes(String(inspectorFloor))) {
+        const inferred = inferFloorFromItem(activeRoom);
+        if (inferred && validIds.includes(inferred)) {
+          setInspectorFloor(inferred);
+        } else {
+          setInspectorFloor(availableFloors[0].id);
+        }
+      }
+    }
+  }, [availableFloors, inspectorFloor, activeRoom]);
 
   useEffect(() => {
     // Proactively fetch campus buildings from backend database on mount
@@ -319,16 +339,32 @@ export default function CampusMapSelector({
         });
       }
 
-      // Check rooms inside building
-      if (Array.isArray(b.floors)) {
+      // Check rooms inside building (customRooms or floors)
+      const customList = b.customRooms || b.custom_rooms;
+      if (Array.isArray(customList) && customList.length > 0) {
+        customList.forEach((rm) => {
+          if (rm.toLowerCase().includes(q)) {
+            const inferredFloor = inferFloorFromItem(rm) || (b.floors && b.floors[0]) || '1';
+            const floorLabel = inferredFloor === 'G' ? 'Ground Floor' : `Floor ${inferredFloor}`;
+            matches.push({
+              type: 'ROOM',
+              title: rm,
+              subtitle: `${b.name} (${floorLabel})`,
+              building: b,
+              floorId: inferredFloor,
+              roomName: rm,
+            });
+          }
+        });
+      } else if (Array.isArray(b.floors)) {
         b.floors.forEach((fl) => {
-          if (Array.isArray(fl.rooms)) {
+          if (typeof fl === 'object' && Array.isArray(fl.rooms)) {
             fl.rooms.forEach((rm) => {
               if (rm.toLowerCase().includes(q)) {
                 matches.push({
                   type: 'ROOM',
                   title: rm,
-                  subtitle: `${b.name} (${fl.label})`,
+                  subtitle: `${b.name} (${fl.label || `Floor ${fl.id}`})`,
                   building: b,
                   floorId: fl.id,
                   roomName: rm,

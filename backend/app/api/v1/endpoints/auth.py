@@ -80,8 +80,6 @@ def send_otp_endpoint(payload: OTPRequest):
         "expires_in_minutes": settings.OTP_EXPIRE_MINUTES,
         "message": f"Verification code sent to {clean_email}.",
     }
-    if getattr(settings, "EXPOSE_DEV_OTP_IN_RESPONSE", False) and getattr(settings, "ENVIRONMENT", "development") != "production":
-        response["otp"] = otp
     return response
 
 

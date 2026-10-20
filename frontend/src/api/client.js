@@ -11,6 +11,7 @@ export const REFRESH_TOKEN_KEY = 'smart_complaint_refresh_token';
 export const AUTH_USER_KEY = 'smart_complaint_auth_user';
 export const AUTH_EXPIRES_AT_KEY = 'smart_complaint_auth_expires_at';
 export const AUTH_EXPIRED_EVENT = 'smart-complaint:auth-expired';
+export const AUTH_FORBIDDEN_EVENT = 'smart-complaint:auth-forbidden';
 
 /**
  * Inspect JWT `exp` claim or stored ISO timestamp to detect expired tokens proactively
@@ -172,6 +173,20 @@ apiClient.interceptors.response.use(
 
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+      }
+    }
+
+    if (status === 403 && !isAuthEndpoint) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent(AUTH_FORBIDDEN_EVENT, {
+            detail: {
+              url: requestUrl,
+              status: 403,
+              message: error.response?.data?.detail || 'Forbidden',
+            },
+          })
+        );
       }
     }
 

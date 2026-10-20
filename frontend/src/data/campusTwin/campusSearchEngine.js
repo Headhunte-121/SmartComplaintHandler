@@ -71,13 +71,31 @@ export function buildCampusSearchIndex(buildings = []) {
     });
 
     // 2. Custom / Specialty Rooms & Courts
-    if (Array.isArray(b.customRooms)) {
-      b.customRooms.forEach((r) => {
+    const customList = b.customRooms || b.custom_rooms;
+    if (Array.isArray(customList)) {
+      customList.forEach((r) => {
         const lowerR = r.toLowerCase();
         let override = null;
         Object.keys(SUB_LOCATION_PIN_OVERRIDES).forEach((k) => {
           if (lowerR.includes(k)) override = SUB_LOCATION_PIN_OVERRIDES[k];
         });
+
+        // Infer authentic floor ID (e.g. Room 311 -> '3')
+        let inferredFloor = '1';
+        const expMatch = r.match(/\\b(?:floor|level)\\s*([G0-9]+)\\b/i);
+        if (expMatch) {
+          inferredFloor = expMatch[1].toUpperCase();
+        } else if (/\\bground\\b/i.test(r)) {
+          inferredFloor = 'G';
+        } else {
+          const numMatch = r.match(/\\b(?:room|lab|cabin|hall|office)?\\s*([G1-9])[-]?(\\d{2}[A-Z]?)\\b/i);
+          if (numMatch) {
+            inferredFloor = numMatch[1].toUpperCase();
+          } else if (Array.isArray(b.floors) && b.floors.length > 0) {
+            inferredFloor = typeof b.floors[0] === 'string' ? b.floors[0] : (b.floors[0]?.id || '1');
+          }
+        }
+        const floorLabel = inferredFloor === 'G' ? 'Ground Floor' : ('Floor ' + inferredFloor);
 
         index.push({
           type: 'FACILITY',
@@ -86,20 +104,19 @@ export function buildCampusSearchIndex(buildings = []) {
           shortName: b.shortName,
           badge: b.trace?.badge || 'SPOT',
           category: b.category,
-          floorId: 'G',
-          floorLabel: 'Ground Floor',
+          floorId: inferredFloor,
+          floorLabel: floorLabel,
           wingId: '',
           roomName: r,
           title: r,
-          subtitle: `${b.shortName} · ${override?.wingLabel || 'Specialty Zone / Court'}`,
-          details: `Located in ${b.name} (${b.gps})`,
-          searchKey: `${r} ${b.name} ${b.shortName} ${b.trace?.badge || ''}`.toLowerCase(),
+          subtitle: b.shortName + ' - ' + (override?.wingLabel || floorLabel),
+          details: 'Located in ' + b.name + ' (' + (b.gps || '') + ')',
+          searchKey: (r + ' ' + b.name + ' ' + b.shortName + ' ' + (b.trace?.badge || '')).toLowerCase(),
           cx: override?.cx ?? defaultCx,
           cy: override?.cy ?? defaultCy,
         });
       });
     }
-
     // 3. Floor-by-Floor Rooms & Official Laboratories
     if (Array.isArray(b.floors)) {
       b.floors.forEach((fl) => {

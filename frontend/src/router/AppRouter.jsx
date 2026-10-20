@@ -19,7 +19,6 @@ import StaffDirectoryPage from '../pages/StaffDirectoryPage';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import ResidenceInfo from '../pages/ResidenceInfo';
-import DeveloperLab from '../pages/DeveloperLab';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -205,16 +204,6 @@ export default function AppRouter() {
           <Route path="superadmin/editor" element={<Navigate to="/superadmin" replace />} />
           <Route path="superadmin/data" element={<Navigate to="/superadmin" replace />} />
           <Route path="data-editor" element={<Navigate to="/superadmin" replace />} />
-
-          {/* Technical Architecture & Component Verification */}
-          <Route
-            path="developer"
-            element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN']} fallbackRoute="/operations">
-                <DeveloperLab />
-              </ProtectedRoute>
-            }
-          />
 
           {/* Catch-all 404 */}
           <Route path="*" element={<NotFound />} />

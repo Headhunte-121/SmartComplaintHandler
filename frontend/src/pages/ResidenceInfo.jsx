@@ -12,7 +12,9 @@ import { isUndergradHostelStudent, resolveIiitnrProfileFromEmail } from '../api/
 import {
   HOSTEL_FLOORS,
   getHostelBuildings,
+  getFloorsForBuilding,
   getRoomsForBuilding,
+  inferFloorFromItem,
   fetchAndCacheCampusBuildings,
   IIITNR_MAP_UPDATED_EVENT,
 } from '../data/iiitnrCampusData';
@@ -38,9 +40,11 @@ export default function ResidenceInfo() {
   const [selectedHostel, setSelectedHostel] = useState(
     currentUser?.hostel_name || hostels[0]?.name || 'Raman House (Boys Hostel 1)'
   );
-  const [selectedFloor, setSelectedFloor] = useState('2');
+  const [selectedFloor, setSelectedFloor] = useState(() => {
+    return inferFloorFromItem(currentUser?.room_number) || '2';
+  });
   const [selectedRoomNumber, setSelectedRoomNumber] = useState(
-    currentUser?.room_number || 'Room 204'
+    currentUser?.room_number || ''
   );
   const [phone, setPhone] = useState(currentUser?.phone || '');
 
@@ -63,22 +67,66 @@ export default function ResidenceInfo() {
     return resolveIiitnrProfileFromEmail(cleanEmail, currentUser?.name);
   }, [cleanEmail, currentUser?.name]);
 
+  const availableFloors = useMemo(
+    () => getFloorsForBuilding(selectedHostel, hostels),
+    [selectedHostel, hostels]
+  );
+
   // Available room suggestions based on selected hostel & floor
   const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor),
-    [selectedHostel, selectedFloor]
+    () => getRoomsForBuilding(selectedHostel, selectedFloor, null, hostels),
+    [selectedHostel, selectedFloor, hostels]
   );
+
+  const filteredRooms = useMemo(() => {
+    const onlyRooms = availableRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
+    return onlyRooms.length > 0 ? onlyRooms : availableRooms;
+  }, [availableRooms]);
+
+  const handleHostelChange = (newHostel) => {
+    setSelectedHostel(newHostel);
+    if (newHostel === 'Day Scholar (Off-Campus)') {
+      setSelectedRoomNumber('Day Scholar');
+      return;
+    }
+    const targetFloors = getFloorsForBuilding(newHostel, hostels);
+    const validFloorIds = targetFloors.map((f) => String(f.id));
+    const nextFloor = validFloorIds.includes(String(selectedFloor))
+      ? selectedFloor
+      : (targetFloors[0]?.id || '1');
+    setSelectedFloor(nextFloor);
+    const targetRooms = getRoomsForBuilding(newHostel, nextFloor, null, hostels);
+    const roomCandidates = targetRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
+    const finalRoomList = roomCandidates.length > 0 ? roomCandidates : targetRooms;
+    if (finalRoomList.length > 0) {
+      setSelectedRoomNumber(finalRoomList[0]);
+    } else {
+      setSelectedRoomNumber('');
+    }
+  };
+
+  const handleFloorChange = (newFloor) => {
+    setSelectedFloor(newFloor);
+    const nextRooms = getRoomsForBuilding(selectedHostel, newFloor, null, hostels);
+    const roomCandidates = nextRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
+    const finalRoomList = roomCandidates.length > 0 ? roomCandidates : nextRooms;
+    if (finalRoomList.length > 0) {
+      setSelectedRoomNumber(finalRoomList[0]);
+    } else {
+      setSelectedRoomNumber('');
+    }
+  };
 
   // Auto-sync room if current selection doesn't match available rooms
   useEffect(() => {
     if (
       selectedHostel !== 'Day Scholar (Off-Campus)' &&
-      availableRooms.length > 0 &&
-      !availableRooms.includes(selectedRoomNumber)
+      filteredRooms.length > 0 &&
+      !filteredRooms.includes(selectedRoomNumber)
     ) {
-      setSelectedRoomNumber(availableRooms[0]);
+      setSelectedRoomNumber(filteredRooms[0]);
     }
-  }, [availableRooms, selectedHostel]);
+  }, [filteredRooms, selectedHostel]);
 
   // Redirect guard: only undergraduate students matching 26(100-102) belong here
   useEffect(() => {
@@ -340,7 +388,7 @@ export default function ResidenceInfo() {
               </label>
               <select
                 value={selectedHostel}
-                onChange={(e) => setSelectedHostel(e.target.value)}
+                onChange={(e) => handleHostelChange(e.target.value)}
                 className={`w-full rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm transition-all ${
                   isDark
                     ? 'border-zinc-800 bg-[#0e1117] text-zinc-100 focus:bg-[#161b22] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
@@ -374,18 +422,24 @@ export default function ResidenceInfo() {
                     </label>
                     <select
                       value={selectedFloor}
-                      onChange={(e) => setSelectedFloor(e.target.value)}
+                      onChange={(e) => handleFloorChange(e.target.value)}
                       className={`w-full rounded-xl border px-3 py-2 text-xs transition-all ${
                         isDark
                           ? 'border-zinc-700 bg-zinc-900 text-zinc-100 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
                           : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
                       }`}
                     >
-                      {HOSTEL_FLOORS.map((f) => (
-                        <option key={f.id} value={f.id} className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
-                          {f.label}
+                      {availableFloors.length > 0 ? (
+                        availableFloors.map((f) => (
+                          <option key={f.id} value={f.id} className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                            {f.label}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="1" className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                          Floor 1
                         </option>
-                      ))}
+                      )}
                     </select>
                   </div>
 
@@ -407,23 +461,21 @@ export default function ResidenceInfo() {
                       }`}
                     />
                     <datalist id="res-room-options">
-                      {availableRooms
-                        .filter((r) => r.includes('Room') || r.includes('Suite'))
-                        .map((r) => (
-                          <option key={r} value={r} />
-                        ))}
+                      {filteredRooms.map((r) => (
+                        <option key={r} value={r} />
+                      ))}
                     </datalist>
                   </div>
                 </div>
 
                 {/* Quick Selection Pills */}
-                {availableRooms.length > 0 && (
+                {filteredRooms.length > 0 && (
                   <div className="pt-1">
                     <span className={`text-[10px] font-bold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                      Quick Select ({HOSTEL_FLOORS.find((f) => String(f.id) === String(selectedFloor))?.label || `Floor ${selectedFloor}`}):
+                      Quick Select ({availableFloors.find((f) => String(f.id) === String(selectedFloor))?.label || `Floor ${selectedFloor}`}):
                     </span>
                     <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
-                      {availableRooms.slice(0, 10).map((r) => (
+                      {filteredRooms.slice(0, 15).map((r) => (
                         <button
                           key={r}
                           type="button"

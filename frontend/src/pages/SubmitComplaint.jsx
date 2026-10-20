@@ -18,6 +18,7 @@ import {
   getNonHostelBuildings,
   getFloorsForBuilding,
   getRoomsForBuilding,
+  inferFloorFromItem,
   buildCampusSearchIndex,
   queryCampusSearchIndex,
 } from '../data/iiitnrCampusData';
@@ -31,19 +32,7 @@ const QUICK_SPOT_CHIPS = [
 ];
 
 function inferFloorFromRoomString(roomStr = '') {
-  const clean = (roomStr || '').trim();
-  let floor = '2';
-  const roomNumMatch = clean.match(/\b([G123])[-]?(\d{2})\b/i);
-  if (roomNumMatch) {
-    floor = roomNumMatch[1].toUpperCase();
-  } else if (/ground|\bg-/i.test(clean)) {
-    floor = 'G';
-  } else if (/floor\s*1|\b1\d{2}\b/i.test(clean)) {
-    floor = '1';
-  } else if (/floor\s*3|\b3\d{2}\b/i.test(clean)) {
-    floor = '3';
-  }
-  return floor;
+  return inferFloorFromItem(roomStr) || '1';
 }
 
 export default function SubmitComplaint() {
@@ -190,16 +179,17 @@ export default function SubmitComplaint() {
     setSubmitting(true);
     setError(null);
 
-    const resolvedRoom = customRoomOverride.trim() || specificLocation.trim() || 'General Area';
-    const fullLocation = `${activeBuildingObj?.name || building}, ${resolvedRoom}`;
+    const cleanRoom = customRoomOverride.trim() || (specificLocation && specificLocation !== 'None' ? specificLocation.trim() : '');
+    const bName = activeBuildingObj?.name || building;
+    const fullLocation = cleanRoom ? `${bName}, ${cleanRoom}` : bName;
 
     try {
       const ticket = await submitComplaint({
         title: title.trim(),
         description: description.trim(),
         location: fullLocation,
-        student_name: activeUser?.name || 'Nikhil (Student)',
-        student_email: activeUser?.email || 'nikhil26100@iiitnr.edu.in',
+        student_name: activeUser?.name || null,
+        student_email: activeUser?.email || null,
       });
 
       setCreatedTicket(ticket);
@@ -1050,6 +1040,8 @@ export default function SubmitComplaint() {
                 onSelectRoom={(rm) => {
                   setSpecificLocation(rm);
                   setCustomRoomOverride('');
+                  const inferred = inferFloorFromItem(rm);
+                  if (inferred) setSelectedFloor(inferred);
                 }}
                 studentSavedHostel={savedHostel}
                 studentSavedRoom={savedRoom}

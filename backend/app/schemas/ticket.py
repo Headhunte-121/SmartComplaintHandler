@@ -3,13 +3,13 @@ SmartComplaintHandler - Ticket Validation Schemas
 Blueprint Reference: V1/M2/backend/03_ticket_schemas.md & V1/M3/backend/04_service_integration.md
 Role: Pydantic DTOs for complaint intake (TicketCreate) and response serialization (TicketResponse).
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from pydantic import BaseModel, Field
 
 HAS_PYDANTIC_V2 = hasattr(BaseModel, "model_validate")
 if HAS_PYDANTIC_V2:
-    from pydantic import ConfigDict
+    from pydantic import ConfigDict, field_serializer
 else:
     from pydantic import root_validator
 
@@ -53,6 +53,16 @@ class TicketResponse(BaseModel):
 
     if HAS_PYDANTIC_V2:
         model_config = ConfigDict(from_attributes=True)
+
+        @field_serializer("created_at", "sla_deadline", "target_resolution_date", "resolved_at", "feedback_submitted_at", when_used="json-unless-none")
+        def _serialize_datetime_utc(self, dt: Optional[datetime]) -> Optional[str]:
+            if dt is None:
+                return None
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            return dt.isoformat()
 
         def model_post_init(self, __context):
             if self.target_resolution_date is None and self.sla_deadline is not None:

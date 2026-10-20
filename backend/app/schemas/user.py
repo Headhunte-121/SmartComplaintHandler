@@ -3,13 +3,13 @@ SmartComplaintHandler - User Authentication & Administration Schemas
 Role: Pydantic DTOs for @iiitnr.edu.in registration, login, Google Workspace OAuth2/OIDC SSO,
       student hostel/room profile management, stateless OTP verification, JWT access/refresh token payloads, and admin creation.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from pydantic import BaseModel, Field
 
 HAS_PYDANTIC_V2 = hasattr(BaseModel, "model_validate")
 if HAS_PYDANTIC_V2:
-    from pydantic import ConfigDict, field_validator
+    from pydantic import ConfigDict, field_validator, field_serializer
 else:
     from pydantic import validator
 
@@ -196,6 +196,16 @@ class UserResponse(BaseModel):
 
     if HAS_PYDANTIC_V2:
         model_config = ConfigDict(from_attributes=True)
+
+        @field_serializer("last_login_at", "created_at", when_used="json-unless-none")
+        def _serialize_user_datetime_utc(self, dt: Optional[datetime]) -> Optional[str]:
+            if dt is None:
+                return None
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            return dt.isoformat()
     else:
         class Config:
             orm_mode = True

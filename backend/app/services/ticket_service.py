@@ -30,8 +30,10 @@ from app.services.sla_engine import (
 )
 from app.services.lifecycle import (
     STATUS_SUBMITTED,
+    STATUS_ASSIGNED,
     STATUS_IN_PROGRESS,
     STATUS_ESCALATED,
+    STATUS_ON_HOLD,
     STATUS_RESOLVED,
     validate_transition,
     format_audit_log_entry,
@@ -136,8 +138,8 @@ def create_ticket(
         created_at=now,
         sla_deadline=calculated_deadline,
         resolution_notes=None,
-        student_name=student_name or "Aarav Sharma",
-        student_email=student_email or "aarav.sharma@campus.edu",
+        student_name=student_name,
+        student_email=student_email,
     )
 
     try:
@@ -419,7 +421,7 @@ def get_active_sla_breaches(
     """
     Query all open, active tickets and return those breached or nearing deadline breach.
     """
-    active_statuses = [STATUS_SUBMITTED, STATUS_IN_PROGRESS, STATUS_ESCALATED]
+    active_statuses = [STATUS_SUBMITTED, STATUS_ASSIGNED, STATUS_IN_PROGRESS, STATUS_ESCALATED, STATUS_ON_HOLD]
     tickets = (
         db.query(Ticket)
         .options(

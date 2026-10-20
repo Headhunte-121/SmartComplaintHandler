@@ -12,6 +12,7 @@ import { fetchActiveBreaches } from '../api/sla';
 import PriorityBadge from '../components/PriorityBadge';
 import ReassignTeamModal from '../components/ReassignTeamModal';
 import SLACountdownTimer from '../components/SLACountdownTimer';
+import { isDeadlineOverdue } from '../utils/dateUtils';
 
 const CAMPUS_DEPT_ICONS = {
   Electrical: '⚡',
@@ -88,7 +89,7 @@ export default function SquadsPage() {
       const overdueTickets = activeTickets.filter(
         (t) =>
           overdueTicketIds.has(t.id) ||
-          (t.sla_deadline && new Date(t.sla_deadline) < new Date())
+          (t.sla_deadline && isDeadlineOverdue(t.sla_deadline))
       );
       const onHoldTickets = activeTickets.filter((t) => t.status === 'ON_HOLD');
       const inProgressTickets = activeTickets.filter(
@@ -386,7 +387,7 @@ export default function SquadsPage() {
                         {squad.activeTickets.map((t) => {
                           const isOverdue =
                             overdueTicketIds.has(t.id) ||
-                            (t.sla_deadline && new Date(t.sla_deadline) < new Date());
+                            (t.sla_deadline && isDeadlineOverdue(t.sla_deadline));
 
                           return (
                             <div
@@ -437,7 +438,12 @@ export default function SquadsPage() {
                               <div className="flex items-center justify-between pt-2 border-t border-inherit">
                                 <div>
                                   {t.sla_deadline ? (
-                                    <SLACountdownTimer deadline={t.sla_deadline} status={t.status} />
+                                    <SLACountdownTimer
+                                      slaDeadline={t.sla_deadline}
+                                      status={t.status}
+                                      resolvedAt={t.resolved_at}
+                                      dark={isDark}
+                                    />
                                   ) : (
                                     <span className={`text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
                                       SLA: Standard

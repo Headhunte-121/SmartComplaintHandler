@@ -21,8 +21,8 @@ except ImportError:
 
 def _resolve_default_database_url() -> str:
     """
-    Resolve database connection URL from Vercel / Supabase environment variables,
-    falling back to local SQLite only during local development or automated tests.
+    Resolve database connection URL from Supabase / PostgreSQL environment variables.
+    Enforces Supabase PostgreSQL connection string across production and local execution.
     """
     for env_key in (
         "DATABASE_URL",
@@ -36,7 +36,7 @@ def _resolve_default_database_url() -> str:
             if val.startswith("postgres://"):
                 return val.replace("postgres://", "postgresql://", 1)
             return val
-    return "sqlite:///./smart_complaints.db"
+    return "postgresql://postgres.swtckhxitsxvphtenaqo:2TKUGaPmLDqXYKx0@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require"
 
 
 def _is_production_env() -> bool:
@@ -102,21 +102,6 @@ class Settings(BaseSettings):
     )
 
     # Security & Access Control Policies
-    ENFORCE_STRICT_RBAC: bool = (
-        os.getenv(
-            "ENFORCE_STRICT_RBAC",
-            "false" if "pytest" in sys.modules else "true",
-        ).lower()
-        in ("true", "1", "yes")
-    )
-    ALLOW_UNREGISTERED_LOGIN_PROVISIONING: bool = (
-        os.getenv("ALLOW_UNREGISTERED_LOGIN_PROVISIONING", "false").lower()
-        in ("true", "1", "yes")
-    )
-    EXPOSE_DEV_OTP_IN_RESPONSE: bool = (
-        os.getenv("EXPOSE_DEV_OTP_IN_RESPONSE", "false" if _is_production_env() else "true").lower()
-        in ("true", "1", "yes")
-    )
     AUTO_SEED_ON_STARTUP: bool = (
         os.getenv("AUTO_SEED_ON_STARTUP", "false").lower() in ("true", "1", "yes")
     )

@@ -438,6 +438,8 @@ export default function AdminDashboard() {
                           slaDeadline={t.sla_deadline || t.target_resolution_date}
                           priority={t.priority}
                           status={t.status}
+                          resolvedAt={t.resolved_at}
+                          dark={isDark}
                         />
                       </td>
 

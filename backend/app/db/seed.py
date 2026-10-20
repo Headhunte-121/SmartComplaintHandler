@@ -137,6 +137,18 @@ def ensure_schema() -> None:
                 conn.execute(text("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS feedback_rating INTEGER;"))
                 conn.execute(text("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS feedback_comments TEXT;"))
                 conn.execute(text("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS feedback_submitted_at TIMESTAMP WITH TIME ZONE;"))
+
+                # Ensure timestamp columns are timezone-aware in Supabase PostgreSQL
+                for col in ("created_at", "sla_deadline", "resolved_at", "feedback_submitted_at"):
+                    try:
+                        conn.execute(text(f"ALTER TABLE tickets ALTER COLUMN {col} TYPE TIMESTAMP WITH TIME ZONE;"))
+                    except Exception:
+                        pass
+                for col in ("created_at", "last_login_at", "locked_until"):
+                    try:
+                        conn.execute(text(f"ALTER TABLE users ALTER COLUMN {col} TYPE TIMESTAMP WITH TIME ZONE;"))
+                    except Exception:
+                        pass
                 return
 
             res = conn.execute(text("PRAGMA table_info(tickets);"))
