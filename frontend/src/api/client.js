@@ -110,7 +110,19 @@ function resolvePendingQueue(error, newToken = null) {
 
 // Automatically refresh expired access tokens on 401 or broadcast session expiration
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // If a reverse proxy or SPA router accidentally returns index.html for an API endpoint, reject it as an error
+    if (
+      typeof response.data === 'string' &&
+      (response.data.trim().startsWith('<!DOCTYPE') || response.data.trim().startsWith('<html')) &&
+      (response.config?.url?.includes('/auth/') || response.config?.url?.includes('/tickets/'))
+    ) {
+      const err = new Error('API server returned HTML instead of JSON.');
+      err.response = { status: 502, data: { detail: 'API server unreachable or returned HTML.' } };
+      return Promise.reject(err);
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
