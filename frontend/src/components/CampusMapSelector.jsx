@@ -23,6 +23,7 @@ import {
   EXACT_BUILDING_POLYGONS,
 } from '../data/iiitnrCampusData';
 import DigitalTwinCanvas from './campusTwin/DigitalTwinCanvas';
+import { useMapCamera } from './campusTwin/useMapCamera';
 
 const QUICK_EXPLORE_CHIPS = [
   { id: 'all', label: '🌐 All Campus', filter: 'ALL' },
@@ -73,17 +74,10 @@ export default function CampusMapSelector({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  // Camera Navigation State (1080 x 800 SVG Space)
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-
   // Radar Target Beacon for Cinematic Focus
   const [radarTarget, setRadarTarget] = useState(null);
 
   const svgRef = useRef(null);
-  const panStartRef = useRef({ x: 0, y: 0 });
-  const touchStartRef = useRef(null);
   const radarTimerRef = useRef(null);
 
   // Sync external building changes
@@ -161,28 +155,50 @@ export default function CampusMapSelector({
     return getRoomsForBuilding(activeBuildingObj.id, inspectorFloor, 'Wing A', buildings);
   }, [activeBuildingObj, inspectorFloor, buildings]);
 
-  // Smooth Cinematic Fly-To Camera Navigation
-  const flyTo = useCallback((targetX, targetY, targetZoom = 1.8) => {
-    // 1080 x 800 canvas center is (540, 400)
-    const newPanX = 540 - targetX * targetZoom;
-    const newPanY = 400 - targetY * targetZoom;
-    setZoom(targetZoom);
-    setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+  // High-precision physics camera engine hook
+  const {
+    zoom,
+    pan,
+    isPanning,
+    flyTo: cameraFlyTo,
+    resetView: cameraResetView,
+    zoomBy,
+    handleWheel,
+    handleDoubleClick,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleKeyDown,
+  } = useMapCamera({
+    svgRef,
+    isPlaceCardOpen: showPlaceCard,
+    minZoom: 0.75,
+    maxZoom: 4.0,
+  });
 
-    // Pulse radar locator ring
-    setRadarTarget({ cx: targetX, cy: targetY });
-    if (radarTimerRef.current) clearTimeout(radarTimerRef.current);
-    radarTimerRef.current = setTimeout(() => {
-      setRadarTarget(null);
-    }, 2800);
-  }, []);
+  // Smooth Cinematic Fly-To Camera Navigation with Locator Ring
+  const flyTo = useCallback(
+    (targetX, targetY, targetZoom = 1.85, options = {}) => {
+      // Pulse radar locator ring
+      setRadarTarget({ cx: targetX, cy: targetY });
+      if (radarTimerRef.current) clearTimeout(radarTimerRef.current);
+      radarTimerRef.current = setTimeout(() => {
+        setRadarTarget(null);
+      }, 3000);
+
+      cameraFlyTo(targetX, targetY, targetZoom, options);
+    },
+    [cameraFlyTo]
+  );
 
   // Smooth Reset to 100% Overview
   const resetView = useCallback(() => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
     setRadarTarget(null);
-  }, []);
+    cameraResetView();
+  }, [cameraResetView]);
 
   // Handle Building Selection & Focus
   const handleSelectBuildingInternal = useCallback(
@@ -210,113 +226,6 @@ export default function CampusMapSelector({
     },
     [buildings, onSelectBuilding, flyTo]
   );
-
-  // Mouse Drag Panning
-  const handleMouseDown = useCallback(
-    (e) => {
-      if (e.button !== 0) return;
-      setIsPanning(true);
-      panStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
-    },
-    [pan]
-  );
-
-  const handleMouseMove = useCallback(
-    (e) => {
-      if (!isPanning) return;
-      const nextPanX = e.clientX - panStartRef.current.x;
-      const nextPanY = e.clientY - panStartRef.current.y;
-      setPan({
-        x: Math.max(-1400, Math.min(1400, nextPanX)),
-        y: Math.max(-1200, Math.min(1200, nextPanY)),
-      });
-    },
-    [isPanning]
-  );
-
-  const handleMouseUp = useCallback(() => {
-    setIsPanning(false);
-  }, []);
-
-  // Smooth Cursor-Centered Scroll-Wheel Zoom
-  const handleWheel = useCallback(
-    (e) => {
-      e.preventDefault();
-      const rect = svgRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      // Coordinate in SVG space
-      const svgX = (mouseX / rect.width) * 1080;
-      const svgY = (mouseY / rect.height) * 800;
-
-      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
-      const newZoom = Math.min(3.5, Math.max(0.85, Number((zoom * zoomFactor).toFixed(2))));
-
-      const newPanX = svgX - (svgX - pan.x) * (newZoom / zoom);
-      const newPanY = svgY - (svgY - pan.y) * (newZoom / zoom);
-
-      setZoom(newZoom);
-      setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
-    },
-    [zoom, pan]
-  );
-
-  // Double-Click to Zoom Into That Spot
-  const handleDoubleClick = useCallback(
-    (e) => {
-      const rect = svgRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const svgX = ((e.clientX - rect.left) / rect.width) * 1080;
-      const svgY = ((e.clientY - rect.top) / rect.height) * 800;
-      const targetZoom = Math.min(3.0, zoom * 1.55);
-      flyTo(svgX, svgY, targetZoom);
-    },
-    [zoom, flyTo]
-  );
-
-  // Touch Handling for Mobile Devices
-  const handleTouchStart = useCallback(
-    (e) => {
-      if (e.touches.length === 1) {
-        setIsPanning(true);
-        panStartRef.current = { x: e.touches[0].clientX - pan.x, y: e.touches[0].clientY - pan.y };
-      } else if (e.touches.length === 2) {
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        touchStartRef.current = { dist, zoom };
-      }
-    },
-    [pan, zoom]
-  );
-
-  const handleTouchMove = useCallback(
-    (e) => {
-      if (e.touches.length === 1 && isPanning) {
-        const nextPanX = e.touches[0].clientX - panStartRef.current.x;
-        const nextPanY = e.touches[0].clientY - panStartRef.current.y;
-        setPan({ x: nextPanX, y: nextPanY });
-      } else if (e.touches.length === 2 && touchStartRef.current) {
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const ratio = dist / touchStartRef.current.dist;
-        const newZoom = Math.min(3.5, Math.max(0.85, Number((touchStartRef.current.zoom * ratio).toFixed(2))));
-        setZoom(newZoom);
-      }
-    },
-    [isPanning]
-  );
-
-  const handleTouchEnd = useCallback(() => {
-    setIsPanning(false);
-    touchStartRef.current = null;
-  }, []);
 
   // Quick Search & Auto-Locate Matches
   const searchResults = useMemo(() => {
@@ -536,6 +445,7 @@ export default function CampusMapSelector({
           handleTouchStart={handleTouchStart}
           handleTouchMove={handleTouchMove}
           handleTouchEnd={handleTouchEnd}
+          handleKeyDown={handleKeyDown}
         />
 
         {buildings.length === 0 && (
@@ -555,8 +465,8 @@ export default function CampusMapSelector({
           }`}>
             <button
               type="button"
-              title="Zoom In (or use mouse scroll)"
-              onClick={() => setZoom((z) => Math.min(3.5, Number((z + 0.3).toFixed(2))))}
+              title="Zoom In (or use mouse scroll / + key)"
+              onClick={() => zoomBy(0.25)}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold cursor-pointer transition-colors ${
                 isDark ? 'text-zinc-100 hover:bg-zinc-800' : 'text-slate-800 hover:bg-slate-200'
               }`}
@@ -566,8 +476,8 @@ export default function CampusMapSelector({
             <div className={`text-[10px] font-mono py-1 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>{Math.round(zoom * 100)}%</div>
             <button
               type="button"
-              title="Zoom Out (or use mouse scroll)"
-              onClick={() => setZoom((z) => Math.max(0.85, Number((z - 0.3).toFixed(2))))}
+              title="Zoom Out (or use mouse scroll / - key)"
+              onClick={() => zoomBy(-0.25)}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold cursor-pointer transition-colors ${
                 isDark ? 'text-zinc-100 hover:bg-zinc-800' : 'text-slate-800 hover:bg-slate-200'
               }`}
@@ -576,7 +486,7 @@ export default function CampusMapSelector({
             </button>
             <button
               type="button"
-              title="Reset to Campus Overview"
+              title="Reset to Campus Overview (or press R / 0)"
               onClick={resetView}
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold cursor-pointer transition-colors border-t mt-1 ${
                 isDark ? 'text-emerald-400 hover:bg-zinc-800 border-zinc-800' : 'text-emerald-600 hover:bg-slate-200 border-slate-300'

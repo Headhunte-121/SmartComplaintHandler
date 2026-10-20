@@ -43,6 +43,7 @@ export default function DigitalTwinCanvas({
   handleTouchStart = () => {},
   handleTouchMove = () => {},
   handleTouchEnd = () => {},
+  handleKeyDown = () => {},
 }) {
   const [hoveredEntrance, setHoveredEntrance] = useState(null);
   const isLight = twinTheme === 'light';
@@ -284,7 +285,9 @@ export default function DigitalTwinCanvas({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`w-full max-h-[660px] select-none ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        className={`w-full max-h-[660px] select-none outline-none focus:ring-1 focus:ring-emerald-500/30 ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
       >
         <defs>
           <clipPath id="iiitnrCampusClip">
@@ -303,10 +306,10 @@ export default function DigitalTwinCanvas({
         <rect x="0" y="0" width="1080" height="800" fill={isLight ? '#f4f7f4' : '#0e1117'} />
 
         <g
-          transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}
+          transform={`translate(${pan.x.toFixed(2)}, ${pan.y.toFixed(2)}) scale(${zoom.toFixed(4)})`}
           style={{
-            transition: isPanning ? 'none' : 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
             transformOrigin: '0 0',
+            willChange: 'transform',
           }}
         >
           <g clipPath="url(#iiitnrCampusClip)">
