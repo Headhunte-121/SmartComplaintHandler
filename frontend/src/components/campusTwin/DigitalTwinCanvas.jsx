@@ -56,7 +56,17 @@ export default function DigitalTwinCanvas({
     const containerEl = svgEl.parentElement;
 
     const onWheelNative = (e) => {
-      // Calling preventDefault on non-passive listener guarantees page will NOT scroll
+      const containerRect = containerEl ? containerEl.getBoundingClientRect() : svgEl.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const safeGutterWidth = 54;
+
+      // Safe Page Scroll Gutter:
+      // If cursor is in the rightmost 54px margin, allow native browser page scroll so users never get stuck!
+      if (mouseX >= containerRect.right - safeGutterWidth) {
+        return;
+      }
+
+      // Inside map area: zoom the map and prevent page scroll
       e.preventDefault();
       e.stopPropagation();
       if (handleWheel) {
