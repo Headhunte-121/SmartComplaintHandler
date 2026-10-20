@@ -49,24 +49,21 @@ export default function DigitalTwinCanvas({
   const isLight = twinTheme === 'light';
   const isBlueprint = twinTheme === 'blueprint';
 
-  // Attach non-passive wheel event listener to strictly block browser window scroll while zooming the map
+  // Attach non-passive wheel event listener strictly to the SVG canvas.
+  // When cursor is over the selection tab or UI overlays, wheel events are never intercepted,
+  // allowing free scrolling of the selection card and webpage.
   useEffect(() => {
     const svgEl = svgRef?.current;
     if (!svgEl) return;
-    const containerEl = svgEl.parentElement;
 
     const onWheelNative = (e) => {
-      const containerRect = containerEl ? containerEl.getBoundingClientRect() : svgEl.getBoundingClientRect();
-      const mouseX = e.clientX;
-      const safeGutterWidth = 54;
-
-      // Safe Page Scroll Gutter:
-      // If cursor is in the rightmost 54px margin, allow native browser page scroll so users never get stuck!
-      if (mouseX >= containerRect.right - safeGutterWidth) {
+      // Only intercept if the event target is directly inside the SVG canvas
+      const isTargetOnSvg = e.target && (e.target === svgEl || svgEl.contains(e.target));
+      if (!isTargetOnSvg) {
         return;
       }
 
-      // Inside map area: zoom the map and prevent page scroll
+      // Zoom the map and prevent browser window scroll while cursor is over the campus canvas
       e.preventDefault();
       e.stopPropagation();
       if (handleWheel) {
@@ -75,15 +72,8 @@ export default function DigitalTwinCanvas({
     };
 
     svgEl.addEventListener('wheel', onWheelNative, { passive: false });
-    if (containerEl) {
-      containerEl.addEventListener('wheel', onWheelNative, { passive: false });
-    }
-
     return () => {
       svgEl.removeEventListener('wheel', onWheelNative);
-      if (containerEl) {
-        containerEl.removeEventListener('wheel', onWheelNative);
-      }
     };
   }, [svgRef, handleWheel]);
 
@@ -307,7 +297,7 @@ export default function DigitalTwinCanvas({
 
   return (
     <div
-      className={`relative w-full overflow-hidden flex justify-center touch-none overscroll-contain ${
+      className={`relative w-full overflow-hidden flex justify-center ${
         isLight ? 'border-slate-200 bg-[#f4f7f4]' : 'border-zinc-800 bg-[#0e1117]'
       }`}
     >

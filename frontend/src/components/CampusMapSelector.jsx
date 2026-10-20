@@ -420,7 +420,7 @@ export default function CampusMapSelector({
       </div>
 
       {/* Main Interactive Map Viewport Container */}
-      <div className={`relative w-full overflow-hidden touch-none overscroll-contain ${isDark ? 'bg-[#0e1117]' : 'bg-[#f4f7f4]'}`}>
+      <div className={`relative w-full overflow-hidden ${isDark ? 'bg-[#0e1117]' : 'bg-[#f4f7f4]'}`}>
         {/* SVG Digital Twin Canvas */}
         <DigitalTwinCanvas
           svgRef={svgRef}
@@ -537,25 +537,6 @@ export default function CampusMapSelector({
           </div>
         </div>
 
-        {/* Right-Side Safe Page Scroll Gutter Indicator */}
-        {!showPlaceCard && (
-          <div
-            title="Safe Scroll Lane: Wheel scroll here moves the page up/down without zooming the map"
-            className={`hidden sm:flex absolute right-0 top-0 bottom-0 w-12 sm:w-14 z-20 pointer-events-none items-center justify-center border-l transition-all ${
-              isDark
-                ? 'border-zinc-800/40 bg-gradient-to-r from-transparent to-zinc-950/25 text-zinc-500'
-                : 'border-slate-200/50 bg-gradient-to-r from-transparent to-slate-200/30 text-slate-400'
-            }`}
-          >
-            <div className="flex flex-col items-center gap-2 select-none opacity-40 hover:opacity-80 transition-opacity">
-              <span className="text-xs leading-none">↕</span>
-              <span className="text-[8.5px] font-mono uppercase tracking-widest [writing-mode:vertical-lr] rotate-180">
-                Scroll Page
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Live Hover Telemetry Tooltip (Bottom Left) */}
         <div className="absolute bottom-3 left-3 z-20 pointer-events-none">
           <div className={`px-3.5 py-1.5 rounded-xl border text-[11px] flex items-center gap-2 backdrop-blur-md shadow-md ${
@@ -570,7 +551,7 @@ export default function CampusMapSelector({
               </span>
             ) : (
               <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>
-                💡 Drag to pan · Scroll to zoom · Right edge ↕ to scroll page
+                💡 Drag to pan · Scroll wheel to zoom · Click building to inspect
               </span>
             )}
           </div>
