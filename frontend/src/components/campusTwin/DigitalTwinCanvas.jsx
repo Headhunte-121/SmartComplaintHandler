@@ -4,7 +4,7 @@
  * Supports smooth drag-to-pan, cursor-centered wheel zoom, double-click focus,
  * entrance inspection, and active plinth glow effects.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   IIITNR_CAMPUS_PERIMETER_POINTS,
   INNER_CAMPUS_CLIP_POINTS,
@@ -48,6 +48,34 @@ export default function DigitalTwinCanvas({
   const [hoveredEntrance, setHoveredEntrance] = useState(null);
   const isLight = twinTheme === 'light';
   const isBlueprint = twinTheme === 'blueprint';
+
+  // Attach non-passive wheel event listener to strictly block browser window scroll while zooming the map
+  useEffect(() => {
+    const svgEl = svgRef?.current;
+    if (!svgEl) return;
+    const containerEl = svgEl.parentElement;
+
+    const onWheelNative = (e) => {
+      // Calling preventDefault on non-passive listener guarantees page will NOT scroll
+      e.preventDefault();
+      e.stopPropagation();
+      if (handleWheel) {
+        handleWheel(e);
+      }
+    };
+
+    svgEl.addEventListener('wheel', onWheelNative, { passive: false });
+    if (containerEl) {
+      containerEl.addEventListener('wheel', onWheelNative, { passive: false });
+    }
+
+    return () => {
+      svgEl.removeEventListener('wheel', onWheelNative);
+      if (containerEl) {
+        containerEl.removeEventListener('wheel', onWheelNative);
+      }
+    };
+  }, [svgRef, handleWheel]);
 
   const renderBuildingGeometry = (b) => {
     const isSelected = activeBuildingObj?.id === b.id;
@@ -269,7 +297,7 @@ export default function DigitalTwinCanvas({
 
   return (
     <div
-      className={`relative w-full overflow-hidden flex justify-center ${
+      className={`relative w-full overflow-hidden flex justify-center touch-none overscroll-contain ${
         isLight ? 'border-slate-200 bg-[#f4f7f4]' : 'border-zinc-800 bg-[#0e1117]'
       }`}
     >
@@ -280,14 +308,13 @@ export default function DigitalTwinCanvas({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onWheel={handleWheel}
         onDoubleClick={handleDoubleClick}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        className={`w-full max-h-[660px] select-none outline-none focus:ring-1 focus:ring-emerald-500/30 ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`w-full max-h-[660px] select-none outline-none touch-none overscroll-contain focus:ring-1 focus:ring-emerald-500/30 ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
       >
         <defs>
           <clipPath id="iiitnrCampusClip">

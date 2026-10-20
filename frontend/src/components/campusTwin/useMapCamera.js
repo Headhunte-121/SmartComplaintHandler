@@ -327,7 +327,8 @@ export function useMapCamera({
   // Cursor-Centered Mouse Wheel Zoom
   const handleWheel = useCallback(
     (e) => {
-      e.preventDefault();
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
       stopAnimation();
 
       const focal = getSvgCoordinates(e.clientX, e.clientY);
@@ -507,6 +508,9 @@ export function useMapCamera({
 
   const handleTouchMove = useCallback(
     (e) => {
+      if (e.cancelable && e.preventDefault) {
+        e.preventDefault();
+      }
       if (e.touches.length === 1 && isDraggingRef.current) {
         const t = e.touches[0];
         const rawNextX = t.clientX - dragStartRef.current.x;

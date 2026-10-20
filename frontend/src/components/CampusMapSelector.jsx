@@ -420,7 +420,7 @@ export default function CampusMapSelector({
       </div>
 
       {/* Main Interactive Map Viewport Container */}
-      <div className={`relative w-full overflow-hidden ${isDark ? 'bg-[#0e1117]' : 'bg-[#f4f7f4]'}`}>
+      <div className={`relative w-full overflow-hidden touch-none overscroll-contain ${isDark ? 'bg-[#0e1117]' : 'bg-[#f4f7f4]'}`}>
         {/* SVG Digital Twin Canvas */}
         <DigitalTwinCanvas
           svgRef={svgRef}
