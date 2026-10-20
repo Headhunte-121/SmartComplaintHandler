@@ -109,21 +109,6 @@ export default function CampusMapSelector({
     }
   }, [selectedRoom]);
 
-  // Keep inspector floor synchronized with available floors of the active building
-  useEffect(() => {
-    if (availableFloors.length > 0) {
-      const validIds = availableFloors.map((f) => String(f.id));
-      if (!validIds.includes(String(inspectorFloor))) {
-        const inferred = inferFloorFromItem(activeRoom);
-        if (inferred && validIds.includes(inferred)) {
-          setInspectorFloor(inferred);
-        } else {
-          setInspectorFloor(availableFloors[0].id);
-        }
-      }
-    }
-  }, [availableFloors, inspectorFloor, activeRoom]);
-
   useEffect(() => {
     // Proactively fetch campus buildings from backend database on mount
     fetchAndCacheCampusBuildings().then((remote) => {
@@ -155,6 +140,21 @@ export default function CampusMapSelector({
     if (!activeBuildingObj) return [];
     return getFloorsForBuilding(activeBuildingObj.id, buildings);
   }, [activeBuildingObj, buildings]);
+
+  // Keep inspector floor synchronized with available floors of the active building
+  useEffect(() => {
+    if (availableFloors.length > 0) {
+      const validIds = availableFloors.map((f) => String(f.id));
+      if (!validIds.includes(String(inspectorFloor))) {
+        const inferred = inferFloorFromItem(activeRoom);
+        if (inferred && validIds.includes(inferred)) {
+          setInspectorFloor(inferred);
+        } else {
+          setInspectorFloor(availableFloors[0].id);
+        }
+      }
+    }
+  }, [availableFloors, inspectorFloor, activeRoom]);
 
   const inspectorRooms = useMemo(() => {
     if (!activeBuildingObj) return [];
