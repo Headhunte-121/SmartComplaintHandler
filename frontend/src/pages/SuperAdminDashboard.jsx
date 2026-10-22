@@ -1,6 +1,6 @@
 /**
- * SmartComplaintHandler - Campus Facilities Directorate Overview (v2 Refresh)
- * Style: Dark Enterprise Command Center with Ambient Cyan/Emerald Lighting & Modern Typography
+ * SmartComplaintHandler - Campus Facilities Directorate Overview
+ * Style: Dark Enterprise Operations Dashboard (Command Center)
  * Reference: Executive Oversight telemetry, departmental operational stability,
  * building fault density, and SLA exception monitoring across IIIT Naya Raipur.
  */
@@ -11,12 +11,7 @@ import { fetchAdmins } from '../api/auth';
 import { fetchSquadWorkloads } from '../api/assignment';
 import { fetchComplaints } from '../api/complaints';
 import { fetchActiveBreaches } from '../api/sla';
-import { fetchDirectorateTelemetry } from '../api/superadmin';
-import { fetchAndCacheCampusBuildings, getCampusBuildings } from '../data/iiitnrCampusData';
-
-// ============================================================================
-// Constants & Configuration
-// ============================================================================
+import { getCampusBuildings } from '../data/iiitnrCampusData';
 
 const CAMPUS_DEPARTMENTS = [
   'Electrical',
@@ -47,147 +42,15 @@ const CATEGORY_COLORS = {
   ADMIN: { bg: '#1C2430', border: '#343E4B', text: '#F1F5F9' },
 };
 
-// ============================================================================
-// Helper Formatting & Normalization Functions
-// ============================================================================
-
-function normStatus(status) {
-  return String(status || '').toUpperCase().trim();
-}
-
-function isResolvedStatus(status) {
-  return ['RESOLVED', 'CLOSED'].includes(normStatus(status));
-}
-
-function isCancelledStatus(status) {
-  return ['CANCELLED', 'REJECTED'].includes(normStatus(status));
-}
-
-function isActiveStatus(status) {
-  return !isResolvedStatus(status) && !isCancelledStatus(status);
-}
-
-function isPendingStatus(status) {
-  return ['SUBMITTED', 'PENDING', 'ASSIGNED'].includes(normStatus(status));
-}
-
-function isInProgressStatus(status) {
-  return ['IN_PROGRESS', 'ESCALATED', 'ON_HOLD'].includes(normStatus(status));
-}
-
-function isCriticalTicket(t) {
-  const p = normStatus(t.priority);
-  return (p === 'CRITICAL' || Boolean(t.hazard_detected)) && isActiveStatus(t.status);
-}
-
-function getTicketTitle(ticket) {
-  return (
-    ticket.title ||
-    ticket.issue_title ||
-    ticket.subject ||
-    ticket.description ||
-    ticket.complaint ||
-    'Maintenance request'
-  );
-}
-
-function getTicketId(ticket, index) {
-  return (
-    ticket.tracking_code ||
-    ticket.ticket_code ||
-    ticket.complaint_code ||
-    ticket.code ||
-    ticket.id ||
-    ticket._id ||
-    `#${String(index + 1).padStart(4, '0')}`
-  );
-}
-
-function getTicketDepartmentName(ticket) {
-  if (ticket.department_name) return ticket.department_name;
-  if (typeof ticket.department === 'string') return ticket.department;
-  if (ticket.department && typeof ticket.department === 'object') {
-    return ticket.department.name || '';
-  }
-  if (ticket.department_id) {
-    const DEPT_MAP = {
-      1: 'Electrical',
-      2: 'Plumbing',
-      3: 'Sanitation',
-      4: 'Carpentry',
-      5: 'IT Support',
-      6: 'General Administration',
-    };
-    return DEPT_MAP[ticket.department_id] || '';
-  }
-  return '';
-}
-
-function matchDept(ticket, dept) {
-  const tDept = String(getTicketDepartmentName(ticket) || '').toLowerCase().trim();
-  const target = String(dept || '').toLowerCase().trim();
-  return tDept === target || tDept.includes(target) || target.includes(tDept);
-}
-
-function formatTicketDate(ticket) {
-  const value = ticket.created_at || ticket.createdAt || ticket.submitted_at || ticket.submittedAt;
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString([], {
-    month: 'short',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function getStatusLabel(status) {
-  return String(status || 'SUBMITTED')
-    .replaceAll('_', ' ')
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function getStatusBadgeClass(status) {
-  const value = normStatus(status);
-  if (['RESOLVED', 'CLOSED'].includes(value)) {
-    return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
-  }
-  if (['IN_PROGRESS', 'ESCALATED'].includes(value)) {
-    return 'border-sky-500/30 bg-sky-500/10 text-sky-300';
-  }
-  if (['ASSIGNED'].includes(value)) {
-    return 'border-blue-500/30 bg-blue-500/10 text-blue-300';
-  }
-  if (['ON_HOLD'].includes(value)) {
-    return 'border-purple-500/30 bg-purple-500/10 text-purple-300';
-  }
-  return 'border-amber-500/30 bg-amber-500/10 text-amber-300';
-}
-
-function getPriorityBadgeClass(priority) {
-  const value = normStatus(priority || 'MEDIUM');
-  if (value === 'CRITICAL') return 'border-rose-500/40 bg-rose-500/10 text-rose-300';
-  if (value === 'HIGH') return 'border-amber-500/40 bg-amber-500/10 text-amber-300';
-  if (value === 'LOW') return 'border-slate-600 bg-slate-800 text-slate-300';
-  return 'border-sky-500/30 bg-sky-500/10 text-sky-300';
-}
-
-// ============================================================================
-// Main Page Component
-// ============================================================================
-
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  const [telemetry, setTelemetry] = useState(null);
   const [admins, setAdmins] = useState([]);
   const [teams, setTeams] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [breaches, setBreaches] = useState([]);
-  const [buildings, setBuildings] = useState(() => getCampusBuildings());
+  const [buildings] = useState(() => getCampusBuildings());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -196,29 +59,18 @@ export default function SuperAdminDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [telemetryRes, adminList, teamList, ticketList, breachList, buildingList] =
-        await Promise.all([
-          fetchDirectorateTelemetry().catch(() => null),
-          fetchAdmins().catch(() => []),
-          fetchSquadWorkloads().catch(() => []),
-          fetchComplaints({ limit: 1000 }).catch(() => []),
-          fetchActiveBreaches(0.20).catch(() => []),
-          fetchAndCacheCampusBuildings().catch(() => getCampusBuildings()),
-        ]);
-
-      if (telemetryRes) {
-        setTelemetry(telemetryRes);
-      }
-      setAdmins(Array.isArray(adminList) ? adminList : adminList?.admins || adminList?.users || []);
-      setTeams(Array.isArray(teamList) ? teamList : teamList?.workloads || teamList?.teams || []);
-      setTickets(Array.isArray(ticketList) ? ticketList : ticketList?.tickets || ticketList?.data || []);
-      setBreaches(Array.isArray(breachList) ? breachList : breachList?.breaches || []);
-      if (Array.isArray(buildingList) && buildingList.length > 0) {
-        setBuildings(buildingList);
-      }
+      const [adminList, teamList, ticketList, breachList] = await Promise.all([
+        fetchAdmins().catch(() => []),
+        fetchSquadWorkloads().catch(() => []),
+        fetchComplaints().catch(() => []),
+        fetchActiveBreaches().catch(() => []),
+      ]);
+      setAdmins(Array.isArray(adminList) ? adminList : []);
+      setTeams(Array.isArray(teamList) ? teamList : []);
+      setTickets(Array.isArray(ticketList) ? ticketList : []);
+      setBreaches(Array.isArray(breachList) ? breachList : []);
       setLastUpdated(new Date());
     } catch (err) {
-      console.error('Failed to refresh directorate executive telemetry:', err);
       setError('Failed to refresh directorate executive telemetry. Check network connection.');
     } finally {
       setLoading(false);
@@ -229,131 +81,50 @@ export default function SuperAdminDashboard() {
     loadData();
   }, [loadData]);
 
-  // Executive KPI Calculations
-  const serverTotal = telemetry?.kpis?.total_tickets;
-  const clientTotal = tickets.length;
-  const totalTickets = typeof serverTotal === 'number' ? Math.max(serverTotal, clientTotal) : clientTotal;
+  // Executive KPI Math
+  const totalTickets = tickets.length;
+  const pendingTickets = tickets.filter(
+    (t) => t.status === 'SUBMITTED' || t.status === 'PENDING' || t.status === 'ASSIGNED'
+  ).length;
+  const inProgressTickets = tickets.filter(
+    (t) => t.status === 'IN_PROGRESS' || t.status === 'ESCALATED'
+  ).length;
+  const resolvedTickets = tickets.filter(
+    (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
+  ).length;
+  const activeLoad = pendingTickets + inProgressTickets;
+  const resolutionRate = totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 100;
 
-  const clientPending = tickets.filter((t) => isPendingStatus(t.status)).length;
-  const clientInProgress = tickets.filter((t) => isInProgressStatus(t.status)).length;
-  const clientResolved = tickets.filter((t) => isResolvedStatus(t.status)).length;
-
-  const pendingTickets =
-    typeof telemetry?.kpis?.pending_tickets === 'number'
-      ? telemetry.kpis.pending_tickets
-      : clientPending;
-
-  const inProgressTickets =
-    typeof telemetry?.kpis?.in_progress_tickets === 'number'
-      ? telemetry.kpis.in_progress_tickets
-      : clientInProgress;
-
-  const resolvedTickets =
-    typeof telemetry?.kpis?.resolved_tickets === 'number'
-      ? telemetry.kpis.resolved_tickets
-      : clientResolved;
-
-  const activeLoad =
-    typeof telemetry?.kpis?.active_load === 'number'
-      ? telemetry.kpis.active_load
-      : pendingTickets + inProgressTickets;
-
-  const resolutionRate =
-    typeof telemetry?.kpis?.resolution_rate === 'number'
-      ? telemetry.kpis.resolution_rate
-      : totalTickets > 0
-      ? Math.round((resolvedTickets / totalTickets) * 100)
-      : 100;
-
-  const clientCritical = tickets.filter((t) => isCriticalTicket(t)).length;
-  const criticalTickets =
-    typeof telemetry?.kpis?.critical_tickets === 'number'
-      ? telemetry.kpis.critical_tickets
-      : clientCritical;
-
-  // Breach tracking
-  const apiOverdue = breaches.filter(
-    (b) => b.is_breached || b.breached || (b.overdue_seconds && b.overdue_seconds > 0)
+  const criticalTickets = tickets.filter(
+    (t) =>
+      (t.priority === 'CRITICAL' || t.hazard_detected) &&
+      t.status !== 'RESOLVED' &&
+      t.status !== 'CLOSED'
   ).length;
 
-  const apiApproaching = breaches.filter(
-    (b) => !b.is_breached && !b.breached && (b.remaining_seconds && b.remaining_seconds > 0)
-  ).length;
-
-  const ticketOverdue = tickets.filter((t) => {
-    if (!isActiveStatus(t.status)) return false;
-    const dl = t.sla_deadline || t.target_resolution_date;
-    if (!dl) return false;
-    const dlTime = new Date(dl).getTime();
-    return !Number.isNaN(dlTime) && dlTime < Date.now();
-  }).length;
-
-  const ticketApproaching = tickets.filter((t) => {
-    if (!isActiveStatus(t.status)) return false;
-    const dl = t.sla_deadline || t.target_resolution_date;
-    if (!dl) return false;
-    const dlTime = new Date(dl).getTime();
-    const diff = dlTime - Date.now();
-    return !Number.isNaN(dlTime) && diff > 0 && diff <= 12 * 3600 * 1000;
-  }).length;
-
-  const overdueBreaches =
-    typeof telemetry?.kpis?.overdue_breaches === 'number'
-      ? telemetry.kpis.overdue_breaches
-      : Math.max(apiOverdue, ticketOverdue);
-
-  const approachingBreaches =
-    typeof telemetry?.kpis?.approaching_breaches === 'number'
-      ? telemetry.kpis.approaching_breaches
-      : Math.max(apiApproaching, ticketApproaching);
-
+  const overdueBreaches = breaches.filter((b) => b.is_breached).length;
+  const approachingBreaches = breaches.filter((b) => !b.is_breached).length;
   const slaCompliance =
-    typeof telemetry?.kpis?.sla_compliance === 'number'
-      ? telemetry.kpis.sla_compliance
-      : totalTickets > 0
-      ? Math.max(0, Math.min(100, Math.round(((totalTickets - overdueBreaches) / totalTickets) * 100)))
+    totalTickets > 0
+      ? Math.max(0, Math.round(((totalTickets - overdueBreaches) / totalTickets) * 100))
       : 100;
 
-  const fieldSquadsCount =
-    typeof telemetry?.kpis?.field_squads_count === 'number'
-      ? telemetry.kpis.field_squads_count
-      : teams.length > 0
-      ? teams.length
-      : 8;
-
-  const staffCount =
-    typeof telemetry?.kpis?.staff_count === 'number'
-      ? telemetry.kpis.staff_count
-      : admins.length > 0
-      ? admins.length
-      : 11;
-
-  // Department distribution with server synchronization and authentic health calculation
+  // Department distribution with authentic health score
   const departmentStats = useMemo(() => {
     return CAMPUS_DEPARTMENTS.map((dept) => {
-      const serverDept = telemetry?.department_stats?.find((d) => d.name === dept);
-
-      const deptTickets = tickets.filter((t) => matchDept(t, dept));
-      const clientDeptTotal = deptTickets.length;
-      const clientDeptActive = deptTickets.filter((t) => isActiveStatus(t.status)).length;
-      const clientDeptResolved = deptTickets.filter((t) => isResolvedStatus(t.status)).length;
-
-      const total =
-        typeof serverDept?.total === 'number'
-          ? Math.max(serverDept.total, clientDeptTotal)
-          : clientDeptTotal;
-      const active =
-        typeof serverDept?.active === 'number' ? serverDept.active : clientDeptActive;
-      const resolved =
-        typeof serverDept?.resolved === 'number' ? serverDept.resolved : clientDeptResolved;
-      const rate = total > 0 ? Math.round((resolved / total) * 100) : (serverDept?.rate ?? 100);
-
-      // Health calculation: 100 if zero active faults, reduced based on open backlog severity
+      const deptTickets = tickets.filter((t) => t.department_name === dept);
+      const active = deptTickets.filter(
+        (t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'CANCELLED'
+      ).length;
+      const resolved = deptTickets.filter(
+        (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
+      ).length;
+      const total = deptTickets.length;
+      const rate = total > 0 ? Math.round((resolved / total) * 100) : 100;
+      
+      // Health calculation: 100 if zero active, drops with backlog severity
       const penalty = active * 6 + (active > 3 ? 12 : 0);
-      const health =
-        typeof serverDept?.health === 'number'
-          ? serverDept.health
-          : Math.max(55, Math.min(100, 100 - penalty));
+      const health = Math.max(55, Math.min(100, 100 - penalty));
 
       return {
         name: dept,
@@ -365,35 +136,28 @@ export default function SuperAdminDashboard() {
         health,
       };
     });
-  }, [tickets, telemetry]);
+  }, [tickets]);
 
   // Campus building distribution
   const buildingStats = useMemo(() => {
     const list = buildings.map((b) => {
       const matchedTickets = tickets.filter((t) => {
         const loc = (t.location || '').toLowerCase();
-        const bName = (b.name || '').toLowerCase();
-        const bShort = (b.shortName || b.short_name || '').toLowerCase();
-        const bId = (b.id || '').toLowerCase();
         return (
-          (bName && loc.includes(bName)) ||
-          (bShort && loc.includes(bShort)) ||
-          (bId && loc.includes(bId)) ||
-          (bShort.includes('ramanujan') && loc.includes('ramanujan')) ||
-          (bShort.includes('bose') && (loc.includes('bose') || loc.includes('h1') || loc.includes('hostel 1'))) ||
-          (bShort.includes('bhabha') && (loc.includes('bhabha') || loc.includes('h2') || loc.includes('hostel 2'))) ||
-          (bShort.includes('academic') && (loc.includes('academic') || loc.includes('science') || loc.includes('lab')))
+          loc.includes(b.name.toLowerCase()) ||
+          loc.includes((b.shortName || '').toLowerCase()) ||
+          loc.includes(b.id.toLowerCase())
         );
       });
-      const active = matchedTickets.filter((t) => isActiveStatus(t.status)).length;
+      const active = matchedTickets.filter(
+        (t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'CANCELLED'
+      ).length;
       return {
         id: b.id,
         name: b.name,
-        shortName: b.shortName || b.short_name || b.name,
+        shortName: b.shortName || b.name,
         category: b.category || 'FACILITY',
-        color: b.trace?.color || b.mapPin?.color || b.color || '#00B386',
-        trace: b.trace,
-        mapPin: b.mapPin || b.map_pin,
+        color: b.trace?.color || b.mapPin?.color || '#00B386',
         total: matchedTickets.length,
         active,
       };
@@ -404,16 +168,6 @@ export default function SuperAdminDashboard() {
   const handleFacilityClick = (building) => {
     navigate(`/track?search=${encodeURIComponent(building.shortName)}`);
   };
-
-  const recentTickets = useMemo(() => {
-    return [...tickets]
-      .sort((a, b) => {
-        const dateA = new Date(a.created_at || a.createdAt || a.submitted_at || 0).getTime();
-        const dateB = new Date(b.created_at || b.createdAt || b.submitted_at || 0).getTime();
-        return dateB - dateA;
-      })
-      .slice(0, 6);
-  }, [tickets]);
 
   return (
     <div
@@ -534,9 +288,8 @@ export default function SuperAdminDashboard() {
   .modern-directorate main, .modern-operations main { padding: 18px 14px 30px !important; }
   .modern-directorate h1, .modern-operations h1 { font-size: 1.6rem !important; }
 }
-      `}</style>
-
-      {/* Page Heading Section: full width flush header with ambient glow underline */}
+`}</style>
+      {/* 4. Page Heading Section: full width, 32-36px gutters on 1120px, 36-50px on wide desktop */}
       <header className="w-full bg-gradient-to-r from-[#111923] via-[#121B27] to-[#101720] border-b border-[#243243] px-5 sm:px-8 lg:px-10 xl:px-12 py-3.5">
         <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="min-w-0">
@@ -545,17 +298,14 @@ export default function SuperAdminDashboard() {
                 INSTITUTIONAL DIRECTORATE COMMAND
               </span>
               <span className="text-[#64748B] text-xs">•</span>
-              <span className="text-xs font-mono text-[#94A3B8]">Executive Oversight</span>
+              <span className="text-xs font-mono text-[#94A3B8]">
+                Executive Oversight
+              </span>
               {lastUpdated && (
                 <>
                   <span className="text-[#64748B] text-xs">•</span>
                   <span className="text-[11px] font-mono text-[#64748B]">
-                    Telemetry Synced{' '}
-                    {lastUpdated.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                    })}
+                    Telemetry Synced {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </span>
                 </>
               )}
@@ -582,7 +332,7 @@ export default function SuperAdminDashboard() {
         </div>
       </header>
 
-      {/* Main Full-Width Content Container */}
+      {/* Main Full-Width Content Container: exact same horizontal gutter px-5 sm:px-8 lg:px-10 xl:px-12 */}
       <main className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-9 py-5 sm:py-6 space-y-5">
         {/* Error notification banner if any */}
         {error && (
@@ -601,14 +351,11 @@ export default function SuperAdminDashboard() {
           </div>
         )}
 
-        {/* 6-Card KPI Strip */}
+        {/* 5. KPI Strip: 6 compact cards in ONE desktop row, 3 on tablet, 2 on mobile */}
         <section aria-label="Executive KPIs">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
             {/* KPI 1: Total Grievances */}
-            <Link
-              to="/operations"
-              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
-            >
+            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Total Grievances
               </span>
@@ -620,117 +367,86 @@ export default function SuperAdminDashboard() {
               <span className="text-[11px] text-[#2DD4BF] font-medium block truncate">
                 Institutional Lifetime
               </span>
-            </Link>
+            </div>
 
             {/* KPI 2: Active Operations */}
-            <Link
-              to="/operations"
-              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
-            >
+            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Active Operations
               </span>
               <div className="my-0.5">
-                <span
-                  className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${
-                    activeLoad > 0 ? 'text-[#FBBF24]' : 'text-[#F1F5F9]'
-                  }`}
-                >
+                <span className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${activeLoad > 0 ? 'text-[#FBBF24]' : 'text-[#F1F5F9]'}`}>
                   {loading ? '—' : activeLoad}
                 </span>
               </div>
               <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
                 {pendingTickets} Pending • {inProgressTickets} In-Work
               </span>
-            </Link>
+            </div>
 
             {/* KPI 3: Resolution Rate */}
-            <Link
-              to="/operations"
-              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
-            >
+            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Resolution Rate
               </span>
               <div className="my-0.5">
-                <span
-                  className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${
-                    resolutionRate >= 80 ? 'text-[#00B386]' : 'text-[#FBBF24]'
-                  }`}
-                >
+                <span className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${resolutionRate >= 80 ? 'text-[#00B386]' : 'text-[#FBBF24]'}`}>
                   {loading ? '—' : `${resolutionRate}%`}
                 </span>
               </div>
               <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
                 {resolvedTickets} Closed Tickets
               </span>
-            </Link>
+            </div>
 
             {/* KPI 4: SLA Compliance */}
-            <Link
-              to="/operations"
-              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
-            >
+            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 SLA Compliance
               </span>
               <div className="my-0.5">
-                <span
-                  className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${
-                    overdueBreaches === 0 ? 'text-[#00B386]' : 'text-[#F87171]'
-                  }`}
-                >
+                <span className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${overdueBreaches === 0 ? 'text-[#00B386]' : 'text-[#F87171]'}`}>
                   {loading ? '—' : `${slaCompliance}%`}
                 </span>
               </div>
-              <span
-                className={`text-[11px] font-medium block truncate ${
-                  overdueBreaches > 0 ? 'text-[#F87171] font-bold' : 'text-[#00B386]'
-                }`}
-              >
+              <span className={`text-[11px] font-medium block truncate ${overdueBreaches > 0 ? 'text-[#F87171] font-bold' : 'text-[#00B386]'}`}>
                 {overdueBreaches > 0 ? `⚠️ ${overdueBreaches} Overdue` : '✓ Zero Overdue'}
               </span>
-            </Link>
+            </div>
 
             {/* KPI 5: Field Squads */}
-            <Link
-              to="/squads"
-              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
-            >
+            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Field Squads
               </span>
               <div className="my-0.5">
                 <span className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
-                  {loading ? '—' : fieldSquadsCount}
+                  {loading ? '—' : teams.length}
                 </span>
               </div>
               <span className="text-[11px] text-[#38BDF8] font-medium block truncate">
                 Active Trade Balancing
               </span>
-            </Link>
+            </div>
 
             {/* KPI 6: Staff & Admins */}
-            <Link
-              to="/superadmin/staff"
-              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
-            >
+            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Staff &amp; Admins
               </span>
               <div className="my-0.5">
                 <span className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
-                  {loading ? '—' : staffCount}
+                  {loading ? '—' : admins.length}
                 </span>
               </div>
               <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
                 6 Operational Trades
               </span>
-            </Link>
+            </div>
           </div>
         </section>
 
-        {/* Quick-Access Operational Shortcut Cards: 3 equal cards */}
+        {/* 6. Quick-Access Operational Shortcut Cards: 3 equal cards, unified surface styling */}
         <section aria-label="Operational Shortcuts">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-3.5">
             {/* Shortcut A: Operations Console */}
@@ -804,7 +520,7 @@ export default function SuperAdminDashboard() {
           </div>
         </section>
 
-        {/* Departmental Infrastructure Health & Operational Radar (3x2 Grid) */}
+        {/* 7. Departmental Infrastructure Health & Operational Radar (3x2 Grid) */}
         <section className="space-y-3" aria-label="Departmental Health">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
             <div>
@@ -882,7 +598,7 @@ export default function SuperAdminDashboard() {
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
-                        width: `${Math.max(5, dept.health)}%`,
+                        width: `${dept.health}%`,
                         backgroundColor: healthColor,
                       }}
                     />
@@ -893,29 +609,24 @@ export default function SuperAdminDashboard() {
           </div>
         </section>
 
-        {/* Campus Digital Twin Infrastructure Density */}
+        {/* 8. Campus Digital Twin Infrastructure Density (4-column grid spanning the full width) */}
         <section className="space-y-3" aria-label="Campus Digital Twin">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-            <div>
-              <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
-                Campus Digital Twin Infrastructure Density
-              </h2>
-              <p className="text-[11px] sm:text-xs text-[#94A3B8] mt-0.5">
-                Fault distribution and complaint density across academic buildings, hostels, amenity centers, and sports grounds.
-              </p>
-            </div>
-            <Link
-              to="/map"
-              className="text-xs font-semibold text-[#00B386] hover:text-[#00C795] flex items-center gap-1 self-start sm:self-auto"
-            >
-              <span>Explore Interactive 3D Map</span>
-              <span>→</span>
-            </Link>
+          <div>
+            <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
+              Campus Digital Twin Infrastructure Density
+            </h2>
+            <p className="text-[11px] sm:text-xs text-[#94A3B8] mt-0.5">
+              Fault distribution and complaint density across academic buildings, hostels, amenity centers, and sports grounds.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5">
             {buildingStats.map((b) => {
-              const catStyle = CATEGORY_COLORS[b.category] || CATEGORY_COLORS.AMENITY;
+              const catStyle = CATEGORY_COLORS[b.category] || CATEGORY_COLORS.FACILITY || {
+                bg: '#1C2430',
+                border: '#343E4B',
+                text: '#94A3B8',
+              };
 
               return (
                 <div
@@ -981,7 +692,7 @@ export default function SuperAdminDashboard() {
           </div>
         </section>
 
-        {/* SLA Exception Radar & Escalation Gate */}
+        {/* 9. SLA Exception Radar & Escalation Gate: wide panel with 3 metric cards */}
         <section className="bg-[#141D27] border border-[#263545] rounded-xl p-4 sm:p-5 space-y-3.5" aria-label="SLA Escalation Radar">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#263545]">
             <div>
@@ -1081,95 +792,6 @@ export default function SuperAdminDashboard() {
                 Immediate hazards or emergency campus breakdowns
               </span>
             </Link>
-          </div>
-        </section>
-
-        {/* Recent Maintenance Requests Queue Table */}
-        <section className="rounded-xl border border-[#263545] bg-[#141D27] overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-[#263545]">
-            <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#263545] flex items-center justify-center shrink-0 text-xs">
-                📋
-              </span>
-              <div>
-                <h3 className="text-sm font-bold text-[#F1F5F9]">Recent Maintenance Requests</h3>
-                <p className="text-[11px] text-[#94A3B8] mt-0.5">
-                  Latest facility complaints across academic buildings, hostels, and amenities.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[#94A3B8] font-mono">{totalTickets} total</span>
-              <Link
-                to="/operations"
-                className="px-3 py-1.5 rounded-[8px] text-xs font-semibold text-[#F1F5F9] bg-[#1C2430] border border-[#263545] hover:border-[#00B386] hover:text-[#00B386] transition-colors"
-              >
-                View Operations Queue →
-              </Link>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[750px] text-left">
-              <thead className="bg-[#101720] text-[10px] uppercase font-mono text-[#64748B] border-b border-[#263545]">
-                <tr>
-                  <th className="px-4 py-2.5">Code</th>
-                  <th className="px-4 py-2.5">Issue</th>
-                  <th className="px-4 py-2.5">Location</th>
-                  <th className="px-4 py-2.5">Department</th>
-                  <th className="px-4 py-2.5">Priority</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Submitted</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#263545]/60 text-xs text-[#94A3B8]">
-                {recentTickets.length > 0 ? (
-                  recentTickets.map((t, idx) => {
-                    const code = getTicketId(t, idx);
-                    return (
-                      <tr key={t.id || code} className="hover:bg-[#182330] transition-colors">
-                        <td className="px-4 py-2.5 font-mono text-[#F1F5F9]">
-                          <Link
-                            to={`/track?search=${encodeURIComponent(code)}`}
-                            className="hover:underline hover:text-[#00B386]"
-                          >
-                            {code}
-                          </Link>
-                        </td>
-                        <td className="px-4 py-2.5 font-medium text-[#F1F5F9] max-w-xs truncate" title={getTicketTitle(t)}>
-                          {getTicketTitle(t)}
-                        </td>
-                        <td className="px-4 py-2.5 text-slate-300 max-w-[160px] truncate">
-                          {t.location || '—'}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          {getTicketDepartmentName(t) || '—'}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <span className={`inline-flex rounded px-2 py-0.5 text-[10px] font-mono border ${getPriorityBadgeClass(t.priority)}`}>
-                            {String(t.priority || 'MEDIUM').toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <span className={`inline-flex rounded px-2 py-0.5 text-[10px] font-mono border ${getStatusBadgeClass(t.status)}`}>
-                            {getStatusLabel(t.status)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5 font-mono text-[11px] whitespace-nowrap text-[#64748B]">
-                          {formatTicketDate(t)}
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan="7" className="px-4 py-8 text-center text-xs text-[#64748B]">
-                      {loading ? 'Loading requests...' : 'No maintenance requests logged yet.'}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </div>
         </section>
       </main>

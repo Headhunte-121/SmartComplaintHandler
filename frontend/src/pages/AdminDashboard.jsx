@@ -130,7 +130,7 @@ export default function AdminDashboard() {
         isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
       }`}
     >
-      <style>{`
+<style>{`
 /* Modern Command Center refresh — scoped to the two dashboard roots */
 .modern-directorate, .modern-operations {
   --modern-bg: #080d18;
@@ -225,8 +225,8 @@ export default function AdminDashboard() {
   .modern-directorate main, .modern-operations main { padding: 18px 14px 30px !important; }
   .modern-directorate h1, .modern-operations h1 { font-size: 1.6rem !important; }
 }
-      `}</style>
-      {/* Flush Operations Hero Header */}
+`}</style>
+            {/* Flush Operations Hero Header */}
       <div
         className={`w-full border-b px-4 sm:px-6 lg:px-8 py-5 relative overflow-hidden transition-colors ${
           isDark
