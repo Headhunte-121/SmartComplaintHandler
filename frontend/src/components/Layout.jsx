@@ -9,7 +9,6 @@ export default function Layout() {
   const { currentUser, authInitializing } = useAuth();
   const { isDark } = useTheme();
   const location = useLocation();
-  const isDirectorateDashboard = location.pathname.replace(/\/$/, '') === '/superadmin';
 
   if (authInitializing) {
     return (
@@ -34,11 +33,11 @@ export default function Layout() {
           : 'bg-white text-slate-800 selection:bg-slate-200 selection:text-slate-900'
       }`}
     >
-      {!isDirectorateDashboard && <Navbar />}
-      <main className={`flex-1 w-full max-w-none min-w-0 p-0 m-0 ${isDirectorateDashboard ? 'overflow-x-hidden' : ''}`}>
+      <Navbar />
+      <main className="flex-1 w-full max-w-none min-w-0 p-0 m-0" style={{ width: "100%", maxWidth: "none" }}>
         <Outlet />
       </main>
-      {!isDirectorateDashboard && <Footer isDark={isDark} />}
+      <Footer isDark={isDark} />
     </div>
   );
 }
