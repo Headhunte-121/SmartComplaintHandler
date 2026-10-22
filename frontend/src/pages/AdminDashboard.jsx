@@ -1,6 +1,6 @@
 /**
  * SmartComplaintHandler - Campus Facilities Operations Console
- * Flush Edge-to-Edge Supervisory Workstation with Full Width Layout & Dual Theme Palette
+ * Modern action-first supervisory workspace; existing operational logic is preserved.
  */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -132,9 +132,9 @@ export default function AdminDashboard() {
     >
       {/* Flush Operations Hero Header */}
       <div
-        className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden transition-colors ${
+        className={`w-full border-b px-4 sm:px-6 lg:px-8 py-5 relative overflow-hidden transition-colors ${
           isDark
-            ? 'bg-[#161b22] border-zinc-800 text-zinc-100'
+            ? 'bg-gradient-to-r from-[#111923] via-[#121D2A] to-[#101720] border-[#263545] text-zinc-100'
             : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xs'
         }`}
       >
@@ -149,17 +149,17 @@ export default function AdminDashboard() {
             >
               <span>🛡️ Supervisory Command Desk</span>
             </div>
-            <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+            <h1 className={`text-2xl sm:text-3xl lg:text-[32px] font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
               Facilities Maintenance Operations Console
             </h1>
-            <p className={`text-xs sm:text-sm max-w-2xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+            <p className={`text-xs sm:text-sm max-w-3xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
               Live queue dispatch, squad workload balancing, priority override governance, and SLA breach monitoring.
             </p>
           </div>
 
           <div
-            className={`flex items-center space-x-3 p-3.5 rounded-2xl border shrink-0 transition-colors ${
-              isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300 shadow-2xs'
+            className={`flex items-center space-x-3 p-3.5 rounded-xl border shrink-0 transition-colors ${
+              isDark ? 'bg-[#0B1119] border-[#253444]' : 'bg-[#e2e8f0] border-slate-300 shadow-2xs'
             }`}
           >
             <span className="text-2xl">{activeUser?.avatar || '🛡️'}</span>
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Full-Width Content Area */}
-      <div className={`w-full px-4 sm:px-8 lg:px-12 py-8 sm:py-10 space-y-8 ${isDark ? 'bg-[#0e1117]' : 'bg-white'}`}>
+      <div className={`w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-5 ${isDark ? 'bg-[#0e1117]' : 'bg-white'}`}>
         {toastMsg && (
           <div
             className={`p-4 rounded-xl border text-xs font-bold flex items-center justify-between animate-fade-in shadow-xs ${
@@ -205,10 +205,10 @@ export default function AdminDashboard() {
         )}
 
         {/* Bento Operational Metrics Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
           <div
-            className={`p-5 border-l-4 border-l-slate-400 space-y-1 rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
+            className={`p-4 border-l-[3px] border-l-slate-400 space-y-1 rounded-xl border transition-colors ${
+              isDark ? 'bg-gradient-to-br from-[#151F2B] to-[#111821] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
             }`}
           >
             <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -219,8 +219,8 @@ export default function AdminDashboard() {
           </div>
 
           <div
-            className={`p-5 border-l-4 border-l-blue-500 space-y-1 rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
+            className={`p-4 border-l-[3px] border-l-blue-500 space-y-1 rounded-xl border transition-colors ${
+              isDark ? 'bg-gradient-to-br from-[#151F2B] to-[#111821] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
             }`}
           >
             <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
@@ -231,8 +231,8 @@ export default function AdminDashboard() {
           </div>
 
           <div
-            className={`p-5 border-l-4 border-l-rose-500 space-y-1 rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
+            className={`p-4 border-l-[3px] border-l-rose-500 space-y-1 rounded-xl border transition-colors ${
+              isDark ? 'bg-gradient-to-br from-[#151F2B] to-[#111821] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
             }`}
           >
             <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>
@@ -243,8 +243,8 @@ export default function AdminDashboard() {
           </div>
 
           <div
-            className={`p-5 border-l-4 border-l-emerald-500 space-y-1 rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
+            className={`p-4 border-l-[3px] border-l-emerald-500 space-y-1 rounded-xl border transition-colors ${
+              isDark ? 'bg-gradient-to-br from-[#151F2B] to-[#111821] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
             }`}
           >
             <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
@@ -260,13 +260,13 @@ export default function AdminDashboard() {
 
         {/* Main Incident Operations Table */}
         <div
-          className={`rounded-2xl border p-6 sm:p-8 space-y-6 transition-colors ${
-            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
+          className={`rounded-xl border p-4 sm:p-5 space-y-4 transition-colors ${
+            isDark ? 'bg-[#131D28] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
           }`}
         >
           <div
             className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b pb-5 ${
-              isDark ? 'border-zinc-800' : 'border-slate-300'
+              isDark ? 'border-[#263545]' : 'border-slate-300'
             }`}
           >
             <div>
@@ -389,7 +389,7 @@ export default function AdminDashboard() {
             <table className="w-full text-left text-xs">
               <thead
                 className={`font-mono font-bold uppercase tracking-wider text-[10px] border-b ${
-                  isDark ? 'bg-[#0e1117] text-zinc-400 border-zinc-800' : 'bg-[#e2e8f0] text-slate-700 border-slate-300'
+                  isDark ? 'bg-[#0e1117] text-zinc-400 border-[#263545]' : 'bg-[#e2e8f0] text-slate-700 border-slate-300'
                 }`}
               >
                 <tr>
@@ -404,7 +404,7 @@ export default function AdminDashboard() {
               </thead>
               <tbody
                 className={`divide-y ${
-                  isDark ? 'divide-zinc-800/80 text-zinc-300' : 'divide-slate-200 text-slate-700'
+                  isDark ? 'divide-[#253444]/80 text-zinc-300' : 'divide-slate-200 text-slate-700'
                 }`}
               >
                 {loading && tickets.length === 0 ? (
@@ -648,8 +648,8 @@ export default function AdminDashboard() {
         {escalateTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fade-in">
             <div
-              className={`rounded-2xl max-w-md w-full p-6 shadow-2xl border space-y-4 ${
-                isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
+              className={`rounded-xl max-w-md w-full p-5 shadow-2xl border space-y-4 ${
+                isDark ? 'bg-gradient-to-r from-[#111923] via-[#121D2A] to-[#101720] border-[#263545] text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -691,7 +691,7 @@ export default function AdminDashboard() {
                     }`}
                   />
                 </div>
-                <div className={`flex items-center justify-end space-x-2 pt-2 border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
+                <div className={`flex items-center justify-end space-x-2 pt-2 border-t ${isDark ? 'border-[#263545]' : 'border-slate-300'}`}>
                   <button
                     type="button"
                     onClick={() => setEscalateTarget(null)}

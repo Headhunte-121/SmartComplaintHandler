@@ -36,6 +36,7 @@ const DEPT_ICONS = {
   'General Administration': '🏛️',
 };
 
+// Facility Category Badges with consistent subdued dark enterprise tones
 const CATEGORY_COLORS = {
   ACADEMIC: { bg: '#1C2430', border: '#343E4B', text: '#38BDF8' },
   HOSTEL: { bg: '#1C2430', border: '#343E4B', text: '#00B386' },
@@ -174,767 +175,6 @@ function getPriorityBadgeClass(priority) {
 }
 
 // ============================================================================
-// Subcomponents
-// ============================================================================
-
-/**
- * Left Sidebar navigation rail
- */
-function SidebarNav({ facilitySearch, setFacilitySearch, lastUpdated }) {
-  return (
-    <aside className="directorate-sidebar border-r border-[#202D3A] bg-[#0D141D] px-3 py-4 flex flex-col gap-4">
-      {/* Brand header */}
-      <div className="flex items-center gap-3 px-2 pb-4 border-b border-[#22303E]">
-        <div className="h-10 w-10 rounded-xl border border-[#2A3A4A] bg-[#172330] flex items-center justify-center text-xl">
-          🏛️
-        </div>
-        <div className="min-w-0">
-          <div className="text-xs font-bold text-white">Campus Facilities</div>
-          <div className="text-[10px] text-slate-400 mt-1">IIIT Naya Raipur</div>
-        </div>
-      </div>
-
-      {/* Facility Search Input */}
-      <div className="rounded-lg border border-[#243241] bg-[#101821] px-2.5 py-2 flex items-center gap-2">
-        <span className="text-slate-500">⌕</span>
-        <input
-          aria-label="Search campus facilities"
-          value={facilitySearch}
-          onChange={(e) => setFacilitySearch(e.target.value)}
-          placeholder="Search campus..."
-          className="w-full min-w-0 bg-transparent text-[10px] text-slate-200 outline-none placeholder:text-slate-500"
-        />
-      </div>
-
-      {/* Command Center Navigation */}
-      <nav className="space-y-1 text-[11px]">
-        <div className="px-2 pb-1 text-[9px] uppercase tracking-[.16em] text-slate-500 font-semibold">
-          Command Center
-        </div>
-
-        <div className="flex items-center gap-3 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 px-3 py-2.5">
-          <span>▦</span>
-          <span className="font-semibold">Directorate Overview</span>
-        </div>
-
-        <Link
-          to="/operations"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span>◈</span>
-          <span>Operations Console</span>
-        </Link>
-
-        <Link
-          to="/squads"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span>⚒</span>
-          <span>Squads &amp; Dispatch</span>
-        </Link>
-
-        <Link
-          to="/superadmin/staff"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span>♙</span>
-          <span>Staff &amp; RBAC</span>
-        </Link>
-
-        <Link
-          to="/map"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span>⌖</span>
-          <span>Campus Map</span>
-        </Link>
-
-        <Link
-          to="/track"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span>⌕</span>
-          <span>Track Status</span>
-        </Link>
-
-        <Link
-          to="/submit"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span>＋</span>
-          <span>Submit Request</span>
-        </Link>
-      </nav>
-
-      {/* Quick Actions Shortcuts */}
-      <div className="border-t border-[#22303E] pt-4">
-        <div className="px-2 mb-2 text-[9px] uppercase tracking-[.16em] text-slate-500 font-semibold">
-          Quick Actions
-        </div>
-
-        <Link
-          to="/submit"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span className="h-6 w-6 rounded-md bg-[#1C2A37] border border-[#2A3B4B] grid place-items-center text-xs">
-            ＋
-          </span>
-          <span>New Request</span>
-        </Link>
-
-        <Link
-          to="/operations"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span className="h-6 w-6 rounded-md bg-[#1C2A37] border border-[#2A3B4B] grid place-items-center text-xs">
-            ▤
-          </span>
-          <span>View All Requests</span>
-        </Link>
-
-        <Link
-          to="/operations"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] text-slate-300 hover:bg-[#172330] hover:text-white transition-colors"
-        >
-          <span className="h-6 w-6 rounded-md bg-[#1C2A37] border border-[#2A3B4B] grid place-items-center text-xs">
-            ◉
-          </span>
-          <span>Live Radar</span>
-        </Link>
-      </div>
-
-      {/* Footer System Status */}
-      <div className="mt-auto border-t border-[#22303E] pt-3 px-2">
-        <div className="flex items-center gap-2 text-[10px] text-emerald-300">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>System Online</span>
-        </div>
-        <div className="text-[10px] text-slate-500 mt-1">
-          {lastUpdated
-            ? `Last sync: ${lastUpdated.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              })}`
-            : 'Waiting for telemetry'}
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-/**
- * Top Page Header with Eyebrow and Refresh Telemetry action
- */
-function HeaderSection({ lastUpdated, loading, onRefresh }) {
-  return (
-    <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-      <div className="min-w-0">
-        <div className="flex items-center flex-wrap gap-2 mb-1.5">
-          <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-mono tracking-wide text-emerald-300">
-            INSTITUTIONAL DIRECTORATE COMMAND
-          </span>
-          <span className="text-slate-600 text-xs">•</span>
-          <span className="text-[10px] text-slate-400">Executive Oversight</span>
-          {lastUpdated && (
-            <>
-              <span className="text-slate-600">•</span>
-              <span className="text-[10px] font-mono text-slate-500">
-                Telemetry synced{' '}
-                {lastUpdated.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                })}
-              </span>
-            </>
-          )}
-        </div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-50">
-          Campus Facilities Directorate Overview
-        </h1>
-        <p className="mt-1 text-[11px] text-slate-400">
-          Campus-wide complaint monitoring, departmental operations stability, building fault density,
-          and contractual SLA oversight across IIIT Naya Raipur.
-        </p>
-      </div>
-
-      <button
-        type="button"
-        onClick={onRefresh}
-        disabled={loading}
-        className="shrink-0 self-start lg:self-center flex items-center gap-2 rounded-lg border border-[#2B3A49] bg-[#15202B] px-3 py-2 text-[11px] font-semibold text-slate-200 hover:border-emerald-500/40 hover:bg-[#1E2B38] active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
-      >
-        <span className={loading ? 'animate-spin inline-block' : ''}>↻</span>
-        <span>{loading ? 'Refreshing…' : 'Refresh Telemetry'}</span>
-      </button>
-    </header>
-  );
-}
-
-/**
- * 6-Card KPI Strip
- */
-function KpiStrip({ kpiList }) {
-  return (
-    <section aria-label="Executive KPIs" className="grid grid-cols-2 sm:grid-cols-3 2xl:grid-cols-6 gap-2.5">
-      {kpiList.map((kpi) => {
-        const cardContent = (
-          <div className="min-w-0 h-full rounded-xl border border-[#243241] bg-gradient-to-br from-[#141E29] to-[#101720] p-3 flex items-center gap-3 shadow-[0_8px_24px_#00000012] hover:border-[#38BDF8]/40 hover:bg-[#162330] transition-all group">
-            <div
-              className="h-9 w-9 shrink-0 rounded-lg border border-[#2A3C4D] bg-[#1A2937] grid place-items-center text-lg group-hover:scale-105 transition-transform"
-              style={{ color: kpi.color }}
-            >
-              {kpi.icon}
-            </div>
-            <div className="min-w-0">
-              <div className="text-[9px] font-mono uppercase tracking-wider text-slate-400 truncate">
-                {kpi.label}
-              </div>
-              <div className="text-[23px] font-bold leading-tight mt-0.5" style={{ color: kpi.color }}>
-                {kpi.value}
-              </div>
-              <div className="text-[10px] text-slate-400 truncate mt-0.5">{kpi.note}</div>
-            </div>
-          </div>
-        );
-
-        if (kpi.link) {
-          return (
-            <Link key={kpi.label} to={kpi.link} className="block focus:outline-none">
-              {cardContent}
-            </Link>
-          );
-        }
-
-        return <div key={kpi.label}>{cardContent}</div>;
-      })}
-    </section>
-  );
-}
-
-/**
- * Campus Digital Twin Schematic Map Panel
- */
-function CampusTwinMapPanel({
-  filteredBuildings,
-  totalBuildings,
-  activeFaultCount,
-  criticalTickets,
-  onFacilityClick,
-}) {
-  return (
-    <div className="rounded-xl border border-[#243241] bg-[#101821] overflow-hidden min-w-0 flex flex-col">
-      <div className="flex items-center justify-between gap-2 border-b border-[#22303E] px-3.5 py-3">
-        <div className="flex items-center gap-2">
-          <span className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-300 grid place-items-center">
-            ⌖
-          </span>
-          <div>
-            <h2 className="text-xs font-bold">Campus Digital Twin</h2>
-            <p className="text-[9px] text-slate-500 mt-0.5">Facility locations &amp; fault density</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {criticalTickets > 0 && (
-            <span className="rounded-md border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-mono text-rose-300">
-              ⚠ {criticalTickets} Critical
-            </span>
-          )}
-          <Link to="/map" className="text-[10px] text-emerald-300 hover:text-emerald-200">
-            Open Full Map →
-          </Link>
-        </div>
-      </div>
-
-      <div
-        className="relative h-[245px] overflow-hidden bg-[#0C151F] flex-1"
-        style={{
-          backgroundImage:
-            'linear-gradient(#20324455 1px, transparent 1px), linear-gradient(90deg, #20324455 1px, transparent 1px), radial-gradient(ellipse at 48% 45%, #12383a 0%, #0c151f 70%)',
-          backgroundSize: '28px 28px, 28px 28px, 100% 100%',
-        }}
-      >
-        {/* Schematic road network */}
-        <div className="map-road" style={{ width: '125%', height: 12, left: '-8%', top: '38%', transform: 'rotate(-23deg)' }} />
-        <div className="map-road" style={{ width: '115%', height: 8, left: '-6%', top: '66%', transform: 'rotate(17deg)' }} />
-        <div className="map-road" style={{ width: '90%', height: 10, left: '17%', top: '18%', transform: 'rotate(64deg)' }} />
-        <div className="map-road" style={{ width: '80%', height: 7, left: '26%', top: '53%', transform: 'rotate(-54deg)' }} />
-        <div className="map-road" style={{ width: '90%', height: 6, left: '5%', top: '82%', transform: 'rotate(-4deg)' }} />
-
-        {/* Facility Pin Markers */}
-        {filteredBuildings.slice(0, 20).map((building, index) => {
-          const defaultX = 8 + ((index * 37 + 13) % 82);
-          const defaultY = 10 + ((index * 29 + 17) % 78);
-          let xPos = defaultX;
-          let yPos = defaultY;
-
-          if (building.trace?.cx) {
-            xPos = Math.max(6, Math.min(94, (building.trace.cx / 800) * 100));
-            yPos = Math.max(8, Math.min(92, (building.trace.cy / 800) * 100));
-          } else if (building.mapPin?.lat && building.mapPin?.lng) {
-            const dLng = (building.mapPin.lng - 81.762) / 0.007;
-            const dLat = (21.131 - building.mapPin.lat) / 0.006;
-            if (dLng >= 0 && dLng <= 1 && dLat >= 0 && dLat <= 1) {
-              xPos = Math.max(6, Math.min(94, dLng * 100));
-              yPos = Math.max(8, Math.min(92, dLat * 100));
-            }
-          }
-
-          const hasFault = building.active > 0;
-
-          return (
-            <button
-              key={building.id}
-              type="button"
-              title={`${building.name}: ${building.total} requests, ${building.active} active`}
-              onClick={() => onFacilityClick(building)}
-              className="absolute group cursor-pointer"
-              style={{
-                left: `${xPos}%`,
-                top: `${yPos}%`,
-                transform: 'translate(-50%, -50%)',
-              }}
-            >
-              <span
-                className="relative flex h-3 w-3 rounded-full border-2 border-[#08111A] shadow-[0_0_0_3px_#0c151f88] group-hover:scale-125 transition-transform"
-                style={{
-                  backgroundColor: hasFault ? '#FB7185' : building.color || '#00C99A',
-                }}
-              />
-              <span className="absolute left-4 top-[-5px] whitespace-nowrap rounded border border-[#314457] bg-[#101A25]/95 px-1.5 py-1 text-[8px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none shadow-md">
-                {building.shortName} {hasFault ? `(${building.active} active)` : ''}
-              </span>
-            </button>
-          );
-        })}
-
-        {/* Map Legend */}
-        <div className="absolute bottom-3 left-3 rounded-md border border-[#344657] bg-[#101A25]/90 px-2 py-1 text-[9px] text-slate-400">
-          <span>● Healthy</span>
-          <span className="text-rose-300 ml-2">● Active faults</span>
-        </div>
-
-        <div className="absolute bottom-3 right-3 rounded-md border border-[#344657] bg-[#101A25]/90 px-2 py-1 text-[9px] text-slate-400">
-          {totalBuildings} facilities • {activeFaultCount} with faults
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Department Workload & Health Panel
- */
-function DepartmentHealthPanel({ departmentStats }) {
-  const avgHealth =
-    departmentStats.length > 0
-      ? Math.round(departmentStats.reduce((sum, d) => sum + d.health, 0) / departmentStats.length)
-      : 100;
-
-  return (
-    <div className="rounded-xl border border-[#243241] bg-[#101821] overflow-hidden min-w-0">
-      <div className="flex items-center justify-between border-b border-[#22303E] px-3.5 py-3">
-        <div className="flex items-center gap-2">
-          <span className="h-7 w-7 rounded-lg bg-sky-500/10 text-sky-300 grid place-items-center">
-            ▥
-          </span>
-          <div>
-            <h2 className="text-xs font-bold">Department Workload &amp; Health</h2>
-            <p className="text-[9px] text-slate-500 mt-0.5">Live status across six trades</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-mono text-emerald-300">
-            Avg {avgHealth}%
-          </span>
-          <Link to="/squads" className="text-[10px] text-emerald-300 hover:text-emerald-200">
-            View Details →
-          </Link>
-        </div>
-      </div>
-
-      <div className="px-3.5 pb-1">
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_55px_48px] gap-2 py-2 text-[9px] text-slate-500 border-b border-[#22303E]">
-          <span>Department</span>
-          <span>Active Workload</span>
-          <span className="text-center">Health</span>
-          <span className="text-right">Resolved</span>
-        </div>
-
-        {departmentStats.map((dept) => {
-          const healthBadgeClass =
-            dept.health >= 85
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-              : dept.health >= 70
-              ? 'bg-amber-500/10 border-amber-500/20 text-amber-300'
-              : 'bg-rose-500/10 border-rose-500/20 text-rose-300';
-
-          const healthBarColor =
-            dept.health >= 85 ? '#00C99A' : dept.health >= 70 ? '#F59E0B' : '#FB7185';
-
-          return (
-            <div
-              key={dept.name}
-              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_55px_48px] items-center gap-2 py-2.5 border-b border-[#1E2B38] last:border-0"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-sm shrink-0">{dept.icon}</span>
-                <span className="text-[10px] font-medium truncate">{dept.name}</span>
-              </div>
-
-              <div className="min-w-0">
-                <div className="text-[9px] text-slate-400 mb-1">{dept.active} Active</div>
-                <div className="h-1.5 rounded-full bg-[#263442] overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.max(5, dept.health)}%`,
-                      background: healthBarColor,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <span
-                className={`rounded-md border text-[9px] text-center px-1 py-1 font-mono ${healthBadgeClass}`}
-              >
-                {dept.health}/100
-              </span>
-
-              <span className="text-[9px] text-right text-slate-300 font-mono">
-                {dept.resolved} ({dept.rate}%)
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/**
- * SLA & Resolution Overview Panel with circular chart and ticket breakdown
- */
-function SlaOverviewPanel({
-  slaCompliance,
-  overdueBreaches,
-  approachingBreaches,
-  openRequestsCount,
-  resolvedTickets,
-  pendingTickets,
-  inProgressTickets,
-  criticalTickets,
-  totalTickets,
-  loading,
-}) {
-  const statusBars = [
-    { label: 'Pending', value: pendingTickets, color: '#F59E0B' },
-    { label: 'In Work', value: inProgressTickets, color: '#38BDF8' },
-    { label: 'Resolved', value: resolvedTickets, color: '#00C99A' },
-    { label: 'Critical', value: criticalTickets, color: '#FB7185' },
-  ];
-
-  const ringBackground =
-    slaCompliance >= 100
-      ? '#00C99A'
-      : `conic-gradient(#00C99A 0 ${slaCompliance}%, #FB7185 ${slaCompliance}% 100%)`;
-
-  return (
-    <div className="rounded-xl border border-[#243241] bg-[#101821] p-3.5 min-w-0">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="h-7 w-7 rounded-lg bg-rose-500/10 text-rose-300 grid place-items-center">
-          ◉
-        </span>
-        <div>
-          <h2 className="text-xs font-bold">SLA &amp; Resolution Overview</h2>
-          <p className="text-[9px] text-slate-500 mt-0.5">Current compliance snapshot</p>
-        </div>
-      </div>
-
-      {/* Compliance Ring & Metric breakdown */}
-      <div className="flex items-center gap-3 border-b border-[#22303E] pb-3">
-        <div
-          className="h-[104px] w-[104px] shrink-0 rounded-full grid place-items-center"
-          style={{
-            background: ringBackground,
-          }}
-        >
-          <div className="h-[78px] w-[78px] rounded-full bg-[#101821] flex flex-col items-center justify-center">
-            <span className="text-xl font-bold font-mono">
-              {loading ? '—' : `${slaCompliance}%`}
-            </span>
-            <span className="text-[8px] text-slate-400">SLA Compliance</span>
-          </div>
-        </div>
-
-        <div className="flex-1 space-y-2 text-[9px] min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-rose-400 shrink-0" />
-            <span className="text-slate-400 flex-1 truncate">Overdue Beyond SLA</span>
-            <b className="text-rose-300 font-mono">{overdueBreaches}</b>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0" />
-            <span className="text-slate-400 flex-1 truncate">Approaching Breach</span>
-            <b className="text-amber-300 font-mono">{approachingBreaches}</b>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-sky-400 shrink-0" />
-            <span className="text-slate-400 flex-1 truncate">Open Requests</span>
-            <b className="text-sky-300 font-mono">{openRequestsCount}</b>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-slate-500 shrink-0" />
-            <span className="text-slate-400 flex-1 truncate">Resolved</span>
-            <b className="font-mono">{resolvedTickets}</b>
-          </div>
-        </div>
-      </div>
-
-      {/* Ticket Status Bar Distribution */}
-      <div className="pt-3">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-[10px] font-semibold">Ticket Status Distribution</h3>
-          <span className="text-[9px] text-slate-500">All requests</span>
-        </div>
-
-        <div className="flex items-end gap-1.5 h-[58px]">
-          {statusBars.map((item) => {
-            const heightPercent = totalTickets > 0 ? (item.value / totalTickets) * 100 : 0;
-            return (
-              <div key={item.label} className="flex-1 h-full flex flex-col items-center justify-end gap-1">
-                <span className="text-[9px] font-mono font-bold" style={{ color: item.color }}>
-                  {item.value}
-                </span>
-                <div
-                  className="w-full max-w-8 rounded-t-sm min-h-[4px] transition-all duration-300"
-                  style={{
-                    height: `${Math.max(6, heightPercent)}%`,
-                    background: item.color,
-                  }}
-                />
-                <span className="text-[8px] text-slate-500">{item.label}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Recent Maintenance Requests Table
- */
-function RecentRequestsTable({ recentTickets, totalTickets, loading }) {
-  return (
-    <section className="rounded-xl border border-[#243241] bg-[#101821] overflow-hidden">
-      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 px-3.5 py-3 border-b border-[#22303E]">
-        <div className="flex items-center gap-2">
-          <span className="h-7 w-7 rounded-lg bg-amber-500/10 text-amber-300 grid place-items-center">
-            ▤
-          </span>
-          <div>
-            <h2 className="text-xs font-bold">Recent Maintenance Requests</h2>
-            <p className="text-[9px] text-slate-500 mt-0.5">
-              Latest facility issues across campus buildings, hostels, and amenities
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] text-slate-400">{totalTickets} total requests</span>
-          <Link
-            to="/operations"
-            className="rounded-lg border border-[#2B3A49] bg-[#172330] px-3 py-1.5 text-[10px] text-slate-200 hover:border-emerald-500/40 hover:bg-[#1E2B38] transition-colors"
-          >
-            View All Requests →
-          </Link>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto dir-scrollbar">
-        <table className="w-full min-w-[850px] text-left">
-          <thead className="bg-[#131E29] text-[9px] text-slate-400">
-            <tr>
-              <th className="px-3.5 py-2.5 font-medium">Ticket</th>
-              <th className="px-3.5 py-2.5 font-medium">Request / Issue</th>
-              <th className="px-3.5 py-2.5 font-medium">Location</th>
-              <th className="px-3.5 py-2.5 font-medium">Department</th>
-              <th className="px-3.5 py-2.5 font-medium">Priority</th>
-              <th className="px-3.5 py-2.5 font-medium">Status</th>
-              <th className="px-3.5 py-2.5 font-medium">Submitted</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentTickets.length > 0 ? (
-              recentTickets.map((ticket, index) => {
-                const ticketCode = getTicketId(ticket, index);
-                return (
-                  <tr
-                    key={ticket.id || ticket._id || ticketCode}
-                    className="border-t border-[#202D3A] hover:bg-[#162330] transition-colors"
-                  >
-                    <td className="px-3.5 py-2.5 text-[10px] font-mono text-slate-400">
-                      <Link
-                        to={`/track?search=${encodeURIComponent(ticketCode)}`}
-                        className="hover:underline text-emerald-300 font-mono"
-                      >
-                        {ticketCode}
-                      </Link>
-                    </td>
-                    <td
-                      className="px-3.5 py-2.5 text-[10px] font-medium text-slate-100 max-w-[260px] truncate"
-                      title={getTicketTitle(ticket)}
-                    >
-                      {getTicketTitle(ticket)}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[10px] text-slate-300 max-w-[180px] truncate">
-                      {ticket.location || ticket.building_name || ticket.building || '—'}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[10px] text-slate-300">
-                      {getTicketDepartmentName(ticket) || '—'}
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span
-                        className={`inline-flex rounded-md border px-2 py-1 text-[9px] ${getPriorityBadgeClass(
-                          ticket.priority
-                        )}`}
-                      >
-                        {String(ticket.priority || 'MEDIUM').replaceAll('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span
-                        className={`inline-flex rounded-md border px-2 py-1 text-[9px] ${getStatusBadgeClass(
-                          ticket.status
-                        )}`}
-                      >
-                        {getStatusLabel(ticket.status)}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[10px] text-slate-400 whitespace-nowrap font-mono">
-                      {formatTicketDate(ticket)}
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="7" className="px-4 py-12 text-center">
-                  <div className="text-2xl mb-2">▤</div>
-                  <p className="text-xs text-slate-300">
-                    {loading ? 'Loading maintenance requests…' : 'No maintenance requests found'}
-                  </p>
-                  <p className="text-[10px] text-slate-500 mt-1">
-                    Requests will appear here when they are submitted.
-                  </p>
-                  <Link
-                    to="/submit"
-                    className="inline-flex mt-3 rounded-lg bg-emerald-500 px-3 py-2 text-[10px] font-semibold text-[#04130F] hover:bg-emerald-400 transition-colors"
-                  >
-                    ＋ Submit Request
-                  </Link>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex items-center justify-between gap-2 border-t border-[#22303E] px-3.5 py-2 text-[9px] text-slate-500">
-        <span>
-          Showing {recentTickets.length ? 1 : 0}–{recentTickets.length} of {totalTickets} requests
-        </span>
-        <Link to="/operations" className="text-emerald-300 hover:text-emerald-200">
-          Open operations queue →
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-/**
- * Campus Infrastructure Health & Operational Radar Grid
- */
-function FacilityRadarGrid({ buildingStats, onFacilityClick }) {
-  return (
-    <section className="rounded-xl border border-[#243241] bg-[#101821] p-3.5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2">
-          <span className="h-7 w-7 rounded-lg bg-amber-500/10 text-amber-300 grid place-items-center">
-            ⚠
-          </span>
-          <div>
-            <h2 className="text-xs font-bold">Campus Infrastructure Health &amp; Operational Radar</h2>
-            <p className="text-[9px] text-slate-500 mt-0.5">
-              Fault distribution across academic buildings, hostels, amenities, and sports grounds.
-            </p>
-          </div>
-        </div>
-
-        <span className="self-start sm:self-auto rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-300 flex items-center gap-1.5">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Live Radar Active</span>
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2">
-        {buildingStats.map((building) => {
-          const categoryStyle = CATEGORY_COLORS[building.category] || CATEGORY_COLORS.AMENITY;
-          const hasActive = building.active > 0;
-          return (
-            <button
-              key={building.id}
-              type="button"
-              onClick={() => onFacilityClick(building)}
-              className="min-w-0 rounded-lg border border-[#243241] bg-[#131E29] px-2.5 py-2 text-left hover:border-emerald-500/30 hover:bg-[#182635] transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span
-                    className={`h-2 w-2 rounded-full shrink-0 ${hasActive ? 'bg-amber-400' : 'bg-emerald-400'}`}
-                  />
-                  <span className="text-[10px] font-semibold truncate text-[#E8EDF5] group-hover:text-emerald-300 transition-colors">
-                    {building.shortName}
-                  </span>
-                </div>
-                <span
-                  className="text-[8px] uppercase rounded border px-1 py-0.5 shrink-0 font-mono"
-                  style={{
-                    color: categoryStyle.text,
-                    borderColor: categoryStyle.border,
-                    backgroundColor: categoryStyle.bg,
-                  }}
-                >
-                  {building.category}
-                </span>
-              </div>
-
-              <div className="flex gap-3 mt-1.5 text-[9px] text-slate-500">
-                <span>
-                  Total: <b className="text-slate-300 font-mono">{building.total}</b>
-                </span>
-                <span>
-                  Active:{' '}
-                  <b className={`font-mono ${hasActive ? 'text-amber-300 font-bold' : 'text-emerald-400'}`}>
-                    {building.active}
-                  </b>
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-// ============================================================================
 // Main Page Component
 // ============================================================================
 
@@ -942,7 +182,6 @@ export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  // State
   const [telemetry, setTelemetry] = useState(null);
   const [admins, setAdmins] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -952,9 +191,7 @@ export default function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [facilitySearch, setFacilitySearch] = useState('');
 
-  // Data Fetching
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -1155,8 +392,6 @@ export default function SuperAdminDashboard() {
         shortName: b.shortName || b.short_name || b.name,
         category: b.category || 'FACILITY',
         color: b.trace?.color || b.mapPin?.color || b.color || '#00B386',
-        trace: b.trace,
-        mapPin: b.mapPin || b.map_pin,
         total: matchedTickets.length,
         active,
       };
@@ -1168,10 +403,6 @@ export default function SuperAdminDashboard() {
     navigate(`/track?search=${encodeURIComponent(building.shortName)}`);
   };
 
-  const filteredBuildings = buildingStats.filter((b) =>
-    `${b.name} ${b.shortName} ${b.category}`.toLowerCase().includes(facilitySearch.toLowerCase())
-  );
-
   const recentTickets = useMemo(() => {
     return [...tickets]
       .sort((a, b) => {
@@ -1182,179 +413,667 @@ export default function SuperAdminDashboard() {
       .slice(0, 6);
   }, [tickets]);
 
-  // 6 KPI definition list with interactive navigation
-  const kpiList = [
-    {
-      label: 'Total Grievances',
-      value: loading ? '—' : totalTickets,
-      note: 'Institutional Lifetime',
-      color: '#F1F5F9',
-      icon: '▤',
-      link: '/operations',
-    },
-    {
-      label: 'Active Operations',
-      value: loading ? '—' : activeLoad,
-      note: `${pendingTickets} Pending • ${inProgressTickets} In-Work`,
-      color: activeLoad > 0 ? '#FBBF24' : '#00C99A',
-      icon: '⌁',
-      link: '/operations',
-    },
-    {
-      label: 'Resolution Rate',
-      value: loading ? '—' : `${resolutionRate}%`,
-      note: `${resolvedTickets} Closed Tickets`,
-      color: resolutionRate >= 80 ? '#00C99A' : resolutionRate >= 50 ? '#FBBF24' : '#FB7185',
-      icon: '▥',
-      link: '/operations',
-    },
-    {
-      label: 'SLA Compliance',
-      value: loading ? '—' : `${slaCompliance}%`,
-      note: overdueBreaches > 0 ? `⚠ ${overdueBreaches} Overdue` : '✓ Zero Overdue',
-      color: overdueBreaches > 0 ? '#FB7185' : '#00C99A',
-      icon: '⚠',
-      link: '/operations',
-    },
-    {
-      label: 'Field Squads',
-      value: loading ? '—' : fieldSquadsCount,
-      note: 'Active Trade Balancing',
-      color: '#38BDF8',
-      icon: '♟',
-      link: '/squads',
-    },
-    {
-      label: 'Staff & Admins',
-      value: loading ? '—' : staffCount,
-      note: '6 Operational Trades',
-      color: '#F1F5F9',
-      icon: '♙',
-      link: '/superadmin/staff',
-    },
-  ];
-
   return (
     <div
-      className="min-h-screen w-full bg-[#0A0F15] text-slate-100 antialiased"
+      className="w-full min-h-screen bg-[#0D1117] text-[#F1F5F9] font-sans antialiased box-border transition-colors duration-200"
       style={{
-        '--surface': '#101821',
-        '--surface2': '#141E29',
-        '--line': '#243241',
-        '--muted': '#8FA3B8',
-        '--teal': '#00C99A',
+        '--page-bg': '#0D1117',
+        '--navigation-bg': '#0B0F14',
+        '--surface': '#161C24',
+        '--surface-raised': '#1C2430',
+        '--border': '#252D38',
+        '--border-strong': '#343E4B',
+        '--text-primary': '#F1F5F9',
+        '--text-secondary': '#94A3B8',
+        '--text-muted': '#64748B',
+        '--accent': '#00B386',
+        '--accent-hover': '#00C795',
+        '--accent-soft': '#0B3029',
+        '--critical': '#F87171',
+        '--critical-soft': '#351B23',
+        '--warning': '#FBBF24',
+        '--warning-soft': '#352A17',
+        '--info': '#38BDF8',
+        '--healthy': '#2DD4BF',
       }}
     >
-      <style>{`
-        .dir-scrollbar::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-        .dir-scrollbar::-webkit-scrollbar-thumb {
-          background: #334155;
-          border-radius: 8px;
-        }
-        .map-road {
-          position: absolute;
-          background: #273748;
-          border: 1px solid #34485d;
-          transform-origin: center;
-          border-radius: 5px;
-          opacity: 0.8;
-        }
-        .map-block {
-          position: absolute;
-          border: 1px solid #2a5260;
-          box-shadow: 0 0 20px #00b38618;
-          transform: rotate(-12deg);
-          border-radius: 4px;
-        }
-        @media (max-width: 1100px) {
-          .directorate-layout {
-            grid-template-columns: 1fr !important;
-          }
-          .directorate-sidebar {
-            display: none;
-          }
-          .directorate-main-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
-
-      <div className="directorate-layout grid grid-cols-[194px_minmax(0,1fr)] min-h-[calc(100vh-46px)]">
-        {/* Left Sidebar Navigation */}
-        <SidebarNav
-          facilitySearch={facilitySearch}
-          setFacilitySearch={setFacilitySearch}
-          lastUpdated={lastUpdated}
-        />
-
-        {/* Main Dashboard Workspace */}
-        <div className="min-w-0 px-4 sm:px-5 xl:px-6 py-4 space-y-3.5">
-          {/* Header Section */}
-          <HeaderSection
-            lastUpdated={lastUpdated}
-            loading={loading}
-            onRefresh={loadData}
-          />
-
-          {/* Error Banner */}
-          {error && (
-            <div className="flex items-center justify-between rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
-              <span>⚠ {error}</span>
-              <button type="button" onClick={loadData} className="underline cursor-pointer">
-                Retry
-              </button>
+      {/* Page Heading Section: full width flush header */}
+      <header className="w-full bg-gradient-to-r from-[#111923] via-[#121B27] to-[#101720] border-b border-[#243243] px-5 sm:px-8 lg:px-10 xl:px-12 py-3.5">
+        <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded-[5px] bg-[#0B3029] border border-[#00B386]/30 text-[#00B386]">
+                INSTITUTIONAL DIRECTORATE COMMAND
+              </span>
+              <span className="text-[#64748B] text-xs">•</span>
+              <span className="text-xs font-mono text-[#94A3B8]">Executive Oversight</span>
+              {lastUpdated && (
+                <>
+                  <span className="text-[#64748B] text-xs">•</span>
+                  <span className="text-[11px] font-mono text-[#64748B]">
+                    Telemetry Synced{' '}
+                    {lastUpdated.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </span>
+                </>
+              )}
             </div>
-          )}
+            <h1 className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] tracking-tight leading-tight">
+              Campus Facilities Directorate Overview
+            </h1>
+            <p className="text-[12px] text-[#94A3B8] mt-1 leading-normal max-w-4xl">
+              Campus-wide complaint monitoring, departmental operations stability, building fault density, and contractual SLA oversight across IIIT Naya Raipur.
+            </p>
+          </div>
 
-          {/* 6-Card KPI Strip */}
-          <KpiStrip kpiList={kpiList} />
-
-          {/* 3-Column Operational Center Grid */}
-          <section className="directorate-main-grid grid grid-cols-[1.2fr_1fr_0.82fr] gap-2.5 min-w-0">
-            {/* Column 1: Campus Digital Twin Schematic Map */}
-            <CampusTwinMapPanel
-              filteredBuildings={filteredBuildings}
-              totalBuildings={buildingStats.length}
-              activeFaultCount={buildingStats.filter((b) => b.active > 0).length}
-              criticalTickets={criticalTickets}
-              onFacilityClick={handleFacilityClick}
-            />
-
-            {/* Column 2: Department Workload & Health */}
-            <DepartmentHealthPanel departmentStats={departmentStats} />
-
-            {/* Column 3: SLA & Resolution Overview */}
-            <SlaOverviewPanel
-              slaCompliance={slaCompliance}
-              overdueBreaches={overdueBreaches}
-              approachingBreaches={approachingBreaches}
-              openRequestsCount={activeLoad}
-              resolvedTickets={resolvedTickets}
-              pendingTickets={pendingTickets}
-              inProgressTickets={inProgressTickets}
-              criticalTickets={criticalTickets}
-              totalTickets={totalTickets}
-              loading={loading}
-            />
-          </section>
-
-          {/* Recent Maintenance Requests Data Table */}
-          <RecentRequestsTable
-            recentTickets={recentTickets}
-            totalTickets={totalTickets}
-            loading={loading}
-          />
-
-          {/* Campus Infrastructure Health & Operational Radar Grid */}
-          <FacilityRadarGrid
-            buildingStats={buildingStats}
-            onFacilityClick={handleFacilityClick}
-          />
+          <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
+            <button
+              type="button"
+              onClick={loadData}
+              disabled={loading}
+              className="px-3 py-1.5 rounded-[8px] text-xs font-semibold text-[#F1F5F9] bg-[#1C2430] border border-[#263545] hover:border-[#343E4B] hover:bg-[#252D38] active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <span className={loading ? 'animate-spin inline-block text-xs' : 'text-xs'}>🔄</span>
+              <span>{loading ? 'Refreshing...' : 'Refresh Telemetry'}</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
+
+      {/* Main Full-Width Content Container */}
+      <main className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-9 py-5 sm:py-6 space-y-5">
+        {/* Error notification banner if any */}
+        {error && (
+          <div className="p-3.5 rounded-[10px] bg-[#351B23] border border-[#F87171]/40 text-[#F87171] text-xs font-medium flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+            <button
+              type="button"
+              onClick={loadData}
+              className="underline text-[11px] hover:text-white font-mono cursor-pointer"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* 6-Card KPI Strip */}
+        <section aria-label="Executive KPIs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
+            {/* KPI 1: Total Grievances */}
+            <Link
+              to="/operations"
+              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Total Grievances
+              </span>
+              <div className="my-0.5">
+                <span className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                  {loading ? '—' : totalTickets}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#2DD4BF] font-medium block truncate">
+                Institutional Lifetime
+              </span>
+            </Link>
+
+            {/* KPI 2: Active Operations */}
+            <Link
+              to="/operations"
+              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Active Operations
+              </span>
+              <div className="my-0.5">
+                <span
+                  className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${
+                    activeLoad > 0 ? 'text-[#FBBF24]' : 'text-[#F1F5F9]'
+                  }`}
+                >
+                  {loading ? '—' : activeLoad}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
+                {pendingTickets} Pending • {inProgressTickets} In-Work
+              </span>
+            </Link>
+
+            {/* KPI 3: Resolution Rate */}
+            <Link
+              to="/operations"
+              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Resolution Rate
+              </span>
+              <div className="my-0.5">
+                <span
+                  className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${
+                    resolutionRate >= 80 ? 'text-[#00B386]' : 'text-[#FBBF24]'
+                  }`}
+                >
+                  {loading ? '—' : `${resolutionRate}%`}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
+                {resolvedTickets} Closed Tickets
+              </span>
+            </Link>
+
+            {/* KPI 4: SLA Compliance */}
+            <Link
+              to="/operations"
+              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                SLA Compliance
+              </span>
+              <div className="my-0.5">
+                <span
+                  className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${
+                    overdueBreaches === 0 ? 'text-[#00B386]' : 'text-[#F87171]'
+                  }`}
+                >
+                  {loading ? '—' : `${slaCompliance}%`}
+                </span>
+              </div>
+              <span
+                className={`text-[11px] font-medium block truncate ${
+                  overdueBreaches > 0 ? 'text-[#F87171] font-bold' : 'text-[#00B386]'
+                }`}
+              >
+                {overdueBreaches > 0 ? `⚠️ ${overdueBreaches} Overdue` : '✓ Zero Overdue'}
+              </span>
+            </Link>
+
+            {/* KPI 5: Field Squads */}
+            <Link
+              to="/squads"
+              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Field Squads
+              </span>
+              <div className="my-0.5">
+                <span className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                  {loading ? '—' : fieldSquadsCount}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#38BDF8] font-medium block truncate">
+                Active Trade Balancing
+              </span>
+            </Link>
+
+            {/* KPI 6: Staff & Admins */}
+            <Link
+              to="/superadmin/staff"
+              className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] hover:bg-[#162330] transition-all group block"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Staff &amp; Admins
+              </span>
+              <div className="my-0.5">
+                <span className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                  {loading ? '—' : staffCount}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
+                6 Operational Trades
+              </span>
+            </Link>
+          </div>
+        </section>
+
+        {/* Quick-Access Operational Shortcut Cards: 3 equal cards */}
+        <section aria-label="Operational Shortcuts">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-3.5">
+            {/* Shortcut A: Operations Console */}
+            <Link
+              to="/operations"
+              className="bg-gradient-to-br from-[#17212D] to-[#121922] border border-[#273748] hover:border-[#00B386]/50 hover:bg-[#182431] rounded-xl px-3.5 h-[58px] flex items-center justify-between group transition-all"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#263545] flex items-center justify-center shrink-0 text-sm">
+                  🚨
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#00B386] transition-colors truncate">
+                    Operations Console
+                  </h3>
+                  <p className="text-[11px] text-[#94A3B8] truncate">
+                    Live queue triage, priority overrides, and incident dispatch.
+                  </p>
+                </div>
+              </div>
+              <span className="text-[#64748B] text-xs font-semibold pl-2 group-hover:text-[#00B386] group-hover:translate-x-0.5 transition-all shrink-0">
+                →
+              </span>
+            </Link>
+
+            {/* Shortcut B: Squads & Dispatch */}
+            <Link
+              to="/squads"
+              className="bg-gradient-to-br from-[#17212D] to-[#121922] border border-[#273748] hover:border-[#00B386]/50 hover:bg-[#182431] rounded-xl px-3.5 h-[58px] flex items-center justify-between group transition-all"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#263545] flex items-center justify-center shrink-0 text-sm">
+                  🛠️
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#00B386] transition-colors truncate">
+                    Squads &amp; Dispatch
+                  </h3>
+                  <p className="text-[11px] text-[#94A3B8] truncate">
+                    Workload balancing and team dispatch.
+                  </p>
+                </div>
+              </div>
+              <span className="text-[#64748B] text-xs font-semibold pl-2 group-hover:text-[#00B386] group-hover:translate-x-0.5 transition-all shrink-0">
+                →
+              </span>
+            </Link>
+
+            {/* Shortcut C: Staff & RBAC Directory */}
+            <Link
+              to="/superadmin/staff"
+              className="bg-gradient-to-br from-[#17212D] to-[#121922] border border-[#273748] hover:border-[#00B386]/50 hover:bg-[#182431] rounded-xl px-3.5 h-[58px] flex items-center justify-between group transition-all"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#263545] flex items-center justify-center shrink-0 text-sm">
+                  👥
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#00B386] transition-colors truncate">
+                    Staff &amp; RBAC Directory
+                  </h3>
+                  <p className="text-[11px] text-[#94A3B8] truncate">
+                    Staff management, permissions, and access administration.
+                  </p>
+                </div>
+              </div>
+              <span className="text-[#64748B] text-xs font-semibold pl-2 group-hover:text-[#00B386] group-hover:translate-x-0.5 transition-all shrink-0">
+                →
+              </span>
+            </Link>
+          </div>
+        </section>
+
+        {/* Departmental Infrastructure Health & Operational Radar (3x2 Grid) */}
+        <section className="space-y-3" aria-label="Departmental Health">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <div>
+              <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
+                Departmental Infrastructure Health &amp; Operational Radar
+              </h2>
+              <p className="text-[11px] sm:text-xs text-[#94A3B8] mt-0.5">
+                Cross-functional telemetry tracking complaint volume, resolution percentages, and service stability across all 6 campus trades.
+              </p>
+            </div>
+            <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#0B3029] border border-[#00B386]/30 text-[#00B386] flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00B386] animate-pulse" />
+              Live Radar Active
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5">
+            {departmentStats.map((dept) => {
+              const isHealthy = dept.health >= 85;
+              const isDegraded = dept.health >= 70 && dept.health < 85;
+              const healthColor = isHealthy ? '#00B386' : isDegraded ? '#FBBF24' : '#F87171';
+
+              return (
+                <div
+                  key={dept.name}
+                  className="bg-[#141D27] border border-[#263545] hover:border-[#343E4B] rounded-xl p-3.5 sm:p-4 flex flex-col justify-between transition-colors min-h-[114px]"
+                >
+                  <div>
+                    {/* Header Row: Dept Icon + Name + Health Score */}
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-base shrink-0">{dept.icon}</span>
+                        <div className="min-w-0">
+                          <h3 className="text-[13px] font-bold text-[#F1F5F9] truncate leading-tight">
+                            {dept.name}
+                          </h3>
+                          <span className="text-[10px] font-mono text-[#64748B]">
+                            {dept.total} Total Grievances
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span
+                          className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-[5px]"
+                          style={{
+                            color: healthColor,
+                            backgroundColor: isHealthy ? '#0B3029' : isDegraded ? '#352A17' : '#351B23',
+                            border: `1px solid ${healthColor}40`,
+                          }}
+                        >
+                          {dept.health}/100 Health
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Metrics Row */}
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2.5">
+                      <div>
+                        <span className="text-[#64748B] text-[11px] block">Active Workload</span>
+                        <span className={`font-mono font-bold text-[12px] ${dept.active > 0 ? 'text-[#FBBF24]' : 'text-[#00B386]'}`}>
+                          {dept.active} Active Faults
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[#64748B] text-[11px] block">Resolved on Campus</span>
+                        <span className="font-mono font-bold text-[12px] text-[#F1F5F9]">
+                          {dept.resolved} ({dept.rate}%)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Thin horizontal progress bar (4px high) */}
+                  <div className="w-full h-[4px] rounded-full bg-[#1C2430] overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.max(5, dept.health)}%`,
+                        backgroundColor: healthColor,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Campus Digital Twin Infrastructure Density */}
+        <section className="space-y-3" aria-label="Campus Digital Twin">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <div>
+              <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
+                Campus Digital Twin Infrastructure Density
+              </h2>
+              <p className="text-[11px] sm:text-xs text-[#94A3B8] mt-0.5">
+                Fault distribution and complaint density across academic buildings, hostels, amenity centers, and sports grounds.
+              </p>
+            </div>
+            <Link
+              to="/map"
+              className="text-xs font-semibold text-[#00B386] hover:text-[#00C795] flex items-center gap-1 self-start sm:self-auto"
+            >
+              <span>Explore Interactive 3D Map</span>
+              <span>→</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5">
+            {buildingStats.map((b) => {
+              const catStyle = CATEGORY_COLORS[b.category] || CATEGORY_COLORS.AMENITY;
+
+              return (
+                <div
+                  key={b.id}
+                  onClick={() => handleFacilityClick(b)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleFacilityClick(b);
+                    }
+                  }}
+                  className="bg-[#141D27] border border-[#263545] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[10px] p-3 flex flex-col justify-between transition-all cursor-pointer group focus:outline-none focus:ring-1 focus:ring-[#00B386] min-h-[74px]"
+                >
+                  <div className="flex items-center justify-between gap-1 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: b.color }}
+                      />
+                      <h4
+                        className="text-xs font-bold text-[#F1F5F9] truncate group-hover:text-[#00B386] transition-colors"
+                        title={b.name}
+                      >
+                        {b.shortName}
+                      </h4>
+                    </div>
+                    <span
+                      className="text-[9px] font-mono px-1.5 py-0.5 rounded-[4px] border shrink-0 uppercase"
+                      style={{
+                        backgroundColor: catStyle.bg,
+                        borderColor: catStyle.border,
+                        color: catStyle.text,
+                      }}
+                    >
+                      {b.category}
+                    </span>
+                  </div>
+
+                  <div className="space-y-0.5 pt-1.5 border-t border-[#263545]/60 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-[#64748B]">Total Tickets</span>
+                      <span className="font-mono font-bold text-[#F1F5F9]">
+                        {b.total}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-[#64748B]">Active Faults</span>
+                      <span
+                        className={`font-mono font-bold ${
+                          b.active > 0 ? 'text-[#FBBF24]' : 'text-[#00B386]'
+                        }`}
+                      >
+                        {b.active}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* SLA Exception Radar & Escalation Gate */}
+        <section className="bg-[#141D27] border border-[#263545] rounded-xl p-4 sm:p-5 space-y-3.5" aria-label="SLA Escalation Radar">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#263545]">
+            <div>
+              <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
+                SLA Exception Radar &amp; Escalation Gate
+              </h2>
+              <p className="text-[11px] sm:text-xs text-[#94A3B8] mt-0.5">
+                Real-time monitoring of campus tickets nearing or breaching contractual SLA limits.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${
+                  overdueBreaches === 0
+                    ? 'bg-[#0B3029] text-[#00B386] border-[#00B386]/30'
+                    : 'bg-[#351B23] text-[#F87171] border-[#F87171]/40 animate-pulse font-bold'
+                }`}
+              >
+                {overdueBreaches === 0 ? (
+                  <>
+                    <span>✓</span>
+                    <span>Zero SLA Breaches</span>
+                  </>
+                ) : (
+                  <>
+                    <span>⚠️</span>
+                    <span>{overdueBreaches} Overdue Beyond SLA</span>
+                  </>
+                )}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-3.5 pt-0.5">
+            {/* SLA Card 1 */}
+            <Link
+              to="/operations"
+              className="bg-[#0B1119] border border-[#263545] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
+                Overdue Beyond SLA
+              </span>
+              <div className="my-0.5">
+                <span
+                  className={`text-2xl sm:text-[26px] font-bold font-mono block leading-none ${
+                    overdueBreaches > 0 ? 'text-[#F87171]' : 'text-[#00B386]'
+                  }`}
+                >
+                  {loading ? '—' : overdueBreaches}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] block truncate">
+                Active breaches requiring supervisory intervention
+              </span>
+            </Link>
+
+            {/* SLA Card 2 */}
+            <Link
+              to="/operations"
+              className="bg-[#0B1119] border border-[#263545] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
+                Approaching Breach Window
+              </span>
+              <div className="my-0.5">
+                <span
+                  className={`text-2xl sm:text-[26px] font-bold font-mono block leading-none ${
+                    approachingBreaches > 0 ? 'text-[#FBBF24]' : 'text-[#94A3B8]'
+                  }`}
+                >
+                  {loading ? '—' : approachingBreaches}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] block truncate">
+                Tickets with &lt; 20% remaining SLA duration
+              </span>
+            </Link>
+
+            {/* SLA Card 3 */}
+            <Link
+              to="/operations"
+              className="bg-[#0B1119] border border-[#263545] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
+                Critical Safety Breakdowns
+              </span>
+              <div className="my-0.5">
+                <span
+                  className={`text-2xl sm:text-[26px] font-bold font-mono block leading-none ${
+                    criticalTickets > 0 ? 'text-[#F87171]' : 'text-[#00B386]'
+                  }`}
+                >
+                  {loading ? '—' : criticalTickets}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] block truncate">
+                Immediate hazards or emergency campus breakdowns
+              </span>
+            </Link>
+          </div>
+        </section>
+
+        {/* Recent Maintenance Requests Queue Table */}
+        <section className="rounded-xl border border-[#263545] bg-[#141D27] overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-[#263545]">
+            <div className="flex items-center gap-2">
+              <span className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#263545] flex items-center justify-center shrink-0 text-xs">
+                📋
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-[#F1F5F9]">Recent Maintenance Requests</h3>
+                <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                  Latest facility complaints across academic buildings, hostels, and amenities.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#94A3B8] font-mono">{totalTickets} total</span>
+              <Link
+                to="/operations"
+                className="px-3 py-1.5 rounded-[8px] text-xs font-semibold text-[#F1F5F9] bg-[#1C2430] border border-[#263545] hover:border-[#00B386] hover:text-[#00B386] transition-colors"
+              >
+                View Operations Queue →
+              </Link>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[750px] text-left">
+              <thead className="bg-[#101720] text-[10px] uppercase font-mono text-[#64748B] border-b border-[#263545]">
+                <tr>
+                  <th className="px-4 py-2.5">Code</th>
+                  <th className="px-4 py-2.5">Issue</th>
+                  <th className="px-4 py-2.5">Location</th>
+                  <th className="px-4 py-2.5">Department</th>
+                  <th className="px-4 py-2.5">Priority</th>
+                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">Submitted</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#263545]/60 text-xs text-[#94A3B8]">
+                {recentTickets.length > 0 ? (
+                  recentTickets.map((t, idx) => {
+                    const code = getTicketId(t, idx);
+                    return (
+                      <tr key={t.id || code} className="hover:bg-[#182330] transition-colors">
+                        <td className="px-4 py-2.5 font-mono text-[#F1F5F9]">
+                          <Link
+                            to={`/track?search=${encodeURIComponent(code)}`}
+                            className="hover:underline hover:text-[#00B386]"
+                          >
+                            {code}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-2.5 font-medium text-[#F1F5F9] max-w-xs truncate" title={getTicketTitle(t)}>
+                          {getTicketTitle(t)}
+                        </td>
+                        <td className="px-4 py-2.5 text-slate-300 max-w-[160px] truncate">
+                          {t.location || '—'}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {getTicketDepartmentName(t) || '—'}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className={`inline-flex rounded px-2 py-0.5 text-[10px] font-mono border ${getPriorityBadgeClass(t.priority)}`}>
+                            {String(t.priority || 'MEDIUM').toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className={`inline-flex rounded px-2 py-0.5 text-[10px] font-mono border ${getStatusBadgeClass(t.status)}`}>
+                            {getStatusLabel(t.status)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 font-mono text-[11px] whitespace-nowrap text-[#64748B]">
+                          {formatTicketDate(t)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="px-4 py-8 text-center text-xs text-[#64748B]">
+                      {loading ? 'Loading requests...' : 'No maintenance requests logged yet.'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

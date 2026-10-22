@@ -35,13 +35,13 @@ export default function TeamWorkloadView({ onSelectSquad }) {
 
   return (
     <div
-      className={`rounded-2xl border p-6 shadow-xs space-y-4 transition-colors ${
-        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
+      className={`rounded-xl border p-4 shadow-none space-y-4 transition-colors ${
+        isDark ? 'bg-[#131D28] border-[#263545] text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
       }`}
     >
       <div
         className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-4 ${
-          isDark ? 'border-zinc-800' : 'border-slate-300'
+          isDark ? 'border-[#263545]' : 'border-slate-300'
         }`}
       >
         <div>
@@ -78,7 +78,7 @@ export default function TeamWorkloadView({ onSelectSquad }) {
             disabled={loading}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer border ${
               isDark
-                ? 'bg-[#0e1117] hover:bg-zinc-800 text-zinc-200 border-zinc-700'
+                ? 'bg-[#0e1117] hover:bg-[#263545] text-zinc-200 border-zinc-700'
                 : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-800 border-slate-300'
             }`}
           >
@@ -109,7 +109,7 @@ export default function TeamWorkloadView({ onSelectSquad }) {
           No maintenance squads registered.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
           {workloads.map((squad) => {
             const ratio = Math.min(squad.active_ticket_count / MAX_CAPACITY, 1);
             const percent = Math.round(ratio * 100);
@@ -138,9 +138,9 @@ export default function TeamWorkloadView({ onSelectSquad }) {
               <div
                 key={squad.team_id}
                 onClick={() => onSelectSquad && onSelectSquad(squad)}
-                className={`p-4 rounded-xl border transition-all space-y-3 cursor-pointer ${
+                className={`p-3.5 rounded-xl border transition-all space-y-3 cursor-pointer ${
                   isDark
-                    ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60'
+                    ? 'bg-[#0e1117] border-[#263545] hover:border-zinc-700 hover:bg-zinc-900/60'
                     : 'bg-[#e2e8f0] border-slate-300 hover:bg-[#cbd5e1]/60 hover:border-slate-400'
                 }`}
               >
@@ -171,7 +171,7 @@ export default function TeamWorkloadView({ onSelectSquad }) {
                   </div>
                   <div
                     className={`w-full rounded-full h-2 overflow-hidden ${
-                      isDark ? 'bg-zinc-800' : 'bg-slate-300'
+                      isDark ? 'bg-[#263545]' : 'bg-slate-300'
                     }`}
                   >
                     <div
