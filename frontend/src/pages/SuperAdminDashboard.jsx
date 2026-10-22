@@ -13,6 +13,79 @@ import { fetchComplaints } from '../api/complaints';
 import { fetchActiveBreaches } from '../api/sla';
 import { getCampusBuildings } from '../data/iiitnrCampusData';
 
+
+const COMPLETE_REHAUL_STYLES = `
+/* Complete visual rehaul — scoped to these dashboard screens */
+.redesign-shell {
+  --app-bg: #f4f7fc; --app-surface: #ffffff; --app-ink: #17233b;
+  --app-muted: #697891; --app-line: #e4eaf3; --app-blue: #4355db;
+  --app-cyan: #18a7b5; --app-shadow: 0 10px 32px rgba(25, 42, 75, .055);
+  background: var(--app-bg) !important; color: var(--app-ink) !important;
+  min-height: 100vh; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  letter-spacing: -.01em;
+}
+.redesign-shell * { box-sizing: border-box; }
+.redesign-shell h1 { letter-spacing: -.045em !important; line-height: 1.08 !important; font-weight: 800 !important; color: #17233b !important; }
+.redesign-shell h2, .redesign-shell h3, .redesign-shell h4 { letter-spacing: -.025em; color: #202e48 !important; }
+.redesign-shell p { line-height: 1.55; }
+.redesign-shell header, .redesign-shell > div > header {
+  background: linear-gradient(115deg,#fff 0%,#f8faff 100%) !important;
+  border-color: #e5eaf4 !important; box-shadow: 0 1px 0 rgba(20,35,60,.025);
+}
+.redesign-shell [class*="rounded-"][class*="border"],
+.redesign-shell [class*="shadow"] {
+  border-color: #e4eaf3 !important;
+}
+.redesign-shell [class*="bg-[#0D1117]"], .redesign-shell [class*="bg-[#0e1117]"],
+.redesign-shell [class*="bg-[#161C24]"], .redesign-shell [class*="bg-[#161b22]"],
+.redesign-shell [class*="bg-[#0B0F14]"] { background-color: #fff !important; }
+.redesign-shell [class*="bg-[#1C2430]"], .redesign-shell [class*="bg-[#1c2430]"] { background-color: #f5f7fc !important; }
+.redesign-shell [class*="text-[#F1F5F9]"], .redesign-shell [class*="text-zinc-100"],
+.redesign-shell [class*="text-slate-100"], .redesign-shell [class*="text-white"] { color: #17233b !important; }
+.redesign-shell [class*="text-[#94A3B8]"], .redesign-shell [class*="text-zinc-400"],
+.redesign-shell [class*="text-slate-400"] { color: #697891 !important; }
+.redesign-shell [class*="border-[#252D38]"], .redesign-shell [class*="border-zinc-800"],
+.redesign-shell [class*="border-slate-800"] { border-color: #e4eaf3 !important; }
+.redesign-shell [class*="rounded-xl"], .redesign-shell [class*="rounded-2xl"] { border-radius: 18px !important; }
+.redesign-shell [class*="shadow"] { box-shadow: var(--app-shadow) !important; }
+.redesign-shell button, .redesign-shell a[class*="bg-"], .redesign-shell [role="button"] {
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.redesign-shell button:hover, .redesign-shell [role="button"]:hover { transform: translateY(-1px); }
+.redesign-shell button[class*="bg-emerald"], .redesign-shell a[class*="bg-emerald"],
+.redesign-shell button[class*="bg-green"], .redesign-shell a[class*="bg-green"] {
+  background: linear-gradient(135deg,#4658df,#6575f1) !important; color: #fff !important;
+  border-color: transparent !important; box-shadow: 0 6px 16px rgba(67,85,219,.19);
+}
+.redesign-shell input, .redesign-shell select, .redesign-shell textarea {
+  background: #fff !important; color: #17233b !important; border: 1px solid #dce4f0 !important;
+  border-radius: 12px !important; box-shadow: inset 0 1px 2px rgba(22,35,60,.025);
+}
+.redesign-shell input:focus, .redesign-shell select:focus, .redesign-shell textarea:focus {
+  outline: none !important; border-color: #7885f0 !important; box-shadow: 0 0 0 4px rgba(99,115,238,.12) !important;
+}
+.redesign-shell table { border-collapse: separate !important; border-spacing: 0; width: 100%; }
+.redesign-shell thead th { background: #f5f7fc !important; color: #697891 !important; font-size: 10px !important; letter-spacing: .09em; text-transform: uppercase; }
+.redesign-shell tbody tr { transition: background .15s ease; }
+.redesign-shell tbody tr:hover { background: #f7f9ff !important; }
+.redesign-shell td, .redesign-shell th { border-color: #e9edf5 !important; }
+.redesign-shell [class*="bg-[#0B3029]"], .redesign-shell [class*="bg-emerald-950"] { background: #e8f8f2 !important; }
+.redesign-shell [class*="text-emerald-400"], .redesign-shell [class*="text-[#00B386]"] { color: #07886b !important; }
+.redesign-shell [class*="bg-red-950"], .redesign-shell [class*="bg-[#351B23]"] { background: #fff0f0 !important; }
+.redesign-shell [class*="text-red-400"], .redesign-shell [class*="text-[#F87171]"] { color: #c53c50 !important; }
+.redesign-shell [class*="bg-amber-950"], .redesign-shell [class*="bg-[#352A17]"] { background: #fff6df !important; }
+.redesign-shell [class*="text-amber-400"], .redesign-shell [class*="text-[#FBBF24]"] { color: #996300 !important; }
+.redesign-shell [class*="bg-sky-950"] { background: #e8f5ff !important; }
+.redesign-shell [class*="text-sky-400"], .redesign-shell [class*="text-[#38BDF8]"] { color: #1478ba !important; }
+.redesign-shell hr { border-color: #e4eaf3 !important; }
+@media (min-width: 1280px) { .redesign-shell { padding-bottom: 36px; } }
+@media (max-width: 640px) {
+ .redesign-shell header { padding-left: 18px !important; padding-right: 18px !important; }
+ .redesign-shell h1 { font-size: 1.75rem !important; }
+ .redesign-shell [class*="grid-cols-"] { gap: 12px !important; }
+}
+`;
+
 const CAMPUS_DEPARTMENTS = [
   'Electrical',
   'Plumbing',
@@ -171,7 +244,7 @@ export default function SuperAdminDashboard() {
 
   return (
     <div
-      className="modern-directorate w-full min-h-screen bg-[#0D1117] text-[#F1F5F9] font-sans antialiased box-border transition-colors duration-200"
+      className="redesign-shell w-full min-h-screen font-sans antialiased box-border transition-colors duration-200"
       style={{
         '--page-bg': '#0D1117',
         '--navigation-bg': '#0B0F14',
@@ -193,104 +266,9 @@ export default function SuperAdminDashboard() {
         '--healthy': '#2DD4BF',
       }}
     >
-      <style>{`
-/* Modern Command Center refresh — scoped to the two dashboard roots */
-.modern-directorate, .modern-operations {
-  --modern-bg: #080d18;
-  --modern-panel: rgba(17, 25, 40, .88);
-  --modern-panel-2: #111c2d;
-  --modern-border: rgba(148, 163, 184, .16);
-  --modern-muted: #91a0b8;
-  --modern-text: #f4f7fb;
-  --modern-accent: #62e6b5;
-  background:
-    radial-gradient(ellipse at 82% -10%, rgba(16, 185, 129, .13), transparent 34%),
-    radial-gradient(ellipse at 0% 20%, rgba(59, 130, 246, .08), transparent 30%),
-    var(--modern-bg) !important;
-  color: var(--modern-text) !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  letter-spacing: -.01em;
-}
-.modern-directorate *, .modern-operations * { box-sizing: border-box; }
-.modern-directorate header, .modern-operations > div:first-child {
-  background: linear-gradient(135deg, rgba(17, 28, 45, .97), rgba(11, 19, 32, .93)) !important;
-  border-color: var(--modern-border) !important;
-  position: relative;
-}
-.modern-directorate header::after, .modern-operations > div:first-child::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: -1px; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(98,230,181,.6), rgba(96,165,250,.3), transparent);
-  pointer-events: none;
-}
-.modern-directorate h1, .modern-operations h1 {
-  letter-spacing: -.045em !important;
-  line-height: 1.08 !important;
-  font-weight: 760 !important;
-}
-.modern-directorate main, .modern-operations main {
-  max-width: 1680px !important;
-  margin: 0 auto !important;
-  padding-top: 28px !important;
-  padding-bottom: 44px !important;
-}
-.modern-directorate section > div > div[class*="bg-[#161C24]"],
-.modern-directorate section > div > div[class*="bg-[#161c24]"] {
-  background: linear-gradient(145deg, rgba(21,32,49,.96), rgba(13,21,35,.96)) !important;
-  border: 1px solid var(--modern-border) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.025) !important;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease !important;
-}
-.modern-directorate section > div > div[class*="bg-[#161C24]"]:hover,
-.modern-directorate section > div > div[class*="bg-[#161c24]"]:hover {
-  transform: translateY(-2px);
-  border-color: rgba(98,230,181,.34) !important;
-  box-shadow: 0 16px 34px rgba(0,0,0,.24) !important;
-}
-.modern-directorate a[href], .modern-operations a[href] {
-  transition: transform .18s ease, border-color .18s ease, background .18s ease !important;
-}
-.modern-directorate a[href]:hover, .modern-operations a[href]:hover {
-  border-color: rgba(98,230,181,.4) !important;
-}
-.modern-operations [class*="rounded-2xl"][class*="border"],
-.modern-operations [class*="rounded-xl"][class*="border"],
-.modern-operations [class*="rounded-2xl"][class*="shadow"] {
-  border-color: var(--modern-border) !important;
-  box-shadow: 0 12px 32px rgba(0,0,0,.13) !important;
-}
-.modern-operations button, .modern-directorate button {
-  transition: transform .16s ease, filter .16s ease, border-color .16s ease !important;
-}
-.modern-operations button:hover:not(:disabled), .modern-directorate button:hover:not(:disabled) {
-  filter: brightness(1.12);
-}
-.modern-operations button:active:not(:disabled), .modern-directorate button:active:not(:disabled) {
-  transform: translateY(1px);
-}
-.modern-directorate table, .modern-operations table {
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-}
-.modern-directorate thead, .modern-operations thead {
-  letter-spacing: .075em !important;
-}
-.modern-directorate tbody tr, .modern-operations tbody tr {
-  transition: background .15s ease !important;
-}
-.modern-directorate input, .modern-directorate select, .modern-directorate textarea,
-.modern-operations input, .modern-operations select, .modern-operations textarea {
-  border-radius: 10px !important;
-}
-@media (max-width: 640px) {
-  .modern-directorate main, .modern-operations main { padding: 18px 14px 30px !important; }
-  .modern-directorate h1, .modern-operations h1 { font-size: 1.6rem !important; }
-}
-`}</style>
+      <style>{COMPLETE_REHAUL_STYLES}</style>
       {/* 4. Page Heading Section: full width, 32-36px gutters on 1120px, 36-50px on wide desktop */}
-      <header className="w-full bg-gradient-to-r from-[#111923] via-[#121B27] to-[#101720] border-b border-[#243243] px-5 sm:px-8 lg:px-10 xl:px-12 py-3.5">
+      <header className="w-full bg-[#161C24] border-b border-[#252D38] px-5 sm:px-8 lg:px-10 xl:px-12 py-4">
         <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -323,7 +301,7 @@ export default function SuperAdminDashboard() {
               type="button"
               onClick={loadData}
               disabled={loading}
-              className="px-3 py-1.5 rounded-[8px] text-xs font-semibold text-[#F1F5F9] bg-[#1C2430] border border-[#263545] hover:border-[#343E4B] hover:bg-[#252D38] active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 rounded-[8px] text-xs font-semibold text-[#F1F5F9] bg-[#1C2430] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#252D38] active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <span className={loading ? 'animate-spin inline-block text-xs' : 'text-xs'}>🔄</span>
               <span>{loading ? 'Refreshing...' : 'Refresh Telemetry'}</span>
@@ -333,7 +311,7 @@ export default function SuperAdminDashboard() {
       </header>
 
       {/* Main Full-Width Content Container: exact same horizontal gutter px-5 sm:px-8 lg:px-10 xl:px-12 */}
-      <main className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-9 py-5 sm:py-6 space-y-5">
+      <main className="w-full max-w-none px-5 sm:px-8 lg:px-10 xl:px-12 py-5 sm:py-6 space-y-5 sm:space-y-6">
         {/* Error notification banner if any */}
         {error && (
           <div className="p-3.5 rounded-[10px] bg-[#351B23] border border-[#F87171]/40 text-[#F87171] text-xs font-medium flex items-center justify-between">
@@ -355,7 +333,7 @@ export default function SuperAdminDashboard() {
         <section aria-label="Executive KPIs">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
             {/* KPI 1: Total Grievances */}
-            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Total Grievances
               </span>
@@ -370,7 +348,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* KPI 2: Active Operations */}
-            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Active Operations
               </span>
@@ -385,7 +363,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* KPI 3: Resolution Rate */}
-            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Resolution Rate
               </span>
@@ -400,7 +378,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* KPI 4: SLA Compliance */}
-            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 SLA Compliance
               </span>
@@ -415,7 +393,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* KPI 5: Field Squads */}
-            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Field Squads
               </span>
@@ -430,7 +408,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* KPI 6: Staff & Admins */}
-            <div className="bg-gradient-to-br from-[#151E29] to-[#111821] border border-[#253344] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#3A5065] transition-colors">
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
                 Staff &amp; Admins
               </span>
@@ -452,10 +430,10 @@ export default function SuperAdminDashboard() {
             {/* Shortcut A: Operations Console */}
             <Link
               to="/operations"
-              className="bg-gradient-to-br from-[#17212D] to-[#121922] border border-[#273748] hover:border-[#00B386]/50 hover:bg-[#182431] rounded-xl px-3.5 h-[58px] flex items-center justify-between group transition-all"
+              className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[12px] px-3.5 h-[58px] flex items-center justify-between group transition-all"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#263545] flex items-center justify-center shrink-0 text-sm">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#252D38] flex items-center justify-center shrink-0 text-sm">
                   🚨
                 </div>
                 <div className="min-w-0">
@@ -475,10 +453,10 @@ export default function SuperAdminDashboard() {
             {/* Shortcut B: Squads & Dispatch */}
             <Link
               to="/squads"
-              className="bg-gradient-to-br from-[#17212D] to-[#121922] border border-[#273748] hover:border-[#00B386]/50 hover:bg-[#182431] rounded-xl px-3.5 h-[58px] flex items-center justify-between group transition-all"
+              className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[12px] px-3.5 h-[58px] flex items-center justify-between group transition-all"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#263545] flex items-center justify-center shrink-0 text-sm">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#252D38] flex items-center justify-center shrink-0 text-sm">
                   🛠️
                 </div>
                 <div className="min-w-0">
@@ -498,10 +476,10 @@ export default function SuperAdminDashboard() {
             {/* Shortcut C: Staff & RBAC Directory */}
             <Link
               to="/superadmin/staff"
-              className="bg-gradient-to-br from-[#17212D] to-[#121922] border border-[#273748] hover:border-[#00B386]/50 hover:bg-[#182431] rounded-xl px-3.5 h-[58px] flex items-center justify-between group transition-all"
+              className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[12px] px-3.5 h-[58px] flex items-center justify-between group transition-all"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#263545] flex items-center justify-center shrink-0 text-sm">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#252D38] flex items-center justify-center shrink-0 text-sm">
                   👥
                 </div>
                 <div className="min-w-0">
@@ -546,7 +524,7 @@ export default function SuperAdminDashboard() {
               return (
                 <div
                   key={dept.name}
-                  className="bg-[#141D27] border border-[#263545] hover:border-[#343E4B] rounded-xl p-3.5 sm:p-4 flex flex-col justify-between transition-colors min-h-[114px]"
+                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] rounded-[12px] p-3.5 sm:p-4 flex flex-col justify-between transition-colors min-h-[114px]"
                 >
                   <div>
                     {/* Header Row: Dept Icon + Name + Health Score */}
@@ -640,7 +618,7 @@ export default function SuperAdminDashboard() {
                       handleFacilityClick(b);
                     }
                   }}
-                  className="bg-[#141D27] border border-[#263545] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[10px] p-3 flex flex-col justify-between transition-all cursor-pointer group focus:outline-none focus:ring-1 focus:ring-[#00B386] min-h-[74px]"
+                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[10px] p-3 flex flex-col justify-between transition-all cursor-pointer group focus:outline-none focus:ring-1 focus:ring-[#00B386] min-h-[74px]"
                 >
                   <div className="flex items-center justify-between gap-1 mb-2">
                     <div className="flex items-center gap-2 min-w-0">
@@ -667,7 +645,7 @@ export default function SuperAdminDashboard() {
                     </span>
                   </div>
 
-                  <div className="space-y-0.5 pt-1.5 border-t border-[#263545]/60 text-xs">
+                  <div className="space-y-0.5 pt-1.5 border-t border-[#252D38]/60 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-[#64748B]">Total Tickets</span>
                       <span className="font-mono font-bold text-[#F1F5F9]">
@@ -693,8 +671,8 @@ export default function SuperAdminDashboard() {
         </section>
 
         {/* 9. SLA Exception Radar & Escalation Gate: wide panel with 3 metric cards */}
-        <section className="bg-[#141D27] border border-[#263545] rounded-xl p-4 sm:p-5 space-y-3.5" aria-label="SLA Escalation Radar">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#263545]">
+        <section className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-4 sm:p-5 space-y-3.5" aria-label="SLA Escalation Radar">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#252D38]">
             <div>
               <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
                 SLA Exception Radar &amp; Escalation Gate
@@ -730,7 +708,7 @@ export default function SuperAdminDashboard() {
             {/* SLA Card 1 */}
             <Link
               to="/operations"
-              className="bg-[#0B1119] border border-[#263545] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
             >
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Overdue Beyond SLA
@@ -752,7 +730,7 @@ export default function SuperAdminDashboard() {
             {/* SLA Card 2 */}
             <Link
               to="/operations"
-              className="bg-[#0B1119] border border-[#263545] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
             >
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Approaching Breach Window
@@ -774,7 +752,7 @@ export default function SuperAdminDashboard() {
             {/* SLA Card 3 */}
             <Link
               to="/operations"
-              className="bg-[#0B1119] border border-[#263545] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
             >
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Critical Safety Breakdowns

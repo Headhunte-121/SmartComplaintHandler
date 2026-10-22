@@ -1,6 +1,6 @@
 /**
  * SmartComplaintHandler - Campus Facilities Operations Console
- * Modern action-first supervisory workspace; existing operational logic is preserved.
+ * Flush Edge-to-Edge Supervisory Workstation with Full Width Layout & Dual Theme Palette
  */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -15,6 +15,79 @@ import ReassignTeamModal from '../components/ReassignTeamModal';
 import TeamWorkloadView from '../components/TeamWorkloadView';
 import SLABreachTable from '../components/SLABreachTable';
 import SLACountdownTimer from '../components/SLACountdownTimer';
+
+
+const COMPLETE_REHAUL_STYLES = `
+/* Complete visual rehaul — scoped to these dashboard screens */
+.redesign-shell {
+  --app-bg: #f4f7fc; --app-surface: #ffffff; --app-ink: #17233b;
+  --app-muted: #697891; --app-line: #e4eaf3; --app-blue: #4355db;
+  --app-cyan: #18a7b5; --app-shadow: 0 10px 32px rgba(25, 42, 75, .055);
+  background: var(--app-bg) !important; color: var(--app-ink) !important;
+  min-height: 100vh; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  letter-spacing: -.01em;
+}
+.redesign-shell * { box-sizing: border-box; }
+.redesign-shell h1 { letter-spacing: -.045em !important; line-height: 1.08 !important; font-weight: 800 !important; color: #17233b !important; }
+.redesign-shell h2, .redesign-shell h3, .redesign-shell h4 { letter-spacing: -.025em; color: #202e48 !important; }
+.redesign-shell p { line-height: 1.55; }
+.redesign-shell header, .redesign-shell > div > header {
+  background: linear-gradient(115deg,#fff 0%,#f8faff 100%) !important;
+  border-color: #e5eaf4 !important; box-shadow: 0 1px 0 rgba(20,35,60,.025);
+}
+.redesign-shell [class*="rounded-"][class*="border"],
+.redesign-shell [class*="shadow"] {
+  border-color: #e4eaf3 !important;
+}
+.redesign-shell [class*="bg-[#0D1117]"], .redesign-shell [class*="bg-[#0e1117]"],
+.redesign-shell [class*="bg-[#161C24]"], .redesign-shell [class*="bg-[#161b22]"],
+.redesign-shell [class*="bg-[#0B0F14]"] { background-color: #fff !important; }
+.redesign-shell [class*="bg-[#1C2430]"], .redesign-shell [class*="bg-[#1c2430]"] { background-color: #f5f7fc !important; }
+.redesign-shell [class*="text-[#F1F5F9]"], .redesign-shell [class*="text-zinc-100"],
+.redesign-shell [class*="text-slate-100"], .redesign-shell [class*="text-white"] { color: #17233b !important; }
+.redesign-shell [class*="text-[#94A3B8]"], .redesign-shell [class*="text-zinc-400"],
+.redesign-shell [class*="text-slate-400"] { color: #697891 !important; }
+.redesign-shell [class*="border-[#252D38]"], .redesign-shell [class*="border-zinc-800"],
+.redesign-shell [class*="border-slate-800"] { border-color: #e4eaf3 !important; }
+.redesign-shell [class*="rounded-xl"], .redesign-shell [class*="rounded-2xl"] { border-radius: 18px !important; }
+.redesign-shell [class*="shadow"] { box-shadow: var(--app-shadow) !important; }
+.redesign-shell button, .redesign-shell a[class*="bg-"], .redesign-shell [role="button"] {
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.redesign-shell button:hover, .redesign-shell [role="button"]:hover { transform: translateY(-1px); }
+.redesign-shell button[class*="bg-emerald"], .redesign-shell a[class*="bg-emerald"],
+.redesign-shell button[class*="bg-green"], .redesign-shell a[class*="bg-green"] {
+  background: linear-gradient(135deg,#4658df,#6575f1) !important; color: #fff !important;
+  border-color: transparent !important; box-shadow: 0 6px 16px rgba(67,85,219,.19);
+}
+.redesign-shell input, .redesign-shell select, .redesign-shell textarea {
+  background: #fff !important; color: #17233b !important; border: 1px solid #dce4f0 !important;
+  border-radius: 12px !important; box-shadow: inset 0 1px 2px rgba(22,35,60,.025);
+}
+.redesign-shell input:focus, .redesign-shell select:focus, .redesign-shell textarea:focus {
+  outline: none !important; border-color: #7885f0 !important; box-shadow: 0 0 0 4px rgba(99,115,238,.12) !important;
+}
+.redesign-shell table { border-collapse: separate !important; border-spacing: 0; width: 100%; }
+.redesign-shell thead th { background: #f5f7fc !important; color: #697891 !important; font-size: 10px !important; letter-spacing: .09em; text-transform: uppercase; }
+.redesign-shell tbody tr { transition: background .15s ease; }
+.redesign-shell tbody tr:hover { background: #f7f9ff !important; }
+.redesign-shell td, .redesign-shell th { border-color: #e9edf5 !important; }
+.redesign-shell [class*="bg-[#0B3029]"], .redesign-shell [class*="bg-emerald-950"] { background: #e8f8f2 !important; }
+.redesign-shell [class*="text-emerald-400"], .redesign-shell [class*="text-[#00B386]"] { color: #07886b !important; }
+.redesign-shell [class*="bg-red-950"], .redesign-shell [class*="bg-[#351B23]"] { background: #fff0f0 !important; }
+.redesign-shell [class*="text-red-400"], .redesign-shell [class*="text-[#F87171]"] { color: #c53c50 !important; }
+.redesign-shell [class*="bg-amber-950"], .redesign-shell [class*="bg-[#352A17]"] { background: #fff6df !important; }
+.redesign-shell [class*="text-amber-400"], .redesign-shell [class*="text-[#FBBF24]"] { color: #996300 !important; }
+.redesign-shell [class*="bg-sky-950"] { background: #e8f5ff !important; }
+.redesign-shell [class*="text-sky-400"], .redesign-shell [class*="text-[#38BDF8]"] { color: #1478ba !important; }
+.redesign-shell hr { border-color: #e4eaf3 !important; }
+@media (min-width: 1280px) { .redesign-shell { padding-bottom: 36px; } }
+@media (max-width: 640px) {
+ .redesign-shell header { padding-left: 18px !important; padding-right: 18px !important; }
+ .redesign-shell h1 { font-size: 1.75rem !important; }
+ .redesign-shell [class*="grid-cols-"] { gap: 12px !important; }
+}
+`;
 
 export default function AdminDashboard() {
   const { currentUser, isTechnician, isAdmin } = useAuth();
@@ -126,111 +199,16 @@ export default function AdminDashboard() {
 
   return (
     <div
-      className={`modern-operations w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
+      className={`redesign-shell w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
         isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
       }`}
     >
-<style>{`
-/* Modern Command Center refresh — scoped to the two dashboard roots */
-.modern-directorate, .modern-operations {
-  --modern-bg: #080d18;
-  --modern-panel: rgba(17, 25, 40, .88);
-  --modern-panel-2: #111c2d;
-  --modern-border: rgba(148, 163, 184, .16);
-  --modern-muted: #91a0b8;
-  --modern-text: #f4f7fb;
-  --modern-accent: #62e6b5;
-  background:
-    radial-gradient(ellipse at 82% -10%, rgba(16, 185, 129, .13), transparent 34%),
-    radial-gradient(ellipse at 0% 20%, rgba(59, 130, 246, .08), transparent 30%),
-    var(--modern-bg) !important;
-  color: var(--modern-text) !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  letter-spacing: -.01em;
-}
-.modern-directorate *, .modern-operations * { box-sizing: border-box; }
-.modern-directorate header, .modern-operations > div:first-child {
-  background: linear-gradient(135deg, rgba(17, 28, 45, .97), rgba(11, 19, 32, .93)) !important;
-  border-color: var(--modern-border) !important;
-  position: relative;
-}
-.modern-directorate header::after, .modern-operations > div:first-child::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: -1px; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(98,230,181,.6), rgba(96,165,250,.3), transparent);
-  pointer-events: none;
-}
-.modern-directorate h1, .modern-operations h1 {
-  letter-spacing: -.045em !important;
-  line-height: 1.08 !important;
-  font-weight: 760 !important;
-}
-.modern-directorate main, .modern-operations main {
-  max-width: 1680px !important;
-  margin: 0 auto !important;
-  padding-top: 28px !important;
-  padding-bottom: 44px !important;
-}
-.modern-directorate section > div > div[class*="bg-[#161C24]"],
-.modern-directorate section > div > div[class*="bg-[#161c24]"] {
-  background: linear-gradient(145deg, rgba(21,32,49,.96), rgba(13,21,35,.96)) !important;
-  border: 1px solid var(--modern-border) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.025) !important;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease !important;
-}
-.modern-directorate section > div > div[class*="bg-[#161C24]"]:hover,
-.modern-directorate section > div > div[class*="bg-[#161c24]"]:hover {
-  transform: translateY(-2px);
-  border-color: rgba(98,230,181,.34) !important;
-  box-shadow: 0 16px 34px rgba(0,0,0,.24) !important;
-}
-.modern-directorate a[href], .modern-operations a[href] {
-  transition: transform .18s ease, border-color .18s ease, background .18s ease !important;
-}
-.modern-directorate a[href]:hover, .modern-operations a[href]:hover {
-  border-color: rgba(98,230,181,.4) !important;
-}
-.modern-operations [class*="rounded-2xl"][class*="border"],
-.modern-operations [class*="rounded-xl"][class*="border"],
-.modern-operations [class*="rounded-2xl"][class*="shadow"] {
-  border-color: var(--modern-border) !important;
-  box-shadow: 0 12px 32px rgba(0,0,0,.13) !important;
-}
-.modern-operations button, .modern-directorate button {
-  transition: transform .16s ease, filter .16s ease, border-color .16s ease !important;
-}
-.modern-operations button:hover:not(:disabled), .modern-directorate button:hover:not(:disabled) {
-  filter: brightness(1.12);
-}
-.modern-operations button:active:not(:disabled), .modern-directorate button:active:not(:disabled) {
-  transform: translateY(1px);
-}
-.modern-directorate table, .modern-operations table {
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-}
-.modern-directorate thead, .modern-operations thead {
-  letter-spacing: .075em !important;
-}
-.modern-directorate tbody tr, .modern-operations tbody tr {
-  transition: background .15s ease !important;
-}
-.modern-directorate input, .modern-directorate select, .modern-directorate textarea,
-.modern-operations input, .modern-operations select, .modern-operations textarea {
-  border-radius: 10px !important;
-}
-@media (max-width: 640px) {
-  .modern-directorate main, .modern-operations main { padding: 18px 14px 30px !important; }
-  .modern-directorate h1, .modern-operations h1 { font-size: 1.6rem !important; }
-}
-`}</style>
-            {/* Flush Operations Hero Header */}
+      <style>{COMPLETE_REHAUL_STYLES}</style>
+      {/* Flush Operations Hero Header */}
       <div
-        className={`w-full border-b px-4 sm:px-6 lg:px-8 py-5 relative overflow-hidden transition-colors ${
+        className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden transition-colors ${
           isDark
-            ? 'bg-gradient-to-r from-[#111923] via-[#121D2A] to-[#101720] border-[#263545] text-zinc-100'
+            ? 'bg-[#161b22] border-zinc-800 text-zinc-100'
             : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xs'
         }`}
       >
@@ -245,17 +223,17 @@ export default function AdminDashboard() {
             >
               <span>🛡️ Supervisory Command Desk</span>
             </div>
-            <h1 className={`text-2xl sm:text-3xl lg:text-[32px] font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+            <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
               Facilities Maintenance Operations Console
             </h1>
-            <p className={`text-xs sm:text-sm max-w-3xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+            <p className={`text-xs sm:text-sm max-w-2xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
               Live queue dispatch, squad workload balancing, priority override governance, and SLA breach monitoring.
             </p>
           </div>
 
           <div
-            className={`flex items-center space-x-3 p-3.5 rounded-xl border shrink-0 transition-colors ${
-              isDark ? 'bg-[#0B1119] border-[#253444]' : 'bg-[#e2e8f0] border-slate-300 shadow-2xs'
+            className={`flex items-center space-x-3 p-3.5 rounded-2xl border shrink-0 transition-colors ${
+              isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300 shadow-2xs'
             }`}
           >
             <span className="text-2xl">{activeUser?.avatar || '🛡️'}</span>
@@ -281,7 +259,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Full-Width Content Area */}
-      <div className={`w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-5 ${isDark ? 'bg-[#0e1117]' : 'bg-white'}`}>
+      <div className={`w-full px-4 sm:px-8 lg:px-12 py-8 sm:py-10 space-y-8 ${isDark ? 'bg-[#0e1117]' : 'bg-white'}`}>
         {toastMsg && (
           <div
             className={`p-4 rounded-xl border text-xs font-bold flex items-center justify-between animate-fade-in shadow-xs ${
@@ -301,10 +279,10 @@ export default function AdminDashboard() {
         )}
 
         {/* Bento Operational Metrics Cards */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div
-            className={`p-4 border-l-[3px] border-l-slate-400 space-y-1 rounded-xl border transition-colors ${
-              isDark ? 'bg-gradient-to-br from-[#151F2B] to-[#111821] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
+            className={`p-5 border-l-4 border-l-slate-400 space-y-1 rounded-2xl border transition-colors ${
+              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
             }`}
           >
             <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -315,8 +293,8 @@ export default function AdminDashboard() {
           </div>
 
           <div
-            className={`p-4 border-l-[3px] border-l-blue-500 space-y-1 rounded-xl border transition-colors ${
-              isDark ? 'bg-gradient-to-br from-[#151F2B] to-[#111821] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
+            className={`p-5 border-l-4 border-l-blue-500 space-y-1 rounded-2xl border transition-colors ${
+              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
             }`}
           >
             <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
@@ -327,8 +305,8 @@ export default function AdminDashboard() {
           </div>
 
           <div
-            className={`p-4 border-l-[3px] border-l-rose-500 space-y-1 rounded-xl border transition-colors ${
-              isDark ? 'bg-gradient-to-br from-[#151F2B] to-[#111821] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
+            className={`p-5 border-l-4 border-l-rose-500 space-y-1 rounded-2xl border transition-colors ${
+              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
             }`}
           >
             <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>
@@ -339,8 +317,8 @@ export default function AdminDashboard() {
           </div>
 
           <div
-            className={`p-4 border-l-[3px] border-l-emerald-500 space-y-1 rounded-xl border transition-colors ${
-              isDark ? 'bg-gradient-to-br from-[#151F2B] to-[#111821] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
+            className={`p-5 border-l-4 border-l-emerald-500 space-y-1 rounded-2xl border transition-colors ${
+              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
             }`}
           >
             <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
@@ -356,13 +334,13 @@ export default function AdminDashboard() {
 
         {/* Main Incident Operations Table */}
         <div
-          className={`rounded-xl border p-4 sm:p-5 space-y-4 transition-colors ${
-            isDark ? 'bg-[#131D28] border-[#263545] text-zinc-100 shadow-none' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
+          className={`rounded-2xl border p-6 sm:p-8 space-y-6 transition-colors ${
+            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
           }`}
         >
           <div
             className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b pb-5 ${
-              isDark ? 'border-[#263545]' : 'border-slate-300'
+              isDark ? 'border-zinc-800' : 'border-slate-300'
             }`}
           >
             <div>
@@ -485,7 +463,7 @@ export default function AdminDashboard() {
             <table className="w-full text-left text-xs">
               <thead
                 className={`font-mono font-bold uppercase tracking-wider text-[10px] border-b ${
-                  isDark ? 'bg-[#0e1117] text-zinc-400 border-[#263545]' : 'bg-[#e2e8f0] text-slate-700 border-slate-300'
+                  isDark ? 'bg-[#0e1117] text-zinc-400 border-zinc-800' : 'bg-[#e2e8f0] text-slate-700 border-slate-300'
                 }`}
               >
                 <tr>
@@ -500,7 +478,7 @@ export default function AdminDashboard() {
               </thead>
               <tbody
                 className={`divide-y ${
-                  isDark ? 'divide-[#253444]/80 text-zinc-300' : 'divide-slate-200 text-slate-700'
+                  isDark ? 'divide-zinc-800/80 text-zinc-300' : 'divide-slate-200 text-slate-700'
                 }`}
               >
                 {loading && tickets.length === 0 ? (
@@ -744,8 +722,8 @@ export default function AdminDashboard() {
         {escalateTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fade-in">
             <div
-              className={`rounded-xl max-w-md w-full p-5 shadow-2xl border space-y-4 ${
-                isDark ? 'bg-gradient-to-r from-[#111923] via-[#121D2A] to-[#101720] border-[#263545] text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
+              className={`rounded-2xl max-w-md w-full p-6 shadow-2xl border space-y-4 ${
+                isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -787,7 +765,7 @@ export default function AdminDashboard() {
                     }`}
                   />
                 </div>
-                <div className={`flex items-center justify-end space-x-2 pt-2 border-t ${isDark ? 'border-[#263545]' : 'border-slate-300'}`}>
+                <div className={`flex items-center justify-end space-x-2 pt-2 border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
                   <button
                     type="button"
                     onClick={() => setEscalateTarget(null)}

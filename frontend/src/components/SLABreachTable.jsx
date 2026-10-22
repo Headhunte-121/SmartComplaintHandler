@@ -66,14 +66,14 @@ export default function SLABreachTable({
 
   return (
     <div
-      className={`rounded-xl border p-4 shadow-none transition-colors ${
-        isDark ? 'bg-[#131D28] border-[#263545] text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
+      className={`rounded-2xl border p-6 shadow-xs transition-colors ${
+        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
       }`}
     >
       {/* Header Bar */}
       <div
         className={`flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-5 ${
-          isDark ? 'border-[#263545]' : 'border-slate-300'
+          isDark ? 'border-zinc-800' : 'border-slate-300'
         }`}
       >
         <div>
@@ -111,7 +111,7 @@ export default function SLABreachTable({
             disabled={isLoading}
             className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold shadow-2xs disabled:opacity-50 cursor-pointer transition-colors ${
               isDark
-                ? 'bg-[#0B1119] hover:bg-zinc-800 text-zinc-200 border-zinc-700'
+                ? 'bg-[#0e1117] hover:bg-zinc-800 text-zinc-200 border-zinc-700'
                 : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-800 border-slate-300'
             }`}
             title="Refresh breach queue"
@@ -132,7 +132,7 @@ export default function SLABreachTable({
       {/* Filter Tabs Bar */}
       <div
         className={`mt-4 flex items-center gap-2 border-b pb-3 ${
-          isDark ? 'border-[#263545]' : 'border-slate-300'
+          isDark ? 'border-zinc-800' : 'border-slate-300'
         }`}
       >
         <button
@@ -222,22 +222,22 @@ export default function SLABreachTable({
           /* Table of Breached and Nearing-Breach Tickets */
           <div
             className={`overflow-x-auto rounded-xl border transition-colors ${
-              isDark ? 'border-[#263545] bg-[#0B1119]' : 'border-slate-300 bg-white'
+              isDark ? 'border-zinc-800 bg-[#0e1117]' : 'border-slate-300 bg-white'
             }`}
           >
             <table className="w-full text-left text-xs">
               <thead
                 className={`border-b text-[11px] font-bold uppercase tracking-wider transition-colors ${
-                  isDark ? 'border-[#263545] bg-[#111923] text-zinc-400' : 'border-slate-300 bg-[#e2e8f0] text-slate-700'
+                  isDark ? 'border-zinc-800 bg-[#161b22] text-zinc-400' : 'border-slate-300 bg-[#e2e8f0] text-slate-700'
                 }`}
               >
                 <tr>
-                  <th className="px-3 py-2.5">Tracking Code</th>
-                  <th className="px-3 py-2.5">Issue &amp; Location</th>
-                  <th className="px-3 py-2.5">Department &amp; Squad</th>
-                  <th className="px-3 py-2.5">Priority</th>
-                  <th className="px-3 py-2.5">SLA Status</th>
-                  <th className="px-3 py-2.5 text-right">Supervisory Actions</th>
+                  <th className="px-4 py-3">Tracking Code</th>
+                  <th className="px-4 py-3">Issue &amp; Location</th>
+                  <th className="px-4 py-3">Department &amp; Squad</th>
+                  <th className="px-4 py-3">Priority</th>
+                  <th className="px-4 py-3">SLA Status</th>
+                  <th className="px-4 py-3 text-right">Supervisory Actions</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${isDark ? 'divide-zinc-800' : 'divide-slate-200'}`}>
@@ -248,7 +248,7 @@ export default function SLABreachTable({
                       isDark ? 'hover:bg-zinc-800/40 text-zinc-200' : 'hover:bg-[#cbd5e1]/40 text-slate-800'
                     }`}
                   >
-                    <td className="px-3 py-2.5">
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <span
                           className={`h-2 w-2 rounded-full ${
@@ -260,7 +260,7 @@ export default function SLABreachTable({
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 max-w-xs">
+                    <td className="px-4 py-3 max-w-xs">
                       <div
                         className={`font-semibold truncate ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}
                         title={ticket.title}
@@ -281,7 +281,7 @@ export default function SLABreachTable({
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td className="px-4 py-3">
                       <div className={`font-medium ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>
                         {ticket.department_name || 'Unassigned'}
                       </div>
@@ -289,10 +289,10 @@ export default function SLABreachTable({
                         {ticket.assigned_team_name || 'No Squad Assigned'}
                       </div>
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td className="px-4 py-3">
                       <PriorityBadge priority={ticket.priority} />
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       {ticket.is_breached ? (
                         <span className="inline-flex items-center gap-1 font-bold text-rose-500 animate-pulse">
                           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,7 +309,7 @@ export default function SLABreachTable({
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">
                         {onEscalate && (
                           <button
