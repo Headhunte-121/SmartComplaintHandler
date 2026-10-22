@@ -74,7 +74,12 @@ export default function AdminDashboard() {
     return { total: tickets.length, active, progress, critical, escalated };
   }, [tickets]);
 
-  const navItems = [{ to: '/operations', label: 'Operations', icon: LayoutDashboard }, { to: '/squads', label: 'Squads', icon: UsersRound }, { to: '/track', label: 'Track request', icon: ClipboardList }, { to: '/map', label: 'Campus map', icon: Map }, ...(isSuperAdmin ? [{ to: '/superadmin', label: 'Directorate', icon: Compass }] : [])];
+  const navItems = [
+    { to: '/operations', label: 'Operations', icon: LayoutDashboard },
+    { to: '/squads', label: 'Squads', icon: UsersRound },
+    { to: '/track', label: 'Track request', icon: ClipboardList },
+    { to: '/map', label: 'Campus map', icon: Map },
+  ];
   const panel = 'rounded-2xl border border-white/[0.09] bg-[#101722] shadow-[0_10px_30px_-24px_rgba(0,0,0,.9)]';
 
   return (

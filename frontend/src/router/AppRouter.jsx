@@ -174,11 +174,11 @@ export default function AppRouter() {
             }
           />
 
-          {/* Facilities Operations Console — Replaces /admin with /operations */}
+          {/* Facilities Operations Console — Strictly for Facility Admins (SuperAdmin has dedicated /superadmin) */}
           <Route
             path="operations"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} fallbackRoute="/student">
+              <ProtectedRoute allowedRoles={['ADMIN']} fallbackRoute="/superadmin">
                 <AdminDashboard />
               </ProtectedRoute>
             }

@@ -1,282 +1,181 @@
 /**
- * SmartComplaintHandler - Campus Facilities Directorate Overview
- * Style: Dark Enterprise Operations Dashboard (Command Center)
- * Reference: Executive Oversight telemetry, departmental operational stability,
- * building fault density, and SLA exception monitoring across IIIT Naya Raipur.
+ * SmartComplaintHandler - Campus Facilities Directorate Operations Center
+ * Role: Dedicated Executive Command Console for the Super Administrator / Directorate.
+ * Combines full live ticket dispatch & triage, squad reallocation, SLA exception mitigation,
+ * and seamless governance links (Staff Directory, Campus Twin, Squads).
  */
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  AlertTriangle, BellRing, CheckCircle2, ClipboardList,
+  Compass, LayoutDashboard, Map as MapIcon, Plus, RefreshCw,
+  Search, Settings2, ShieldAlert, ShieldCheck, UsersRound, Wrench, Moon, Sun,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { fetchAdmins } from '../api/auth';
-import { fetchSquadWorkloads } from '../api/assignment';
 import { fetchComplaints } from '../api/complaints';
-import { fetchActiveBreaches } from '../api/sla';
-import { getCampusBuildings } from '../data/iiitnrCampusData';
-import {
-  Activity, AlertTriangle, BarChart3, Building2,
-  CheckCircle2, ChevronRight, Clock3, Compass, LayoutDashboard,
-  Map as MapIcon, ClipboardList, RefreshCw, Search, ShieldCheck, UsersRound, Wrench,
-} from 'lucide-react';
+import { updateTicketStatus, escalateTicket } from '../api/sla';
+import PriorityBadge from '../components/PriorityBadge';
+import PriorityOverrideModal from '../components/PriorityOverrideModal';
+import ResolutionNotesModal from '../components/ResolutionNotesModal';
+import ReassignTeamModal from '../components/ReassignTeamModal';
+import TeamWorkloadView from '../components/TeamWorkloadView';
+import SLABreachTable from '../components/SLABreachTable';
+import SLACountdownTimer from '../components/SLACountdownTimer';
 
-
-const CAMPUS_DEPARTMENTS = [
-  'Electrical',
-  'Plumbing',
-  'Sanitation',
-  'Carpentry',
-  'IT Support',
-  'General Administration',
+const STATUS_TABS = [
+  { id: '', label: 'All work' },
+  { id: 'SUBMITTED', label: 'Unassigned' },
+  { id: 'IN_PROGRESS', label: 'In progress' },
+  { id: 'ESCALATED', label: 'At risk' },
 ];
 
-const DEPT_ICONS = {
-  Electrical: '⚡',
-  Plumbing: '🚰',
-  Sanitation: '🧹',
-  Carpentry: '🪚',
-  'IT Support': '💻',
-  'General Administration': '🏛️',
-};
+const DEPARTMENTS = [
+  ['1', 'Electrical'],
+  ['2', 'Plumbing'],
+  ['3', 'Sanitation'],
+  ['4', 'Carpentry'],
+  ['5', 'IT Support'],
+  ['6', 'General Administration'],
+];
 
-function TrendChart({ data, isDark }) {
-  const width = 720;
-  const height = 220;
-  const inset = { top: 16, right: 12, bottom: 28, left: 12 };
-  const plotWidth = width - inset.left - inset.right;
-  const plotHeight = height - inset.top - inset.bottom;
-  const peak = Math.max(1, ...data.flatMap((item) => [item.filed, item.resolved]));
-  const toPoints = (key) => data.map((item, index) => {
-    const x = inset.left + (data.length === 1 ? 0 : (index / (data.length - 1)) * plotWidth);
-    const y = inset.top + plotHeight - (item[key] / peak) * plotHeight;
-    return `${x},${y}`;
-  }).join(' ');
-  const filedPoints = toPoints('filed');
-  const resolvedPoints = toPoints('resolved');
-  const labels = [data[0], data[Math.floor((data.length - 1) / 2)], data[data.length - 1]];
+function StatusBadge({ status, isDark }) {
+  const stylesDark = {
+    SUBMITTED: 'bg-slate-700/70 text-slate-200 border-slate-600',
+    ASSIGNED: 'bg-sky-500/10 text-sky-300 border-sky-400/20',
+    IN_PROGRESS: 'bg-indigo-500/10 text-indigo-300 border-indigo-400/20',
+    ESCALATED: 'bg-rose-500/10 text-rose-300 border-rose-400/20',
+    RESOLVED: 'bg-emerald-500/10 text-emerald-300 border-emerald-400/20',
+    CLOSED: 'bg-emerald-500/10 text-emerald-300 border-emerald-400/20',
+  };
 
+  const stylesLight = {
+    SUBMITTED: 'bg-slate-100 text-slate-700 border-slate-300',
+    ASSIGNED: 'bg-sky-50 text-sky-700 border-sky-200',
+    IN_PROGRESS: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    ESCALATED: 'bg-rose-50 text-rose-700 border-rose-200',
+    RESOLVED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    CLOSED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  };
+
+  const styles = isDark ? stylesDark : stylesLight;
   return (
-    <div className="w-full" role="img" aria-label={`Ticket activity over the last ${data.length} days: ${data.reduce((n, d) => n + d.filed, 0)} filed and ${data.reduce((n, d) => n + d.resolved, 0)} resolved`}>
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full overflow-visible" aria-hidden="true">
-        {[0, 0.5, 1].map((fraction) => {
-          const y = inset.top + plotHeight * fraction;
-          return <line key={fraction} x1={inset.left} x2={width - inset.right} y1={y} y2={y} stroke={isDark ? '#334155' : '#e2e8f0'} strokeDasharray="4 6" />;
-        })}
-        <polyline points={filedPoints} fill="none" stroke={isDark ? '#818cf8' : '#4f46e5'} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <polyline points={resolvedPoints} fill="none" stroke={isDark ? '#2dd4bf' : '#0d9488'} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        {data.map((item, index) => {
-          const x = inset.left + (data.length === 1 ? 0 : (index / (data.length - 1)) * plotWidth);
-          const filedY = inset.top + plotHeight - (item.filed / peak) * plotHeight;
-          return item.filed > 0 ? <circle key={`filed-${index}`} cx={x} cy={filedY} r="3" fill={isDark ? '#141b2d' : '#ffffff'} stroke={isDark ? '#818cf8' : '#4f46e5'} strokeWidth="2" /> : null;
-        })}
-        {labels.map((item, index) => {
-          const sourceIndex = index === 0 ? 0 : index === 1 ? Math.floor((data.length - 1) / 2) : data.length - 1;
-          const x = inset.left + (data.length === 1 ? 0 : (sourceIndex / (data.length - 1)) * plotWidth);
-          return <text key={`${item.label}-${index}`} x={x} y={height - 4} textAnchor={index === 0 ? 'start' : index === 2 ? 'end' : 'middle'} fill={isDark ? '#94a3b8' : '#64748b'} fontSize="11" fontWeight="500">{item.label}</text>;
-        })}
-      </svg>
-    </div>
-  );
-}
-
-function StatusRing({ total, active, resolved, isDark }) {
-  const radius = 44;
-  const circumference = 2 * Math.PI * radius;
-  const safeTotal = Math.max(1, total);
-  const resolvedLength = (resolved / safeTotal) * circumference;
-  const activeLength = (active / safeTotal) * circumference;
-  const otherLength = total > 0 ? Math.max(0, circumference - resolvedLength - activeLength) : 0;
-  return (
-    <div className="relative h-36 w-36 shrink-0" role="img" aria-label={`${total} tickets: ${active} active and ${resolved} resolved`}>
-      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="60" cy="60" r={radius} fill="none" stroke={isDark ? '#1e293b' : '#f1f5f9'} strokeWidth="12" />
-        <circle cx="60" cy="60" r={radius} fill="none" stroke={isDark ? '#2dd4bf' : '#14b8a6'} strokeWidth="12" strokeDasharray={`${resolvedLength} ${circumference - resolvedLength}`} strokeDashoffset="0" />
-        <circle cx="60" cy="60" r={radius} fill="none" stroke={isDark ? '#818cf8' : '#4f46e5'} strokeWidth="12" strokeDasharray={`${activeLength} ${circumference - activeLength}`} strokeDashoffset={-resolvedLength} />
-        <circle cx="60" cy="60" r={radius} fill="none" stroke="#f59e0b" strokeWidth="12" strokeDasharray={`${otherLength} ${circumference - otherLength}`} strokeDashoffset={-(resolvedLength + activeLength)} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{total}</span>
-        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">total tickets</span>
-      </div>
-    </div>
+    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-wide ${styles[status] || styles.SUBMITTED}`}>
+      {(status || 'SUBMITTED').replace('_', ' ')}
+    </span>
   );
 }
 
 export default function SuperAdminDashboard() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { currentUser } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
-  const [admins, setAdmins] = useState([]);
-  const [teams, setTeams] = useState([]);
   const [tickets, setTickets] = useState([]);
-  const [breaches, setBreaches] = useState([]);
-  const [buildings] = useState(() => getCampusBuildings());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const [trendRange, setTrendRange] = useState(14);
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const [selectedDept, setSelectedDept] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const [overrideTicket, setOverrideTicket] = useState(null);
+  const [resolveTicketTarget, setResolveTicketTarget] = useState(null);
+  const [reassignTicketTarget, setReassignTicketTarget] = useState(null);
+  const [escalateTarget, setEscalateTarget] = useState(null);
+  const [escalateReason, setEscalateReason] = useState('High risk of operational SLA breach or campus safety hazard.');
+  const [escalating, setEscalating] = useState(false);
+
+  const loadTickets = async () => {
     try {
-      const [adminList, teamList, ticketList, breachList] = await Promise.all([
-        fetchAdmins().catch(() => []),
-        fetchSquadWorkloads().catch(() => []),
-        fetchComplaints().catch(() => []),
-        fetchActiveBreaches().catch(() => []),
-      ]);
-      setAdmins(Array.isArray(adminList) ? adminList : []);
-      setTeams(Array.isArray(teamList) ? teamList : []);
-      setTickets(Array.isArray(ticketList) ? ticketList : []);
-      setBreaches(Array.isArray(breachList) ? breachList : []);
-      setLastUpdated(new Date());
+      setLoading(true);
+      setError(null);
+      const data = await fetchComplaints();
+      setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError('Failed to refresh directorate executive telemetry. Check network connection.');
+      setError(err.response?.data?.detail || err.message || 'Failed to load directorate operations queue.');
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  // Executive KPI Math
-  const totalTickets = tickets.length;
-  const pendingTickets = tickets.filter(
-    (t) => t.status === 'SUBMITTED' || t.status === 'PENDING' || t.status === 'ASSIGNED'
-  ).length;
-  const inProgressTickets = tickets.filter(
-    (t) => t.status === 'IN_PROGRESS' || t.status === 'ESCALATED'
-  ).length;
-  const resolvedTickets = tickets.filter(
-    (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
-  ).length;
-  const activeLoad = pendingTickets + inProgressTickets;
-  const resolutionRate = totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0;
-
-  const criticalTickets = tickets.filter(
-    (t) =>
-      (t.priority === 'CRITICAL' || t.hazard_detected) &&
-      t.status !== 'RESOLVED' &&
-      t.status !== 'CLOSED'
-  ).length;
-
-  const overdueBreaches = breaches.filter((b) => b.is_breached).length;
-  const approachingBreaches = breaches.filter((b) => !b.is_breached).length;
-  const slaCompliance =
-    totalTickets > 0
-      ? Math.max(0, Math.min(100, Math.round(((totalTickets - overdueBreaches) / totalTickets) * 100)))
-      : 100;
-
-  const ticketTrend = useMemo(() => {
-    const today = new Date();
-    const days = Array.from({ length: trendRange }, (_, index) => {
-      const date = new Date(today);
-      date.setHours(0, 0, 0, 0);
-      date.setDate(date.getDate() - (trendRange - index - 1));
-      return { date, label: date.toLocaleDateString([], { month: 'short', day: 'numeric' }), filed: 0, resolved: 0 };
-    });
-    const byDay = new Map(days.map((day) => [day.date.toDateString(), day]));
-    tickets.forEach((ticket) => {
-      const created = ticket.created_at ? new Date(ticket.created_at) : null;
-      const resolved = ticket.resolved_at ? new Date(ticket.resolved_at) : null;
-      const filedDay = created && !Number.isNaN(created.getTime()) ? byDay.get(new Date(created.getFullYear(), created.getMonth(), created.getDate()).toDateString()) : null;
-      const resolvedDay = resolved && !Number.isNaN(resolved.getTime()) ? byDay.get(new Date(resolved.getFullYear(), resolved.getMonth(), resolved.getDate()).toDateString()) : null;
-      if (filedDay) filedDay.filed += 1;
-      if (resolvedDay) resolvedDay.resolved += 1;
-    });
-    return days;
-  }, [tickets, trendRange]);
-
-  const trendTotal = ticketTrend.reduce((sum, day) => sum + day.filed, 0);
-  const trendResolved = ticketTrend.reduce((sum, day) => sum + day.resolved, 0);
-
-  // Department distribution with authentic health score
-  const departmentStats = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    const depts = query
-      ? CAMPUS_DEPARTMENTS.filter((dept) => dept.toLowerCase().includes(query))
-      : CAMPUS_DEPARTMENTS;
-    return depts.map((dept) => {
-      const deptTickets = tickets.filter((t) => t.department_name === dept);
-      const active = deptTickets.filter(
-        (t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'CANCELLED'
-      ).length;
-      const resolved = deptTickets.filter(
-        (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
-      ).length;
-      const total = deptTickets.length;
-      const rate = total > 0 ? Math.round((resolved / total) * 100) : 0;
-      
-      // Health calculation: 100 if zero active, drops with backlog severity
-      const penalty = active * 6 + (active > 3 ? 12 : 0);
-      const health = Math.max(55, Math.min(100, 100 - penalty));
-
-      return {
-        name: dept,
-        icon: DEPT_ICONS[dept] || '🏢',
-        total,
-        active,
-        resolved,
-        rate,
-        health,
-      };
-    });
-  }, [tickets, searchQuery]);
-
-  // Campus building distribution
-  const buildingStats = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    const matchedBuildings = query
-      ? buildings.filter((b) => b.name.toLowerCase().includes(query) || (b.shortName || '').toLowerCase().includes(query) || b.id.toLowerCase().includes(query))
-      : buildings;
-    const list = matchedBuildings.map((b) => {
-      const matchedTickets = tickets.filter((t) => {
-        const loc = (t.location || '').toLowerCase();
-        return (
-          loc.includes(b.name.toLowerCase()) ||
-          loc.includes((b.shortName || '').toLowerCase()) ||
-          loc.includes(b.id.toLowerCase())
-        );
-      });
-      const active = matchedTickets.filter(
-        (t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'CANCELLED'
-      ).length;
-      return {
-        id: b.id,
-        name: b.name,
-        shortName: b.shortName || b.name,
-        category: b.category || 'FACILITY',
-        color: b.trace?.color || b.mapPin?.color || '#00B386',
-        total: matchedTickets.length,
-        active,
-      };
-    });
-    return list.sort((a, b) => b.total - a.total);
-  }, [buildings, tickets, searchQuery]);
-
-  const handleFacilityClick = (building) => {
-    navigate(`/track?search=${encodeURIComponent(building.shortName)}`);
   };
 
+  useEffect(() => {
+    loadTickets();
+  }, []);
+
+  const showToast = (message) => {
+    setToastMsg(message);
+    window.setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleStartWork = async (ticket) => {
+    try {
+      await updateTicketStatus(ticket.id, 'IN_PROGRESS', 'Technician dispatched and commenced physical repair.', currentUser?.name);
+      showToast(`${ticket.tracking_code} is now in progress.`);
+      loadTickets();
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Failed to start this repair.');
+    }
+  };
+
+  const handleConfirmEscalate = async (event) => {
+    event.preventDefault();
+    if (!escalateTarget || escalateReason.trim().length < 5) return;
+    try {
+      setEscalating(true);
+      await escalateTicket(escalateTarget.id, escalateReason.trim(), currentUser?.name);
+      showToast(`${escalateTarget.tracking_code} was escalated for supervisory attention.`);
+      setEscalateTarget(null);
+      loadTickets();
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Escalation failed.');
+    } finally {
+      setEscalating(false);
+    }
+  };
+
+  const filteredTickets = useMemo(() => {
+    return tickets.filter((ticket) => {
+      if (selectedDept && String(ticket.department_id) !== selectedDept) return false;
+      if (selectedPriority && ticket.priority !== selectedPriority) return false;
+      if (selectedStatus && ticket.status !== selectedStatus) return false;
+      const query = searchQuery.trim().toLowerCase();
+      return !query || [ticket.tracking_code, ticket.title, ticket.location, ticket.assigned_team_name].some((val) => val?.toLowerCase().includes(query));
+    });
+  }, [tickets, selectedDept, selectedPriority, selectedStatus, searchQuery]);
+
+  const metrics = useMemo(() => {
+    const active = tickets.filter((t) => !['RESOLVED', 'CLOSED'].includes(t.status)).length;
+    const progress = tickets.filter((t) => t.status === 'IN_PROGRESS').length;
+    const critical = tickets.filter((t) => t.priority === 'CRITICAL' && !['RESOLVED', 'CLOSED'].includes(t.status)).length;
+    const escalated = tickets.filter((t) => t.status === 'ESCALATED').length;
+    return { total: tickets.length, active, progress, critical, escalated };
+  }, [tickets]);
+
+  // Directorate Navigation (Notice: No link to /operations; this IS the SuperAdmin's operations desk)
   const navItems = [
     { to: '/superadmin', label: 'Directorate desk', icon: Compass },
-    { to: '/operations', label: 'Operations console', icon: LayoutDashboard },
     { to: '/superadmin/staff', label: 'Staff directory', icon: ShieldCheck },
     { to: '/squads', label: 'Squad capacity', icon: UsersRound },
     { to: '/map', label: 'Campus twin', icon: MapIcon },
     { to: '/track', label: 'Track & audit', icon: ClipboardList },
   ];
 
+  const panelClass = isDark
+    ? 'rounded-2xl border border-white/[0.09] bg-[#101722] shadow-[0_10px_30px_-24px_rgba(0,0,0,.9)]'
+    : 'rounded-2xl border border-slate-200/90 bg-white shadow-[0_4px_20px_rgba(30,41,59,.04)]';
+
   return (
-    <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${isDark ? 'bg-[#090d14] text-slate-100 selection:bg-indigo-500/40' : 'bg-[#f4f7fc] text-slate-900 selection:bg-indigo-100'}`}>
+    <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${
+      isDark ? 'bg-[#090d14] text-slate-100 selection:bg-indigo-500/40' : 'bg-[#f4f7fc] text-slate-900 selection:bg-indigo-100'
+    }`}>
       <div className="mx-auto flex min-h-screen max-w-[1850px]">
         {/* Directorate Dedicated PC Sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-5 dark:border-white/[0.08] dark:bg-[#0d121b] lg:flex">
+        <aside className={`sticky top-0 hidden h-screen w-[260px] shrink-0 flex-col border-r px-4 py-5 lg:flex ${
+          isDark ? 'border-white/[0.08] bg-[#0d121b]' : 'border-slate-200 bg-white'
+        }`}>
           {/* Brand Header */}
           <Link to="/superadmin" className="mb-6 flex items-center gap-3 px-2">
             <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-[0_0_24px_rgba(99,102,241,.3)] dark:from-indigo-400 dark:to-violet-400 dark:text-indigo-950">
@@ -294,37 +193,52 @@ export default function SuperAdminDashboard() {
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search campus telemetry"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-white/[0.08] dark:bg-white/[0.035] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400/60 dark:focus:ring-indigo-400/10"
+              placeholder="Search requests"
+              className={`w-full rounded-xl border py-2 pl-9 pr-3 text-xs outline-none transition ${
+                isDark
+                  ? 'border-white/[0.08] bg-white/[0.035] text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/60 focus:ring-4 focus:ring-indigo-400/10'
+                  : 'border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10'
+              }`}
             />
           </label>
 
-          {/* Executive Quick Stats */}
+          {/* Quick Filter Badges */}
           <div className="mb-5 grid grid-cols-2 gap-2">
-            <Link
-              to="/operations"
-              className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-left transition hover:border-indigo-300 hover:bg-white dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:bg-white/[0.06]"
-            >
-              <span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400">Active Load</span>
-              <b className="mt-1 block text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-                {loading ? '—' : activeLoad}
-              </b>
-            </Link>
-            <Link
-              to="/operations"
-              className={`rounded-xl border p-2.5 text-left transition ${
-                overdueBreaches > 0
-                  ? 'border-rose-200 bg-rose-50/70 hover:bg-rose-50 dark:border-rose-400/20 dark:bg-rose-400/[0.04] dark:hover:bg-rose-400/[0.08]'
-                  : 'border-slate-200 bg-slate-50 hover:bg-white dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:bg-white/[0.06]'
+            <button
+              onClick={() => setSelectedStatus(selectedStatus === 'IN_PROGRESS' ? '' : 'IN_PROGRESS')}
+              className={`rounded-xl border p-2.5 text-left transition cursor-pointer ${
+                selectedStatus === 'IN_PROGRESS'
+                  ? 'border-indigo-500/50 bg-indigo-500/15'
+                  : isDark
+                  ? 'border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.06]'
+                  : 'border-slate-200 bg-slate-50 hover:bg-white'
               }`}
             >
-              <span className={`block text-[10px] font-medium ${overdueBreaches > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-slate-500 dark:text-slate-400'}`}>
-                SLA Overdue
-              </span>
-              <b className={`mt-1 block text-lg font-bold tracking-tight ${overdueBreaches > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
-                {loading ? '—' : overdueBreaches}
+              <span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400">In progress</span>
+              <b className="mt-1 block text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+                {metrics.progress}
               </b>
-            </Link>
+            </button>
+
+            <button
+              onClick={() => setSelectedStatus(selectedStatus === 'ESCALATED' ? '' : 'ESCALATED')}
+              className={`rounded-xl border p-2.5 text-left transition cursor-pointer ${
+                metrics.escalated > 0
+                  ? isDark
+                    ? 'border-rose-400/20 bg-rose-400/[0.04] hover:bg-rose-400/[0.08]'
+                    : 'border-rose-200 bg-rose-50/70 hover:bg-rose-50'
+                  : isDark
+                  ? 'border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.06]'
+                  : 'border-slate-200 bg-slate-50 hover:bg-white'
+              }`}
+            >
+              <span className={`block text-[10px] font-medium ${metrics.escalated > 0 ? 'text-rose-600 dark:text-rose-300' : 'text-slate-500 dark:text-slate-400'}`}>
+                At risk
+              </span>
+              <b className={`mt-1 block text-lg font-bold tracking-tight ${metrics.escalated > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
+                {metrics.escalated}
+              </b>
+            </button>
           </div>
 
           {/* Workspaces Navigation */}
@@ -341,42 +255,61 @@ export default function SuperAdminDashboard() {
                   to={item.to}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
                     active
-                      ? 'border border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/15 dark:text-indigo-200'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.045] dark:hover:text-slate-100'
+                      ? isDark
+                        ? 'border border-indigo-400/20 bg-indigo-500/15 text-indigo-200'
+                        : 'border border-indigo-200 bg-indigo-50 text-indigo-700'
+                      : isDark
+                      ? 'text-slate-400 hover:bg-white/[0.045] hover:text-slate-100'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
                   <Icon size={16} />
                   <span>{item.label}</span>
-                  {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />}
+                  {active && (
+                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+                  )}
                 </Link>
               );
             })}
           </nav>
 
           {/* Bottom Footer Controls & User Card */}
-          <div className="mt-auto space-y-2.5 border-t border-slate-200 pt-4 dark:border-white/[0.08]">
+          <div className={`mt-auto space-y-2.5 border-t pt-4 ${isDark ? 'border-white/[0.08]' : 'border-slate-200'}`}>
+            <Link
+              to="/submit"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-3 py-2.5 text-xs font-bold text-white transition hover:bg-indigo-500 shadow-sm"
+            >
+              <Plus size={15} /> Create request
+            </Link>
+
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white hover:text-slate-900 dark:border-white/[0.08] dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white cursor-pointer"
+              className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+                isDark
+                  ? 'border-white/[0.08] bg-white/[0.035] text-slate-300 hover:bg-white/[0.08] hover:text-white'
+                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-white hover:text-slate-900'
+              }`}
               title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
             >
               <span className="flex items-center gap-2">
-                <span>{isDark ? '🌙' : '☀️'}</span>
+                {isDark ? <Moon size={14} className="text-indigo-400" /> : <Sun size={14} className="text-amber-500" />}
                 <span>{isDark ? 'Dark Theme' : 'Light Theme'}</span>
               </span>
-              <span className="rounded-md bg-slate-200/60 px-1.5 py-0.5 text-[10px] font-mono text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+              <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-mono ${
+                isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-200/60 text-slate-600'
+              }`}>
                 Toggle
               </span>
             </button>
 
             <div className="flex items-center gap-2.5 px-2 pt-1">
               <div className="grid h-8 w-8 place-items-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200">
-                {(currentUser?.name || 'D').slice(0, 1).toUpperCase()}
+                {(currentUser?.name && isNaN(currentUser.name) ? currentUser.name : currentUser?.email || 'Director').slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0">
                 <p className="truncate text-xs font-semibold text-slate-900 dark:text-slate-200">
-                  {currentUser?.name || 'Executive Director'}
+                  {currentUser?.name && isNaN(currentUser.name) ? currentUser.name : (currentUser?.email ? currentUser.email.split('@')[0] : 'Executive Director')}
                 </p>
                 <p className="truncate text-[10px] text-slate-500">
                   {currentUser?.roleLabel || 'Directorate · Super Admin'}
@@ -386,253 +319,522 @@ export default function SuperAdminDashboard() {
           </div>
         </aside>
 
-        {/* Main Content Area */}
-        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7 space-y-6">
-          <header className="flex flex-col justify-between gap-5 rounded-3xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-600 p-6 text-white shadow-[0_18px_50px_-25px_rgba(67,85,219,.65)] transition-colors dark:border dark:border-indigo-400/20 dark:from-[#172554] dark:via-[#1e1b4b] dark:to-[#312e81] dark:shadow-[0_18px_55px_-25px_rgba(0,0,0,.9)] sm:p-8 lg:flex-row lg:items-center">
+        {/* Main Operational Console */}
+        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7 space-y-5">
+          {/* Header */}
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-indigo-50">
-                <ShieldCheck size={14} /> DIRECTORATE OVERVIEW
-                {lastUpdated && <span className="ml-1 text-indigo-100/80">· Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+              <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(74,222,128,.8)]" />
+                Live Directorate Operations
               </div>
-              <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Campus operations, at a glance</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-indigo-100 sm:text-base">Monitor service health, resolve bottlenecks, and spot campus issues before they escalate.</p>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                Campus Facilities & Grievance Command
+              </h1>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Dispatch work, enforce SLAs, and oversee campus facilities across IIIT Naya Raipur.
+              </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Link to="/operations" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">
-                <LayoutDashboard size={16} /> Operations console
-              </Link>
-              <Link to="/superadmin/staff" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">
-                <UsersRound size={16} /> Staff directory
-              </Link>
-              <button type="button" onClick={loadData} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:bg-indigo-100 dark:text-indigo-950 dark:hover:bg-white cursor-pointer">
-                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> {loading ? 'Refreshing' : 'Refresh data'}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={loadTickets}
+                disabled={loading}
+                className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition disabled:opacity-60 cursor-pointer ${
+                  isDark
+                    ? 'border-white/[0.1] bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-xs'
+                }`}
+              >
+                <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+                Refresh
               </button>
+              <Link
+                to="/superadmin/staff"
+                className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition ${
+                  isDark
+                    ? 'border-indigo-400/30 bg-indigo-500/10 text-indigo-200 hover:bg-indigo-500/20'
+                    : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 shadow-xs'
+                }`}
+              >
+                <UsersRound size={15} /> Staff directory
+              </Link>
+              <Link
+                to="/submit"
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3.5 py-2.5 text-xs font-bold text-white transition hover:bg-indigo-500 shadow-sm"
+              >
+                <Plus size={15} /> New request
+              </Link>
             </div>
           </header>
 
-        {error && <div role="alert" className="flex items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200"><span>{error}</span><button onClick={loadData} className="font-semibold underline">Retry</button></div>}
+          {/* Toast and Error notifications */}
+          {toastMsg && (
+            <div className={`flex items-center justify-between gap-4 rounded-xl border px-4 py-3 text-xs font-medium animate-fade-in ${
+              isDark
+                ? 'border-emerald-400/20 bg-emerald-400/[0.08] text-emerald-200'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+            }`}>
+              <span className="flex items-center gap-2">
+                <CheckCircle2 size={16} />
+                {toastMsg}
+              </span>
+              <button onClick={() => setToastMsg(null)} className="opacity-70 hover:opacity-100">×</button>
+            </div>
+          )}
 
-        <section aria-label="Executive metrics" className="grid grid-cols-2 gap-3 xl:grid-cols-5">
-          {[
-            { label: 'All requests', value: totalTickets, detail: 'Across campus', icon: Building2, color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300' },
-            { label: 'Needs attention', value: activeLoad, detail: `${pendingTickets} waiting · ${inProgressTickets} in progress`, icon: Activity, color: 'text-amber-700 bg-amber-50 dark:bg-amber-500/20 dark:text-amber-300' },
-            { label: 'Resolved', value: `${resolutionRate}%`, detail: `${resolvedTickets} requests completed`, icon: CheckCircle2, color: 'text-teal-700 bg-teal-50 dark:bg-teal-500/20 dark:text-teal-300' },
-            { label: 'SLA on track', value: `${slaCompliance}%`, detail: overdueBreaches ? `${overdueBreaches} overdue` : 'No active breaches', icon: Clock3, color: overdueBreaches ? 'text-rose-700 bg-rose-50 dark:bg-rose-500/20 dark:text-rose-300' : 'text-teal-700 bg-teal-50 dark:bg-teal-500/20 dark:text-teal-300' },
-            { label: 'Field teams', value: teams.length, detail: `${admins.length} staff and admins`, icon: UsersRound, color: 'text-violet-700 bg-violet-50 dark:bg-violet-500/20 dark:text-violet-300' },
-          ].map((metric) => {
-            const Icon = metric.icon;
-            return <article key={metric.label} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_2px_12px_rgba(30,41,59,.035)] dark:border-slate-800 dark:bg-[#141b2d] sm:p-5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{metric.label}</span>
-                <span className={`grid h-9 w-9 place-items-center rounded-xl ${metric.color}`}><Icon size={18} /></span>
-              </div>
-              <div className="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{loading ? '—' : metric.value}</div>
-              <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{metric.detail}</p>
-            </article>;
-          })}
-        </section>
+          {error && (
+            <div className={`flex items-center justify-between gap-4 rounded-xl border px-4 py-3 text-xs font-medium animate-fade-in ${
+              isDark
+                ? 'border-rose-400/20 bg-rose-400/[0.08] text-rose-200'
+                : 'border-rose-200 bg-rose-50 text-rose-800'
+            }`}>
+              <span>{error}</span>
+              <button onClick={loadTickets} className="font-semibold underline">Retry</button>
+            </div>
+          )}
 
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(310px,.9fr)]" aria-label="Ticket trends and status">
-          <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(30,41,59,.035)] dark:border-slate-800 dark:bg-[#141b2d] sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
-                  <BarChart3 size={17} className="text-indigo-600 dark:text-indigo-400" /> Request activity
+          {/* Top Operational Metrics */}
+          <section className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Operations summary">
+            {[
+              {
+                label: 'Open queue',
+                value: metrics.active,
+                detail: `${metrics.total} total requests`,
+                icon: ClipboardList,
+                toneDark: 'text-indigo-200 bg-indigo-400/10 border-indigo-400/20',
+                toneLight: 'text-indigo-700 bg-indigo-50 border-indigo-200',
+              },
+              {
+                label: 'Active repairs',
+                value: metrics.progress,
+                detail: 'Field teams working',
+                icon: Wrench,
+                toneDark: 'text-sky-200 bg-sky-400/10 border-sky-400/20',
+                toneLight: 'text-sky-700 bg-sky-50 border-sky-200',
+              },
+              {
+                label: 'Critical cases',
+                value: metrics.critical,
+                detail: 'Immediate response',
+                icon: ShieldAlert,
+                toneDark: 'text-rose-200 bg-rose-400/10 border-rose-400/20',
+                toneLight: 'text-rose-700 bg-rose-50 border-rose-200',
+              },
+              {
+                label: 'SLA at risk',
+                value: metrics.escalated,
+                detail: 'Needs review',
+                icon: BellRing,
+                toneDark: 'text-amber-200 bg-amber-400/10 border-amber-400/20',
+                toneLight: 'text-amber-700 bg-amber-50 border-amber-200',
+              },
+            ].map((metric) => {
+              const Icon = metric.icon;
+              return (
+                <article key={metric.label} className={`${panelClass} p-4 sm:p-5`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{metric.label}</span>
+                    <span className={`grid h-8 w-8 place-items-center rounded-xl border ${isDark ? metric.toneDark : metric.toneLight}`}>
+                      <Icon size={16} />
+                    </span>
+                  </div>
+                  <strong className="mt-4 block text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    {loading ? '—' : metric.value}
+                  </strong>
+                  <span className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">{metric.detail}</span>
+                </article>
+              );
+            })}
+          </section>
+
+          {/* Active Work Queue & Focus / Workloads */}
+          <section className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
+            {/* Main Table */}
+            <div className={`min-w-0 ${panelClass}`}>
+              <div className={`border-b px-4 py-4 sm:px-5 ${isDark ? 'border-white/[0.08]' : 'border-slate-200'}`}>
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Active work queue</h2>
+                      {metrics.escalated > 0 && (
+                        <span className="rounded-full border border-rose-400/20 bg-rose-400/10 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:text-rose-300">
+                          {metrics.escalated} escalated
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Prioritise urgent work before it becomes a breach.</p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-2 h-3.5 w-3.5 text-slate-400" />
+                      <input
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search queue"
+                        className={`w-40 rounded-lg border py-2 pl-8 pr-2 text-xs outline-none transition sm:w-48 ${
+                          isDark
+                            ? 'border-white/[0.09] bg-[#0a0f17] text-white placeholder:text-slate-600 focus:border-indigo-400/60'
+                            : 'border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white'
+                        }`}
+                      />
+                    </label>
+
+                    <select
+                      value={selectedDept}
+                      onChange={(e) => setSelectedDept(e.target.value)}
+                      className={`rounded-lg border px-2.5 py-2 text-xs outline-none ${
+                        isDark
+                          ? 'border-white/[0.09] bg-[#0a0f17] text-slate-300'
+                          : 'border-slate-200 bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <option value="">All teams</option>
+                      {DEPARTMENTS.map(([id, name]) => (
+                        <option key={id} value={id}>{name}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={selectedPriority}
+                      onChange={(e) => setSelectedPriority(e.target.value)}
+                      className={`rounded-lg border px-2.5 py-2 text-xs outline-none ${
+                        isDark
+                          ? 'border-white/[0.09] bg-[#0a0f17] text-slate-300'
+                          : 'border-slate-200 bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <option value="">Priority</option>
+                      {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Requests filed and resolved over time</p>
+
+                {/* Tabs */}
+                <div className="mt-4 flex gap-1 overflow-x-auto pb-0.5">
+                  {STATUS_TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setSelectedStatus(tab.id)}
+                      className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                        selectedStatus === tab.id
+                          ? 'bg-indigo-600 text-white shadow-[0_4px_14px_rgba(99,102,241,.3)]'
+                          : isDark
+                          ? 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-100'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      {tab.label}
+                      {tab.id === 'ESCALATED' && metrics.escalated ? ` · ${metrics.escalated}` : ''}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-                {[14, 30].map((days) => (
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[850px] text-left">
+                  <thead className={`border-b text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                    isDark
+                      ? 'border-white/[0.08] bg-white/[0.018] text-slate-500'
+                      : 'border-slate-200 bg-slate-50/70 text-slate-500'
+                  }`}>
+                    <tr>
+                      <th className="px-5 py-3">Request</th>
+                      <th className="px-4 py-3">Location</th>
+                      <th className="px-4 py-3">Assigned to</th>
+                      <th className="px-4 py-3">Priority</th>
+                      <th className="px-4 py-3">SLA</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-5 py-3 text-right">Next step</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${isDark ? 'divide-white/[0.065]' : 'divide-slate-100'}`}>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={7} className="px-5 py-14 text-center text-xs text-slate-400">
+                          Loading the directorate queue…
+                        </td>
+                      </tr>
+                    ) : filteredTickets.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-5 py-14 text-center text-xs text-slate-400">
+                          No requests match these filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredTickets.map((ticket) => (
+                        <tr
+                          key={ticket.id}
+                          className={`group transition ${
+                            isDark ? 'hover:bg-white/[0.025]' : 'hover:bg-slate-50/80'
+                          }`}
+                        >
+                          <td className="px-5 py-3.5">
+                            <Link
+                              to={`/track?code=${ticket.tracking_code}`}
+                              className="font-mono text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200"
+                            >
+                              {ticket.tracking_code}
+                            </Link>
+                            <p className="mt-1 max-w-[220px] truncate text-xs font-semibold text-slate-900 dark:text-slate-100" title={ticket.title}>
+                              {ticket.title}
+                            </p>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <p className="max-w-[165px] truncate text-xs text-slate-600 dark:text-slate-300">
+                              {ticket.location || 'Campus location pending'}
+                            </p>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                              {ticket.assigned_team_name || 'Unassigned'}
+                            </p>
+                            <p className="mt-1 text-[10px] text-slate-500">
+                              {ticket.department_name || 'Needs routing'}
+                            </p>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <PriorityBadge priority={ticket.priority} />
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <SLACountdownTimer
+                              deadline={ticket.sla_deadline}
+                              priority={ticket.priority}
+                              status={ticket.status}
+                              resolvedAt={ticket.resolved_at}
+                              dark={isDark}
+                            />
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <StatusBadge status={ticket.status} isDark={isDark} />
+                          </td>
+                          <td className="px-5 py-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {(ticket.status === 'ASSIGNED' || ticket.status === 'SUBMITTED') && (
+                                <button
+                                  onClick={() => handleStartWork(ticket)}
+                                  className="rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10px] font-bold text-white transition hover:bg-indigo-500 cursor-pointer"
+                                >
+                                  Start
+                                </button>
+                              )}
+                              {ticket.status === 'IN_PROGRESS' && (
+                                <button
+                                  onClick={() => setResolveTicketTarget(ticket)}
+                                  className="rounded-lg bg-emerald-500/15 px-2.5 py-1.5 text-[10px] font-bold text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-300 cursor-pointer"
+                                >
+                                  Resolve
+                                </button>
+                              )}
+                              {!['RESOLVED', 'CLOSED'].includes(ticket.status) && (
+                                <button
+                                  onClick={() => setReassignTicketTarget(ticket)}
+                                  title="Reassign squad"
+                                  className={`rounded-lg border p-1.5 transition cursor-pointer ${
+                                    isDark
+                                      ? 'border-white/[0.1] text-slate-300 hover:bg-white/[0.08] hover:text-white'
+                                      : 'border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                  }`}
+                                >
+                                  <UsersRound size={14} />
+                                </button>
+                              )}
+                              {!['RESOLVED', 'CLOSED'].includes(ticket.status) && (
+                                <button
+                                  onClick={() => setOverrideTicket(ticket)}
+                                  title="Override priority"
+                                  className={`rounded-lg border p-1.5 transition cursor-pointer ${
+                                    isDark
+                                      ? 'border-white/[0.1] text-slate-300 hover:bg-white/[0.08] hover:text-white'
+                                      : 'border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                  }`}
+                                >
+                                  <Settings2 size={14} />
+                                </button>
+                              )}
+                              {!['RESOLVED', 'CLOSED', 'ESCALATED'].includes(ticket.status) && (
+                                <button
+                                  onClick={() => {
+                                    setEscalateTarget(ticket);
+                                    setEscalateReason('High risk of operational SLA breach or campus safety hazard.');
+                                  }}
+                                  title="Escalate ticket"
+                                  className="rounded-lg border border-rose-400/20 p-1.5 text-rose-600 hover:bg-rose-400/10 dark:text-rose-300 cursor-pointer"
+                                >
+                                  <AlertTriangle size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Side Focus & Squads */}
+            <aside className="space-y-5">
+              <div className={`${panelClass} p-4 sm:p-5`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Queue focus</h2>
+                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Immediate supervisory action</p>
+                  </div>
+                  <AlertTriangle className={metrics.critical ? 'text-rose-500 dark:text-rose-300' : 'text-emerald-500 dark:text-emerald-300'} size={18} />
+                </div>
+
+                <div className="mt-4 space-y-3">
                   <button
-                    key={days}
-                    type="button"
-                    onClick={() => setTrendRange(days)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                      trendRange === days
-                        ? 'bg-white text-indigo-700 shadow-sm dark:bg-slate-700 dark:text-white'
-                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                    onClick={() => {
+                      setSelectedPriority('CRITICAL');
+                      setSelectedStatus('');
+                    }}
+                    className={`flex w-full items-center justify-between rounded-xl border p-3 text-left transition cursor-pointer ${
+                      isDark
+                        ? 'border-rose-400/15 bg-rose-400/[0.06] hover:bg-rose-400/[0.1]'
+                        : 'border-rose-200 bg-rose-50/70 hover:bg-rose-100/70'
                     }`}
                   >
-                    {days} days
+                    <span>
+                      <b className="block text-xs text-rose-700 dark:text-rose-200">Critical breakdowns</b>
+                      <small className="mt-0.5 block text-[10px] text-rose-600/70 dark:text-rose-200/60">Review immediately</small>
+                    </span>
+                    <strong className="text-xl text-rose-600 dark:text-rose-300">{metrics.critical}</strong>
                   </button>
-                ))}
-              </div>
-            </div>
-            <div className="mt-6"><TrendChart data={ticketTrend} isDark={isDark} /></div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
-              <div className="flex items-center gap-5 text-xs">
-                <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                  <i className="h-2.5 w-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400" /> Filed <b className="text-slate-900 dark:text-white">{loading ? '—' : trendTotal}</b>
-                </span>
-                <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                  <i className="h-2.5 w-2.5 rounded-full bg-teal-500 dark:bg-teal-400" /> Resolved <b className="text-slate-900 dark:text-white">{loading ? '—' : trendResolved}</b>
-                </span>
-              </div>
-              <span className="text-[11px] text-slate-400 dark:text-slate-500">Based on request timestamps</span>
-            </div>
-          </article>
 
-          <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(30,41,59,.035)] dark:border-slate-800 dark:bg-[#141b2d] sm:p-6">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
-              <Activity size={17} className="text-indigo-600 dark:text-indigo-400" /> Request status
-            </div>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Current distribution across all requests</p>
-            <div className="mt-5 flex flex-col items-center gap-5 sm:flex-row sm:justify-around">
-              <StatusRing total={totalTickets} active={activeLoad} resolved={resolvedTickets} isDark={isDark} />
-              <div className="w-full space-y-3 sm:max-w-[170px]">
-                {[
-                  { label: 'Active', value: activeLoad, color: 'bg-indigo-600 dark:bg-indigo-400' },
-                  { label: 'Resolved', value: resolvedTickets, color: 'bg-teal-500 dark:bg-teal-400' },
-                  { label: 'Other', value: Math.max(0, totalTickets - activeLoad - resolvedTickets), color: 'bg-amber-400 dark:bg-amber-300' },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between gap-3 text-xs">
-                    <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                      <i className={`h-2.5 w-2.5 rounded-full ${item.color}`} />{item.label}
-                    </span>
-                    <b className="text-slate-900 dark:text-white">{loading ? '—' : item.value}</b>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <Link to="/operations" className="mt-5 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-              Open operations queue <ChevronRight size={14} />
-            </Link>
-          </article>
-        </section>
-
-        <section className="grid gap-4 xl:grid-cols-2" aria-label="Department and campus health">
-          <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(30,41,59,.035)] dark:border-slate-800 dark:bg-[#141b2d] sm:p-6">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Department workload</h2>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Active requests and resolution rate by team</p>
-              </div>
-              <span className="rounded-lg bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">{departmentStats.length} teams</span>
-            </div>
-            <div className="mt-5 space-y-4">
-              {departmentStats.map((dept) => (
-                <div key={dept.name}>
-                  <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
-                    <span className="truncate font-medium text-slate-800 dark:text-slate-200">
-                      {dept.icon} <span className="ml-1">{dept.name}</span>
-                    </span>
-                    <span className="shrink-0 text-slate-500 dark:text-slate-400">
-                      {dept.total ? `${dept.active} active` : 'No requests'}
-                      <b className="ml-2 text-slate-900 dark:text-slate-100">{dept.total ? `${dept.rate}% resolved` : ''}</b>
-                    </span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                    <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all" style={{ width: `${Math.max(2, dept.rate)}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(30,41,59,.035)] dark:border-slate-800 dark:bg-[#141b2d] sm:p-6">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Campus issue hotspots</h2>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Buildings with the most reported issues</p>
-              </div>
-              <Building2 size={18} className="text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
-              {buildingStats.filter((building) => building.total > 0).slice(0, 5).map((building, index) => {
-                const max = Math.max(1, buildingStats[0]?.total || 0);
-                return (
-                  <button key={building.id} type="button" onClick={() => handleFacilityClick(building)} className="group flex w-full items-center gap-3 py-3 text-left cursor-pointer">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-slate-100 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">{index + 1}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-xs font-semibold text-slate-800 group-hover:text-indigo-600 dark:text-slate-200 dark:group-hover:text-indigo-300">{building.shortName}</span>
-                      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                        <span className="block h-full rounded-full bg-indigo-500 dark:bg-indigo-400" style={{ width: `${Math.max(4, (building.total / max) * 100)}%` }} />
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-right">
-                      <b className="block text-sm text-slate-900 dark:text-white">{building.total}</b>
-                      <small className="text-[10px] text-slate-500 dark:text-slate-400">{building.active} active</small>
-                    </span>
-                  </button>
-                );
-              })}
-              {!buildingStats.some((building) => building.total > 0) && (
-                <div className="py-10 text-center text-sm text-slate-500 dark:text-slate-400">No building-linked requests yet.</div>
-              )}
-            </div>
-          </article>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]" aria-label="Risk and shortcuts">
-          <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(30,41,59,.035)] dark:border-slate-800 dark:bg-[#141b2d] sm:p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">SLA and safety watch</h2>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Cases that may need a directorate response</p>
-              </div>
-              <AlertTriangle size={18} className={overdueBreaches || criticalTickets ? 'text-rose-500 dark:text-rose-400' : 'text-teal-600 dark:text-teal-400'} />
-            </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              {[
-                { label: 'Overdue', value: overdueBreaches, detail: 'Beyond SLA', tone: overdueBreaches ? 'rose' : 'teal' },
-                { label: 'Approaching', value: approachingBreaches, detail: 'Near SLA limit', tone: approachingBreaches ? 'amber' : 'slate' },
-                { label: 'Critical safety', value: criticalTickets, detail: 'Open hazards', tone: criticalTickets ? 'rose' : 'teal' },
-              ].map((item) => (
-                <Link
-                  key={item.label}
-                  to="/operations"
-                  className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 transition hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-indigo-500/40"
-                >
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.label}</span>
-                  <b className={`mt-2 block text-2xl font-bold ${
-                    item.tone === 'rose'
-                      ? 'text-rose-600 dark:text-rose-400'
-                      : item.tone === 'amber'
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : item.tone === 'teal'
-                      ? 'text-teal-700 dark:text-teal-400'
-                      : 'text-slate-900 dark:text-slate-100'
-                  }`}>
-                    {loading ? '—' : item.value}
-                  </b>
-                  <span className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">{item.detail}</span>
-                </Link>
-              ))}
-            </div>
-          </article>
-
-          <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(30,41,59,.035)] dark:border-slate-800 dark:bg-[#141b2d] sm:p-6">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Directorate shortcuts</h2>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Jump into a workspace</p>
-            <div className="mt-4 space-y-2">
-              {[
-                { to: '/operations', label: 'Operations console', icon: Activity, detail: 'Triage and dispatch' },
-                { to: '/squads', label: 'Squads and workload', icon: UsersRound, detail: 'Team capacity' },
-                { to: '/superadmin/staff', label: 'Staff directory', icon: ShieldCheck, detail: 'Accounts and access' },
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-indigo-200 hover:bg-indigo-50/60 dark:border-slate-800/80 dark:hover:border-indigo-500/40 dark:hover:bg-indigo-500/10"
+                  <button
+                    onClick={() => {
+                      setSelectedStatus('ESCALATED');
+                      setSelectedPriority('');
+                    }}
+                    className={`flex w-full items-center justify-between rounded-xl border p-3 text-left transition cursor-pointer ${
+                      isDark
+                        ? 'border-amber-400/15 bg-amber-400/[0.06] hover:bg-amber-400/[0.1]'
+                        : 'border-amber-200 bg-amber-50/70 hover:bg-amber-100/70'
+                    }`}
                   >
-                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
-                      <Icon size={17} />
+                    <span>
+                      <b className="block text-xs text-amber-700 dark:text-amber-200">Escalated requests</b>
+                      <small className="mt-0.5 block text-[10px] text-amber-600/70 dark:text-amber-100/60">Require a decision</small>
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <b className="block text-xs font-semibold text-slate-900 dark:text-slate-100">{item.label}</b>
-                      <small className="text-[11px] text-slate-500 dark:text-slate-400">{item.detail}</small>
-                    </span>
-                    <ChevronRight size={16} className="text-slate-400 dark:text-slate-500" />
-                  </Link>
-                );
-              })}
+                    <strong className="text-xl text-amber-600 dark:text-amber-300">{metrics.escalated}</strong>
+                  </button>
+                </div>
+              </div>
+
+              {/* Live Squad Capacity */}
+              <TeamWorkloadView forceDark={isDark} />
+            </aside>
+          </section>
+
+          {/* SLA Exception Monitor */}
+          <section className="mt-5">
+            <SLABreachTable
+              forceDark={isDark}
+              onEscalate={(ticket) => {
+                setEscalateTarget(ticket);
+                setEscalateReason('Contractual SLA threshold exceeded; escalating for supervisory intervention.');
+              }}
+              onReassign={(ticket) => setReassignTicketTarget(ticket)}
+            />
+          </section>
+        </main>
+      </div>
+
+      {/* Operational Modals */}
+      <PriorityOverrideModal
+        isOpen={Boolean(overrideTicket)}
+        ticket={overrideTicket}
+        onClose={() => setOverrideTicket(null)}
+        onPriorityUpdated={() => {
+          setOverrideTicket(null);
+          showToast('Ticket priority and SLA were updated.');
+          loadTickets();
+        }}
+      />
+
+      <ResolutionNotesModal
+        isOpen={Boolean(resolveTicketTarget)}
+        ticket={resolveTicketTarget}
+        onClose={() => setResolveTicketTarget(null)}
+        onResolved={() => {
+          setResolveTicketTarget(null);
+          showToast('Ticket resolved and logged.');
+          loadTickets();
+        }}
+      />
+
+      <ReassignTeamModal
+        isOpen={Boolean(reassignTicketTarget)}
+        ticket={reassignTicketTarget}
+        onClose={() => setReassignTicketTarget(null)}
+        onReassigned={() => {
+          setReassignTicketTarget(null);
+          showToast('Ticket reassigned to a new maintenance squad.');
+          loadTickets();
+        }}
+      />
+
+      {escalateTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm animate-fade-in">
+          <form
+            onSubmit={handleConfirmEscalate}
+            className={`w-full max-w-md rounded-2xl border p-5 shadow-2xl ${
+              isDark ? 'border-white/[0.12] bg-[#111926]' : 'border-slate-200 bg-white'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-rose-500 dark:text-rose-300">
+                  Escalate request
+                </span>
+                <h2 className="mt-1 text-base font-semibold text-slate-900 dark:text-white">
+                  {escalateTarget.tracking_code}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEscalateTarget(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                ×
+              </button>
             </div>
-          </article>
-        </section>
-      </main>
+            <label className="mt-5 block text-xs font-medium text-slate-700 dark:text-slate-300">
+              Reason
+              <textarea
+                value={escalateReason}
+                onChange={(e) => setEscalateReason(e.target.value)}
+                className={`mt-2 min-h-28 w-full rounded-xl border p-3 text-xs outline-none ${
+                  isDark
+                    ? 'border-white/[0.1] bg-[#090d14] text-white focus:border-rose-400/60'
+                    : 'border-slate-200 bg-slate-50 text-slate-900 focus:border-rose-400 focus:bg-white'
+                }`}
+              />
+            </label>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEscalateTarget(null)}
+                className="rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={escalating || escalateReason.trim().length < 5}
+                className="rounded-xl bg-rose-600 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-rose-500 disabled:opacity-50 cursor-pointer"
+              >
+                {escalating ? 'Escalating…' : 'Escalate request'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
-  </div>
   );
 }
