@@ -84,7 +84,7 @@ export default function Navbar() {
           : 'bg-white/95 border-slate-200 text-slate-800 shadow-xs'
       }`}
     >
-      <div className="h-full w-full min-w-0 px-5 sm:px-8 lg:px-9 xl:px-10">
+      <div className="h-full w-full px-5 sm:px-8 lg:px-10 xl:px-12">
         <div className="flex items-center justify-between h-full gap-4">
           {/* Left: Brand Identity + Breadcrumb Divider + Horizontal Underline Tabs */}
           <div className="flex items-center gap-6 h-full">

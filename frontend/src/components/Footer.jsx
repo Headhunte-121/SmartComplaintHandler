@@ -13,7 +13,7 @@ export default function Footer({ isDark = false }) {
           : 'bg-[#f1f5f9] text-slate-600 border-slate-300'
       }`}
     >
-      <div className="w-full px-5 sm:px-8 lg:px-9 xl:px-10 py-2.5 sm:py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div className="w-full px-5 sm:px-8 lg:px-10 xl:px-12 py-2.5 sm:py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center space-x-2.5">
           <img
             src="/iiitnr_logo.png"
