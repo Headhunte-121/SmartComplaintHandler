@@ -5,7 +5,8 @@
  * building fault density, and SLA exception monitoring across IIIT Naya Raipur.
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { fetchAdmins } from '../api/auth';
 import { fetchSquadWorkloads } from '../api/assignment';
@@ -14,7 +15,8 @@ import { fetchActiveBreaches } from '../api/sla';
 import { getCampusBuildings } from '../data/iiitnrCampusData';
 import {
   Activity, AlertTriangle, BarChart3, Building2,
-  CheckCircle2, ChevronRight, Clock3, RefreshCw, ShieldCheck, UsersRound,
+  CheckCircle2, ChevronRight, Clock3, Compass, LayoutDashboard,
+  Map, ClipboardList, RefreshCw, Search, ShieldCheck, UsersRound, Wrench,
 } from 'lucide-react';
 
 
@@ -101,6 +103,8 @@ function StatusRing({ total, active, resolved, isDark }) {
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { currentUser } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const [admins, setAdmins] = useState([]);
@@ -112,6 +116,7 @@ export default function SuperAdminDashboard() {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [trendRange, setTrendRange] = useState(14);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -192,7 +197,11 @@ export default function SuperAdminDashboard() {
 
   // Department distribution with authentic health score
   const departmentStats = useMemo(() => {
-    return CAMPUS_DEPARTMENTS.map((dept) => {
+    const query = searchQuery.trim().toLowerCase();
+    const depts = query
+      ? CAMPUS_DEPARTMENTS.filter((dept) => dept.toLowerCase().includes(query))
+      : CAMPUS_DEPARTMENTS;
+    return depts.map((dept) => {
       const deptTickets = tickets.filter((t) => t.department_name === dept);
       const active = deptTickets.filter(
         (t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'CANCELLED'
@@ -217,11 +226,15 @@ export default function SuperAdminDashboard() {
         health,
       };
     });
-  }, [tickets]);
+  }, [tickets, searchQuery]);
 
   // Campus building distribution
   const buildingStats = useMemo(() => {
-    const list = buildings.map((b) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchedBuildings = query
+      ? buildings.filter((b) => b.name.toLowerCase().includes(query) || (b.shortName || '').toLowerCase().includes(query) || b.id.toLowerCase().includes(query))
+      : buildings;
+    const list = matchedBuildings.map((b) => {
       const matchedTickets = tickets.filter((t) => {
         const loc = (t.location || '').toLowerCase();
         return (
@@ -244,43 +257,158 @@ export default function SuperAdminDashboard() {
       };
     });
     return list.sort((a, b) => b.total - a.total);
-  }, [buildings, tickets]);
+  }, [buildings, tickets, searchQuery]);
 
   const handleFacilityClick = (building) => {
     navigate(`/track?search=${encodeURIComponent(building.shortName)}`);
   };
 
+  const navItems = [
+    { to: '/superadmin', label: 'Directorate desk', icon: Compass },
+    { to: '/operations', label: 'Operations console', icon: LayoutDashboard },
+    { to: '/superadmin/staff', label: 'Staff directory', icon: ShieldCheck },
+    { to: '/squads', label: 'Squad capacity', icon: UsersRound },
+    { to: '/map', label: 'Campus twin', icon: Map },
+    { to: '/track', label: 'Track & audit', icon: ClipboardList },
+  ];
+
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${isDark ? 'bg-[#0b1020] text-slate-100' : 'bg-[#f4f7fc] text-slate-900'}`}>
-      <main className="mx-auto w-full max-w-[1480px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <header className="flex flex-col justify-between gap-5 rounded-3xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-600 p-6 text-white shadow-[0_18px_50px_-25px_rgba(67,85,219,.65)] transition-colors dark:border dark:border-indigo-400/20 dark:from-[#172554] dark:via-[#1e1b4b] dark:to-[#312e81] dark:shadow-[0_18px_55px_-25px_rgba(0,0,0,.9)] sm:p-8 lg:flex-row lg:items-center">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-indigo-50">
-              <ShieldCheck size={14} /> DIRECTORATE OVERVIEW
-              {lastUpdated && <span className="ml-1 text-indigo-100/80">· Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+    <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${isDark ? 'bg-[#090d14] text-slate-100 selection:bg-indigo-500/40' : 'bg-[#f4f7fc] text-slate-900 selection:bg-indigo-100'}`}>
+      <div className="mx-auto flex min-h-screen max-w-[1850px]">
+        {/* Directorate Dedicated PC Sidebar */}
+        <aside className="sticky top-0 hidden h-screen w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-5 dark:border-white/[0.08] dark:bg-[#0d121b] lg:flex">
+          {/* Brand Header */}
+          <Link to="/superadmin" className="mb-6 flex items-center gap-3 px-2">
+            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-[0_0_24px_rgba(99,102,241,.3)] dark:from-indigo-400 dark:to-violet-400 dark:text-indigo-950">
+              <ShieldCheck size={20} strokeWidth={2.5} />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Campus operations, at a glance</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-indigo-100 sm:text-base">Monitor service health, resolve bottlenecks, and spot campus issues before they escalate.</p>
+            <div>
+              <div className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">IIIT-NR</div>
+              <div className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Directorate Desk</div>
+            </div>
+          </Link>
+
+          {/* Quick Search */}
+          <label className="relative mb-4 block">
+            <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search campus telemetry"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-white/[0.08] dark:bg-white/[0.035] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400/60 dark:focus:ring-indigo-400/10"
+            />
+          </label>
+
+          {/* Executive Quick Stats */}
+          <div className="mb-5 grid grid-cols-2 gap-2">
+            <Link
+              to="/operations"
+              className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-left transition hover:border-indigo-300 hover:bg-white dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:bg-white/[0.06]"
+            >
+              <span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400">Active Load</span>
+              <b className="mt-1 block text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+                {loading ? '—' : activeLoad}
+              </b>
+            </Link>
+            <Link
+              to="/operations"
+              className={`rounded-xl border p-2.5 text-left transition ${
+                overdueBreaches > 0
+                  ? 'border-rose-200 bg-rose-50/70 hover:bg-rose-50 dark:border-rose-400/20 dark:bg-rose-400/[0.04] dark:hover:bg-rose-400/[0.08]'
+                  : 'border-slate-200 bg-slate-50 hover:bg-white dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:bg-white/[0.06]'
+              }`}
+            >
+              <span className={`block text-[10px] font-medium ${overdueBreaches > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-slate-500 dark:text-slate-400'}`}>
+                SLA Overdue
+              </span>
+              <b className={`mt-1 block text-lg font-bold tracking-tight ${overdueBreaches > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
+                {loading ? '—' : overdueBreaches}
+              </b>
+            </Link>
           </div>
-          <div className="flex flex-wrap items-center gap-2.5">
+
+          {/* Workspaces Navigation */}
+          <nav className="space-y-1" aria-label="Directorate navigation">
+            <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Executive Workspaces
+            </p>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = location.pathname === item.to;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
+                    active
+                      ? 'border border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/15 dark:text-indigo-200'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.045] dark:hover:text-slate-100'
+                  }`}
+                >
+                  <Icon size={16} />
+                  <span>{item.label}</span>
+                  {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Bottom Footer Controls & User Card */}
+          <div className="mt-auto space-y-2.5 border-t border-slate-200 pt-4 dark:border-white/[0.08]">
             <button
               type="button"
               onClick={toggleTheme}
-              aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+              className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white hover:text-slate-900 dark:border-white/[0.08] dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white cursor-pointer"
               title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3.5 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20 cursor-pointer"
             >
-              <span>{isDark ? '☀️' : '🌙'}</span>
-              <span>{isDark ? 'Light' : 'Dark'}</span>
+              <span className="flex items-center gap-2">
+                <span>{isDark ? '🌙' : '☀️'}</span>
+                <span>{isDark ? 'Dark Theme' : 'Light Theme'}</span>
+              </span>
+              <span className="rounded-md bg-slate-200/60 px-1.5 py-0.5 text-[10px] font-mono text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                Toggle
+              </span>
             </button>
-            <Link to="/superadmin/staff" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20 dark:border-indigo-200/20 dark:bg-indigo-300/10 dark:hover:bg-indigo-300/20">
-              <UsersRound size={16} /> Staff directory
-            </Link>
-            <button type="button" onClick={loadData} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:bg-indigo-100 dark:text-indigo-950 dark:hover:bg-white cursor-pointer">
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> {loading ? 'Refreshing' : 'Refresh data'}
-            </button>
+
+            <div className="flex items-center gap-2.5 px-2 pt-1">
+              <div className="grid h-8 w-8 place-items-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200">
+                {(currentUser?.name || 'D').slice(0, 1).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-slate-900 dark:text-slate-200">
+                  {currentUser?.name || 'Executive Director'}
+                </p>
+                <p className="truncate text-[10px] text-slate-500">
+                  {currentUser?.roleLabel || 'Directorate · Super Admin'}
+                </p>
+              </div>
+            </div>
           </div>
-        </header>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7 space-y-6">
+          <header className="flex flex-col justify-between gap-5 rounded-3xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-600 p-6 text-white shadow-[0_18px_50px_-25px_rgba(67,85,219,.65)] transition-colors dark:border dark:border-indigo-400/20 dark:from-[#172554] dark:via-[#1e1b4b] dark:to-[#312e81] dark:shadow-[0_18px_55px_-25px_rgba(0,0,0,.9)] sm:p-8 lg:flex-row lg:items-center">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-indigo-50">
+                <ShieldCheck size={14} /> DIRECTORATE OVERVIEW
+                {lastUpdated && <span className="ml-1 text-indigo-100/80">· Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Campus operations, at a glance</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-indigo-100 sm:text-base">Monitor service health, resolve bottlenecks, and spot campus issues before they escalate.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Link to="/operations" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">
+                <LayoutDashboard size={16} /> Operations console
+              </Link>
+              <Link to="/superadmin/staff" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">
+                <UsersRound size={16} /> Staff directory
+              </Link>
+              <button type="button" onClick={loadData} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:bg-indigo-100 dark:text-indigo-950 dark:hover:bg-white cursor-pointer">
+                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> {loading ? 'Refreshing' : 'Refresh data'}
+              </button>
+            </div>
+          </header>
 
         {error && <div role="alert" className="flex items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200"><span>{error}</span><button onClick={loadData} className="font-semibold underline">Retry</button></div>}
 
@@ -505,5 +633,6 @@ export default function SuperAdminDashboard() {
         </section>
       </main>
     </div>
+  </div>
   );
 }

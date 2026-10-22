@@ -25,8 +25,8 @@ export default function Layout() {
     return <Navigate to="/login" replace />;
   }
 
-  // The operations desk owns its full-screen command layout and side navigation.
-  if (location.pathname === '/operations') {
+  // The operations desk and directorate overview own their full-screen command layout and side navigation.
+  if (location.pathname === '/operations' || location.pathname === '/superadmin') {
     return <Outlet />;
   }
 
