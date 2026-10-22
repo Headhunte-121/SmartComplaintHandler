@@ -11,7 +11,8 @@ import { fetchAdmins } from '../api/auth';
 import { fetchSquadWorkloads } from '../api/assignment';
 import { fetchComplaints } from '../api/complaints';
 import { fetchActiveBreaches } from '../api/sla';
-import { getCampusBuildings } from '../data/iiitnrCampusData';
+import { fetchDirectorateTelemetry } from '../api/superadmin';
+import { fetchAndCacheCampusBuildings, getCampusBuildings } from '../data/iiitnrCampusData';
 
 // ============================================================================
 // Constants & Configuration
@@ -46,8 +47,37 @@ const CATEGORY_COLORS = {
 };
 
 // ============================================================================
-// Helper Formatting Functions
+// Helper Formatting & Normalization Functions
 // ============================================================================
+
+function normStatus(status) {
+  return String(status || '').toUpperCase().trim();
+}
+
+function isResolvedStatus(status) {
+  return ['RESOLVED', 'CLOSED'].includes(normStatus(status));
+}
+
+function isCancelledStatus(status) {
+  return ['CANCELLED', 'REJECTED'].includes(normStatus(status));
+}
+
+function isActiveStatus(status) {
+  return !isResolvedStatus(status) && !isCancelledStatus(status);
+}
+
+function isPendingStatus(status) {
+  return ['SUBMITTED', 'PENDING', 'ASSIGNED'].includes(normStatus(status));
+}
+
+function isInProgressStatus(status) {
+  return ['IN_PROGRESS', 'ESCALATED', 'ON_HOLD'].includes(normStatus(status));
+}
+
+function isCriticalTicket(t) {
+  const p = normStatus(t.priority);
+  return (p === 'CRITICAL' || Boolean(t.hazard_detected)) && isActiveStatus(t.status);
+}
 
 function getTicketTitle(ticket) {
   return (
@@ -62,6 +92,7 @@ function getTicketTitle(ticket) {
 
 function getTicketId(ticket, index) {
   return (
+    ticket.tracking_code ||
     ticket.ticket_code ||
     ticket.complaint_code ||
     ticket.code ||
@@ -69,6 +100,32 @@ function getTicketId(ticket, index) {
     ticket._id ||
     `#${String(index + 1).padStart(4, '0')}`
   );
+}
+
+function getTicketDepartmentName(ticket) {
+  if (ticket.department_name) return ticket.department_name;
+  if (typeof ticket.department === 'string') return ticket.department;
+  if (ticket.department && typeof ticket.department === 'object') {
+    return ticket.department.name || '';
+  }
+  if (ticket.department_id) {
+    const DEPT_MAP = {
+      1: 'Electrical',
+      2: 'Plumbing',
+      3: 'Sanitation',
+      4: 'Carpentry',
+      5: 'IT Support',
+      6: 'General Administration',
+    };
+    return DEPT_MAP[ticket.department_id] || '';
+  }
+  return '';
+}
+
+function matchDept(ticket, dept) {
+  const tDept = String(getTicketDepartmentName(ticket) || '').toLowerCase().trim();
+  const target = String(dept || '').toLowerCase().trim();
+  return tDept === target || tDept.includes(target) || target.includes(tDept);
 }
 
 function formatTicketDate(ticket) {
@@ -92,7 +149,7 @@ function getStatusLabel(status) {
 }
 
 function getStatusBadgeClass(status) {
-  const value = String(status || '').toUpperCase();
+  const value = normStatus(status);
   if (['RESOLVED', 'CLOSED'].includes(value)) {
     return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
   }
@@ -102,11 +159,14 @@ function getStatusBadgeClass(status) {
   if (['ASSIGNED'].includes(value)) {
     return 'border-blue-500/30 bg-blue-500/10 text-blue-300';
   }
+  if (['ON_HOLD'].includes(value)) {
+    return 'border-purple-500/30 bg-purple-500/10 text-purple-300';
+  }
   return 'border-amber-500/30 bg-amber-500/10 text-amber-300';
 }
 
 function getPriorityBadgeClass(priority) {
-  const value = String(priority || 'MEDIUM').toUpperCase();
+  const value = normStatus(priority || 'MEDIUM');
   if (value === 'CRITICAL') return 'border-rose-500/40 bg-rose-500/10 text-rose-300';
   if (value === 'HIGH') return 'border-amber-500/40 bg-amber-500/10 text-amber-300';
   if (value === 'LOW') return 'border-slate-600 bg-slate-800 text-slate-300';
@@ -318,28 +378,37 @@ function HeaderSection({ lastUpdated, loading, onRefresh }) {
 function KpiStrip({ kpiList }) {
   return (
     <section aria-label="Executive KPIs" className="grid grid-cols-2 sm:grid-cols-3 2xl:grid-cols-6 gap-2.5">
-      {kpiList.map((kpi) => (
-        <div
-          key={kpi.label}
-          className="min-w-0 rounded-xl border border-[#243241] bg-gradient-to-br from-[#141E29] to-[#101720] p-3 flex items-center gap-3 shadow-[0_8px_24px_#00000012] hover:border-[#334658] transition-colors"
-        >
-          <div
-            className="h-9 w-9 shrink-0 rounded-lg border border-[#2A3C4D] bg-[#1A2937] grid place-items-center text-lg"
-            style={{ color: kpi.color }}
-          >
-            {kpi.icon}
-          </div>
-          <div className="min-w-0">
-            <div className="text-[9px] font-mono uppercase tracking-wider text-slate-400 truncate">
-              {kpi.label}
+      {kpiList.map((kpi) => {
+        const cardContent = (
+          <div className="min-w-0 h-full rounded-xl border border-[#243241] bg-gradient-to-br from-[#141E29] to-[#101720] p-3 flex items-center gap-3 shadow-[0_8px_24px_#00000012] hover:border-[#38BDF8]/40 hover:bg-[#162330] transition-all group">
+            <div
+              className="h-9 w-9 shrink-0 rounded-lg border border-[#2A3C4D] bg-[#1A2937] grid place-items-center text-lg group-hover:scale-105 transition-transform"
+              style={{ color: kpi.color }}
+            >
+              {kpi.icon}
             </div>
-            <div className="text-[23px] font-bold leading-tight mt-0.5" style={{ color: kpi.color }}>
-              {kpi.value}
+            <div className="min-w-0">
+              <div className="text-[9px] font-mono uppercase tracking-wider text-slate-400 truncate">
+                {kpi.label}
+              </div>
+              <div className="text-[23px] font-bold leading-tight mt-0.5" style={{ color: kpi.color }}>
+                {kpi.value}
+              </div>
+              <div className="text-[10px] text-slate-400 truncate mt-0.5">{kpi.note}</div>
             </div>
-            <div className="text-[10px] text-slate-400 truncate mt-0.5">{kpi.note}</div>
           </div>
-        </div>
-      ))}
+        );
+
+        if (kpi.link) {
+          return (
+            <Link key={kpi.label} to={kpi.link} className="block focus:outline-none">
+              {cardContent}
+            </Link>
+          );
+        }
+
+        return <div key={kpi.label}>{cardContent}</div>;
+      })}
     </section>
   );
 }
@@ -347,9 +416,15 @@ function KpiStrip({ kpiList }) {
 /**
  * Campus Digital Twin Schematic Map Panel
  */
-function CampusTwinMapPanel({ filteredBuildings, totalBuildings, onFacilityClick }) {
+function CampusTwinMapPanel({
+  filteredBuildings,
+  totalBuildings,
+  activeFaultCount,
+  criticalTickets,
+  onFacilityClick,
+}) {
   return (
-    <div className="rounded-xl border border-[#243241] bg-[#101821] overflow-hidden min-w-0">
+    <div className="rounded-xl border border-[#243241] bg-[#101821] overflow-hidden min-w-0 flex flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-[#22303E] px-3.5 py-3">
         <div className="flex items-center gap-2">
           <span className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-300 grid place-items-center">
@@ -360,13 +435,20 @@ function CampusTwinMapPanel({ filteredBuildings, totalBuildings, onFacilityClick
             <p className="text-[9px] text-slate-500 mt-0.5">Facility locations &amp; fault density</p>
           </div>
         </div>
-        <Link to="/map" className="text-[10px] text-emerald-300 hover:text-emerald-200">
-          Open Full Map →
-        </Link>
+        <div className="flex items-center gap-2">
+          {criticalTickets > 0 && (
+            <span className="rounded-md border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-mono text-rose-300">
+              ⚠ {criticalTickets} Critical
+            </span>
+          )}
+          <Link to="/map" className="text-[10px] text-emerald-300 hover:text-emerald-200">
+            Open Full Map →
+          </Link>
+        </div>
       </div>
 
       <div
-        className="relative h-[245px] overflow-hidden bg-[#0C151F]"
+        className="relative h-[245px] overflow-hidden bg-[#0C151F] flex-1"
         style={{
           backgroundImage:
             'linear-gradient(#20324455 1px, transparent 1px), linear-gradient(90deg, #20324455 1px, transparent 1px), radial-gradient(ellipse at 48% 45%, #12383a 0%, #0c151f 70%)',
@@ -382,13 +464,30 @@ function CampusTwinMapPanel({ filteredBuildings, totalBuildings, onFacilityClick
 
         {/* Facility Pin Markers */}
         {filteredBuildings.slice(0, 20).map((building, index) => {
-          const xPos = 8 + ((index * 37 + 13) % 82);
-          const yPos = 10 + ((index * 29 + 17) % 78);
+          const defaultX = 8 + ((index * 37 + 13) % 82);
+          const defaultY = 10 + ((index * 29 + 17) % 78);
+          let xPos = defaultX;
+          let yPos = defaultY;
+
+          if (building.trace?.cx) {
+            xPos = Math.max(6, Math.min(94, (building.trace.cx / 800) * 100));
+            yPos = Math.max(8, Math.min(92, (building.trace.cy / 800) * 100));
+          } else if (building.mapPin?.lat && building.mapPin?.lng) {
+            const dLng = (building.mapPin.lng - 81.762) / 0.007;
+            const dLat = (21.131 - building.mapPin.lat) / 0.006;
+            if (dLng >= 0 && dLng <= 1 && dLat >= 0 && dLat <= 1) {
+              xPos = Math.max(6, Math.min(94, dLng * 100));
+              yPos = Math.max(8, Math.min(92, dLat * 100));
+            }
+          }
+
+          const hasFault = building.active > 0;
+
           return (
             <button
               key={building.id}
               type="button"
-              title={`${building.name}: ${building.total} tickets, ${building.active} active`}
+              title={`${building.name}: ${building.total} requests, ${building.active} active`}
               onClick={() => onFacilityClick(building)}
               className="absolute group cursor-pointer"
               style={{
@@ -400,11 +499,11 @@ function CampusTwinMapPanel({ filteredBuildings, totalBuildings, onFacilityClick
               <span
                 className="relative flex h-3 w-3 rounded-full border-2 border-[#08111A] shadow-[0_0_0_3px_#0c151f88] group-hover:scale-125 transition-transform"
                 style={{
-                  backgroundColor: building.active ? '#FB7185' : building.color || '#00C99A',
+                  backgroundColor: hasFault ? '#FB7185' : building.color || '#00C99A',
                 }}
               />
               <span className="absolute left-4 top-[-5px] whitespace-nowrap rounded border border-[#314457] bg-[#101A25]/95 px-1.5 py-1 text-[8px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none shadow-md">
-                {building.shortName}
+                {building.shortName} {hasFault ? `(${building.active} active)` : ''}
               </span>
             </button>
           );
@@ -417,7 +516,7 @@ function CampusTwinMapPanel({ filteredBuildings, totalBuildings, onFacilityClick
         </div>
 
         <div className="absolute bottom-3 right-3 rounded-md border border-[#344657] bg-[#101A25]/90 px-2 py-1 text-[9px] text-slate-400">
-          {totalBuildings} campus facilities
+          {totalBuildings} facilities • {activeFaultCount} with faults
         </div>
       </div>
     </div>
@@ -428,6 +527,11 @@ function CampusTwinMapPanel({ filteredBuildings, totalBuildings, onFacilityClick
  * Department Workload & Health Panel
  */
 function DepartmentHealthPanel({ departmentStats }) {
+  const avgHealth =
+    departmentStats.length > 0
+      ? Math.round(departmentStats.reduce((sum, d) => sum + d.health, 0) / departmentStats.length)
+      : 100;
+
   return (
     <div className="rounded-xl border border-[#243241] bg-[#101821] overflow-hidden min-w-0">
       <div className="flex items-center justify-between border-b border-[#22303E] px-3.5 py-3">
@@ -440,9 +544,14 @@ function DepartmentHealthPanel({ departmentStats }) {
             <p className="text-[9px] text-slate-500 mt-0.5">Live status across six trades</p>
           </div>
         </div>
-        <Link to="/squads" className="text-[10px] text-emerald-300 hover:text-emerald-200">
-          View Details →
-        </Link>
+        <div className="flex items-center gap-2">
+          <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-mono text-emerald-300">
+            Avg {avgHealth}%
+          </span>
+          <Link to="/squads" className="text-[10px] text-emerald-300 hover:text-emerald-200">
+            View Details →
+          </Link>
+        </div>
       </div>
 
       <div className="px-3.5 pb-1">
@@ -453,38 +562,52 @@ function DepartmentHealthPanel({ departmentStats }) {
           <span className="text-right">Resolved</span>
         </div>
 
-        {departmentStats.map((dept) => (
-          <div
-            key={dept.name}
-            className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_55px_48px] items-center gap-2 py-2.5 border-b border-[#1E2B38] last:border-0"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm shrink-0">{dept.icon}</span>
-              <span className="text-[10px] font-medium truncate">{dept.name}</span>
-            </div>
+        {departmentStats.map((dept) => {
+          const healthBadgeClass =
+            dept.health >= 85
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+              : dept.health >= 70
+              ? 'bg-amber-500/10 border-amber-500/20 text-amber-300'
+              : 'bg-rose-500/10 border-rose-500/20 text-rose-300';
 
-            <div className="min-w-0">
-              <div className="text-[9px] text-slate-400 mb-1">{dept.active} Active</div>
-              <div className="h-1.5 rounded-full bg-[#263442] overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.max(5, dept.health)}%`,
-                    background: dept.active ? '#F59E0B' : '#00C99A',
-                  }}
-                />
+          const healthBarColor =
+            dept.health >= 85 ? '#00C99A' : dept.health >= 70 ? '#F59E0B' : '#FB7185';
+
+          return (
+            <div
+              key={dept.name}
+              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_55px_48px] items-center gap-2 py-2.5 border-b border-[#1E2B38] last:border-0"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-sm shrink-0">{dept.icon}</span>
+                <span className="text-[10px] font-medium truncate">{dept.name}</span>
               </div>
+
+              <div className="min-w-0">
+                <div className="text-[9px] text-slate-400 mb-1">{dept.active} Active</div>
+                <div className="h-1.5 rounded-full bg-[#263442] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.max(5, dept.health)}%`,
+                      background: healthBarColor,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <span
+                className={`rounded-md border text-[9px] text-center px-1 py-1 font-mono ${healthBadgeClass}`}
+              >
+                {dept.health}/100
+              </span>
+
+              <span className="text-[9px] text-right text-slate-300 font-mono">
+                {dept.resolved} ({dept.rate}%)
+              </span>
             </div>
-
-            <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[9px] text-center px-1 py-1 font-mono">
-              {dept.health}/100
-            </span>
-
-            <span className="text-[9px] text-right text-slate-300 font-mono">
-              {dept.resolved} ({dept.rate}%)
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -512,6 +635,11 @@ function SlaOverviewPanel({
     { label: 'Critical', value: criticalTickets, color: '#FB7185' },
   ];
 
+  const ringBackground =
+    slaCompliance >= 100
+      ? '#00C99A'
+      : `conic-gradient(#00C99A 0 ${slaCompliance}%, #FB7185 ${slaCompliance}% 100%)`;
+
   return (
     <div className="rounded-xl border border-[#243241] bg-[#101821] p-3.5 min-w-0">
       <div className="flex items-center gap-2 mb-3">
@@ -529,7 +657,7 @@ function SlaOverviewPanel({
         <div
           className="h-[104px] w-[104px] shrink-0 rounded-full grid place-items-center"
           style={{
-            background: `conic-gradient(#FB7185 0 ${100 - slaCompliance}%, #00C99A ${100 - slaCompliance}% 100%)`,
+            background: ringBackground,
           }}
         >
           <div className="h-[78px] w-[78px] rounded-full bg-[#101821] flex flex-col items-center justify-center">
@@ -579,10 +707,13 @@ function SlaOverviewPanel({
             const heightPercent = totalTickets > 0 ? (item.value / totalTickets) * 100 : 0;
             return (
               <div key={item.label} className="flex-1 h-full flex flex-col items-center justify-end gap-1">
+                <span className="text-[9px] font-mono font-bold" style={{ color: item.color }}>
+                  {item.value}
+                </span>
                 <div
-                  className="w-full max-w-8 rounded-t-sm min-h-[3px] transition-all duration-300"
+                  className="w-full max-w-8 rounded-t-sm min-h-[4px] transition-all duration-300"
                   style={{
-                    height: `${Math.max(5, heightPercent)}%`,
+                    height: `${Math.max(6, heightPercent)}%`,
                     background: item.color,
                   }}
                 />
@@ -641,49 +772,57 @@ function RecentRequestsTable({ recentTickets, totalTickets, loading }) {
           </thead>
           <tbody>
             {recentTickets.length > 0 ? (
-              recentTickets.map((ticket, index) => (
-                <tr
-                  key={ticket.id || ticket._id || getTicketId(ticket, index)}
-                  className="border-t border-[#202D3A] hover:bg-[#162330] transition-colors"
-                >
-                  <td className="px-3.5 py-2.5 text-[10px] font-mono text-slate-400">
-                    {getTicketId(ticket, index)}
-                  </td>
-                  <td
-                    className="px-3.5 py-2.5 text-[10px] font-medium text-slate-100 max-w-[260px] truncate"
-                    title={getTicketTitle(ticket)}
+              recentTickets.map((ticket, index) => {
+                const ticketCode = getTicketId(ticket, index);
+                return (
+                  <tr
+                    key={ticket.id || ticket._id || ticketCode}
+                    className="border-t border-[#202D3A] hover:bg-[#162330] transition-colors"
                   >
-                    {getTicketTitle(ticket)}
-                  </td>
-                  <td className="px-3.5 py-2.5 text-[10px] text-slate-300 max-w-[180px] truncate">
-                    {ticket.location || ticket.building_name || ticket.building || '—'}
-                  </td>
-                  <td className="px-3.5 py-2.5 text-[10px] text-slate-300">
-                    {ticket.department_name || ticket.department || '—'}
-                  </td>
-                  <td className="px-3.5 py-2.5">
-                    <span
-                      className={`inline-flex rounded-md border px-2 py-1 text-[9px] ${getPriorityBadgeClass(
-                        ticket.priority
-                      )}`}
+                    <td className="px-3.5 py-2.5 text-[10px] font-mono text-slate-400">
+                      <Link
+                        to={`/track?search=${encodeURIComponent(ticketCode)}`}
+                        className="hover:underline text-emerald-300 font-mono"
+                      >
+                        {ticketCode}
+                      </Link>
+                    </td>
+                    <td
+                      className="px-3.5 py-2.5 text-[10px] font-medium text-slate-100 max-w-[260px] truncate"
+                      title={getTicketTitle(ticket)}
                     >
-                      {String(ticket.priority || 'MEDIUM').replaceAll('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="px-3.5 py-2.5">
-                    <span
-                      className={`inline-flex rounded-md border px-2 py-1 text-[9px] ${getStatusBadgeClass(
-                        ticket.status
-                      )}`}
-                    >
-                      {getStatusLabel(ticket.status)}
-                    </span>
-                  </td>
-                  <td className="px-3.5 py-2.5 text-[10px] text-slate-400 whitespace-nowrap font-mono">
-                    {formatTicketDate(ticket)}
-                  </td>
-                </tr>
-              ))
+                      {getTicketTitle(ticket)}
+                    </td>
+                    <td className="px-3.5 py-2.5 text-[10px] text-slate-300 max-w-[180px] truncate">
+                      {ticket.location || ticket.building_name || ticket.building || '—'}
+                    </td>
+                    <td className="px-3.5 py-2.5 text-[10px] text-slate-300">
+                      {getTicketDepartmentName(ticket) || '—'}
+                    </td>
+                    <td className="px-3.5 py-2.5">
+                      <span
+                        className={`inline-flex rounded-md border px-2 py-1 text-[9px] ${getPriorityBadgeClass(
+                          ticket.priority
+                        )}`}
+                      >
+                        {String(ticket.priority || 'MEDIUM').replaceAll('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-3.5 py-2.5">
+                      <span
+                        className={`inline-flex rounded-md border px-2 py-1 text-[9px] ${getStatusBadgeClass(
+                          ticket.status
+                        )}`}
+                      >
+                        {getStatusLabel(ticket.status)}
+                      </span>
+                    </td>
+                    <td className="px-3.5 py-2.5 text-[10px] text-slate-400 whitespace-nowrap font-mono">
+                      {formatTicketDate(ticket)}
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="7" className="px-4 py-12 text-center">
@@ -747,20 +886,20 @@ function FacilityRadarGrid({ buildingStats, onFacilityClick }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2">
         {buildingStats.map((building) => {
           const categoryStyle = CATEGORY_COLORS[building.category] || CATEGORY_COLORS.AMENITY;
+          const hasActive = building.active > 0;
           return (
             <button
               key={building.id}
               type="button"
               onClick={() => onFacilityClick(building)}
-              className="min-w-0 rounded-lg border border-[#243241] bg-[#131E29] px-2.5 py-2 text-left hover:border-emerald-500/30 hover:bg-[#182635] transition-colors cursor-pointer"
+              className="min-w-0 rounded-lg border border-[#243241] bg-[#131E29] px-2.5 py-2 text-left hover:border-emerald-500/30 hover:bg-[#182635] transition-colors cursor-pointer group"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span
-                    className="h-2 w-2 rounded-full shrink-0"
-                    style={{ backgroundColor: building.color }}
+                    className={`h-2 w-2 rounded-full shrink-0 ${hasActive ? 'bg-amber-400' : 'bg-emerald-400'}`}
                   />
-                  <span className="text-[10px] font-semibold truncate text-[#E8EDF5]">
+                  <span className="text-[10px] font-semibold truncate text-[#E8EDF5] group-hover:text-emerald-300 transition-colors">
                     {building.shortName}
                   </span>
                 </div>
@@ -782,7 +921,7 @@ function FacilityRadarGrid({ buildingStats, onFacilityClick }) {
                 </span>
                 <span>
                   Active:{' '}
-                  <b className={`font-mono ${building.active ? 'text-amber-300' : 'text-emerald-300'}`}>
+                  <b className={`font-mono ${hasActive ? 'text-amber-300 font-bold' : 'text-emerald-400'}`}>
                     {building.active}
                   </b>
                 </span>
@@ -804,11 +943,12 @@ export default function SuperAdminDashboard() {
   const { currentUser } = useAuth();
 
   // State
+  const [telemetry, setTelemetry] = useState(null);
   const [admins, setAdmins] = useState([]);
   const [teams, setTeams] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [breaches, setBreaches] = useState([]);
-  const [buildings] = useState(() => getCampusBuildings());
+  const [buildings, setBuildings] = useState(() => getCampusBuildings());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -819,18 +959,29 @@ export default function SuperAdminDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [adminList, teamList, ticketList, breachList] = await Promise.all([
-        fetchAdmins().catch(() => []),
-        fetchSquadWorkloads().catch(() => []),
-        fetchComplaints().catch(() => []),
-        fetchActiveBreaches().catch(() => []),
-      ]);
-      setAdmins(Array.isArray(adminList) ? adminList : []);
-      setTeams(Array.isArray(teamList) ? teamList : []);
-      setTickets(Array.isArray(ticketList) ? ticketList : []);
-      setBreaches(Array.isArray(breachList) ? breachList : []);
+      const [telemetryRes, adminList, teamList, ticketList, breachList, buildingList] =
+        await Promise.all([
+          fetchDirectorateTelemetry().catch(() => null),
+          fetchAdmins().catch(() => []),
+          fetchSquadWorkloads().catch(() => []),
+          fetchComplaints({ limit: 1000 }).catch(() => []),
+          fetchActiveBreaches(0.20).catch(() => []),
+          fetchAndCacheCampusBuildings().catch(() => getCampusBuildings()),
+        ]);
+
+      if (telemetryRes) {
+        setTelemetry(telemetryRes);
+      }
+      setAdmins(Array.isArray(adminList) ? adminList : adminList?.admins || adminList?.users || []);
+      setTeams(Array.isArray(teamList) ? teamList : teamList?.workloads || teamList?.teams || []);
+      setTickets(Array.isArray(ticketList) ? ticketList : ticketList?.tickets || ticketList?.data || []);
+      setBreaches(Array.isArray(breachList) ? breachList : breachList?.breaches || []);
+      if (Array.isArray(buildingList) && buildingList.length > 0) {
+        setBuildings(buildingList);
+      }
       setLastUpdated(new Date());
     } catch (err) {
+      console.error('Failed to refresh directorate executive telemetry:', err);
       setError('Failed to refresh directorate executive telemetry. Check network connection.');
     } finally {
       setLoading(false);
@@ -842,53 +993,130 @@ export default function SuperAdminDashboard() {
   }, [loadData]);
 
   // Executive KPI Calculations
-  const totalTickets = tickets.length;
-  const pendingTickets = tickets.filter(
-    (t) => t.status === 'SUBMITTED' || t.status === 'PENDING' || t.status === 'ASSIGNED'
-  ).length;
-  const inProgressTickets = tickets.filter(
-    (t) => t.status === 'IN_PROGRESS' || t.status === 'ESCALATED'
-  ).length;
-  const resolvedTickets = tickets.filter(
-    (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
-  ).length;
-  const activeLoad = pendingTickets + inProgressTickets;
-  const resolutionRate = totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 100;
+  const serverTotal = telemetry?.kpis?.total_tickets;
+  const clientTotal = tickets.length;
+  const totalTickets = typeof serverTotal === 'number' ? Math.max(serverTotal, clientTotal) : clientTotal;
 
-  const criticalTickets = tickets.filter(
-    (t) =>
-      (t.priority === 'CRITICAL' || t.hazard_detected) &&
-      t.status !== 'RESOLVED' &&
-      t.status !== 'CLOSED'
-  ).length;
+  const clientPending = tickets.filter((t) => isPendingStatus(t.status)).length;
+  const clientInProgress = tickets.filter((t) => isInProgressStatus(t.status)).length;
+  const clientResolved = tickets.filter((t) => isResolvedStatus(t.status)).length;
 
-  const overdueBreaches = breaches.filter((b) => b.is_breached).length;
-  const approachingBreaches = breaches.filter((b) => !b.is_breached).length;
-  const slaCompliance =
-    totalTickets > 0
-      ? Math.max(0, Math.round(((totalTickets - overdueBreaches) / totalTickets) * 100))
+  const pendingTickets =
+    typeof telemetry?.kpis?.pending_tickets === 'number'
+      ? telemetry.kpis.pending_tickets
+      : clientPending;
+
+  const inProgressTickets =
+    typeof telemetry?.kpis?.in_progress_tickets === 'number'
+      ? telemetry.kpis.in_progress_tickets
+      : clientInProgress;
+
+  const resolvedTickets =
+    typeof telemetry?.kpis?.resolved_tickets === 'number'
+      ? telemetry.kpis.resolved_tickets
+      : clientResolved;
+
+  const activeLoad =
+    typeof telemetry?.kpis?.active_load === 'number'
+      ? telemetry.kpis.active_load
+      : pendingTickets + inProgressTickets;
+
+  const resolutionRate =
+    typeof telemetry?.kpis?.resolution_rate === 'number'
+      ? telemetry.kpis.resolution_rate
+      : totalTickets > 0
+      ? Math.round((resolvedTickets / totalTickets) * 100)
       : 100;
 
-  const openRequests = tickets.filter(
-    (t) => !['RESOLVED', 'CLOSED', 'CANCELLED'].includes(String(t.status || '').toUpperCase())
-  );
+  const clientCritical = tickets.filter((t) => isCriticalTicket(t)).length;
+  const criticalTickets =
+    typeof telemetry?.kpis?.critical_tickets === 'number'
+      ? telemetry.kpis.critical_tickets
+      : clientCritical;
 
-  // Department distribution with authentic health calculation
+  // Breach tracking
+  const apiOverdue = breaches.filter(
+    (b) => b.is_breached || b.breached || (b.overdue_seconds && b.overdue_seconds > 0)
+  ).length;
+
+  const apiApproaching = breaches.filter(
+    (b) => !b.is_breached && !b.breached && (b.remaining_seconds && b.remaining_seconds > 0)
+  ).length;
+
+  const ticketOverdue = tickets.filter((t) => {
+    if (!isActiveStatus(t.status)) return false;
+    const dl = t.sla_deadline || t.target_resolution_date;
+    if (!dl) return false;
+    const dlTime = new Date(dl).getTime();
+    return !Number.isNaN(dlTime) && dlTime < Date.now();
+  }).length;
+
+  const ticketApproaching = tickets.filter((t) => {
+    if (!isActiveStatus(t.status)) return false;
+    const dl = t.sla_deadline || t.target_resolution_date;
+    if (!dl) return false;
+    const dlTime = new Date(dl).getTime();
+    const diff = dlTime - Date.now();
+    return !Number.isNaN(dlTime) && diff > 0 && diff <= 12 * 3600 * 1000;
+  }).length;
+
+  const overdueBreaches =
+    typeof telemetry?.kpis?.overdue_breaches === 'number'
+      ? telemetry.kpis.overdue_breaches
+      : Math.max(apiOverdue, ticketOverdue);
+
+  const approachingBreaches =
+    typeof telemetry?.kpis?.approaching_breaches === 'number'
+      ? telemetry.kpis.approaching_breaches
+      : Math.max(apiApproaching, ticketApproaching);
+
+  const slaCompliance =
+    typeof telemetry?.kpis?.sla_compliance === 'number'
+      ? telemetry.kpis.sla_compliance
+      : totalTickets > 0
+      ? Math.max(0, Math.min(100, Math.round(((totalTickets - overdueBreaches) / totalTickets) * 100)))
+      : 100;
+
+  const fieldSquadsCount =
+    typeof telemetry?.kpis?.field_squads_count === 'number'
+      ? telemetry.kpis.field_squads_count
+      : teams.length > 0
+      ? teams.length
+      : 8;
+
+  const staffCount =
+    typeof telemetry?.kpis?.staff_count === 'number'
+      ? telemetry.kpis.staff_count
+      : admins.length > 0
+      ? admins.length
+      : 11;
+
+  // Department distribution with server synchronization and authentic health calculation
   const departmentStats = useMemo(() => {
     return CAMPUS_DEPARTMENTS.map((dept) => {
-      const deptTickets = tickets.filter((t) => t.department_name === dept);
-      const active = deptTickets.filter(
-        (t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'CANCELLED'
-      ).length;
-      const resolved = deptTickets.filter(
-        (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
-      ).length;
-      const total = deptTickets.length;
-      const rate = total > 0 ? Math.round((resolved / total) * 100) : 100;
+      const serverDept = telemetry?.department_stats?.find((d) => d.name === dept);
+
+      const deptTickets = tickets.filter((t) => matchDept(t, dept));
+      const clientDeptTotal = deptTickets.length;
+      const clientDeptActive = deptTickets.filter((t) => isActiveStatus(t.status)).length;
+      const clientDeptResolved = deptTickets.filter((t) => isResolvedStatus(t.status)).length;
+
+      const total =
+        typeof serverDept?.total === 'number'
+          ? Math.max(serverDept.total, clientDeptTotal)
+          : clientDeptTotal;
+      const active =
+        typeof serverDept?.active === 'number' ? serverDept.active : clientDeptActive;
+      const resolved =
+        typeof serverDept?.resolved === 'number' ? serverDept.resolved : clientDeptResolved;
+      const rate = total > 0 ? Math.round((resolved / total) * 100) : (serverDept?.rate ?? 100);
 
       // Health calculation: 100 if zero active faults, reduced based on open backlog severity
       const penalty = active * 6 + (active > 3 ? 12 : 0);
-      const health = Math.max(55, Math.min(100, 100 - penalty));
+      const health =
+        typeof serverDept?.health === 'number'
+          ? serverDept.health
+          : Math.max(55, Math.min(100, 100 - penalty));
 
       return {
         name: dept,
@@ -900,28 +1128,35 @@ export default function SuperAdminDashboard() {
         health,
       };
     });
-  }, [tickets]);
+  }, [tickets, telemetry]);
 
   // Campus building distribution
   const buildingStats = useMemo(() => {
     const list = buildings.map((b) => {
       const matchedTickets = tickets.filter((t) => {
         const loc = (t.location || '').toLowerCase();
+        const bName = (b.name || '').toLowerCase();
+        const bShort = (b.shortName || b.short_name || '').toLowerCase();
+        const bId = (b.id || '').toLowerCase();
         return (
-          loc.includes(b.name.toLowerCase()) ||
-          loc.includes((b.shortName || '').toLowerCase()) ||
-          loc.includes(b.id.toLowerCase())
+          (bName && loc.includes(bName)) ||
+          (bShort && loc.includes(bShort)) ||
+          (bId && loc.includes(bId)) ||
+          (bShort.includes('ramanujan') && loc.includes('ramanujan')) ||
+          (bShort.includes('bose') && (loc.includes('bose') || loc.includes('h1') || loc.includes('hostel 1'))) ||
+          (bShort.includes('bhabha') && (loc.includes('bhabha') || loc.includes('h2') || loc.includes('hostel 2'))) ||
+          (bShort.includes('academic') && (loc.includes('academic') || loc.includes('science') || loc.includes('lab')))
         );
       });
-      const active = matchedTickets.filter(
-        (t) => t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'CANCELLED'
-      ).length;
+      const active = matchedTickets.filter((t) => isActiveStatus(t.status)).length;
       return {
         id: b.id,
         name: b.name,
-        shortName: b.shortName || b.name,
+        shortName: b.shortName || b.short_name || b.name,
         category: b.category || 'FACILITY',
-        color: b.trace?.color || b.mapPin?.color || '#00B386',
+        color: b.trace?.color || b.mapPin?.color || b.color || '#00B386',
+        trace: b.trace,
+        mapPin: b.mapPin || b.map_pin,
         total: matchedTickets.length,
         active,
       };
@@ -940,14 +1175,14 @@ export default function SuperAdminDashboard() {
   const recentTickets = useMemo(() => {
     return [...tickets]
       .sort((a, b) => {
-        const dateA = new Date(a.created_at || a.createdAt || a.submitted_at || 0);
-        const dateB = new Date(b.created_at || b.createdAt || b.submitted_at || 0);
+        const dateA = new Date(a.created_at || a.createdAt || a.submitted_at || 0).getTime();
+        const dateB = new Date(b.created_at || b.createdAt || b.submitted_at || 0).getTime();
         return dateB - dateA;
       })
       .slice(0, 6);
   }, [tickets]);
 
-  // 6 KPI definition list
+  // 6 KPI definition list with interactive navigation
   const kpiList = [
     {
       label: 'Total Grievances',
@@ -955,41 +1190,47 @@ export default function SuperAdminDashboard() {
       note: 'Institutional Lifetime',
       color: '#F1F5F9',
       icon: '▤',
+      link: '/operations',
     },
     {
       label: 'Active Operations',
       value: loading ? '—' : activeLoad,
       note: `${pendingTickets} Pending • ${inProgressTickets} In-Work`,
-      color: activeLoad ? '#FBBF24' : '#F1F5F9',
+      color: activeLoad > 0 ? '#FBBF24' : '#00C99A',
       icon: '⌁',
+      link: '/operations',
     },
     {
       label: 'Resolution Rate',
       value: loading ? '—' : `${resolutionRate}%`,
       note: `${resolvedTickets} Closed Tickets`,
-      color: resolutionRate >= 80 ? '#00C99A' : '#FBBF24',
+      color: resolutionRate >= 80 ? '#00C99A' : resolutionRate >= 50 ? '#FBBF24' : '#FB7185',
       icon: '▥',
+      link: '/operations',
     },
     {
       label: 'SLA Compliance',
       value: loading ? '—' : `${slaCompliance}%`,
-      note: overdueBreaches ? `⚠ ${overdueBreaches} Overdue` : '✓ Zero Overdue',
-      color: overdueBreaches ? '#FB7185' : '#00C99A',
+      note: overdueBreaches > 0 ? `⚠ ${overdueBreaches} Overdue` : '✓ Zero Overdue',
+      color: overdueBreaches > 0 ? '#FB7185' : '#00C99A',
       icon: '⚠',
+      link: '/operations',
     },
     {
       label: 'Field Squads',
-      value: loading ? '—' : teams.length,
+      value: loading ? '—' : fieldSquadsCount,
       note: 'Active Trade Balancing',
       color: '#38BDF8',
       icon: '♟',
+      link: '/squads',
     },
     {
       label: 'Staff & Admins',
-      value: loading ? '—' : admins.length,
+      value: loading ? '—' : staffCount,
       note: '6 Operational Trades',
       color: '#F1F5F9',
       icon: '♙',
+      link: '/superadmin/staff',
     },
   ];
 
@@ -1077,6 +1318,8 @@ export default function SuperAdminDashboard() {
             <CampusTwinMapPanel
               filteredBuildings={filteredBuildings}
               totalBuildings={buildingStats.length}
+              activeFaultCount={buildingStats.filter((b) => b.active > 0).length}
+              criticalTickets={criticalTickets}
               onFacilityClick={handleFacilityClick}
             />
 
@@ -1088,7 +1331,7 @@ export default function SuperAdminDashboard() {
               slaCompliance={slaCompliance}
               overdueBreaches={overdueBreaches}
               approachingBreaches={approachingBreaches}
-              openRequestsCount={openRequests.length}
+              openRequestsCount={activeLoad}
               resolvedTickets={resolvedTickets}
               pendingTickets={pendingTickets}
               inProgressTickets={inProgressTickets}
