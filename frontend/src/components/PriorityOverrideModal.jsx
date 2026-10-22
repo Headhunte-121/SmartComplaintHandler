@@ -1,19 +1,17 @@
 /**
  * SmartComplaintHandler - Administrative Priority Override Modal
- * Blueprint Reference: docs/V1/M3/frontend/04_priority_override_modal.md
- * Role: Controlled human-in-the-loop supervisor dialog requiring mandatory 5-character justification
- *       for institutional audit trail logging before modifying priority tiers.
+ * Styled in High-Density Obsidian Glassmorphic Theme to match modern Operations Desk.
  */
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '../context/ThemeContext';
+import { ShieldAlert, AlertTriangle, Clock, Check, X } from 'lucide-react';
 import { overrideTicketPriority } from '../api/triage';
 import PriorityBadge from './PriorityBadge';
 
 const PRIORITY_OPTIONS = [
-  { value: 'CRITICAL', label: 'CRITICAL (2-Hour SLA)', desc: 'Severe facility failure or urgent safety defect' },
-  { value: 'HIGH', label: 'HIGH (8-Hour SLA)', desc: 'Major room or lab disruption or locked out' },
-  { value: 'MEDIUM', label: 'MEDIUM (24-Hour SLA)', desc: 'Standard operational routine maintenance' },
-  { value: 'LOW', label: 'LOW (72-Hour SLA)', desc: 'Minor cosmetic defect or aesthetic touchup' },
+  { value: 'CRITICAL', label: 'CRITICAL', sla: '2-Hour SLA', desc: 'Severe facility failure or urgent campus safety hazard', color: 'border-rose-500/40 bg-rose-500/10 text-rose-300' },
+  { value: 'HIGH', label: 'HIGH', sla: '8-Hour SLA', desc: 'Major room, classroom, or lab disruption', color: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
+  { value: 'MEDIUM', label: 'MEDIUM', sla: '24-Hour SLA', desc: 'Standard operational routine maintenance', color: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300' },
+  { value: 'LOW', label: 'LOW', sla: '72-Hour SLA', desc: 'Minor cosmetic defect or scheduled upgrade', color: 'border-slate-500/40 bg-slate-500/10 text-slate-300' },
 ];
 
 export default function PriorityOverrideModal({
@@ -22,7 +20,6 @@ export default function PriorityOverrideModal({
   onClose,
   onPriorityUpdated,
 }) {
-  const { isDark } = useTheme();
   const [newPriority, setNewPriority] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -74,7 +71,7 @@ export default function PriorityOverrideModal({
       }
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to update priority. Please try again.');
+      setError(err.response?.data?.detail || err.message || 'Failed to update priority. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -82,102 +79,91 @@ export default function PriorityOverrideModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-fade-in"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-headline"
     >
-      <div className={`w-full max-w-lg rounded-2xl shadow-2xl border overflow-hidden transform transition-all ${
-        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xl'
-      }`}>
+      <div className="w-full max-w-lg rounded-2xl border border-white/[0.1] bg-[#0d121c] p-6 shadow-2xl text-slate-100 transform transition-all">
         {/* Header */}
-        <div className={`flex items-center justify-between border-b px-6 py-4 ${
-          isDark ? 'border-zinc-800 bg-[#161b22]' : 'border-slate-300 bg-[#e2e8f0]/60'
-        }`}>
+        <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
           <div>
-            <h3 id="modal-headline" className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-              Adjust Urgency Priority
-            </h3>
-            <p className={`text-xs mt-0.5 font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Complaint #{ticket.tracking_code || ticket.id}
+            <div className="flex items-center gap-2">
+              <span className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300">
+                Administrative Override
+              </span>
+              <span className="font-mono text-xs text-slate-400">
+                {ticket.tracking_code || `#${ticket.id}`}
+              </span>
+            </div>
+            <h2 className="mt-1.5 text-base font-bold text-white tracking-tight">
+              Adjust Urgency Priority & SLA
+            </h2>
+            <p className="mt-0.5 max-w-sm truncate text-xs text-slate-400">
+              {ticket.title}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className={`rounded-lg p-1.5 transition-colors disabled:opacity-50 cursor-pointer ${
-              isDark ? 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-800'
-            }`}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.08] hover:text-white transition cursor-pointer"
             aria-label="Close modal"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X size={18} />
           </button>
         </div>
 
-        {/* Content Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Incident Context Banner */}
-          <div className={`rounded-xl border p-4 space-y-2 ${
-            isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
-          }`}>
-            <div className={`text-xs font-semibold uppercase tracking-wider ${
-              isDark ? 'text-zinc-400' : 'text-slate-600'
-            }`}>
-              Complaint Details
-            </div>
-            <p className={`text-sm font-semibold line-clamp-2 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-              {ticket.title}
-            </p>
-            <div className="flex items-center space-x-2 pt-1">
-              <span className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>Current Level:</span>
-              <PriorityBadge priority={ticket.priority} size="sm" dark={isDark} />
-            </div>
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          {/* Current Level Pill */}
+          <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#070a10] px-3.5 py-2.5">
+            <span className="text-xs text-slate-400">Current Assigned Priority:</span>
+            <PriorityBadge priority={ticket.priority} size="sm" dark />
           </div>
 
-          {/* Target Priority Selector */}
+          {/* Priority Tier Cards Grid */}
           <div>
-            <label htmlFor="priority-select" className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
-              isDark ? 'text-zinc-300' : 'text-slate-700'
-            }`}>
-              New Priority Tier <span className="text-rose-500">*</span>
+            <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 mb-2">
+              Target Priority Tier <span className="text-rose-400">*</span>
             </label>
-            <select
-              id="priority-select"
-              value={newPriority}
-              onChange={(e) => setNewPriority(e.target.value)}
-              disabled={submitting}
-              className={`w-full rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-medium shadow-sm transition-all focus:outline-none disabled:opacity-60 ${
-                isDark
-                  ? 'bg-[#0e1117] border-zinc-800 text-zinc-100 focus:border-emerald-500'
-                  : 'bg-[#e2e8f0] border-slate-300 text-slate-900 hover:border-slate-400 focus:bg-white focus:border-emerald-600'
-              }`}
-            >
-              {PRIORITY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <div className="grid grid-cols-2 gap-2">
+              {PRIORITY_OPTIONS.map((opt) => {
+                const isSelected = newPriority === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setNewPriority(opt.value)}
+                    className={`rounded-xl border p-2.5 text-left transition cursor-pointer relative ${
+                      isSelected
+                        ? `${opt.color} shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-400/50`
+                        : 'border-white/[0.07] bg-white/[0.02] text-slate-400 hover:border-white/[0.15] hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white tracking-tight">{opt.label}</span>
+                      <span className="text-[10px] font-mono opacity-80">{opt.sla}</span>
+                    </div>
+                    <p className="mt-1 text-[10px] text-slate-400 line-clamp-1">{opt.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
             {!isPriorityChanged && (
-              <p className="text-xs text-amber-500 mt-1 font-medium">
-                Please select a different priority tier to enable override.
+              <p className="mt-1 text-[11px] text-amber-400">
+                Select a different tier to initiate the override.
               </p>
             )}
           </div>
 
-          {/* Mandatory Justification Textarea */}
+          {/* Mandatory Justification */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="override-reason" className={`block text-xs font-bold uppercase tracking-wider ${
-                isDark ? 'text-zinc-300' : 'text-slate-700'
-              }`}>
-                Institutional Justification <span className="text-rose-500">*</span>
+              <label htmlFor="override-reason" className="block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                Institutional Justification <span className="text-rose-400">*</span>
               </label>
-              <span className={`text-xs ${overrideReason.length >= 5 ? (isDark ? 'text-zinc-400' : 'text-slate-500') : 'text-rose-500 font-medium'}`}>
-                {overrideReason.length}/500 (min 5 required)
+              <span className={`text-[10px] font-mono ${cleanReason.length >= 5 ? 'text-slate-400' : 'text-rose-400 font-semibold'}`}>
+                {cleanReason.length}/500 (min 5 chars)
               </span>
             </div>
             <textarea
@@ -187,60 +173,38 @@ export default function PriorityOverrideModal({
               value={overrideReason}
               onChange={(e) => setOverrideReason(e.target.value)}
               disabled={submitting}
-              placeholder="State reason for manual priority adjustment (e.g. routine tap leak rather than main pipe burst, or rescheduled maintenance)..."
-              className={`w-full rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm shadow-sm transition-all focus:outline-none disabled:opacity-60 resize-none ${
-                isDark
-                  ? 'bg-[#0e1117] border-zinc-800 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500'
-                  : 'bg-[#e2e8f0] border-slate-300 text-slate-900 placeholder-slate-500 hover:border-slate-400 focus:bg-white focus:border-emerald-600'
-              }`}
+              placeholder="State institutional reason (e.g. verified secondary leak, lab exam rescheduled, severe safety hazard)..."
+              className="w-full rounded-xl border border-white/[0.1] bg-[#070a10] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/10 resize-none transition"
             />
-            <p className={`text-[11px] mt-1 ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-              This explanation is permanently committed into the ticket audit notes alongside your identity.
+            <p className="mt-1 text-[10px] text-slate-500">
+              Audit log permanently attaches your administrative signature to this action.
             </p>
           </div>
 
-          {/* Error Alert */}
+          {/* Error Message */}
           {error && (
-            <div className={`rounded-xl border p-3 text-xs flex items-start space-x-2 ${
-              isDark ? 'bg-rose-950/80 border-rose-800 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-700'
-            }`}>
-              <svg className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300 flex items-center gap-2">
+              <AlertTriangle size={15} className="shrink-0 text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Dialog Action Buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-2">
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-white/[0.08]">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className={`rounded-xl border px-4 py-2 text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 ${
-                isDark
-                  ? 'bg-[#0e1117] hover:bg-[#1c2128] border-zinc-700 text-zinc-300 hover:text-white'
-                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800 hover:text-slate-950'
-              }`}
+              className="rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-white/[0.08] hover:text-white transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!canSubmit}
-              className="inline-flex items-center rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-bold text-white shadow-xs focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)] transition hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              {submitting ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Applying Override...
-                </>
-              ) : (
-                'Save Priority Change'
-              )}
+              {submitting ? 'Applying Override…' : 'Save Priority Override'}
             </button>
           </div>
         </form>
