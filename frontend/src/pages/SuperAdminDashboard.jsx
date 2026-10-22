@@ -16,7 +16,7 @@ import { getCampusBuildings } from '../data/iiitnrCampusData';
 import {
   Activity, AlertTriangle, BarChart3, Building2,
   CheckCircle2, ChevronRight, Clock3, Compass, LayoutDashboard,
-  Map, ClipboardList, RefreshCw, Search, ShieldCheck, UsersRound, Wrench,
+  Map as MapIcon, ClipboardList, RefreshCw, Search, ShieldCheck, UsersRound, Wrench,
 } from 'lucide-react';
 
 
@@ -268,7 +268,7 @@ export default function SuperAdminDashboard() {
     { to: '/operations', label: 'Operations console', icon: LayoutDashboard },
     { to: '/superadmin/staff', label: 'Staff directory', icon: ShieldCheck },
     { to: '/squads', label: 'Squad capacity', icon: UsersRound },
-    { to: '/map', label: 'Campus twin', icon: Map },
+    { to: '/map', label: 'Campus twin', icon: MapIcon },
     { to: '/track', label: 'Track & audit', icon: ClipboardList },
   ];
 

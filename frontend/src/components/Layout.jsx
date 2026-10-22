@@ -26,7 +26,8 @@ export default function Layout() {
   }
 
   // The operations desk and directorate overview own their full-screen command layout and side navigation.
-  if (location.pathname === '/operations' || location.pathname === '/superadmin') {
+  const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
+  if (normalizedPath === '/operations' || normalizedPath === '/superadmin') {
     return <Outlet />;
   }
 
