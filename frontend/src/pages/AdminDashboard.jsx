@@ -126,10 +126,106 @@ export default function AdminDashboard() {
 
   return (
     <div
-      className={`w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
+      className={`modern-operations w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
         isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
       }`}
     >
+      <style>{`
+/* Modern Command Center refresh — scoped to the two dashboard roots */
+.modern-directorate, .modern-operations {
+  --modern-bg: #080d18;
+  --modern-panel: rgba(17, 25, 40, .88);
+  --modern-panel-2: #111c2d;
+  --modern-border: rgba(148, 163, 184, .16);
+  --modern-muted: #91a0b8;
+  --modern-text: #f4f7fb;
+  --modern-accent: #62e6b5;
+  background:
+    radial-gradient(ellipse at 82% -10%, rgba(16, 185, 129, .13), transparent 34%),
+    radial-gradient(ellipse at 0% 20%, rgba(59, 130, 246, .08), transparent 30%),
+    var(--modern-bg) !important;
+  color: var(--modern-text) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  letter-spacing: -.01em;
+}
+.modern-directorate *, .modern-operations * { box-sizing: border-box; }
+.modern-directorate header, .modern-operations > div:first-child {
+  background: linear-gradient(135deg, rgba(17, 28, 45, .97), rgba(11, 19, 32, .93)) !important;
+  border-color: var(--modern-border) !important;
+  position: relative;
+}
+.modern-directorate header::after, .modern-operations > div:first-child::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(98,230,181,.6), rgba(96,165,250,.3), transparent);
+  pointer-events: none;
+}
+.modern-directorate h1, .modern-operations h1 {
+  letter-spacing: -.045em !important;
+  line-height: 1.08 !important;
+  font-weight: 760 !important;
+}
+.modern-directorate main, .modern-operations main {
+  max-width: 1680px !important;
+  margin: 0 auto !important;
+  padding-top: 28px !important;
+  padding-bottom: 44px !important;
+}
+.modern-directorate section > div > div[class*="bg-[#161C24]"],
+.modern-directorate section > div > div[class*="bg-[#161c24]"] {
+  background: linear-gradient(145deg, rgba(21,32,49,.96), rgba(13,21,35,.96)) !important;
+  border: 1px solid var(--modern-border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.025) !important;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease !important;
+}
+.modern-directorate section > div > div[class*="bg-[#161C24]"]:hover,
+.modern-directorate section > div > div[class*="bg-[#161c24]"]:hover {
+  transform: translateY(-2px);
+  border-color: rgba(98,230,181,.34) !important;
+  box-shadow: 0 16px 34px rgba(0,0,0,.24) !important;
+}
+.modern-directorate a[href], .modern-operations a[href] {
+  transition: transform .18s ease, border-color .18s ease, background .18s ease !important;
+}
+.modern-directorate a[href]:hover, .modern-operations a[href]:hover {
+  border-color: rgba(98,230,181,.4) !important;
+}
+.modern-operations [class*="rounded-2xl"][class*="border"],
+.modern-operations [class*="rounded-xl"][class*="border"],
+.modern-operations [class*="rounded-2xl"][class*="shadow"] {
+  border-color: var(--modern-border) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,.13) !important;
+}
+.modern-operations button, .modern-directorate button {
+  transition: transform .16s ease, filter .16s ease, border-color .16s ease !important;
+}
+.modern-operations button:hover:not(:disabled), .modern-directorate button:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.modern-operations button:active:not(:disabled), .modern-directorate button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.modern-directorate table, .modern-operations table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+.modern-directorate thead, .modern-operations thead {
+  letter-spacing: .075em !important;
+}
+.modern-directorate tbody tr, .modern-operations tbody tr {
+  transition: background .15s ease !important;
+}
+.modern-directorate input, .modern-directorate select, .modern-directorate textarea,
+.modern-operations input, .modern-operations select, .modern-operations textarea {
+  border-radius: 10px !important;
+}
+@media (max-width: 640px) {
+  .modern-directorate main, .modern-operations main { padding: 18px 14px 30px !important; }
+  .modern-directorate h1, .modern-operations h1 { font-size: 1.6rem !important; }
+}
+      `}</style>
       {/* Flush Operations Hero Header */}
       <div
         className={`w-full border-b px-4 sm:px-6 lg:px-8 py-5 relative overflow-hidden transition-colors ${
