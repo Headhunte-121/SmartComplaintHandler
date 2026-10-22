@@ -83,14 +83,19 @@ const apiClient = axios.create({
   },
 });
 
-// Attach Authorization Bearer token from localStorage or sessionStorage
+// Attach Authorization Bearer token from localStorage or sessionStorage & strip trailing slashes to avoid Vercel rewrite misses
 apiClient.interceptors.request.use((config) => {
-  const token =
-    localStorage.getItem(AUTH_TOKEN_KEY) ||
-    sessionStorage.getItem(AUTH_TOKEN_KEY);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (config.url && typeof config.url === 'string' && config.url.length > 1 && config.url.endsWith('/')) {
+    config.url = config.url.replace(/\/+$/, '');
   }
+  try {
+    const token =
+      localStorage.getItem(AUTH_TOKEN_KEY) ||
+      sessionStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (_) {}
   return config;
 });
 

@@ -26,7 +26,15 @@ import { useAuth } from '../context/AuthContext';
  * Automatically lands authenticated users on their primary operational workplace.
  */
 function RoleHomeRedirect() {
-  const { currentUser } = useAuth();
+  const { currentUser, authInitializing } = useAuth();
+
+  if (authInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
@@ -50,7 +58,15 @@ function RoleHomeRedirect() {
  * Route protection guard checking authenticated role permissions.
  */
 function ProtectedRoute({ children, allowedRoles, fallbackRoute = '/student' }) {
-  const { currentUser } = useAuth();
+  const { currentUser, authInitializing } = useAuth();
+
+  if (authInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;

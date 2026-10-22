@@ -74,7 +74,7 @@ function evaluatePasswordStrength(pw) {
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register, loginGoogle, currentUser } = useAuth();
+  const { register, loginGoogle, currentUser, authInitializing } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const [step, setStep] = useState('email');
@@ -93,9 +93,12 @@ export default function Register() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (currentUser) {
+    if (!authInitializing && currentUser) {
       if (isUndergradHostelStudent(currentUser.email)) {
-        const isCompleted = localStorage.getItem(`iiitnr_residence_completed_${(currentUser.email || '').toLowerCase()}`);
+        let isCompleted = false;
+        try {
+          isCompleted = localStorage.getItem(`iiitnr_residence_completed_${(currentUser.email || '').toLowerCase()}`) === 'true';
+        } catch (_) {}
         if (!isCompleted && (!currentUser.hostel_name || !currentUser.room_number)) {
           navigate('/residence-info', { replace: true });
           return;
@@ -103,7 +106,7 @@ export default function Register() {
       }
       navigate('/submit', { replace: true });
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, authInitializing, navigate]);
 
   useEffect(() => {
     if (!googleClientId) {

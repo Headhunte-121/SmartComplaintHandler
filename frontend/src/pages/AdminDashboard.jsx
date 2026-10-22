@@ -122,6 +122,7 @@ export default function AdminDashboard() {
     (t) => t.priority === 'CRITICAL' && t.status !== 'RESOLVED' && t.status !== 'CLOSED'
   ).length;
   const resolvedCount = tickets.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED').length;
+  const escalatedCount = tickets.filter((t) => t.status === 'ESCALATED').length;
 
   return (
     <div
@@ -269,9 +270,28 @@ export default function AdminDashboard() {
             }`}
           >
             <div>
-              <h2 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                Campus Incident Queue ({filteredTickets.length} records)
-              </h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+                  Campus Incident Queue ({filteredTickets.length} records)
+                </h2>
+                {escalatedCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStatus(selectedStatus === 'ESCALATED' ? '' : 'ESCALATED')}
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                      selectedStatus === 'ESCALATED'
+                        ? 'bg-rose-600 text-white border-rose-500 shadow-xs'
+                        : isDark
+                        ? 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border-rose-800'
+                        : 'bg-rose-100 hover:bg-rose-200 text-rose-800 border-rose-300'
+                    }`}
+                    title="Click to toggle filter for escalated tickets"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                    <span>⚠️ {escalatedCount} Escalated for Reassignment</span>
+                  </button>
+                )}
+              </div>
               <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
                 Filter active tickets across status, priority, and maintenance squad assignments.
               </p>
@@ -418,6 +438,20 @@ export default function AdminDashboard() {
                         <div className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                           📍 {t.location || 'Campus'}
                         </div>
+                        {t.status === 'ESCALATED' && (
+                          <div className={`mt-1.5 p-2 rounded-lg border text-[11px] leading-relaxed flex items-start gap-1.5 font-medium ${
+                            isDark
+                              ? 'bg-rose-950/50 border-rose-800 text-rose-300'
+                              : 'bg-rose-50 border-rose-300 text-rose-800'
+                          }`}>
+                            <span className="shrink-0 text-xs">⚠️</span>
+                            <span className="line-clamp-2">
+                              {t.resolution_notes
+                                ? t.resolution_notes.split('[ESCALATION:').pop().split(']').shift().replace(/^.*?Reason:\s*/i, '') || 'Escalated by technician for supervisory reassignment'
+                                : 'Escalated by technician for supervisory reassignment'}
+                            </span>
+                          </div>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-4 whitespace-nowrap">

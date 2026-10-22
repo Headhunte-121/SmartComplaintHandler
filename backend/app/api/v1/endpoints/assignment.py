@@ -79,6 +79,10 @@ def reassign_team(
 
     old_team_name = ticket.assigned_team.name if ticket.assigned_team else "Unassigned"
     ticket.assigned_team_id = target_team.id
+    if target_team.department_id:
+        ticket.department_id = target_team.department_id
+    if ticket.status == 'ESCALATED':
+        ticket.status = 'ASSIGNED'
 
     actor_label = f" by {current_user.email}" if current_user else ""
     audit_entry = (

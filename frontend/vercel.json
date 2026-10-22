@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://smart-complaint-handler-backend.vercel.app/api/$1"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://smart-complaint-handler-backend.vercel.app/api/:path*"
     },

@@ -6,9 +6,20 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Layout() {
-  const { currentUser } = useAuth();
+  const { currentUser, authInitializing } = useAuth();
   const { isDark } = useTheme();
   const location = useLocation();
+
+  if (authInitializing) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-slate-50 text-slate-800'}`}>
+        <div className="flex flex-col items-center gap-3 animate-fade-in">
+          <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-mono text-slate-400">Loading campus session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;

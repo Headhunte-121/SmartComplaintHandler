@@ -95,35 +95,39 @@ function enrichUser(userData) {
 }
 
 function clearAuthStorage() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(AUTH_USER_KEY);
-  localStorage.removeItem(AUTH_EXPIRES_AT_KEY);
-  localStorage.removeItem('smart_complaint_remember_email');
-  sessionStorage.removeItem(AUTH_TOKEN_KEY);
-  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-  sessionStorage.removeItem(AUTH_USER_KEY);
-  sessionStorage.removeItem(AUTH_EXPIRES_AT_KEY);
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(AUTH_EXPIRES_AT_KEY);
+    localStorage.removeItem('smart_complaint_remember_email');
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    sessionStorage.removeItem(AUTH_USER_KEY);
+    sessionStorage.removeItem(AUTH_EXPIRES_AT_KEY);
+  } catch (_) {}
 }
 
 function persistAuthSession(authData, enrichedUser, rememberMe) {
-  const primaryStorage = rememberMe ? localStorage : sessionStorage;
-  const secondaryStorage = rememberMe ? sessionStorage : localStorage;
+  try {
+    const primaryStorage = rememberMe ? localStorage : sessionStorage;
+    const secondaryStorage = rememberMe ? sessionStorage : localStorage;
 
-  primaryStorage.setItem(AUTH_TOKEN_KEY, authData.access_token);
-  primaryStorage.setItem(AUTH_USER_KEY, JSON.stringify(enrichedUser));
-  if (authData.refresh_token) {
-    primaryStorage.setItem(REFRESH_TOKEN_KEY, authData.refresh_token);
-  }
-  if (authData.expires_at) {
-    primaryStorage.setItem(AUTH_EXPIRES_AT_KEY, authData.expires_at);
-  }
+    primaryStorage.setItem(AUTH_TOKEN_KEY, authData.access_token);
+    primaryStorage.setItem(AUTH_USER_KEY, JSON.stringify(enrichedUser));
+    if (authData.refresh_token) {
+      primaryStorage.setItem(REFRESH_TOKEN_KEY, authData.refresh_token);
+    }
+    if (authData.expires_at) {
+      primaryStorage.setItem(AUTH_EXPIRES_AT_KEY, authData.expires_at);
+    }
 
-  secondaryStorage.removeItem(AUTH_TOKEN_KEY);
-  secondaryStorage.removeItem(REFRESH_TOKEN_KEY);
-  secondaryStorage.removeItem(AUTH_USER_KEY);
-  secondaryStorage.removeItem(AUTH_EXPIRES_AT_KEY);
-  localStorage.removeItem('smart_complaint_remember_email');
+    secondaryStorage.removeItem(AUTH_TOKEN_KEY);
+    secondaryStorage.removeItem(REFRESH_TOKEN_KEY);
+    secondaryStorage.removeItem(AUTH_USER_KEY);
+    secondaryStorage.removeItem(AUTH_EXPIRES_AT_KEY);
+    localStorage.removeItem('smart_complaint_remember_email');
+  } catch (_) {}
 }
 
 const AuthContext = createContext(null);
@@ -316,18 +320,21 @@ export function AuthProvider({ children }) {
   // 3. Tab visibility & focus change synchronization latch
   useEffect(() => {
     const syncSessionWithStorage = () => {
-      const rawToken =
-        localStorage.getItem(AUTH_TOKEN_KEY) ||
-        sessionStorage.getItem(AUTH_TOKEN_KEY);
-      const rawUser =
-        localStorage.getItem(AUTH_USER_KEY) ||
-        sessionStorage.getItem(AUTH_USER_KEY);
+      let rawToken = null;
+      let rawUser = null;
+      try {
+        rawToken =
+          localStorage.getItem(AUTH_TOKEN_KEY) ||
+          sessionStorage.getItem(AUTH_TOKEN_KEY);
+        rawUser =
+          localStorage.getItem(AUTH_USER_KEY) ||
+          sessionStorage.getItem(AUTH_USER_KEY);
+      } catch (_) {
+        return;
+      }
 
+      // If storage is momentarily unreadable or empty, DO NOT wipe memory session if user is logged in
       if (!rawToken || !rawUser) {
-        if (currentUser !== null) {
-          setCurrentUser(null);
-          clearAuthStorage();
-        }
         return;
       }
 
@@ -342,8 +349,7 @@ export function AuthProvider({ children }) {
           setCurrentUser(enrichUser(parsed));
         }
       } catch (_) {
-        setCurrentUser(null);
-        clearAuthStorage();
+        // Do not crash or clear on parse glitch
       }
     };
 

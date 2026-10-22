@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { fetchComplaints } from '../api/complaints';
-import { updateTicketStatus } from '../api/sla';
+import { updateTicketStatus, escalateTicket } from '../api/sla';
 import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import ResolutionNotesModal from '../components/ResolutionNotesModal';
@@ -22,6 +22,45 @@ const CAMPUS_SQUADS = [
   { id: 3, name: 'Sanitation Rapid Response', dept: 'Sanitation' },
   { id: 4, name: 'Structural Fixtures Crew', dept: 'Carpentry' },
   { id: 5, name: 'Network & Wi-Fi Squad', dept: 'IT Support' },
+];
+
+const ESCALATION_PRESETS = [
+  {
+    id: 'misrouted',
+    icon: '🏐',
+    label: 'Misrouted Category / Wrong Squad',
+    hint: 'Issue belongs to a different trade (e.g. sports nets, carpentry, civil fixtures).',
+    defaultTarget: 'Carpentry (Structural Fixtures Crew)',
+    getText: (ticket, squad) =>
+      `Misrouted ticket: The reported issue ("${ticket.title}") does not pertain to the ${squad.name} (${squad.dept}) trade. Requesting supervisor review and manual reassignment to the appropriate maintenance crew.`,
+  },
+  {
+    id: 'parts',
+    icon: '📦',
+    label: 'Parts / Vendor Procurement Required',
+    hint: 'Specialized replacement materials or external vendor contractor required.',
+    defaultTarget: '',
+    getText: (ticket, squad) =>
+      `Parts / Procurement dependency: Resolution of work order "${ticket.title}" requires specialized replacement parts or vendor intervention not available in ${squad.name} inventory.`,
+  },
+  {
+    id: 'hazard',
+    icon: '⚠️',
+    label: 'Structural / Campus Safety Hazard',
+    hint: 'Physical or safety hazard requiring immediate inspection and site containment.',
+    defaultTarget: '',
+    getText: (ticket, squad) =>
+      `Campus Safety Hazard: Physical risk observed on-site for ticket "${ticket.title}". Immediate supervisor inspection and safety protocol activation requested.`,
+  },
+  {
+    id: 'capacity',
+    icon: '⏱️',
+    label: 'Scope Exceeds Capacity / SLA Risk',
+    hint: 'Scope or backlog threatens SLA breach without cross-squad support.',
+    defaultTarget: '',
+    getText: (ticket, squad) =>
+      `Capacity constraint / SLA risk: Repair work for ticket "${ticket.title}" exceeds single-technician shift capacity. Requesting supervisor assistance or workload rebalancing.`,
+  },
 ];
 
 export default function TechnicianWorkstation() {
@@ -69,6 +108,24 @@ export default function TechnicianWorkstation() {
   const [holdingTicket, setHoldingTicket] = useState(null);
   const [holdReason, setHoldReason] = useState('Awaiting replacement spare parts from central institutional inventory.');
   const [submittingHold, setSubmittingHold] = useState(false);
+
+  // Supervisory Escalation modal state
+  const [escalatingTicket, setEscalatingTicket] = useState(null);
+  const [escalateReason, setEscalateReason] = useState('');
+  const [suggestedTargetDept, setSuggestedTargetDept] = useState('');
+  const [submittingEscalate, setSubmittingEscalate] = useState(false);
+
+  // Keyboard accessibility: dismiss modals on Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (escalatingTicket) setEscalatingTicket(null);
+        if (holdingTicket) setHoldingTicket(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [escalatingTicket, holdingTicket]);
 
   const loadWorkOrders = async () => {
     setLoading(true);
@@ -127,6 +184,58 @@ export default function TechnicianWorkstation() {
       setError(err.response?.data?.detail || err.message || 'Failed to place ticket on hold.');
     } finally {
       setSubmittingHold(false);
+    }
+  };
+
+  const handleOpenEscalate = (ticket) => {
+    const defaultPreset = ESCALATION_PRESETS[0];
+    setEscalateReason(defaultPreset.getText(ticket, assignedSquad));
+    setSuggestedTargetDept(defaultPreset.defaultTarget);
+    setEscalatingTicket(ticket);
+    setError(null);
+  };
+
+  const handleConfirmEscalate = async (e) => {
+    e.preventDefault();
+    if (!escalatingTicket) return;
+    const finalReason = [
+      escalateReason.trim(),
+      suggestedTargetDept ? `[Recommended Squad Target: ${suggestedTargetDept}]` : ''
+    ].filter(Boolean).join('\n');
+
+    if (finalReason.length < 5) {
+      setError('Please provide an escalation justification of at least 5 characters.');
+      return;
+    }
+
+    setSubmittingEscalate(true);
+    setError(null);
+    try {
+      await escalateTicket(
+        escalatingTicket.id,
+        finalReason,
+        activeUser?.name || activeUser?.email || 'Field Technician'
+      );
+      setTickets((prev) =>
+        prev.map((t) =>
+          t.id === escalatingTicket.id
+            ? {
+                ...t,
+                status: 'ESCALATED',
+                resolution_notes: t.resolution_notes
+                  ? `${t.resolution_notes}\n[ESCALATION: ${new Date().toISOString()} | Technician: ${activeUser?.name || 'Staff'} | Reason: ${finalReason}]`
+                  : `[ESCALATION: ${new Date().toISOString()} | Technician: ${activeUser?.name || 'Staff'} | Reason: ${finalReason}]`,
+              }
+            : t
+        )
+      );
+      setActionSuccess(`Work order ${escalatingTicket.tracking_code} escalated to supervisor for review and reassignment.`);
+      setEscalatingTicket(null);
+      setTimeout(() => setActionSuccess(null), 4000);
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Failed to escalate ticket to supervisor.');
+    } finally {
+      setSubmittingEscalate(false);
     }
   };
 
@@ -437,8 +546,10 @@ export default function TechnicianWorkstation() {
             <div className={`divide-y ${isDark ? 'divide-zinc-800/80' : 'divide-slate-200'}`}>
               {displayedOrders.map((ticket) => {
                 const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+                const isClosed = ticket.status === 'CLOSED';
                 const isSubmitted = ticket.status === 'SUBMITTED' || ticket.status === 'ASSIGNED' || ticket.status === 'PENDING';
-                const isInProgress = ticket.status === 'IN_PROGRESS' || ticket.status === 'ESCALATED';
+                const isInProgress = ticket.status === 'IN_PROGRESS';
+                const isEscalated = ticket.status === 'ESCALATED';
                 const isOnHold = ticket.status === 'ON_HOLD';
 
                 return (
@@ -611,6 +722,36 @@ export default function TechnicianWorkstation() {
                           </>
                         )}
 
+                        {/* Escalate to Supervisor Button */}
+                        {!isResolved && !isClosed && (
+                          isEscalated ? (
+                            <span
+                              className={`px-3 py-2 text-xs font-bold rounded-xl border flex items-center gap-1.5 ${
+                                isDark
+                                  ? 'bg-rose-950/60 border-rose-800 text-rose-300'
+                                  : 'bg-rose-50 border-rose-300 text-rose-800'
+                              }`}
+                              title="Under supervisory review for manual reassignment"
+                            >
+                              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
+                              ⚠️ Escalated to Supervisor
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEscalate(ticket)}
+                              className={`px-3 py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                                isDark
+                                  ? 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-800/80 hover:border-rose-700'
+                                  : 'bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-300 shadow-2xs'
+                              }`}
+                              title="Escalate to Supervisor for review or manual squad reassignment"
+                            >
+                              <span>⚠️ Escalate to Supervisor</span>
+                            </button>
+                          )
+                        )}
+
                         <Link
                           to={`/track?code=${ticket.tracking_code}`}
                           className={`px-3 py-2 text-xs font-bold rounded-xl border transition-colors text-center ${
@@ -633,11 +774,19 @@ export default function TechnicianWorkstation() {
 
       {/* Hold Reason Modal */}
       {holdingTicket && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="hold-modal-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setHoldingTicket(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in"
+        >
           <div className={`w-full max-w-md p-6 rounded-2xl border shadow-2xl space-y-4 animate-scale-up ${
             isDark ? 'bg-[#161b22] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
           }`}>
-            <h3 className="text-base font-bold">Pause Work Order (Parts / Delay Gate)</h3>
+            <h3 id="hold-modal-title" className="text-base font-bold">Pause Work Order (Parts / Delay Gate)</h3>
             <p className="text-xs text-slate-400">
               Provide the justification for pausing work order <strong>{holdingTicket.tracking_code}</strong> (e.g. required replacement parts or awaiting specialized tools).
             </p>
@@ -671,6 +820,166 @@ export default function TechnicianWorkstation() {
                   className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white cursor-pointer shadow-sm"
                 >
                   {submittingHold ? 'Recording...' : 'Confirm Hold Status'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Supervisory Escalation Modal */}
+      {escalatingTicket && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="escalate-modal-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setEscalatingTicket(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in"
+        >
+          <div
+            className={`w-full max-w-lg p-6 sm:p-7 rounded-2xl border shadow-2xl space-y-4 animate-scale-up ${
+              isDark ? 'bg-[#161b22] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border bg-rose-500/20 text-rose-400 border-rose-500/30">
+                  Supervisory Escalation Gate
+                </span>
+                <h3 id="escalate-modal-title" className="text-base font-black mt-1">
+                  Escalate Work Order to Supervisor
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEscalatingTicket(null)}
+                className={`p-1.5 rounded-lg transition-colors cursor-pointer text-xs ${
+                  isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+              Flag this ticket for immediate supervisory intervention. The Facility Admin can review your reason, override trade assignment, and manually reassign the ticket to the correct maintenance squad.
+            </p>
+
+            <div className={`p-3 rounded-xl border text-xs space-y-1 ${
+              isDark ? 'bg-zinc-800/40 border-zinc-700 text-zinc-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-bold text-emerald-400">{escalatingTicket.tracking_code}</span>
+                <span className="font-semibold text-[11px] opacity-75">{assignedSquad.name} ({assignedSquad.dept})</span>
+              </div>
+              <div className="font-bold truncate">{escalatingTicket.title}</div>
+              <div className="text-[11px] opacity-80">📍 {escalatingTicket.location || 'Campus'}</div>
+            </div>
+
+            {/* Quick Reason Presets */}
+            <div className="space-y-1.5">
+              <label className={`block text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                Quick Select Escalation Reason
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {ESCALATION_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => {
+                      setEscalateReason(preset.getText(escalatingTicket, assignedSquad));
+                      if (preset.defaultTarget) setSuggestedTargetDept(preset.defaultTarget);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      isDark
+                        ? 'bg-zinc-800/50 hover:bg-zinc-800 border-zinc-700 text-zinc-200 hover:border-rose-500/50'
+                        : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800 hover:border-rose-400'
+                    }`}
+                  >
+                    <div className="font-bold flex items-center gap-1.5 text-xs text-rose-500">
+                      <span>{preset.icon}</span>
+                      <span>{preset.label}</span>
+                    </div>
+                    <div className={`text-[10px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                      {preset.hint}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmEscalate} className="space-y-4 text-xs pt-1">
+              <div>
+                <label className={`block font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                  Escalation Justification (Required)
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={escalateReason}
+                  onChange={(e) => setEscalateReason(e.target.value)}
+                  placeholder="Detail why this ticket requires supervisory review (e.g. misrouted trade, structural hazard, or specialized equipment needed)..."
+                  className={`w-full p-3 rounded-xl border text-xs focus:outline-none transition-colors ${
+                    isDark
+                      ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 focus:border-rose-500'
+                      : 'bg-white border-slate-300 text-slate-900 focus:border-rose-500 shadow-2xs'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                  Recommended Squad Trade (Optional suggestion for Supervisor)
+                </label>
+                <select
+                  value={suggestedTargetDept}
+                  onChange={(e) => setSuggestedTargetDept(e.target.value)}
+                  className={`w-full p-2.5 rounded-xl border text-xs focus:outline-none ${
+                    isDark
+                      ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 focus:border-rose-500'
+                      : 'bg-white border-slate-300 text-slate-900 focus:border-rose-500'
+                  }`}
+                >
+                  <option value="">-- Let Supervisor Decide Target Squad --</option>
+                  <option value="Carpentry (Structural Fixtures Crew)">Carpentry (Structural Fixtures Crew - Sports / Nets / Wooden Fixtures)</option>
+                  <option value="General Administration (Facilities & Civil Squad)">General Administration (Facilities &amp; Civil Infrastructure)</option>
+                  <option value="Electrical (Hostel Electrical Squad 1)">Electrical (Hostel Electrical Squad 1 - Power / Lighting / Motors)</option>
+                  <option value="Plumbing (Hostel Plumbing Squad 2)">Plumbing (Hostel Plumbing Squad 2 - Water / Drainage)</option>
+                  <option value="Sanitation (Sanitation Rapid Response)">Sanitation (Sanitation Rapid Response - Waste / Cleaning)</option>
+                  <option value="IT Support (Network & Wi-Fi Squad)">IT Support (Network &amp; Wi-Fi Squad - LAN / Access Points)</option>
+                </select>
+              </div>
+
+              {error && (
+                <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-semibold">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-inherit">
+                <button
+                  type="button"
+                  onClick={() => setEscalatingTicket(null)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
+                    isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700' : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingEscalate}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white cursor-pointer shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-all"
+                >
+                  {submittingEscalate ? (
+                    <span>Escalating...</span>
+                  ) : (
+                    <>
+                      <span>⚠️ Confirm Escalation to Supervisor</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

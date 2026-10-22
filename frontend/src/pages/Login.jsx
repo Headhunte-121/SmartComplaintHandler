@@ -57,7 +57,7 @@ function ensureGoogleSdkLoaded(timeoutMs = 8000) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, loginGoogle, currentUser } = useAuth();
+  const { login, loginGoogle, currentUser, authInitializing } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const [email, setEmail] = useState('');
@@ -73,6 +73,29 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const handleRoleRedirect = (user) => {
+    if (!user) return;
+    if (isUndergradHostelStudent(user?.email)) {
+      let isCompleted = false;
+      try {
+        isCompleted = localStorage.getItem(`iiitnr_residence_completed_${(user.email || '').toLowerCase()}`) === 'true';
+      } catch (_) {}
+      if (!isCompleted && (!user.hostel_name || !user.room_number)) {
+        navigate('/residence-info', { replace: true });
+        return;
+      }
+    }
+    const targetRoute =
+      user.role === 'SUPER_ADMIN'
+        ? '/superadmin'
+        : user.role === 'ADMIN'
+        ? '/operations'
+        : user.role === 'TECHNICIAN'
+        ? '/technician'
+        : '/student';
+    navigate(targetRoute, { replace: true });
+  };
+
   useEffect(() => {
     try {
       localStorage.removeItem('smart_complaint_remember_email');
@@ -80,10 +103,10 @@ export default function Login() {
   }, []);
 
   useEffect(() => {
-    if (currentUser) {
+    if (!authInitializing && currentUser) {
       handleRoleRedirect(currentUser);
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, authInitializing, navigate]);
 
   useEffect(() => {
     if (!googleClientId) {
@@ -103,25 +126,6 @@ export default function Login() {
     if (!clean.endsWith(`@${ALLOWED_DOMAIN}`) || clean.startsWith('@')) return null;
     return resolveIiitnrProfileFromEmail(clean);
   }, [email]);
-
-  const handleRoleRedirect = (user) => {
-    if (isUndergradHostelStudent(user?.email)) {
-      const isCompleted = localStorage.getItem(`iiitnr_residence_completed_${(user.email || '').toLowerCase()}`);
-      if (!isCompleted && (!user.hostel_name || !user.room_number)) {
-        navigate('/residence-info', { replace: true });
-        return;
-      }
-    }
-    const targetRoute =
-      user.role === 'SUPER_ADMIN'
-        ? '/superadmin'
-        : user.role === 'ADMIN'
-        ? '/operations'
-        : user.role === 'TECHNICIAN'
-        ? '/technician'
-        : '/student';
-    navigate(targetRoute, { replace: true });
-  };
 
   const fetchGoogleUserProfile = async (accessToken) => {
     const endpoints = [
@@ -182,6 +186,7 @@ export default function Login() {
                 remember_me: rememberMe,
                 is_registration: false,
               });
+              setGoogleLoading(false);
               handleRoleRedirect(user);
             } else {
               const user = await loginGoogle({
@@ -191,6 +196,7 @@ export default function Login() {
                 remember_me: rememberMe,
                 is_registration: false,
               });
+              setGoogleLoading(false);
               handleRoleRedirect(user);
             }
           } catch (err) {
