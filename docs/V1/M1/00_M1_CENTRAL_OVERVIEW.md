@@ -1046,5 +1046,18 @@ npm run dev
 * **Verification Proof:**
   Build and automated tests were not run in this implementation pass.
 
+### [2026-10-22] - Super Admin Dark Theme Support
+* **Files Modified:**
+  - `frontend/src/pages/SuperAdminDashboard.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  Added a dark visual treatment for the executive dashboard, including the page canvas, dashboard surfaces, chart guides, status ring, filters, controls, and a deep indigo hero header. The dashboard uses the existing global appearance control in the navigation.
+* **Why It Was Changed:**
+  Directorate users can now switch between the light executive workspace and a high-contrast dark workspace without losing chart readability or action visibility.
+* **Cross-Module Impact:**
+  Frontend presentation only; existing theme persistence and global navigation toggle are reused.
+* **Verification Proof:**
+  Build and automated tests were not run in this implementation pass.
+
 
 

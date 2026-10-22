@@ -251,7 +251,7 @@ export default function SuperAdminDashboard() {
   return (
     <div className="min-h-screen bg-[#f4f7fc] text-slate-900 transition-colors dark:bg-[#0b1020] dark:text-slate-100">
       <main className="mx-auto w-full max-w-[1480px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <header className="flex flex-col justify-between gap-5 rounded-3xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-600 p-6 text-white shadow-[0_18px_50px_-25px_rgba(67,85,219,.65)] sm:p-8 lg:flex-row lg:items-center">
+        <header className="flex flex-col justify-between gap-5 rounded-3xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-600 p-6 text-white shadow-[0_18px_50px_-25px_rgba(67,85,219,.65)] transition-colors dark:border dark:border-indigo-400/20 dark:from-[#172554] dark:via-[#1e1b4b] dark:to-[#312e81] dark:shadow-[0_18px_55px_-25px_rgba(0,0,0,.9)] sm:p-8 lg:flex-row lg:items-center">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-indigo-50">
               <ShieldCheck size={14} /> DIRECTORATE OVERVIEW
@@ -261,8 +261,8 @@ export default function SuperAdminDashboard() {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-indigo-100 sm:text-base">Monitor service health, resolve bottlenecks, and spot campus issues before they escalate.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link to="/superadmin/staff" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"><UsersRound size={16} /> Staff directory</Link>
-            <button type="button" onClick={loadData} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> {loading ? 'Refreshing' : 'Refresh data'}</button>
+            <Link to="/superadmin/staff" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20 dark:border-indigo-200/20 dark:bg-indigo-300/10 dark:hover:bg-indigo-300/20"><UsersRound size={16} /> Staff directory</Link>
+            <button type="button" onClick={loadData} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:bg-indigo-100 dark:text-indigo-950 dark:hover:bg-white"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> {loading ? 'Refreshing' : 'Refresh data'}</button>
           </div>
         </header>
 
