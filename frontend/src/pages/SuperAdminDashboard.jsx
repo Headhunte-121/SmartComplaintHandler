@@ -166,13 +166,12 @@ export default function SuperAdminDashboard() {
   }, [buildings, tickets]);
 
   const handleFacilityClick = (building) => {
-    // Navigate to track status or operations filtered by location
     navigate(`/track?search=${encodeURIComponent(building.shortName)}`);
   };
 
   return (
     <div
-      className="w-full min-h-screen bg-[#0D1117] text-[#F1F5F9] font-sans antialiased transition-colors duration-200"
+      className="w-full min-h-screen bg-[#0D1117] text-[#F1F5F9] font-sans antialiased box-border transition-colors duration-200"
       style={{
         '--page-bg': '#0D1117',
         '--navigation-bg': '#0B0F14',
@@ -194,12 +193,12 @@ export default function SuperAdminDashboard() {
         '--healthy': '#2DD4BF',
       }}
     >
-      {/* 4. Page Heading Section directly below Top Navigation */}
-      <section className="w-full bg-[#161C24] border-b border-[#252D38] px-6 sm:px-8 lg:px-10 py-5 sm:py-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded-[6px] bg-[#0B3029] border border-[#00B386]/30 text-[#00B386]">
+      {/* 4. Page Heading Section: full width, 32-36px gutters on 1120px, 36-50px on wide desktop */}
+      <header className="w-full bg-[#161C24] border-b border-[#252D38] px-5 sm:px-8 lg:px-10 xl:px-12 py-4">
+        <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded-[5px] bg-[#0B3029] border border-[#00B386]/30 text-[#00B386]">
                 INSTITUTIONAL DIRECTORATE COMMAND
               </span>
               <span className="text-[#64748B] text-xs">•</span>
@@ -215,33 +214,33 @@ export default function SuperAdminDashboard() {
                 </>
               )}
             </div>
-            <h1 className="text-2xl sm:text-[28px] font-bold text-[#F1F5F9] tracking-tight leading-snug">
+            <h1 className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] tracking-tight leading-tight">
               Campus Facilities Directorate Overview
             </h1>
-            <p className="text-xs sm:text-[13px] text-[#94A3B8] mt-1 max-w-3xl leading-relaxed">
+            <p className="text-[12px] text-[#94A3B8] mt-1 leading-normal max-w-4xl">
               Campus-wide complaint monitoring, departmental operations stability, building fault density, and contractual SLA oversight across IIIT Naya Raipur.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
             <button
               type="button"
               onClick={loadData}
               disabled={loading}
-              className="px-3.5 py-2 rounded-[10px] text-xs font-semibold text-[#F1F5F9] bg-[#1C2430] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#252D38] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 rounded-[8px] text-xs font-semibold text-[#F1F5F9] bg-[#1C2430] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#252D38] active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <span className={loading ? 'animate-spin inline-block' : ''}>🔄</span>
+              <span className={loading ? 'animate-spin inline-block text-xs' : 'text-xs'}>🔄</span>
               <span>{loading ? 'Refreshing...' : 'Refresh Telemetry'}</span>
             </button>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* Main Body Container: padding 28-36px desktop */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-7 sm:py-8 space-y-6 sm:space-y-7">
+      {/* Main Full-Width Content Container: exact same horizontal gutter px-5 sm:px-8 lg:px-10 xl:px-12 */}
+      <main className="w-full max-w-none px-5 sm:px-8 lg:px-10 xl:px-12 py-5 sm:py-6 space-y-5 sm:space-y-6">
         {/* Error notification banner if any */}
         {error && (
-          <div className="p-3.5 rounded-[12px] bg-[#351B23] border border-[#F87171]/40 text-[#F87171] text-xs font-medium flex items-center justify-between">
+          <div className="p-3.5 rounded-[10px] bg-[#351B23] border border-[#F87171]/40 text-[#F87171] text-xs font-medium flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span>⚠️</span>
               <span>{error}</span>
@@ -256,183 +255,187 @@ export default function SuperAdminDashboard() {
           </div>
         )}
 
-        {/* 5. KPI Strip: 6 compact metric cards in 1 row on desktop, 3 on tablet, 2 on mobile */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
-          {/* KPI 1: Total Grievances */}
-          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
-            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
-              Total Grievances
-            </span>
-            <div className="my-1">
-              <span className="text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
-                {loading ? '—' : totalTickets}
+        {/* 5. KPI Strip: 6 compact cards in ONE desktop row, 3 on tablet, 2 on mobile */}
+        <section aria-label="Executive KPIs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
+            {/* KPI 1: Total Grievances */}
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Total Grievances
+              </span>
+              <div className="my-0.5">
+                <span className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                  {loading ? '—' : totalTickets}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#2DD4BF] font-medium block truncate">
+                Institutional Lifetime
               </span>
             </div>
-            <span className="text-[11px] text-[#2DD4BF] font-medium block truncate">
-              Institutional Lifetime
-            </span>
-          </div>
 
-          {/* KPI 2: Active Operations */}
-          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
-            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
-              Active Operations
-            </span>
-            <div className="my-1">
-              <span className={`text-[26px] font-bold leading-none block font-mono ${activeLoad > 0 ? 'text-[#FBBF24]' : 'text-[#F1F5F9]'}`}>
-                {loading ? '—' : activeLoad}
+            {/* KPI 2: Active Operations */}
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Active Operations
+              </span>
+              <div className="my-0.5">
+                <span className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${activeLoad > 0 ? 'text-[#FBBF24]' : 'text-[#F1F5F9]'}`}>
+                  {loading ? '—' : activeLoad}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
+                {pendingTickets} Pending • {inProgressTickets} In-Work
               </span>
             </div>
-            <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
-              {pendingTickets} Pending • {inProgressTickets} In-Work
-            </span>
-          </div>
 
-          {/* KPI 3: Resolution Rate */}
-          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
-            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
-              Resolution Rate
-            </span>
-            <div className="my-1">
-              <span className={`text-[26px] font-bold leading-none block font-mono ${resolutionRate >= 80 ? 'text-[#00B386]' : 'text-[#FBBF24]'}`}>
-                {loading ? '—' : `${resolutionRate}%`}
+            {/* KPI 3: Resolution Rate */}
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Resolution Rate
+              </span>
+              <div className="my-0.5">
+                <span className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${resolutionRate >= 80 ? 'text-[#00B386]' : 'text-[#FBBF24]'}`}>
+                  {loading ? '—' : `${resolutionRate}%`}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
+                {resolvedTickets} Closed Tickets
               </span>
             </div>
-            <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
-              {resolvedTickets} Closed Tickets
-            </span>
-          </div>
 
-          {/* KPI 4: SLA Compliance */}
-          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
-            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
-              SLA Compliance
-            </span>
-            <div className="my-1">
-              <span className={`text-[26px] font-bold leading-none block font-mono ${overdueBreaches === 0 ? 'text-[#00B386]' : 'text-[#F87171]'}`}>
-                {loading ? '—' : `${slaCompliance}%`}
+            {/* KPI 4: SLA Compliance */}
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                SLA Compliance
+              </span>
+              <div className="my-0.5">
+                <span className={`text-2xl sm:text-[26px] font-bold leading-none block font-mono ${overdueBreaches === 0 ? 'text-[#00B386]' : 'text-[#F87171]'}`}>
+                  {loading ? '—' : `${slaCompliance}%`}
+                </span>
+              </div>
+              <span className={`text-[11px] font-medium block truncate ${overdueBreaches > 0 ? 'text-[#F87171] font-bold' : 'text-[#00B386]'}`}>
+                {overdueBreaches > 0 ? `⚠️ ${overdueBreaches} Overdue` : '✓ Zero Overdue'}
               </span>
             </div>
-            <span className={`text-[11px] font-medium block truncate ${overdueBreaches > 0 ? 'text-[#F87171] font-bold' : 'text-[#00B386]'}`}>
-              {overdueBreaches > 0 ? `⚠️ ${overdueBreaches} Overdue` : '✓ Zero Overdue'}
-            </span>
-          </div>
 
-          {/* KPI 5: Field Squads */}
-          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
-            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
-              Field Squads
-            </span>
-            <div className="my-1">
-              <span className="text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
-                {loading ? '—' : teams.length}
+            {/* KPI 5: Field Squads */}
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Field Squads
+              </span>
+              <div className="my-0.5">
+                <span className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                  {loading ? '—' : teams.length}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#38BDF8] font-medium block truncate">
+                Active Trade Balancing
               </span>
             </div>
-            <span className="text-[11px] text-[#38BDF8] font-medium block truncate">
-              Active Trade Balancing
-            </span>
-          </div>
 
-          {/* KPI 6: Staff & Admins */}
-          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
-            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
-              Staff &amp; Admins
-            </span>
-            <div className="my-1">
-              <span className="text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
-                {loading ? '—' : admins.length}
+            {/* KPI 6: Staff & Admins */}
+            <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
+                Staff &amp; Admins
+              </span>
+              <div className="my-0.5">
+                <span className="text-2xl sm:text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                  {loading ? '—' : admins.length}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
+                6 Operational Trades
               </span>
             </div>
-            <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
-              6 Operational Trades
-            </span>
           </div>
-        </div>
+        </section>
 
-        {/* 6. Quick-Access Operational Cards: 3 cards horizontally aligned */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-          {/* Card A: Operations Console */}
-          <Link
-            to="/operations"
-            className="bg-[#161C24] border border-[#252D38] hover:border-[#00B386]/60 hover:bg-[#1C2430] rounded-[12px] p-3.5 px-4 flex items-center justify-between group transition-all min-h-[60px]"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-[8px] bg-[#0B3029] border border-[#00B386]/30 flex items-center justify-center shrink-0 text-sm">
-                🚨
+        {/* 6. Quick-Access Operational Shortcut Cards: 3 equal cards, unified surface styling */}
+        <section aria-label="Operational Shortcuts">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-3.5">
+            {/* Shortcut A: Operations Console */}
+            <Link
+              to="/operations"
+              className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[12px] px-3.5 h-[58px] flex items-center justify-between group transition-all"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#252D38] flex items-center justify-center shrink-0 text-sm">
+                  🚨
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#00B386] transition-colors truncate">
+                    Operations Console
+                  </h3>
+                  <p className="text-[11px] text-[#94A3B8] truncate">
+                    Live queue triage, priority overrides, and incident dispatch.
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#00B386] transition-colors truncate">
-                  Operations Console
-                </h3>
-                <p className="text-[11px] text-[#94A3B8] truncate">
-                  Live queue triage, priority overrides, and incident dispatch.
-                </p>
-              </div>
-            </div>
-            <span className="text-[#00B386] text-sm font-bold pl-2 group-hover:translate-x-1 transition-transform">
-              →
-            </span>
-          </Link>
+              <span className="text-[#64748B] text-xs font-semibold pl-2 group-hover:text-[#00B386] group-hover:translate-x-0.5 transition-all shrink-0">
+                →
+              </span>
+            </Link>
 
-          {/* Card B: Squads & Dispatch */}
-          <Link
-            to="/squads"
-            className="bg-[#161C24] border border-[#252D38] hover:border-[#38BDF8]/60 hover:bg-[#1C2430] rounded-[12px] p-3.5 px-4 flex items-center justify-between group transition-all min-h-[60px]"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-[8px] bg-[#102A43] border border-[#38BDF8]/30 flex items-center justify-center shrink-0 text-sm">
-                🛠️
+            {/* Shortcut B: Squads & Dispatch */}
+            <Link
+              to="/squads"
+              className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[12px] px-3.5 h-[58px] flex items-center justify-between group transition-all"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#252D38] flex items-center justify-center shrink-0 text-sm">
+                  🛠️
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#00B386] transition-colors truncate">
+                    Squads &amp; Dispatch
+                  </h3>
+                  <p className="text-[11px] text-[#94A3B8] truncate">
+                    Workload balancing and team dispatch.
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#38BDF8] transition-colors truncate">
-                  Squads &amp; Dispatch
-                </h3>
-                <p className="text-[11px] text-[#94A3B8] truncate">
-                  Workload balancing and team dispatch.
-                </p>
-              </div>
-            </div>
-            <span className="text-[#38BDF8] text-sm font-bold pl-2 group-hover:translate-x-1 transition-transform">
-              →
-            </span>
-          </Link>
+              <span className="text-[#64748B] text-xs font-semibold pl-2 group-hover:text-[#00B386] group-hover:translate-x-0.5 transition-all shrink-0">
+                →
+              </span>
+            </Link>
 
-          {/* Card C: Staff & RBAC Directory */}
-          <Link
-            to="/superadmin/staff"
-            className="bg-[#161C24] border border-[#252D38] hover:border-[#C084FC]/60 hover:bg-[#1C2430] rounded-[12px] p-3.5 px-4 flex items-center justify-between group transition-all min-h-[60px]"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-[8px] bg-[#2E1065] border border-[#C084FC]/30 flex items-center justify-center shrink-0 text-sm">
-                👥
+            {/* Shortcut C: Staff & RBAC Directory */}
+            <Link
+              to="/superadmin/staff"
+              className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[12px] px-3.5 h-[58px] flex items-center justify-between group transition-all"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-[7px] bg-[#1C2430] border border-[#252D38] flex items-center justify-center shrink-0 text-sm">
+                  👥
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#00B386] transition-colors truncate">
+                    Staff &amp; RBAC Directory
+                  </h3>
+                  <p className="text-[11px] text-[#94A3B8] truncate">
+                    Staff management, permissions, and access administration.
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#C084FC] transition-colors truncate">
-                  Staff &amp; RBAC Directory
-                </h3>
-                <p className="text-[11px] text-[#94A3B8] truncate">
-                  Staff management, permissions, and access administration.
-                </p>
-              </div>
-            </div>
-            <span className="text-[#C084FC] text-sm font-bold pl-2 group-hover:translate-x-1 transition-transform">
-              →
-            </span>
-          </Link>
-        </div>
+              <span className="text-[#64748B] text-xs font-semibold pl-2 group-hover:text-[#00B386] group-hover:translate-x-0.5 transition-all shrink-0">
+                →
+              </span>
+            </Link>
+          </div>
+        </section>
 
-        {/* 7. Departmental Infrastructure Health & Operational Radar (3x2 Grid on desktop) */}
-        <section className="space-y-3.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        {/* 7. Departmental Infrastructure Health & Operational Radar (3x2 Grid) */}
+        <section className="space-y-3" aria-label="Departmental Health">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
             <div>
-              <h2 className="text-[16px] font-bold text-[#F1F5F9] tracking-tight">
+              <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
                 Departmental Infrastructure Health &amp; Operational Radar
               </h2>
-              <p className="text-xs text-[#94A3B8] mt-0.5">
+              <p className="text-[11px] sm:text-xs text-[#94A3B8] mt-0.5">
                 Cross-functional telemetry tracking complaint volume, resolution percentages, and service stability across all 6 campus trades.
               </p>
             </div>
-            <span className="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-[#0B3029] border border-[#00B386]/30 text-[#00B386] flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
+            <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#0B3029] border border-[#00B386]/30 text-[#00B386] flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
               <span className="w-1.5 h-1.5 rounded-full bg-[#00B386] animate-pulse" />
               Live Radar Active
             </span>
@@ -447,15 +450,15 @@ export default function SuperAdminDashboard() {
               return (
                 <div
                   key={dept.name}
-                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] rounded-[12px] p-4 flex flex-col justify-between transition-colors min-h-[118px]"
+                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] rounded-[12px] p-3.5 sm:p-4 flex flex-col justify-between transition-colors min-h-[114px]"
                 >
                   <div>
                     {/* Header Row: Dept Icon + Name + Health Score */}
-                    <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-lg shrink-0">{dept.icon}</span>
+                        <span className="text-base shrink-0">{dept.icon}</span>
                         <div className="min-w-0">
-                          <h3 className="text-[13px] font-bold text-[#F1F5F9] truncate">
+                          <h3 className="text-[13px] font-bold text-[#F1F5F9] truncate leading-tight">
                             {dept.name}
                           </h3>
                           <span className="text-[10px] font-mono text-[#64748B]">
@@ -465,7 +468,7 @@ export default function SuperAdminDashboard() {
                       </div>
                       <div className="text-right shrink-0">
                         <span
-                          className="text-xs font-mono font-bold px-2 py-0.5 rounded-[6px]"
+                          className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-[5px]"
                           style={{
                             color: healthColor,
                             backgroundColor: isHealthy ? '#0B3029' : isDegraded ? '#352A17' : '#351B23',
@@ -478,7 +481,7 @@ export default function SuperAdminDashboard() {
                     </div>
 
                     {/* Metrics Row */}
-                    <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2.5">
                       <div>
                         <span className="text-[#64748B] text-[11px] block">Active Workload</span>
                         <span className={`font-mono font-bold text-[12px] ${dept.active > 0 ? 'text-[#FBBF24]' : 'text-[#00B386]'}`}>
@@ -494,8 +497,8 @@ export default function SuperAdminDashboard() {
                     </div>
                   </div>
 
-                  {/* Thin horizontal progress bar (4-5px high) */}
-                  <div className="w-full h-[5px] rounded-full bg-[#1C2430] overflow-hidden">
+                  {/* Thin horizontal progress bar (4px high) */}
+                  <div className="w-full h-[4px] rounded-full bg-[#1C2430] overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -510,18 +513,18 @@ export default function SuperAdminDashboard() {
           </div>
         </section>
 
-        {/* 8. Campus Digital Twin Infrastructure Density: 4 columns on wide desktop */}
-        <section className="space-y-3.5">
+        {/* 8. Campus Digital Twin Infrastructure Density (4-column grid spanning the full width) */}
+        <section className="space-y-3" aria-label="Campus Digital Twin">
           <div>
-            <h2 className="text-[16px] font-bold text-[#F1F5F9] tracking-tight">
+            <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
               Campus Digital Twin Infrastructure Density
             </h2>
-            <p className="text-xs text-[#94A3B8] mt-0.5">
+            <p className="text-[11px] sm:text-xs text-[#94A3B8] mt-0.5">
               Fault distribution and complaint density across academic buildings, hostels, amenity centers, and sports grounds.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5">
             {buildingStats.map((b) => {
               const catStyle = CATEGORY_COLORS[b.category] || CATEGORY_COLORS.FACILITY || {
                 bg: '#1C2430',
@@ -541,12 +544,12 @@ export default function SuperAdminDashboard() {
                       handleFacilityClick(b);
                     }
                   }}
-                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[12px] p-3 flex flex-col justify-between transition-all cursor-pointer group focus:outline-none focus:ring-1 focus:ring-[#00B386]"
+                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[10px] p-3 flex flex-col justify-between transition-all cursor-pointer group focus:outline-none focus:ring-1 focus:ring-[#00B386] min-h-[74px]"
                 >
-                  <div className="flex items-center justify-between gap-1 mb-2.5">
+                  <div className="flex items-center justify-between gap-1 mb-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        className="w-2 h-2 rounded-full shrink-0"
                         style={{ backgroundColor: b.color }}
                       />
                       <h4
@@ -557,7 +560,7 @@ export default function SuperAdminDashboard() {
                       </h4>
                     </div>
                     <span
-                      className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] border shrink-0 uppercase"
+                      className="text-[9px] font-mono px-1.5 py-0.5 rounded-[4px] border shrink-0 uppercase"
                       style={{
                         backgroundColor: catStyle.bg,
                         borderColor: catStyle.border,
@@ -568,7 +571,7 @@ export default function SuperAdminDashboard() {
                     </span>
                   </div>
 
-                  <div className="space-y-1 pt-1 border-t border-[#252D38]/60 text-xs">
+                  <div className="space-y-0.5 pt-1.5 border-t border-[#252D38]/60 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-[#64748B]">Total Tickets</span>
                       <span className="font-mono font-bold text-[#F1F5F9]">
@@ -594,19 +597,19 @@ export default function SuperAdminDashboard() {
         </section>
 
         {/* 9. SLA Exception Radar & Escalation Gate: wide panel with 3 metric cards */}
-        <section className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-5 sm:p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#252D38]">
+        <section className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-4 sm:p-5 space-y-3.5" aria-label="SLA Escalation Radar">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#252D38]">
             <div>
-              <h2 className="text-[16px] font-bold text-[#F1F5F9] tracking-tight">
+              <h2 className="text-[15px] sm:text-[16px] font-bold text-[#F1F5F9] tracking-tight">
                 SLA Exception Radar &amp; Escalation Gate
               </h2>
-              <p className="text-xs text-[#94A3B8] mt-0.5">
+              <p className="text-[11px] sm:text-xs text-[#94A3B8] mt-0.5">
                 Real-time monitoring of campus tickets nearing or breaching contractual SLA limits.
               </p>
             </div>
             <div className="flex items-center gap-2">
               <span
-                className={`text-xs font-semibold px-3 py-1 rounded-full border flex items-center gap-1.5 ${
+                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${
                   overdueBreaches === 0
                     ? 'bg-[#0B3029] text-[#00B386] border-[#00B386]/30'
                     : 'bg-[#351B23] text-[#F87171] border-[#F87171]/40 animate-pulse font-bold'
@@ -627,70 +630,70 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-3.5 pt-0.5">
             {/* SLA Card 1 */}
             <Link
               to="/operations"
-              className="bg-[#0D1117] border border-[#252D38] hover:border-[#F87171]/60 rounded-[12px] p-4 flex flex-col justify-between transition-colors group cursor-pointer min-h-[96px]"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
             >
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Overdue Beyond SLA
               </span>
-              <div className="my-1">
+              <div className="my-0.5">
                 <span
-                  className={`text-[28px] font-bold font-mono block leading-none ${
+                  className={`text-2xl sm:text-[26px] font-bold font-mono block leading-none ${
                     overdueBreaches > 0 ? 'text-[#F87171]' : 'text-[#00B386]'
                   }`}
                 >
                   {loading ? '—' : overdueBreaches}
                 </span>
               </div>
-              <span className="text-[11px] text-[#94A3B8] group-hover:text-[#F87171] transition-colors block">
-                Active breaches requiring supervisory intervention →
+              <span className="text-[11px] text-[#94A3B8] block truncate">
+                Active breaches requiring supervisory intervention
               </span>
             </Link>
 
             {/* SLA Card 2 */}
             <Link
               to="/operations"
-              className="bg-[#0D1117] border border-[#252D38] hover:border-[#FBBF24]/60 rounded-[12px] p-4 flex flex-col justify-between transition-colors group cursor-pointer min-h-[96px]"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
             >
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Approaching Breach Window
               </span>
-              <div className="my-1">
+              <div className="my-0.5">
                 <span
-                  className={`text-[28px] font-bold font-mono block leading-none ${
+                  className={`text-2xl sm:text-[26px] font-bold font-mono block leading-none ${
                     approachingBreaches > 0 ? 'text-[#FBBF24]' : 'text-[#94A3B8]'
                   }`}
                 >
                   {loading ? '—' : approachingBreaches}
                 </span>
               </div>
-              <span className="text-[11px] text-[#94A3B8] group-hover:text-[#FBBF24] transition-colors block">
-                Tickets with &lt; 20% remaining SLA duration →
+              <span className="text-[11px] text-[#94A3B8] block truncate">
+                Tickets with &lt; 20% remaining SLA duration
               </span>
             </Link>
 
             {/* SLA Card 3 */}
             <Link
               to="/operations"
-              className="bg-[#0D1117] border border-[#252D38] hover:border-[#00B386]/60 rounded-[12px] p-4 flex flex-col justify-between transition-colors group cursor-pointer min-h-[96px]"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#343E4B] rounded-[10px] p-3 sm:p-3.5 flex flex-col justify-between transition-colors group cursor-pointer min-h-[80px] max-h-[88px]"
             >
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Critical Safety Breakdowns
               </span>
-              <div className="my-1">
+              <div className="my-0.5">
                 <span
-                  className={`text-[28px] font-bold font-mono block leading-none ${
+                  className={`text-2xl sm:text-[26px] font-bold font-mono block leading-none ${
                     criticalTickets > 0 ? 'text-[#F87171]' : 'text-[#00B386]'
                   }`}
                 >
                   {loading ? '—' : criticalTickets}
                 </span>
               </div>
-              <span className="text-[11px] text-[#94A3B8] group-hover:text-[#00B386] transition-colors block">
-                Immediate hazards or emergency campus breakdowns →
+              <span className="text-[11px] text-[#94A3B8] block truncate">
+                Immediate hazards or emergency campus breakdowns
               </span>
             </Link>
           </div>

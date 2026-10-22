@@ -59,10 +59,10 @@ export default function Navbar() {
   };
 
   const navTabClasses = ({ isActive }) =>
-    `relative h-16 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-colors ${
+    `relative h-12 inline-flex items-center gap-2 px-3.5 text-xs sm:text-[13px] transition-colors ${
       isDarkTheme
         ? isActive
-          ? 'text-zinc-100 font-bold after:content-[""] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[2px] after:bg-emerald-500 after:rounded-full'
+          ? 'text-zinc-100 font-bold after:content-[""] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[2px] after:bg-[#00B386] after:rounded-full'
           : 'text-zinc-400 hover:text-zinc-200 font-medium'
         : isActive
         ? 'text-zinc-900 font-bold after:content-[""] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[2px] after:bg-emerald-600 after:rounded-full'
@@ -78,13 +78,13 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-40 h-16 backdrop-blur-md border-b transition-colors relative ${
+      className={`sticky top-0 z-40 h-12 backdrop-blur-md border-b transition-colors relative ${
         isDarkTheme
-          ? 'bg-[#0e1117]/95 border-zinc-800 text-zinc-100'
+          ? 'bg-[#0B0F14]/95 border-[#252D38] text-zinc-100'
           : 'bg-white/95 border-slate-200 text-slate-800 shadow-xs'
       }`}
     >
-      <div className="h-full w-full px-4 sm:px-8 lg:px-12">
+      <div className="h-full w-full px-5 sm:px-8 lg:px-10 xl:px-12">
         <div className="flex items-center justify-between h-full gap-4">
           {/* Left: Brand Identity + Breadcrumb Divider + Horizontal Underline Tabs */}
           <div className="flex items-center gap-6 h-full">
