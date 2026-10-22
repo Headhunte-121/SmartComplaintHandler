@@ -25,6 +25,11 @@ export default function Layout() {
     return <Navigate to="/login" replace />;
   }
 
+  // The operations desk owns its full-screen command layout and side navigation.
+  if (location.pathname === '/operations') {
+    return <Outlet />;
+  }
+
   return (
     <div
       className={`min-h-screen flex flex-col font-sans antialiased transition-colors duration-200 ${

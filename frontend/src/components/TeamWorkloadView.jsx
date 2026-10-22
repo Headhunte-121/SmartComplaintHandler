@@ -8,8 +8,9 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { fetchSquadWorkloads } from '../api/assignment';
 
-export default function TeamWorkloadView({ onSelectSquad }) {
-  const { isDark } = useTheme();
+export default function TeamWorkloadView({ onSelectSquad, forceDark = false }) {
+  const { isDark: themeIsDark } = useTheme();
+  const isDark = forceDark || themeIsDark;
   const [workloads, setWorkloads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

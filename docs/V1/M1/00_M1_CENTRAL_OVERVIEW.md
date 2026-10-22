@@ -1059,5 +1059,19 @@ npm run dev
 * **Verification Proof:**
   Build and automated tests were not run in this implementation pass.
 
+### [2026-10-22] - Operations Command Desk Navigation Refresh
+* **Files Modified:**
+  - `frontend/src/pages/AdminDashboard.jsx`
+  - `frontend/src/components/Layout.jsx`
+  - `docs/V1/M1/00_M1_CENTRAL_OVERVIEW.md`
+* **What Was Changed:**
+  Rebuilt the operations dashboard as a dark command desk with an app-style side navigation, compact live metrics, a focused ticket queue, queue risk shortcuts, team workload panel, and SLA exception section. The operations route now lets this dashboard render its dedicated full-screen navigation rather than adding the global header and footer around it.
+* **Why It Was Changed:**
+  Operations staff need a persistent workspace for moving through active tickets, teams, campus map, and SLA risk rather than a conventional website navigation bar above a long page.
+* **Cross-Module Impact:**
+  Existing ticket searching, filtering, start work, resolution, priority override, reassignment, escalation, workload, and SLA actions remain connected to their existing APIs and modals. Other application routes continue using the shared layout.
+* **Verification Proof:**
+  Build and automated tests were not run in this implementation pass.
+
 
 

@@ -12,8 +12,10 @@ export default function SLABreachTable({
   onEscalate,
   onReassign,
   refreshInterval = 30000,
+  forceDark = false,
 }) {
-  const { isDark } = useTheme();
+  const { isDark: themeIsDark } = useTheme();
+  const isDark = forceDark || themeIsDark;
   const [breaches, setBreaches] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterTier, setFilterTier] = useState('ALL'); // 'ALL' | 'BREACHED' | 'APPROACHING'

@@ -1,11 +1,8 @@
-/**
- * SmartComplaintHandler - Campus Facilities Operations Console
- * Flush Edge-to-Edge Supervisory Workstation with Full Width Layout & Dual Theme Palette
- */
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+/** Facilities operations desk: dispatch, ticket triage, workload and SLA exceptions. */
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { AlertTriangle, BellRing, CheckCircle2, ClipboardList, Compass, LayoutDashboard, Map, Plus, RefreshCw, Search, Settings2, ShieldAlert, UsersRound, Wrench } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { fetchComplaints } from '../api/complaints';
 import { updateTicketStatus, escalateTicket } from '../api/sla';
 import PriorityBadge from '../components/PriorityBadge';
@@ -16,707 +13,96 @@ import TeamWorkloadView from '../components/TeamWorkloadView';
 import SLABreachTable from '../components/SLABreachTable';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 
+const STATUS_TABS = [{ id: '', label: 'All work' }, { id: 'SUBMITTED', label: 'Unassigned' }, { id: 'IN_PROGRESS', label: 'In progress' }, { id: 'ESCALATED', label: 'At risk' }];
+const DEPARTMENTS = [['1', 'Electrical'], ['2', 'Plumbing'], ['3', 'Sanitation'], ['4', 'Carpentry'], ['5', 'IT Support'], ['6', 'General Administration']];
+
+function StatusBadge({ status }) {
+  const styles = { SUBMITTED: 'bg-slate-700/70 text-slate-200 border-slate-600', ASSIGNED: 'bg-sky-500/10 text-sky-300 border-sky-400/20', IN_PROGRESS: 'bg-indigo-500/10 text-indigo-300 border-indigo-400/20', ESCALATED: 'bg-rose-500/10 text-rose-300 border-rose-400/20', RESOLVED: 'bg-emerald-500/10 text-emerald-300 border-emerald-400/20', CLOSED: 'bg-emerald-500/10 text-emerald-300 border-emerald-400/20' };
+  return <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-wide ${styles[status] || styles.SUBMITTED}`}>{(status || 'SUBMITTED').replace('_', ' ')}</span>;
+}
 
 export default function AdminDashboard() {
-  const { currentUser, isTechnician, isAdmin } = useAuth();
-  const { isDark } = useTheme();
-  const activeUser = currentUser;
-
+  const location = useLocation();
+  const { currentUser, isSuperAdmin } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toastMsg, setToastMsg] = useState(null);
-
-  // Filter States
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Modals
-  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
   const [overrideTicket, setOverrideTicket] = useState(null);
-
-  const [resolveModalOpen, setResolveModalOpen] = useState(false);
   const [resolveTicketTarget, setResolveTicketTarget] = useState(null);
-
-  const [reassignModalOpen, setReassignModalOpen] = useState(false);
   const [reassignTicketTarget, setReassignTicketTarget] = useState(null);
-
-  // Inline Escalation Modal State
   const [escalateTarget, setEscalateTarget] = useState(null);
   const [escalateReason, setEscalateReason] = useState('High risk of operational SLA breach or campus safety hazard.');
   const [escalating, setEscalating] = useState(false);
 
-  const showToast = (msg) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
-  };
-
   const loadTickets = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchComplaints();
-      setTickets(data);
-    } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Failed to load tickets queue.');
-    } finally {
-      setLoading(false);
-    }
+    try { setLoading(true); setError(null); const data = await fetchComplaints(); setTickets(Array.isArray(data) ? data : []); }
+    catch (err) { setError(err.response?.data?.detail || err.message || 'Failed to load the operations queue.'); }
+    finally { setLoading(false); }
   };
-
-  useEffect(() => {
-    loadTickets();
-  }, []);
+  useEffect(() => { loadTickets(); }, []);
+  const showToast = (message) => { setToastMsg(message); window.setTimeout(() => setToastMsg(null), 3500); };
 
   const handleStartWork = async (ticket) => {
-    try {
-      await updateTicketStatus(
-        ticket.id,
-        'IN_PROGRESS',
-        'Technician dispatched and commenced physical repair.',
-        activeUser?.name
-      );
-      showToast(`Ticket ${ticket.tracking_code} advanced to IN_PROGRESS.`);
-      loadTickets();
-    } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Failed to advance status.');
-    }
+    try { await updateTicketStatus(ticket.id, 'IN_PROGRESS', 'Technician dispatched and commenced physical repair.', currentUser?.name); showToast(`${ticket.tracking_code} is now in progress.`); loadTickets(); }
+    catch (err) { setError(err.response?.data?.detail || err.message || 'Failed to start this repair.'); }
+  };
+  const handleConfirmEscalate = async (event) => {
+    event.preventDefault(); if (!escalateTarget || escalateReason.trim().length < 5) return;
+    try { setEscalating(true); await escalateTicket(escalateTarget.id, escalateReason.trim(), currentUser?.name); showToast(`${escalateTarget.tracking_code} was escalated for supervisory attention.`); setEscalateTarget(null); loadTickets(); }
+    catch (err) { setError(err.response?.data?.detail || err.message || 'Escalation failed.'); }
+    finally { setEscalating(false); }
   };
 
-  const handleConfirmEscalate = async (e) => {
-    e.preventDefault();
-    if (!escalateTarget || escalateReason.trim().length < 5) return;
-    setEscalating(true);
-    try {
-      await escalateTicket(escalateTarget.id, escalateReason.trim(), activeUser?.name);
-      showToast(`Ticket ${escalateTarget.tracking_code} escalated to supervisory attention.`);
-      setEscalateTarget(null);
-      loadTickets();
-    } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Escalation failed.');
-    } finally {
-      setEscalating(false);
-    }
-  };
+  const filteredTickets = useMemo(() => tickets.filter((ticket) => {
+    if (selectedDept && String(ticket.department_id) !== selectedDept) return false;
+    if (selectedPriority && ticket.priority !== selectedPriority) return false;
+    if (selectedStatus && ticket.status !== selectedStatus) return false;
+    const query = searchQuery.trim().toLowerCase();
+    return !query || [ticket.tracking_code, ticket.title, ticket.location, ticket.assigned_team_name].some((value) => value?.toLowerCase().includes(query));
+  }), [tickets, selectedDept, selectedPriority, selectedStatus, searchQuery]);
 
-  // Client-side multi-dimensional filtering
-  const filteredTickets = tickets.filter((t) => {
-    if (selectedDept && String(t.department_id) !== String(selectedDept)) return false;
-    if (selectedPriority && t.priority !== selectedPriority) return false;
-    if (selectedStatus && t.status !== selectedStatus) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchCode = t.tracking_code?.toLowerCase().includes(q);
-      const matchTitle = t.title?.toLowerCase().includes(q);
-      const matchLoc = t.location?.toLowerCase().includes(q);
-      if (!matchCode && !matchTitle && !matchLoc) return false;
-    }
-    return true;
-  });
+  const metrics = useMemo(() => {
+    const active = tickets.filter((ticket) => !['RESOLVED', 'CLOSED'].includes(ticket.status)).length;
+    const progress = tickets.filter((ticket) => ticket.status === 'IN_PROGRESS').length;
+    const critical = tickets.filter((ticket) => ticket.priority === 'CRITICAL' && !['RESOLVED', 'CLOSED'].includes(ticket.status)).length;
+    const escalated = tickets.filter((ticket) => ticket.status === 'ESCALATED').length;
+    return { total: tickets.length, active, progress, critical, escalated };
+  }, [tickets]);
 
-  // KPI Metrics Calculations
-  const totalCount = tickets.length;
-  const inProgressCount = tickets.filter((t) => t.status === 'IN_PROGRESS').length;
-  const criticalCount = tickets.filter(
-    (t) => t.priority === 'CRITICAL' && t.status !== 'RESOLVED' && t.status !== 'CLOSED'
-  ).length;
-  const resolvedCount = tickets.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED').length;
-  const escalatedCount = tickets.filter((t) => t.status === 'ESCALATED').length;
+  const navItems = [{ to: '/operations', label: 'Operations', icon: LayoutDashboard }, { to: '/squads', label: 'Squads', icon: UsersRound }, { to: '/track', label: 'Track request', icon: ClipboardList }, { to: '/map', label: 'Campus map', icon: Map }, ...(isSuperAdmin ? [{ to: '/superadmin', label: 'Directorate', icon: Compass }] : [])];
+  const panel = 'rounded-2xl border border-white/[0.09] bg-[#101722] shadow-[0_10px_30px_-24px_rgba(0,0,0,.9)]';
 
   return (
-    <div
-      className={`w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
-        isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
-      }`}
-    >
-      {/* Flush Operations Hero Header */}
-      <div
-        className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden transition-colors ${
-          isDark
-            ? 'bg-[#161b22] border-zinc-800 text-zinc-100'
-            : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xs'
-        }`}
-      >
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="space-y-1.5">
-            <div
-              className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
-                isDark
-                  ? 'bg-emerald-950/60 border-emerald-800 text-emerald-400'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              }`}
-            >
-              <span>🛡️ Supervisory Command Desk</span>
-            </div>
-            <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-              Facilities Maintenance Operations Console
-            </h1>
-            <p className={`text-xs sm:text-sm max-w-2xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Live queue dispatch, squad workload balancing, priority override governance, and SLA breach monitoring.
-            </p>
-          </div>
+    <div className="min-h-screen bg-[#090d14] font-sans text-slate-100 selection:bg-indigo-500/40">
+      <div className="mx-auto flex min-h-screen max-w-[1800px]">
+        <aside className="sticky top-0 hidden h-screen w-[254px] shrink-0 flex-col border-r border-white/[0.08] bg-[#0d121b] px-4 py-5 lg:flex">
+          <Link to="/operations" className="mb-8 flex items-center gap-3 px-2"><div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-300 to-sky-300 text-indigo-950 shadow-[0_0_28px_rgba(129,140,248,.25)]"><Wrench size={20} strokeWidth={2.5} /></div><div><div className="text-sm font-bold tracking-tight text-white">IIIT-NR</div><div className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Facilities desk</div></div></Link>
+          <label className="relative mb-5 block"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-500" /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search requests" className="w-full rounded-xl border border-white/[0.08] bg-white/[0.035] py-2 pl-9 pr-3 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-indigo-400/60 focus:ring-4 focus:ring-indigo-400/10" /></label>
+          <div className="mb-5 grid grid-cols-2 gap-2"><button onClick={() => setSelectedStatus(selectedStatus === 'IN_PROGRESS' ? '' : 'IN_PROGRESS')} className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3 text-left transition hover:bg-white/[0.06]"><span className="block text-[10px] font-medium text-slate-500">In progress</span><b className="mt-1 block text-xl tracking-tight text-white">{metrics.progress}</b></button><button onClick={() => setSelectedStatus(selectedStatus === 'ESCALATED' ? '' : 'ESCALATED')} className="rounded-xl border border-rose-400/20 bg-rose-400/[0.035] p-3 text-left transition hover:bg-rose-400/[0.08]"><span className="block text-[10px] font-medium text-rose-200/70">At risk</span><b className="mt-1 block text-xl tracking-tight text-rose-300">{metrics.escalated}</b></button></div>
+          <nav className="space-y-1" aria-label="Operations navigation"><p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">Workspaces</p>{navItems.map((item) => { const Icon = item.icon; const active = location.pathname === item.to; return <Link key={item.to} to={item.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${active ? 'border border-indigo-300/15 bg-indigo-400/10 text-indigo-200' : 'text-slate-400 hover:bg-white/[0.045] hover:text-slate-100'}`}><Icon size={16} />{item.label}{active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-300" />}</Link>; })}</nav>
+          <div className="mt-auto space-y-2 border-t border-white/[0.08] pt-4"><Link to="/submit" className="flex items-center gap-2 rounded-xl bg-indigo-500 px-3 py-2.5 text-xs font-bold text-white transition hover:bg-indigo-400"><Plus size={15} /> Create request</Link><div className="flex items-center gap-2 px-2 pt-2"><div className="grid h-8 w-8 place-items-center rounded-full bg-slate-800 text-xs font-bold text-indigo-200">{(currentUser?.name || 'A').slice(0, 1).toUpperCase()}</div><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-200">{currentUser?.name || 'Operations Admin'}</p><p className="truncate text-[10px] text-slate-500">{currentUser?.roleLabel || 'Administrator'}</p></div></div></div>
+        </aside>
 
-          <div
-            className={`flex items-center space-x-3 p-3.5 rounded-2xl border shrink-0 transition-colors ${
-              isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300 shadow-2xs'
-            }`}
-          >
-            <span className="text-2xl">{activeUser?.avatar || '🛡️'}</span>
-            <div className="text-left text-xs">
-              <div className="font-bold flex items-center space-x-1.5">
-                <span className={isDark ? 'text-zinc-100' : 'text-slate-900'}>{activeUser?.name}</span>
-                <span
-                  className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
-                    isDark
-                      ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800'
-                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  }`}
-                >
-                  {activeUser?.roleLabel || activeUser?.role}
-                </span>
-              </div>
-              <div className={`text-[11px] font-mono mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                {activeUser?.email}
-              </div>
-            </div>
-          </div>
-        </div>
+        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+          <header className="mb-5 flex flex-col gap-4 sm:mb-7 sm:flex-row sm:items-center sm:justify-between"><div><div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-indigo-300"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(74,222,128,.8)]" /> Live operations</div><h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Maintenance command center</h1><p className="mt-1 text-xs text-slate-400">Dispatch work, protect SLAs, and keep campus services moving.</p></div><div className="flex items-center gap-2"><button onClick={loadTickets} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.04] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/[0.08] disabled:opacity-60"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh</button><Link to="/submit" className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-3.5 py-2.5 text-xs font-bold text-white transition hover:bg-indigo-400"><Plus size={15} /> New request</Link></div></header>
+          {toastMsg && <div className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.08] px-4 py-3 text-xs font-medium text-emerald-200"><span className="flex items-center gap-2"><CheckCircle2 size={16} />{toastMsg}</span><button onClick={() => setToastMsg(null)} className="text-emerald-100/70 hover:text-white">×</button></div>}
+          {error && <div className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-rose-400/20 bg-rose-400/[0.08] px-4 py-3 text-xs font-medium text-rose-200"><span>{error}</span><button onClick={loadTickets} className="font-semibold underline">Retry</button></div>}
+          <section className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Operations summary">{[{ label: 'Open queue', value: metrics.active, detail: `${metrics.total} total requests`, icon: ClipboardList, tone: 'text-indigo-200 bg-indigo-400/10 border-indigo-400/20' }, { label: 'Active repairs', value: metrics.progress, detail: 'Field teams working', icon: Wrench, tone: 'text-sky-200 bg-sky-400/10 border-sky-400/20' }, { label: 'Critical cases', value: metrics.critical, detail: 'Immediate response', icon: ShieldAlert, tone: 'text-rose-200 bg-rose-400/10 border-rose-400/20' }, { label: 'SLA at risk', value: metrics.escalated, detail: 'Needs review', icon: BellRing, tone: 'text-amber-200 bg-amber-400/10 border-amber-400/20' }].map((metric) => { const Icon = metric.icon; return <article key={metric.label} className={`${panel} p-4`}><div className="flex items-start justify-between gap-2"><span className="text-xs font-medium text-slate-400">{metric.label}</span><span className={`grid h-8 w-8 place-items-center rounded-xl border ${metric.tone}`}><Icon size={16} /></span></div><strong className="mt-4 block text-3xl font-bold tracking-tight text-white">{loading ? '—' : metric.value}</strong><span className="mt-1 block text-[11px] text-slate-500">{metric.detail}</span></article>; })}</section>
+          <section className="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_300px]"><div className={`min-w-0 ${panel}`}><div className="border-b border-white/[0.08] px-4 py-4 sm:px-5"><div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"><div><div className="flex items-center gap-2"><h2 className="text-sm font-semibold text-white">Active work queue</h2>{metrics.escalated > 0 && <span className="rounded-full border border-rose-400/20 bg-rose-400/10 px-2 py-0.5 text-[10px] font-bold text-rose-300">{metrics.escalated} escalated</span>}</div><p className="mt-1 text-xs text-slate-500">Prioritise urgent work before it becomes a breach.</p></div><div className="flex flex-wrap items-center gap-2"><label className="relative"><Search className="pointer-events-none absolute left-3 top-2 h-3.5 w-3.5 text-slate-500" /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search queue" className="w-40 rounded-lg border border-white/[0.09] bg-[#0a0f17] py-2 pl-8 pr-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-indigo-400/60 sm:w-48" /></label><select value={selectedDept} onChange={(event) => setSelectedDept(event.target.value)} className="rounded-lg border border-white/[0.09] bg-[#0a0f17] px-2.5 py-2 text-xs text-slate-300 outline-none"><option value="">All teams</option>{DEPARTMENTS.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select><select value={selectedPriority} onChange={(event) => setSelectedPriority(event.target.value)} className="rounded-lg border border-white/[0.09] bg-[#0a0f17] px-2.5 py-2 text-xs text-slate-300 outline-none"><option value="">Priority</option>{['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((priority) => <option key={priority} value={priority}>{priority}</option>)}</select></div></div><div className="mt-4 flex gap-1 overflow-x-auto pb-0.5">{STATUS_TABS.map((tab) => <button key={tab.id} onClick={() => setSelectedStatus(tab.id)} className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${selectedStatus === tab.id ? 'bg-indigo-500 text-white shadow-[0_4px_14px_rgba(99,102,241,.3)]' : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-100'}`}>{tab.label}{tab.id === 'ESCALATED' && metrics.escalated ? ` · ${metrics.escalated}` : ''}</button>)}</div></div>
+            <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-left"><thead className="border-b border-white/[0.08] bg-white/[0.018] text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500"><tr><th className="px-5 py-3">Request</th><th className="px-4 py-3">Location</th><th className="px-4 py-3">Assigned to</th><th className="px-4 py-3">Priority</th><th className="px-4 py-3">SLA</th><th className="px-4 py-3">Status</th><th className="px-5 py-3 text-right">Next step</th></tr></thead><tbody className="divide-y divide-white/[0.065]">{loading ? <tr><td colSpan={7} className="px-5 py-14 text-center text-xs text-slate-500">Loading the live queue…</td></tr> : filteredTickets.length === 0 ? <tr><td colSpan={7} className="px-5 py-14 text-center text-xs text-slate-500">No requests match these filters.</td></tr> : filteredTickets.map((ticket) => <tr key={ticket.id} className="group transition hover:bg-white/[0.025]"><td className="px-5 py-3.5"><Link to={`/track?code=${ticket.tracking_code}`} className="font-mono text-xs font-bold text-indigo-300 hover:text-indigo-200">{ticket.tracking_code}</Link><p className="mt-1 max-w-[220px] truncate text-xs font-semibold text-slate-100" title={ticket.title}>{ticket.title}</p></td><td className="px-4 py-3.5"><p className="max-w-[165px] truncate text-xs text-slate-300">{ticket.location || 'Campus location pending'}</p></td><td className="px-4 py-3.5"><p className="text-xs font-medium text-slate-200">{ticket.assigned_team_name || 'Unassigned'}</p><p className="mt-1 text-[10px] text-slate-500">{ticket.department_name || 'Needs routing'}</p></td><td className="px-4 py-3.5"><PriorityBadge priority={ticket.priority} /></td><td className="px-4 py-3.5"><SLACountdownTimer deadline={ticket.sla_deadline} priority={ticket.priority} status={ticket.status} resolvedAt={ticket.resolved_at} dark /></td><td className="px-4 py-3.5"><StatusBadge status={ticket.status} /></td><td className="px-5 py-3.5 text-right"><div className="flex items-center justify-end gap-1.5">{(ticket.status === 'ASSIGNED' || ticket.status === 'SUBMITTED') && <button onClick={() => handleStartWork(ticket)} className="rounded-lg bg-indigo-500 px-2.5 py-1.5 text-[10px] font-bold text-white transition hover:bg-indigo-400">Start</button>}{ticket.status === 'IN_PROGRESS' && <button onClick={() => setResolveTicketTarget(ticket)} className="rounded-lg bg-emerald-500/15 px-2.5 py-1.5 text-[10px] font-bold text-emerald-300 transition hover:bg-emerald-500/25">Resolve</button>}{!['RESOLVED', 'CLOSED'].includes(ticket.status) && <button onClick={() => setReassignTicketTarget(ticket)} title="Reassign squad" className="rounded-lg border border-white/[0.1] p-1.5 text-slate-300 transition hover:bg-white/[0.08] hover:text-white"><UsersRound size={14} /></button>}{!['RESOLVED', 'CLOSED'].includes(ticket.status) && <button onClick={() => setOverrideTicket(ticket)} title="Override priority" className="rounded-lg border border-white/[0.1] p-1.5 text-slate-300 transition hover:bg-white/[0.08] hover:text-white"><Settings2 size={14} /></button>}{!['RESOLVED', 'CLOSED', 'ESCALATED'].includes(ticket.status) && <button onClick={() => { setEscalateTarget(ticket); setEscalateReason('High risk of operational SLA breach or campus safety hazard.'); }} title="Escalate ticket" className="rounded-lg border border-rose-400/20 p-1.5 text-rose-300 transition hover:bg-rose-400/10"><AlertTriangle size={14} /></button>}</div></td></tr>)}</tbody></table></div></div>
+            <aside className="space-y-5"><div className={`${panel} p-4`}><div className="flex items-center justify-between"><div><h2 className="text-sm font-semibold text-white">Queue focus</h2><p className="mt-1 text-[11px] text-slate-500">Recommended next review</p></div><AlertTriangle className={metrics.critical ? 'text-rose-300' : 'text-emerald-300'} size={18} /></div><div className="mt-4 space-y-3"><button onClick={() => { setSelectedPriority('CRITICAL'); setSelectedStatus(''); }} className="flex w-full items-center justify-between rounded-xl border border-rose-400/15 bg-rose-400/[0.06] p-3 text-left transition hover:bg-rose-400/[0.1]"><span><b className="block text-xs text-rose-200">Critical breakdowns</b><small className="mt-0.5 block text-[10px] text-rose-200/60">Review immediately</small></span><strong className="text-xl text-rose-300">{metrics.critical}</strong></button><button onClick={() => { setSelectedStatus('ESCALATED'); setSelectedPriority(''); }} className="flex w-full items-center justify-between rounded-xl border border-amber-400/15 bg-amber-400/[0.06] p-3 text-left transition hover:bg-amber-400/[0.1]"><span><b className="block text-xs text-amber-200">Escalated requests</b><small className="mt-0.5 block text-[10px] text-amber-100/60">Require a decision</small></span><strong className="text-xl text-amber-300">{metrics.escalated}</strong></button></div></div><TeamWorkloadView forceDark /></aside></section>
+          <section className="mt-5"><SLABreachTable forceDark onEscalate={(ticket) => { setEscalateTarget(ticket); setEscalateReason('Contractual SLA threshold exceeded; escalating for supervisory intervention.'); }} onReassign={(ticket) => setReassignTicketTarget(ticket)} /></section>
+        </main>
       </div>
-
-      {/* Main Full-Width Content Area */}
-      <div className={`w-full px-4 sm:px-8 lg:px-12 py-8 sm:py-10 space-y-8 ${isDark ? 'bg-[#0e1117]' : 'bg-white'}`}>
-        {toastMsg && (
-          <div
-            className={`p-4 rounded-xl border text-xs font-bold flex items-center justify-between animate-fade-in shadow-xs ${
-              isDark
-                ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-            }`}
-          >
-            <div className="flex items-center space-x-2.5">
-              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">✓</span>
-              <span>{toastMsg}</span>
-            </div>
-            <button type="button" onClick={() => setToastMsg(null)} className="font-bold cursor-pointer hover:opacity-75">
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* Bento Operational Metrics Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div
-            className={`p-5 border-l-4 border-l-slate-400 space-y-1 rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
-            }`}
-          >
-            <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Total Grievances
-            </span>
-            <span className={`text-3xl font-black block ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>{totalCount}</span>
-            <span className={`text-[11px] block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>Across all campus zones</span>
-          </div>
-
-          <div
-            className={`p-5 border-l-4 border-l-blue-500 space-y-1 rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
-            }`}
-          >
-            <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
-              Active Repairs
-            </span>
-            <span className={`text-3xl font-black block ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>{inProgressCount}</span>
-            <span className={`text-[11px] block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>Dispatched to field squads</span>
-          </div>
-
-          <div
-            className={`p-5 border-l-4 border-l-rose-500 space-y-1 rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
-            }`}
-          >
-            <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>
-              Critical Breakdowns
-            </span>
-            <span className={`text-3xl font-black block ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>{criticalCount}</span>
-            <span className={`text-[11px] block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>2-hour SLA priority gate</span>
-          </div>
-
-          <div
-            className={`p-5 border-l-4 border-l-emerald-500 space-y-1 rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
-            }`}
-          >
-            <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-              Verified Closed
-            </span>
-            <span className={`text-3xl font-black block ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>{resolvedCount}</span>
-            <span className={`text-[11px] block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>Completed with repair proof</span>
-          </div>
-        </div>
-
-        {/* Maintenance Squad Workload Capacities */}
-        <TeamWorkloadView />
-
-        {/* Main Incident Operations Table */}
-        <div
-          className={`rounded-2xl border p-6 sm:p-8 space-y-6 transition-colors ${
-            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
-          }`}
-        >
-          <div
-            className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b pb-5 ${
-              isDark ? 'border-zinc-800' : 'border-slate-300'
-            }`}
-          >
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                  Campus Incident Queue ({filteredTickets.length} records)
-                </h2>
-                {escalatedCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedStatus(selectedStatus === 'ESCALATED' ? '' : 'ESCALATED')}
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                      selectedStatus === 'ESCALATED'
-                        ? 'bg-rose-600 text-white border-rose-500 shadow-xs'
-                        : isDark
-                        ? 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border-rose-800'
-                        : 'bg-rose-100 hover:bg-rose-200 text-rose-800 border-rose-300'
-                    }`}
-                    title="Click to toggle filter for escalated tickets"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-                    <span>⚠️ {escalatedCount} Escalated for Reassignment</span>
-                  </button>
-                )}
-              </div>
-              <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Filter active tickets across status, priority, and maintenance squad assignments.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2.5">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search code, title, room..."
-                className={`px-3 py-2 rounded-xl border text-xs sm:w-56 focus:outline-none transition-all ${
-                  isDark
-                    ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500'
-                    : 'bg-white border-slate-300 text-slate-900 focus:border-emerald-600 shadow-2xs'
-                }`}
-              />
-
-              <select
-                value={selectedDept}
-                onChange={(e) => setSelectedDept(e.target.value)}
-                className={`px-3 py-2 rounded-xl border text-xs font-semibold focus:outline-none ${
-                  isDark
-                    ? 'bg-[#0e1117] border-zinc-700 text-zinc-100'
-                    : 'bg-white border-slate-300 text-slate-900 shadow-2xs'
-                }`}
-              >
-                <option value="" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>All Departments</option>
-                <option value="1" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>Electrical</option>
-                <option value="2" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>Plumbing</option>
-                <option value="3" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>Sanitation</option>
-                <option value="4" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>Carpentry</option>
-                <option value="5" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>IT Support</option>
-                <option value="6" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>General Administration</option>
-              </select>
-
-              <select
-                value={selectedPriority}
-                onChange={(e) => setSelectedPriority(e.target.value)}
-                className={`px-3 py-2 rounded-xl border text-xs font-semibold focus:outline-none ${
-                  isDark
-                    ? 'bg-[#0e1117] border-zinc-700 text-zinc-100'
-                    : 'bg-white border-slate-300 text-slate-900 shadow-2xs'
-                }`}
-              >
-                <option value="" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>All Priorities</option>
-                <option value="CRITICAL" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>CRITICAL</option>
-                <option value="HIGH" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>HIGH</option>
-                <option value="MEDIUM" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>MEDIUM</option>
-                <option value="LOW" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>LOW</option>
-              </select>
-
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className={`px-3 py-2 rounded-xl border text-xs font-semibold focus:outline-none ${
-                  isDark
-                    ? 'bg-[#0e1117] border-zinc-700 text-zinc-100'
-                    : 'bg-white border-slate-300 text-slate-900 shadow-2xs'
-                }`}
-              >
-                <option value="" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>All Statuses</option>
-                <option value="SUBMITTED" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>SUBMITTED</option>
-                <option value="ASSIGNED" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>ASSIGNED</option>
-                <option value="IN_PROGRESS" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>IN_PROGRESS</option>
-                <option value="ESCALATED" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>ESCALATED</option>
-                <option value="RESOLVED" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>RESOLVED</option>
-              </select>
-
-              <button
-                type="button"
-                onClick={loadTickets}
-                disabled={loading}
-                className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition-colors flex items-center space-x-1.5 cursor-pointer ${
-                  isDark
-                    ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white'
-                    : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800'
-                }`}
-              >
-                <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>Refresh</span>
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs font-semibold text-rose-500">
-              {error}
-            </div>
-          )}
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead
-                className={`font-mono font-bold uppercase tracking-wider text-[10px] border-b ${
-                  isDark ? 'bg-[#0e1117] text-zinc-400 border-zinc-800' : 'bg-[#e2e8f0] text-slate-700 border-slate-300'
-                }`}
-              >
-                <tr>
-                  <th className="py-3.5 px-4">Ticket Ref</th>
-                  <th className="py-3.5 px-4">Issue &amp; Campus Location</th>
-                  <th className="py-3.5 px-4">Squad / Dept</th>
-                  <th className="py-3.5 px-4">Priority</th>
-                  <th className="py-3.5 px-4">SLA Clock</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Operational Actions</th>
-                </tr>
-              </thead>
-              <tbody
-                className={`divide-y ${
-                  isDark ? 'divide-zinc-800/80 text-zinc-300' : 'divide-slate-200 text-slate-700'
-                }`}
-              >
-                {loading && tickets.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className={`py-12 text-center ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                      Querying campus incident database...
-                    </td>
-                  </tr>
-                ) : filteredTickets.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className={`py-12 text-center ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                      No tickets match the selected filters.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTickets.map((t) => (
-                    <tr
-                      key={t.id}
-                      className={`transition-colors ${isDark ? 'hover:bg-zinc-800/40' : 'hover:bg-[#cbd5e1]/30'}`}
-                    >
-                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-500 whitespace-nowrap">
-                        <Link to={`/track?code=${t.tracking_code}`} className="hover:underline">
-                          {t.tracking_code}
-                        </Link>
-                      </td>
-
-                      <td className="py-3.5 px-4 max-w-xs">
-                        <div className={`font-bold truncate ${isDark ? 'text-zinc-100' : 'text-slate-900'}`} title={t.title}>
-                          {t.title}
-                        </div>
-                        <div className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                          📍 {t.location || 'Campus'}
-                        </div>
-                        {t.status === 'ESCALATED' && (
-                          <div className={`mt-1.5 p-2 rounded-lg border text-[11px] leading-relaxed flex items-start gap-1.5 font-medium ${
-                            isDark
-                              ? 'bg-rose-950/50 border-rose-800 text-rose-300'
-                              : 'bg-rose-50 border-rose-300 text-rose-800'
-                          }`}>
-                            <span className="shrink-0 text-xs">⚠️</span>
-                            <span className="line-clamp-2">
-                              {t.resolution_notes
-                                ? t.resolution_notes.split('[ESCALATION:').pop().split(']').shift().replace(/^.*?Reason:\s*/i, '') || 'Escalated by technician for supervisory reassignment'
-                                : 'Escalated by technician for supervisory reassignment'}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>
-                          {t.assigned_team_name || 'Auto-Dispatch'}
-                        </div>
-                        <div className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                          {t.department_name || 'General'}
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <PriorityBadge priority={t.priority} size="sm" showSlaTooltip={true} dark={isDark} />
-                      </td>
-
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <SLACountdownTimer
-                          slaDeadline={t.sla_deadline || t.target_resolution_date}
-                          priority={t.priority}
-                          status={t.status}
-                          resolvedAt={t.resolved_at}
-                          dark={isDark}
-                        />
-                      </td>
-
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span
-                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
-                            t.status === 'RESOLVED'
-                              ? isDark
-                                ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800'
-                                : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                              : t.status === 'IN_PROGRESS'
-                              ? isDark
-                                ? 'bg-blue-950/80 text-blue-400 border-blue-800'
-                                : 'bg-blue-100 text-blue-800 border-blue-300'
-                              : t.status === 'ASSIGNED'
-                              ? isDark
-                                ? 'bg-amber-950/80 text-amber-400 border-amber-800'
-                                : 'bg-amber-100 text-amber-800 border-amber-300'
-                              : t.status === 'ESCALATED'
-                              ? isDark
-                                ? 'bg-rose-950/80 text-rose-400 border-rose-800 animate-pulse'
-                                : 'bg-rose-100 text-rose-800 border-rose-300 animate-pulse'
-                              : isDark
-                              ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
-                              : 'bg-slate-200 text-slate-700 border-slate-300'
-                          }`}
-                        >
-                          {t.status}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end space-x-1.5">
-                          {(t.status === 'ASSIGNED' || t.status === 'SUBMITTED') && (
-                            <button
-                              type="button"
-                              onClick={() => handleStartWork(t)}
-                              className={`px-2.5 py-1 font-bold text-[11px] rounded-lg border transition-colors cursor-pointer ${
-                                isDark
-                                  ? 'bg-blue-950/60 hover:bg-blue-900/80 text-blue-400 border-blue-800'
-                                  : 'bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300'
-                              }`}
-                            >
-                              Start Work
-                            </button>
-                          )}
-
-                          {t.status === 'IN_PROGRESS' && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setResolveTicketTarget(t);
-                                setResolveModalOpen(true);
-                              }}
-                              className={`px-2.5 py-1 font-bold text-[11px] rounded-lg border transition-colors cursor-pointer ${
-                                isDark
-                                  ? 'bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-400 border-emerald-800'
-                                  : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300'
-                              }`}
-                            >
-                              Resolve
-                            </button>
-                          )}
-
-                          {t.status !== 'RESOLVED' && t.status !== 'CLOSED' && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setOverrideTicket(t);
-                                setOverrideModalOpen(true);
-                              }}
-                              className={`px-2.5 py-1 font-semibold text-[11px] rounded-lg border transition-colors cursor-pointer ${
-                                isDark
-                                  ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-300'
-                                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800'
-                              }`}
-                              title="Supervisor Priority Override"
-                            >
-                              Priority
-                            </button>
-                          )}
-
-                          {t.status !== 'RESOLVED' && t.status !== 'CLOSED' && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setReassignTicketTarget(t);
-                                setReassignModalOpen(true);
-                              }}
-                              className={`px-2.5 py-1 font-semibold text-[11px] rounded-lg border transition-colors cursor-pointer ${
-                                isDark
-                                  ? 'bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-400 border-indigo-800'
-                                  : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-800 border-indigo-300'
-                              }`}
-                              title="Reassign to another squad"
-                            >
-                              Reassign
-                            </button>
-                          )}
-
-                          {t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'ESCALATED' && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEscalateTarget(t);
-                                setEscalateReason('High risk of operational SLA breach or campus safety hazard.');
-                              }}
-                              className="p-1.5 hover:bg-rose-500/10 text-rose-500 hover:text-rose-400 rounded-lg border border-transparent hover:border-rose-800 transition-colors cursor-pointer"
-                              title="Escalate ticket"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Supervisory SLA Breach Escalation Panel */}
-        <SLABreachTable
-          onEscalate={(ticket) => {
-            setEscalateTarget(ticket);
-            setEscalateReason('Contractual SLA threshold exceeded; escalating for supervisory intervention.');
-          }}
-          onReassign={(ticket) => {
-            setReassignTicketTarget(ticket);
-            setReassignModalOpen(true);
-          }}
-        />
-
-        <PriorityOverrideModal
-          isOpen={overrideModalOpen}
-          ticket={overrideTicket}
-          onClose={() => setOverrideModalOpen(false)}
-          onPriorityUpdated={() => {
-            setOverrideModalOpen(false);
-            showToast('Ticket priority updated and SLA deadline recalculated.');
-            loadTickets();
-          }}
-        />
-
-        <ResolutionNotesModal
-          isOpen={resolveModalOpen}
-          ticket={resolveTicketTarget}
-          onClose={() => setResolveModalOpen(false)}
-          onResolved={() => {
-            setResolveModalOpen(false);
-            showToast('Ticket formally resolved and audit log updated.');
-            loadTickets();
-          }}
-        />
-
-        <ReassignTeamModal
-          isOpen={reassignModalOpen}
-          ticket={reassignTicketTarget}
-          onClose={() => setReassignModalOpen(false)}
-          onReassigned={() => {
-            setReassignModalOpen(false);
-            showToast('Ticket reassigned to new maintenance squad.');
-            loadTickets();
-          }}
-        />
-
-        {/* Styled Escalation Justification Modal */}
-        {escalateTarget && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fade-in">
-            <div
-              className={`rounded-2xl max-w-md w-full p-6 shadow-2xl border space-y-4 ${
-                isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
-                      isDark ? 'bg-rose-950/60 text-rose-400 border-rose-800' : 'bg-rose-100 text-rose-800 border-rose-300'
-                    }`}
-                  >
-                    Supervisory Escalation
-                  </span>
-                  <h3 className={`text-base font-bold mt-1 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                    Escalate Ticket {escalateTarget.tracking_code}
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setEscalateTarget(null)}
-                  className={`font-bold text-sm cursor-pointer ${isDark ? 'text-zinc-400 hover:text-zinc-100' : 'text-slate-500 hover:text-slate-900'}`}
-                >
-                  ✕
-                </button>
-              </div>
-              <form onSubmit={handleConfirmEscalate} className="space-y-4">
-                <div>
-                  <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                    Mandatory Escalation Justification (min 5 chars)
-                  </label>
-                  <textarea
-                    rows={3}
-                    required
-                    minLength={5}
-                    value={escalateReason}
-                    onChange={(e) => setEscalateReason(e.target.value)}
-                    className={`w-full rounded-xl border px-3 py-2 text-xs focus:outline-none resize-none ${
-                      isDark
-                        ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 focus:border-emerald-500'
-                        : 'bg-white border-slate-300 text-slate-900 focus:border-emerald-600 shadow-2xs'
-                    }`}
-                  />
-                </div>
-                <div className={`flex items-center justify-end space-x-2 pt-2 border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
-                  <button
-                    type="button"
-                    onClick={() => setEscalateTarget(null)}
-                    className={`px-4 py-2 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
-                      isDark
-                        ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white'
-                        : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800'
-                    }`}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={escalating}
-                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {escalating ? 'Escalating...' : 'Confirm Escalation'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
+      <PriorityOverrideModal isOpen={Boolean(overrideTicket)} ticket={overrideTicket} onClose={() => setOverrideTicket(null)} onPriorityUpdated={() => { setOverrideTicket(null); showToast('Ticket priority and SLA were updated.'); loadTickets(); }} />
+      <ResolutionNotesModal isOpen={Boolean(resolveTicketTarget)} ticket={resolveTicketTarget} onClose={() => setResolveTicketTarget(null)} onResolved={() => { setResolveTicketTarget(null); showToast('Ticket resolved and logged.'); loadTickets(); }} />
+      <ReassignTeamModal isOpen={Boolean(reassignTicketTarget)} ticket={reassignTicketTarget} onClose={() => setReassignTicketTarget(null)} onReassigned={() => { setReassignTicketTarget(null); showToast('Ticket reassigned to a new maintenance squad.'); loadTickets(); }} />
+      {escalateTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"><form onSubmit={handleConfirmEscalate} className="w-full max-w-md rounded-2xl border border-white/[0.12] bg-[#111926] p-5 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-rose-300">Escalate request</span><h2 className="mt-1 text-base font-semibold text-white">{escalateTarget.tracking_code}</h2></div><button type="button" onClick={() => setEscalateTarget(null)} className="text-slate-500 hover:text-white">×</button></div><label className="mt-5 block text-xs font-medium text-slate-300">Reason<textarea value={escalateReason} onChange={(event) => setEscalateReason(event.target.value)} className="mt-2 min-h-28 w-full rounded-xl border border-white/[0.1] bg-[#090d14] p-3 text-xs text-white outline-none focus:border-rose-400/60" /></label><div className="mt-4 flex justify-end gap-2"><button type="button" onClick={() => setEscalateTarget(null)} className="rounded-xl px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button><button disabled={escalating || escalateReason.trim().length < 5} className="rounded-xl bg-rose-500 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-rose-400 disabled:opacity-50">{escalating ? 'Escalating…' : 'Escalate request'}</button></div></form></div>}
     </div>
   );
 }
