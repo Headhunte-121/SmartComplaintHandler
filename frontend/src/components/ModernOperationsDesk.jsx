@@ -134,6 +134,15 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
     setCurrentPage(1);
   }, [activeTableTab, structureStatusFilter, selectedDept, selectedPriority, selectedStatus, selectedBuildingId, searchQuery]);
 
+  // Synchronize location hash with active table tab
+  useEffect(() => {
+    if (location.hash === '#queue') {
+      setActiveTableTab('queue');
+    } else if (location.hash === '#structures') {
+      setActiveTableTab('structures');
+    }
+  }, [location.hash]);
+
   const showToast = (message) => {
     setToastMsg(message);
     window.setTimeout(() => setToastMsg(null), 3500);
@@ -347,195 +356,8 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
     return fallbacks[index % fallbacks.length];
   }, []);
 
-  // Navigation tiles based on mode
-  const navTiles = isSuperAdminMode
-    ? [
-        { to: '/superadmin', label: 'Overview', icon: Layers, active: location.pathname === '/superadmin' && activeTableTab === 'structures', onClick: () => { setSelectedBuildingId(null); setActiveTableTab('structures'); } },
-        { to: '/superadmin/staff', label: 'Members', icon: Users, active: location.pathname === '/superadmin/staff' },
-        { to: '/squads', label: 'Squads', icon: Wrench, active: location.pathname === '/squads' },
-        { to: '/map', label: 'Campus Map', icon: MapIcon, active: location.pathname === '/map' },
-        { to: '/track', label: 'Reports', icon: LineChart, active: location.pathname === '/track' },
-        { to: '#queue', label: 'Incidents', icon: ClipboardList, active: activeTableTab === 'queue', onClick: () => setActiveTableTab('queue') },
-      ]
-    : [
-        { to: '/operations', label: 'Overview', icon: Layers, active: location.pathname === '/operations' && activeTableTab === 'structures', onClick: () => { setSelectedBuildingId(null); setActiveTableTab('structures'); } },
-        { to: '/squads', label: 'Squads', icon: Users, active: location.pathname === '/squads' },
-        { to: '/map', label: 'Campus Map', icon: MapIcon, active: location.pathname === '/map' },
-        { to: '/track', label: 'Reports', icon: LineChart, active: location.pathname === '/track' },
-        { to: '#workload', label: 'Sensors', icon: Radio, active: false, onClick: () => showToast(`All ${squads.length || 6} squads telemetry operational.`) },
-        { to: '#queue', label: 'Incidents', icon: ClipboardList, active: activeTableTab === 'queue', onClick: () => setActiveTableTab('queue') },
-      ];
-
-  const rawName = currentUser?.full_name || currentUser?.name;
-  const isNumericName = !rawName || !isNaN(Number(rawName));
-  const displayName = !isNumericName
-    ? rawName
-    : currentUser?.email
-    ? currentUser.email.split('@')[0]
-    : isSuperAdminMode
-    ? 'Executive Director'
-    : 'Operations Admin';
-
-  const displayRole = isSuperAdminMode ? 'Directorate · Super Admin' : 'Facilities · Operations Desk';
-
   return (
-    <div className="min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30">
-      <div className="flex min-h-screen w-full">
-        {/* ========================================================================= */}
-        {/* 1. LEFT SIDEBAR (Ultra-Modern 2-Column Tile Grid with Official IIIT-NR Logo) */}
-        {/* ========================================================================= */}
-        <aside className="sticky top-0 hidden h-screen w-[260px] shrink-0 flex-col border-r border-white/[0.08] bg-[#0c1017] p-4 lg:flex">
-          {/* Logo Badge: High-contrast circular IIIT-NR Emblem */}
-          <div className="mb-5 flex items-center justify-between px-1">
-            <Link to={isSuperAdminMode ? '/superadmin' : '/operations'} className="flex items-center gap-3 group">
-              <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/[0.04] border border-white/[0.1] p-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all group-hover:border-cyan-400/50 group-hover:shadow-[0_0_25px_rgba(6,182,212,0.25)]">
-                <img
-                  src="/iiitnr_logo.png"
-                  alt="IIIT-NR Logo"
-                  className="h-full w-full object-contain filter drop-shadow group-hover:scale-105 transition-transform"
-                />
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-extrabold tracking-tight text-white flex items-center gap-1.5">
-                  <span>IIIT-NR</span>
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                </div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 group-hover:text-cyan-300 transition-colors">
-                  {isSuperAdminMode ? 'Directorate' : 'Operations Desk'}
-                </div>
-              </div>
-            </Link>
-          </div>
-
-          {/* Search Bar */}
-          <label className="relative mb-4 block">
-            <Search className="pointer-events-none absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Type to search..."
-              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.035] py-2 pl-9 pr-3 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400/50 focus:bg-white/[0.05] focus:ring-4 focus:ring-cyan-500/10"
-            />
-          </label>
-
-          {/* Dual Metric Pill Card */}
-          <div className="mb-4 rounded-xl border border-white/[0.08] bg-[#121721] p-3">
-            <div className="grid grid-cols-2 divide-x divide-white/[0.08]">
-              <div className="pr-2">
-                <span className="block text-[10px] font-medium text-slate-400">Now Serving</span>
-                <b className="mt-1 block text-lg font-bold tracking-tight text-white">{metrics.active}</b>
-              </div>
-              <div className="pl-3">
-                <span className="block text-[10px] font-medium text-slate-400">Incidents</span>
-                <b className={`mt-1 block text-lg font-bold tracking-tight ${metrics.critical > 0 ? 'text-rose-400' : 'text-slate-200'}`}>
-                  {metrics.critical}
-                </b>
-              </div>
-            </div>
-            {/* Mini Progress Bar */}
-            <div className="mt-3 pt-2.5 border-t border-white/[0.06]">
-              <div className="flex items-center justify-between text-[10px] font-medium text-slate-400 mb-1.5">
-                <span>Member Adoption</span>
-                <span className="font-mono text-cyan-400">{metrics.resolutionRate}%</span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-500"
-                  style={{ width: `${Math.max(4, metrics.resolutionRate)}%` }}
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[9px] text-slate-400">
-                <span className="flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" /> Active: {metrics.active}
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Working: {metrics.progress}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Pages: 2-Column Square Tile Grid */}
-          <div className="mb-4">
-            <p className="px-1 pb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-              Pages
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {navTiles.map((tile) => {
-                const Icon = tile.icon;
-                const isTileActive = tile.active;
-                const content = (
-                  <div
-                    className={`flex flex-col items-center justify-center rounded-xl border p-2.5 text-center transition cursor-pointer ${
-                      isTileActive
-                        ? 'border-cyan-400/40 bg-cyan-400/[0.08] text-white shadow-[0_0_16px_rgba(6,182,212,0.12)]'
-                        : 'border-white/[0.07] bg-white/[0.025] text-slate-400 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-slate-100'
-                    }`}
-                  >
-                    <Icon size={18} className={isTileActive ? 'text-cyan-300' : 'text-slate-400'} />
-                    <span className="mt-1.5 text-[11px] font-semibold tracking-tight">{tile.label}</span>
-                  </div>
-                );
-
-                if (tile.onClick) {
-                  return (
-                    <button key={tile.label} type="button" onClick={tile.onClick} className="w-full text-left">
-                      {content}
-                    </button>
-                  );
-                }
-
-                return (
-                  <Link key={tile.to} to={tile.to}>
-                    {content}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="space-y-1.5">
-            <p className="px-1 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-              Quick Actions
-            </p>
-            <Link
-              to="/submit"
-              className="flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.06] px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400/[0.12]"
-            >
-              <Plus size={14} /> Create Request
-            </Link>
-            {isSuperAdminMode && (
-              <Link
-                to="/superadmin/staff"
-                className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.06]"
-              >
-                <UsersRound size={14} /> Manage Staff
-              </Link>
-            )}
-          </div>
-
-          {/* Footer User Profile Card */}
-          <div className="mt-auto border-t border-white/[0.08] pt-3">
-            <div className="flex items-center justify-between rounded-xl bg-white/[0.025] p-2 border border-white/[0.06]">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-600 text-xs font-bold text-slate-950">
-                  {displayName.slice(0, 1).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-white">{displayName}</p>
-                  <p className="truncate text-[10px] text-slate-400">{displayRole}</p>
-                </div>
-              </div>
-              <ChevronRight size={14} className="text-slate-500" />
-            </div>
-          </div>
-        </aside>
-
-        {/* ========================================================================= */}
-        {/* 2. MAIN OPERATIONS STAGE */}
-        {/* ========================================================================= */}
-        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-7 space-y-4 max-w-[1720px] mx-auto">
+    <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-7 space-y-4 max-w-[1720px] mx-auto animate-fade-in">
           {/* Notifications */}
           {toastMsg && (
             <div className="flex items-center justify-between gap-4 rounded-xl border border-cyan-400/30 bg-cyan-400/[0.08] px-4 py-3 text-xs font-medium text-cyan-200 animate-fade-in">
@@ -1431,8 +1253,6 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
               </div>
             </div>
           </section>
-        </main>
-      </div>
 
       {/* Operational Modals */}
       <PriorityOverrideModal
