@@ -89,29 +89,7 @@ export default function AdminDashboard() {
         </aside>
 
         <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-          <header className="mb-5 flex flex-col gap-4 sm:mb-7 sm:flex-row sm:items-center sm:justify-between"><div><div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-indigo-300"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(74,222,128,.8)]" /> Live operations</div><h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Maintenance command center</h1><p className="mt-1 text-xs text-slate-400">Dispatch work, protect SLAs, and keep campus services moving.</p></div><div className="flex items-center gap-2"><button onClick={loadTickets} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.04] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/[0.08] disabled:opacity-60 cursor-pointer"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh</button><Link to="/submit" className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-3.5 py-2.5 text-xs font-bold text-white transition hover:bg-indigo-400"><Plus size={15} /> New request</Link></div></header>
-
-          {/* Mobile workspace tabs when sidebar is hidden on small screens */}
-          <nav className="mb-5 flex gap-1.5 overflow-x-auto pb-1 lg:hidden" aria-label="Mobile workspace navigation">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = location.pathname === item.to;
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                    active
-                      ? 'border border-indigo-400/30 bg-indigo-500/20 text-indigo-200'
-                      : 'border border-white/[0.07] bg-white/[0.03] text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Icon size={14} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          <header className="mb-5 flex flex-col gap-4 sm:mb-7 sm:flex-row sm:items-center sm:justify-between"><div><div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-indigo-300"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(74,222,128,.8)]" /> Live operations</div><h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Maintenance command center</h1><p className="mt-1 text-xs text-slate-400">Dispatch work, protect SLAs, and keep campus services moving.</p></div><div className="flex items-center gap-2"><button onClick={loadTickets} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.04] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/[0.08] disabled:opacity-60"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh</button><Link to="/submit" className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-3.5 py-2.5 text-xs font-bold text-white transition hover:bg-indigo-400"><Plus size={15} /> New request</Link></div></header>
           {toastMsg && <div className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.08] px-4 py-3 text-xs font-medium text-emerald-200"><span className="flex items-center gap-2"><CheckCircle2 size={16} />{toastMsg}</span><button onClick={() => setToastMsg(null)} className="text-emerald-100/70 hover:text-white">×</button></div>}
           {error && <div className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-rose-400/20 bg-rose-400/[0.08] px-4 py-3 text-xs font-medium text-rose-200"><span>{error}</span><button onClick={loadTickets} className="font-semibold underline">Retry</button></div>}
           <section className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Operations summary">{[{ label: 'Open queue', value: metrics.active, detail: `${metrics.total} total requests`, icon: ClipboardList, tone: 'text-indigo-200 bg-indigo-400/10 border-indigo-400/20' }, { label: 'Active repairs', value: metrics.progress, detail: 'Field teams working', icon: Wrench, tone: 'text-sky-200 bg-sky-400/10 border-sky-400/20' }, { label: 'Critical cases', value: metrics.critical, detail: 'Immediate response', icon: ShieldAlert, tone: 'text-rose-200 bg-rose-400/10 border-rose-400/20' }, { label: 'SLA at risk', value: metrics.escalated, detail: 'Needs review', icon: BellRing, tone: 'text-amber-200 bg-amber-400/10 border-amber-400/20' }].map((metric) => { const Icon = metric.icon; return <article key={metric.label} className={`${panel} p-4`}><div className="flex items-start justify-between gap-2"><span className="text-xs font-medium text-slate-400">{metric.label}</span><span className={`grid h-8 w-8 place-items-center rounded-xl border ${metric.tone}`}><Icon size={16} /></span></div><strong className="mt-4 block text-3xl font-bold tracking-tight text-white">{loading ? '—' : metric.value}</strong><span className="mt-1 block text-[11px] text-slate-500">{metric.detail}</span></article>; })}</section>
