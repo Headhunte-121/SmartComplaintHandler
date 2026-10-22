@@ -34,7 +34,7 @@ export default function Layout() {
       }`}
     >
       <Navbar />
-      <main className="flex-1 w-full p-0 m-0">
+      <main className="flex-1 w-full max-w-none min-w-0 p-0 m-0" style={{ width: "100%", maxWidth: "none" }}>
         <Outlet />
       </main>
       <Footer isDark={isDark} />

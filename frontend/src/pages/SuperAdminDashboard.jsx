@@ -171,8 +171,12 @@ export default function SuperAdminDashboard() {
 
   return (
     <div
-      className="w-full min-h-screen bg-[#0D1117] text-[#F1F5F9] font-sans antialiased box-border transition-colors duration-200"
+      className="relative min-h-screen w-screen max-w-none bg-[#0D1117] text-[#F1F5F9] font-sans antialiased box-border transition-colors duration-200"
       style={{
+        width: '100vw',
+        maxWidth: '100vw',
+        marginLeft: 'calc(50% - 50vw)',
+        boxSizing: 'border-box',
         '--page-bg': '#0D1117',
         '--navigation-bg': '#0B0F14',
         '--surface': '#161C24',
@@ -194,7 +198,7 @@ export default function SuperAdminDashboard() {
       }}
     >
       {/* 4. Page Heading Section: full width, 32-36px gutters on 1120px, 36-50px on wide desktop */}
-      <header className="w-full bg-[#161C24] border-b border-[#252D38] px-5 sm:px-8 lg:px-10 xl:px-12 py-4">
+      <header className="w-full min-w-0 bg-[#161C24] border-b border-[#252D38] px-5 sm:px-8 lg:px-9 xl:px-10 py-4">
         <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -237,7 +241,7 @@ export default function SuperAdminDashboard() {
       </header>
 
       {/* Main Full-Width Content Container: exact same horizontal gutter px-5 sm:px-8 lg:px-10 xl:px-12 */}
-      <main className="w-full max-w-none px-5 sm:px-8 lg:px-10 xl:px-12 py-5 sm:py-6 space-y-5 sm:space-y-6">
+      <main className="relative block w-full min-w-0 max-w-none mx-0 px-5 sm:px-8 lg:px-9 xl:px-10 py-5 sm:py-6 space-y-5 sm:space-y-6" style={{ width: '100%', maxWidth: 'none', boxSizing: 'border-box' }}>
         {/* Error notification banner if any */}
         {error && (
           <div className="p-3.5 rounded-[10px] bg-[#351B23] border border-[#F87171]/40 text-[#F87171] text-xs font-medium flex items-center justify-between">
@@ -257,7 +261,7 @@ export default function SuperAdminDashboard() {
 
         {/* 5. KPI Strip: 6 compact cards in ONE desktop row, 3 on tablet, 2 on mobile */}
         <section aria-label="Executive KPIs">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5 [&>*]:min-w-0">
             {/* KPI 1: Total Grievances */}
             <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3 sm:p-3.5 flex flex-col justify-between min-h-[76px] max-h-[84px] hover:border-[#343E4B] transition-colors">
               <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider truncate block">
@@ -352,7 +356,7 @@ export default function SuperAdminDashboard() {
 
         {/* 6. Quick-Access Operational Shortcut Cards: 3 equal cards, unified surface styling */}
         <section aria-label="Operational Shortcuts">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-3.5 [&>*]:min-w-0">
             {/* Shortcut A: Operations Console */}
             <Link
               to="/operations"
@@ -441,7 +445,7 @@ export default function SuperAdminDashboard() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5 [&>*]:min-w-0">
             {departmentStats.map((dept) => {
               const isHealthy = dept.health >= 85;
               const isDegraded = dept.health >= 70 && dept.health < 85;
@@ -524,7 +528,7 @@ export default function SuperAdminDashboard() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5 [&>*]:min-w-0">
             {buildingStats.map((b) => {
               const catStyle = CATEGORY_COLORS[b.category] || CATEGORY_COLORS.FACILITY || {
                 bg: '#1C2430',
@@ -544,7 +548,7 @@ export default function SuperAdminDashboard() {
                       handleFacilityClick(b);
                     }
                   }}
-                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[10px] p-3 flex flex-col justify-between transition-all cursor-pointer group focus:outline-none focus:ring-1 focus:ring-[#00B386] min-h-[74px]"
+                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[10px] p-3 min-w-0 flex flex-col justify-between transition-all cursor-pointer group focus:outline-none focus:ring-1 focus:ring-[#00B386] min-h-[74px]"
                 >
                   <div className="flex items-center justify-between gap-1 mb-2">
                     <div className="flex items-center gap-2 min-w-0">
