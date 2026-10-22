@@ -1,104 +1,140 @@
-/*
- * SmartComplaintHandler - Clean Light Theme with Deep Layered Accents
- * Primary: Crisp White (#FFFFFF / #F8FAF9)
- * Secondary: Emerald & Light Green (#16A34A / #22C55E / #DCFCE7)
- * Depth Accents: Saturated Triage Colors (Amber, Sky, Indigo, Orange, Teal, Rose)
- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+  --ui-bg: #f5f7fb;
+  --ui-surface: #ffffff;
+  --ui-surface-soft: #f8faff;
+  --ui-ink: #17243b;
+  --ui-muted: #687892;
+  --ui-line: #e3e9f2;
+  --ui-primary: #4f46e5;
+  --ui-primary-strong: #4338ca;
+  --ui-mint: #0e9f82;
+  --ui-shadow: 0 10px 30px rgba(24, 39, 75, .055), 0 2px 6px rgba(24, 39, 75, .025);
+}
+
 @layer base {
-  html {
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    color-scheme: light;
-  }
-
-  body {
-    background-color: #EDF3EF;
-    color: #0F172A;
-    background-image:
-      radial-gradient(ellipse 90% 55% at 50% -10%, rgba(22, 163, 74, 0.16), transparent 75%),
-      radial-gradient(ellipse 65% 45% at 85% 15%, rgba(14, 165, 233, 0.11), transparent 65%),
-      radial-gradient(ellipse 55% 40% at 15% 45%, rgba(245, 158, 11, 0.08), transparent 65%),
-      linear-gradient(to right, rgba(22, 163, 74, 0.045) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(22, 163, 74, 0.045) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
-    background-attachment: fixed;
-  }
-
-  ::selection {
-    background-color: #BBF7D0;
-    color: #14532D;
-  }
+  html { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ui-bg); color: var(--ui-ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  ::selection { background: #dfe4ff; color: #28256d; }
+  button, input, select, textarea { font: inherit; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 3px solid rgba(79,70,229,.3); outline-offset: 2px; }
 }
 
 @layer components {
-  /* Multi-layered depth cards with prominent elevation and tactile 2px borders */
-  .bento-card {
-    @apply bg-white rounded-3xl border-2 border-slate-200/90 shadow-[0_10px_35px_-5px_rgba(15,23,42,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] text-slate-800 transition-all duration-200 backdrop-blur-sm;
-  }
-  .dark .bento-card {
-    @apply bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl;
-  }
-
-  .bento-card-interactive {
-    @apply bg-white rounded-3xl border-2 border-slate-200/90 shadow-[0_10px_35px_-5px_rgba(15,23,42,0.08)] hover:shadow-[0_16px_40px_-6px_rgba(22,163,74,0.18)] hover:border-emerald-500 text-slate-800 transition-all duration-200 backdrop-blur-sm;
-  }
-  .dark .bento-card-interactive {
-    @apply bg-[#161b22] border-zinc-800 hover:border-emerald-500 text-zinc-100 shadow-xl;
-  }
-
-  .enterprise-input {
-    @apply w-full rounded-xl border-2 border-slate-300 bg-slate-50/70 px-4 py-3 text-xs sm:text-sm text-slate-900 placeholder-slate-400 transition-all duration-150 hover:border-slate-400 hover:bg-white focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-xs;
-  }
-  .dark .enterprise-input {
-    @apply border-zinc-700 bg-[#0e1117] text-zinc-100 placeholder-zinc-500 hover:border-zinc-600 hover:bg-[#0e1117] focus:border-emerald-500 focus:bg-[#0e1117] focus:ring-emerald-500/10;
-  }
-
-  /* Vibrant Gradient CTAs with Defined Tactile Borders & Real Shadows */
-  .btn-botanical-primary {
-    @apply px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold text-xs shadow-[0_4px_16px_rgba(22,163,74,0.35)] hover:shadow-[0_6px_22px_rgba(22,163,74,0.45)] hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer inline-flex items-center gap-2 border border-emerald-500/40;
-  }
-
-  .btn-botanical-secondary {
-    @apply px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-slate-400 text-slate-800 hover:text-slate-950 font-bold text-xs shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer inline-flex items-center gap-2 active:translate-y-0;
-  }
-  .dark .btn-botanical-secondary {
-    @apply bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 hover:border-zinc-600 text-zinc-200 hover:text-white;
-  }
-
-  .btn-botanical-moss {
-    @apply px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 border-2 border-emerald-400/90 text-emerald-900 font-bold text-xs shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer inline-flex items-center gap-2 active:translate-y-0;
-  }
-  .dark .btn-botanical-moss {
-    @apply bg-none bg-emerald-950/40 hover:bg-emerald-950/70 border-emerald-800 text-emerald-300 hover:text-white;
-  }
-
-  /* Rich Semantic Triage Chips for Depth & Physical Tactility */
-  .chip-domain-electrical {
-    @apply bg-gradient-to-br from-amber-50 to-amber-100/70 text-amber-950 border-2 border-amber-300 hover:border-amber-400 hover:bg-amber-100/90 font-bold shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all;
-  }
-
-  .chip-domain-plumbing {
-    @apply bg-gradient-to-br from-sky-50 to-sky-100/70 text-sky-950 border-2 border-sky-300 hover:border-sky-400 hover:bg-sky-100/90 font-bold shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all;
-  }
-
-  .chip-domain-it {
-    @apply bg-gradient-to-br from-indigo-50 to-indigo-100/70 text-indigo-950 border-2 border-indigo-300 hover:border-indigo-400 hover:bg-indigo-100/90 font-bold shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all;
-  }
-
-  .chip-domain-carpentry {
-    @apply bg-gradient-to-br from-orange-50 to-orange-100/70 text-orange-950 border-2 border-orange-300 hover:border-orange-400 hover:bg-orange-100/90 font-bold shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all;
-  }
-
-  .chip-domain-sanitation {
-    @apply bg-gradient-to-br from-teal-50 to-teal-100/70 text-teal-950 border-2 border-teal-300 hover:border-teal-400 hover:bg-teal-100/90 font-bold shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all;
-  }
-
-  .chip-domain-facilities {
-    @apply bg-gradient-to-br from-emerald-50 to-emerald-100/70 text-emerald-950 border-2 border-emerald-300 hover:border-emerald-400 hover:bg-emerald-100/90 font-bold shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all;
-  }
+  .bento-card { @apply rounded-2xl border border-slate-200 bg-white text-slate-800; box-shadow: var(--ui-shadow); }
+  .bento-card-interactive { @apply rounded-2xl border border-slate-200 bg-white text-slate-800 transition-all duration-200; box-shadow: var(--ui-shadow); }
+  .bento-card-interactive:hover { transform: translateY(-2px); border-color: #c7d2fe; box-shadow: 0 16px 36px rgba(79,70,229,.1); }
+  .enterprise-input { @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all; }
+  .enterprise-input:focus { @apply border-indigo-400 outline-none ring-4 ring-indigo-100; }
+  .btn-botanical-primary { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-600 bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white transition-all; box-shadow: 0 6px 14px rgba(79,70,229,.18); }
+  .btn-botanical-primary:hover { @apply bg-indigo-700; transform: translateY(-1px); }
+  .btn-botanical-secondary { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition-all; }
+  .btn-botanical-secondary:hover { @apply border-slate-300 bg-slate-50; }
+  .btn-botanical-moss { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-800 transition-all; }
+  .chip-domain-electrical { @apply border border-amber-200 bg-amber-50 font-semibold text-amber-800; }
+  .chip-domain-plumbing { @apply border border-sky-200 bg-sky-50 font-semibold text-sky-800; }
+  .chip-domain-it { @apply border border-indigo-200 bg-indigo-50 font-semibold text-indigo-800; }
+  .chip-domain-carpentry { @apply border border-orange-200 bg-orange-50 font-semibold text-orange-800; }
+  .chip-domain-sanitation { @apply border border-teal-200 bg-teal-50 font-semibold text-teal-800; }
+  .chip-domain-facilities { @apply border border-emerald-200 bg-emerald-50 font-semibold text-emerald-800; }
 }
+
+/* App shell and navigation */
+.modern-app { min-height: 100vh; background: var(--ui-bg); color: var(--ui-ink); }
+.modern-navbar { height: 68px !important; min-height: 68px; background: rgba(255,255,255,.92) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; box-shadow: 0 1px 0 rgba(24,39,75,.025); backdrop-filter: blur(18px); }
+.modern-navbar > div { max-width: 1680px; margin: 0 auto; }
+.modern-navbar nav { border-color: var(--ui-line) !important; }
+.modern-navbar a, .modern-navbar button { border-radius: 10px; }
+.modern-navbar a[class*="after:bg-"] { font-weight: 650; }
+.modern-navbar a[class*="after:bg-[#00B386]"], .modern-navbar a[class*="after:bg-emerald"] { color: var(--ui-primary) !important; }
+.modern-app main { min-width: 0; }
+.modern-app footer { background: #fff !important; border-color: var(--ui-line) !important; color: var(--ui-muted) !important; }
+
+/* Make the new light visual system deterministic, even for older components with hard-coded dark utility classes. */
+.modern-app [class*="bg-[#0e1117]"], .modern-app [class*="bg-[#0D1117]"], .modern-app [class*="bg-[#0B0F14]"],
+.modern-app [class*="bg-[#161b22]"], .modern-app [class*="bg-[#161C24]"], .modern-app [class*="bg-[#1C2430]"],
+.modern-app [class*="bg-[#0D1117]"], .modern-app [class*="bg-slate-950"], .modern-app [class*="bg-zinc-950"],
+.modern-app [class*="bg-zinc-900"], .modern-app [class*="bg-slate-900"], .modern-app [class*="bg-[#0e1117]"] {
+  background-color: #fff !important; background-image: none !important;
+}
+.modern-app [class*="bg-[#1c2430]"], .modern-app [class*="bg-slate-800"], .modern-app [class*="bg-zinc-800"],
+.modern-app [class*="bg-[#252D38]"], .modern-app [class*="bg-[#202833]"] { background-color: #f5f7fc !important; background-image: none !important; }
+.modern-app [class*="text-zinc-100"], .modern-app [class*="text-zinc-200"], .modern-app [class*="text-slate-100"],
+.modern-app [class*="text-slate-200"], .modern-app [class*="text-[#F1F5F9]"], .modern-app [class*="text-[#E2E8F0]"],
+.modern-app [class*="text-[#CBD5E1]"], .modern-app [class*="text-white"] { color: #17243b !important; }
+.modern-app [class*="text-zinc-400"], .modern-app [class*="text-zinc-500"], .modern-app [class*="text-slate-400"],
+.modern-app [class*="text-slate-500"], .modern-app [class*="text-[#94A3B8]"], .modern-app [class*="text-[#64748B]"] { color: #687892 !important; }
+.modern-app [class*="border-zinc-800"], .modern-app [class*="border-slate-800"], .modern-app [class*="border-[#252D38]"],
+.modern-app [class*="border-[#343E4B]"], .modern-app [class*="border-zinc-700"], .modern-app [class*="border-slate-700"] { border-color: #e3e9f2 !important; }
+.modern-app [class*="rounded-3xl"] { border-radius: 22px !important; }
+.modern-app [class*="rounded-2xl"] { border-radius: 18px !important; }
+.modern-app [class*="rounded-xl"] { border-radius: 13px !important; }
+.modern-app [class*="shadow-xl"], .modern-app [class*="shadow-2xl"], .modern-app [class*="shadow-lg"] { box-shadow: var(--ui-shadow) !important; }
+.modern-app [class*="border-2"] { border-width: 1px !important; }
+.modern-app [class*="bg-emerald-950"], .modern-app [class*="bg-green-950"], .modern-app [class*="bg-[#0B3029]"] { background-color: #e8f8f2 !important; }
+.modern-app [class*="text-emerald-400"], .modern-app [class*="text-green-400"], .modern-app [class*="text-[#00B386]"] { color: #087f68 !important; }
+.modern-app [class*="bg-red-950"], .modern-app [class*="bg-rose-950"], .modern-app [class*="bg-[#351B23]"] { background-color: #fff0f1 !important; }
+.modern-app [class*="text-red-400"], .modern-app [class*="text-rose-400"], .modern-app [class*="text-[#F87171]"] { color: #bd334b !important; }
+.modern-app [class*="bg-amber-950"], .modern-app [class*="bg-[#352A17]"] { background-color: #fff6df !important; }
+.modern-app [class*="text-amber-400"], .modern-app [class*="text-[#FBBF24]"] { color: #946200 !important; }
+.modern-app [class*="bg-sky-950"] { background-color: #e9f5ff !important; }
+.modern-app [class*="text-sky-400"], .modern-app [class*="text-[#38BDF8]"] { color: #176fa9 !important; }
+
+/* Consistent cards, panels, forms, tables and interaction */
+.modern-app [class*="rounded-3xl"][class*="border"], .modern-app [class*="rounded-2xl"][class*="border"],
+.modern-app [class*="rounded-xl"][class*="border"] { border-color: var(--ui-line) !important; }
+.modern-app [class*="bg-white"][class*="border"], .modern-app [class*="bg-slate-50"][class*="border"] { box-shadow: var(--ui-shadow); }
+.modern-app input, .modern-app select, .modern-app textarea { border-radius: 12px !important; border-color: #d9e1ee !important; }
+.modern-app input:focus, .modern-app select:focus, .modern-app textarea:focus { border-color: #818cf8 !important; box-shadow: 0 0 0 4px rgba(99,102,241,.12) !important; outline: none !important; }
+.modern-app table { border-collapse: separate !important; border-spacing: 0; }
+.modern-app thead th { background: #f5f7fc !important; color: #687892 !important; font-size: 10px !important; letter-spacing: .075em; text-transform: uppercase; border-color: var(--ui-line) !important; }
+.modern-app tbody tr { transition: background-color .15s ease; }
+.modern-app tbody tr:hover { background-color: #f7f8ff !important; }
+.modern-app td, .modern-app th { border-color: #e8edf5 !important; }
+.modern-app button, .modern-app a, .modern-app [role="button"] { transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+.modern-app button:hover, .modern-app [role="button"]:hover { border-color: #c7d2fe; }
+.modern-app button[class*="bg-emerald-600"], .modern-app button[class*="bg-emerald-500"], .modern-app button[class*="bg-green-600"],
+.modern-app a[class*="bg-emerald-600"], .modern-app a[class*="bg-green-600"], .modern-app button[class*="bg-indigo-600"],
+.modern-app a[class*="bg-indigo-600"], .modern-app button[class*="bg-blue-600"], .modern-app a[class*="bg-blue-600"] {
+  background-color: var(--ui-primary) !important; background-image: none !important; color: #fff !important; border-color: var(--ui-primary) !important;
+  box-shadow: 0 6px 16px rgba(79,70,229,.18);
+}
+.modern-app button[class*="bg-emerald-600"]:hover, .modern-app button[class*="bg-indigo-600"]:hover, .modern-app a[class*="bg-indigo-600"]:hover { background-color: var(--ui-primary-strong) !important; }
+.modern-app button[class*="bg-emerald-600"], .modern-app button[class*="bg-emerald-500"], .modern-app button[class*="bg-green-600"],
+.modern-app a[class*="bg-emerald-600"], .modern-app a[class*="bg-green-600"], .modern-app button[class*="bg-indigo-600"],
+.modern-app a[class*="bg-indigo-600"], .modern-app button[class*="bg-blue-600"], .modern-app a[class*="bg-blue-600"] { color: #fff !important; }
+.modern-app button[class*="bg-emerald-600"] [class*="text-white"], .modern-app button[class*="bg-indigo-600"] [class*="text-white"],
+.modern-app a[class*="bg-indigo-600"] [class*="text-white"], .modern-app a[class*="bg-emerald-600"] [class*="text-white"] { color: #fff !important; }
+.modern-app hr { border-color: var(--ui-line) !important; }
+.modern-app h1 { letter-spacing: -.04em; line-height: 1.1; }
+.modern-app h2, .modern-app h3 { letter-spacing: -.025em; }
+
+/* Auth pages receive the same visual identity, with more generous breathing room. */
+.modern-app > div.min-h-screen, .modern-app > main.min-h-screen { background-color: var(--ui-bg) !important; }
+.modern-app [class*="bg-gradient-to-br"], .modern-app [class*="bg-gradient-to-r"] { background-image: none; }
+
+@media (min-width: 1280px) {
+  .modern-app main > div[class*="px-4"] { padding-left: clamp(24px, 3vw, 52px); padding-right: clamp(24px, 3vw, 52px); }
+}
+@media (max-width: 767px) {
+  .modern-navbar { height: 60px !important; min-height: 60px; }
+  .modern-app h1 { font-size: clamp(1.55rem, 6vw, 2.15rem); }
+  .modern-app [class*="grid-cols-"] { gap: 12px !important; }
+  .modern-app [class*="p-8"] { padding: 1.15rem !important; }
+  .modern-app [class*="p-10"] { padding: 1.25rem !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* Normalize legacy inline palette values used by the campus health and category badges. */
+.modern-app [style*="#1C2430"], .modern-app [style*="#1c2430"] { background-color: #f4f6fc !important; border-color: #e3e9f2 !important; }
+.modern-app [style*="#0B3029"], .modern-app [style*="#0b3029"] { background-color: #e8f8f2 !important; }
+.modern-app [style*="#352A17"], .modern-app [style*="#352a17"] { background-color: #fff5dc !important; }
+.modern-app [style*="#351B23"], .modern-app [style*="#351b23"] { background-color: #fff0f1 !important; }
+.modern-app [style*="#F1F5F9"], .modern-app [style*="#F1f5f9"] { color: #17243b !important; }

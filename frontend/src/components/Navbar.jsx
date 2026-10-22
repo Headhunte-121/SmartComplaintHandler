@@ -78,7 +78,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-40 h-12 backdrop-blur-md border-b transition-colors relative ${
+      className={`modern-navbar sticky top-0 z-40 h-12 backdrop-blur-md border-b transition-colors relative ${
         isDarkTheme
           ? 'bg-[#0B0F14]/95 border-[#252D38] text-zinc-100'
           : 'bg-white/95 border-slate-200 text-slate-800 shadow-xs'

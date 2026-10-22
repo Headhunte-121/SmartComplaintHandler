@@ -14,78 +14,6 @@ import { fetchActiveBreaches } from '../api/sla';
 import { getCampusBuildings } from '../data/iiitnrCampusData';
 
 
-const COMPLETE_REHAUL_STYLES = `
-/* Complete visual rehaul — scoped to these dashboard screens */
-.redesign-shell {
-  --app-bg: #f4f7fc; --app-surface: #ffffff; --app-ink: #17233b;
-  --app-muted: #697891; --app-line: #e4eaf3; --app-blue: #4355db;
-  --app-cyan: #18a7b5; --app-shadow: 0 10px 32px rgba(25, 42, 75, .055);
-  background: var(--app-bg) !important; color: var(--app-ink) !important;
-  min-height: 100vh; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  letter-spacing: -.01em;
-}
-.redesign-shell * { box-sizing: border-box; }
-.redesign-shell h1 { letter-spacing: -.045em !important; line-height: 1.08 !important; font-weight: 800 !important; color: #17233b !important; }
-.redesign-shell h2, .redesign-shell h3, .redesign-shell h4 { letter-spacing: -.025em; color: #202e48 !important; }
-.redesign-shell p { line-height: 1.55; }
-.redesign-shell header, .redesign-shell > div > header {
-  background: linear-gradient(115deg,#fff 0%,#f8faff 100%) !important;
-  border-color: #e5eaf4 !important; box-shadow: 0 1px 0 rgba(20,35,60,.025);
-}
-.redesign-shell [class*="rounded-"][class*="border"],
-.redesign-shell [class*="shadow"] {
-  border-color: #e4eaf3 !important;
-}
-.redesign-shell [class*="bg-[#0D1117]"], .redesign-shell [class*="bg-[#0e1117]"],
-.redesign-shell [class*="bg-[#161C24]"], .redesign-shell [class*="bg-[#161b22]"],
-.redesign-shell [class*="bg-[#0B0F14]"] { background-color: #fff !important; }
-.redesign-shell [class*="bg-[#1C2430]"], .redesign-shell [class*="bg-[#1c2430]"] { background-color: #f5f7fc !important; }
-.redesign-shell [class*="text-[#F1F5F9]"], .redesign-shell [class*="text-zinc-100"],
-.redesign-shell [class*="text-slate-100"], .redesign-shell [class*="text-white"] { color: #17233b !important; }
-.redesign-shell [class*="text-[#94A3B8]"], .redesign-shell [class*="text-zinc-400"],
-.redesign-shell [class*="text-slate-400"] { color: #697891 !important; }
-.redesign-shell [class*="border-[#252D38]"], .redesign-shell [class*="border-zinc-800"],
-.redesign-shell [class*="border-slate-800"] { border-color: #e4eaf3 !important; }
-.redesign-shell [class*="rounded-xl"], .redesign-shell [class*="rounded-2xl"] { border-radius: 18px !important; }
-.redesign-shell [class*="shadow"] { box-shadow: var(--app-shadow) !important; }
-.redesign-shell button, .redesign-shell a[class*="bg-"], .redesign-shell [role="button"] {
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-}
-.redesign-shell button:hover, .redesign-shell [role="button"]:hover { transform: translateY(-1px); }
-.redesign-shell button[class*="bg-emerald"], .redesign-shell a[class*="bg-emerald"],
-.redesign-shell button[class*="bg-green"], .redesign-shell a[class*="bg-green"] {
-  background: linear-gradient(135deg,#4658df,#6575f1) !important; color: #fff !important;
-  border-color: transparent !important; box-shadow: 0 6px 16px rgba(67,85,219,.19);
-}
-.redesign-shell input, .redesign-shell select, .redesign-shell textarea {
-  background: #fff !important; color: #17233b !important; border: 1px solid #dce4f0 !important;
-  border-radius: 12px !important; box-shadow: inset 0 1px 2px rgba(22,35,60,.025);
-}
-.redesign-shell input:focus, .redesign-shell select:focus, .redesign-shell textarea:focus {
-  outline: none !important; border-color: #7885f0 !important; box-shadow: 0 0 0 4px rgba(99,115,238,.12) !important;
-}
-.redesign-shell table { border-collapse: separate !important; border-spacing: 0; width: 100%; }
-.redesign-shell thead th { background: #f5f7fc !important; color: #697891 !important; font-size: 10px !important; letter-spacing: .09em; text-transform: uppercase; }
-.redesign-shell tbody tr { transition: background .15s ease; }
-.redesign-shell tbody tr:hover { background: #f7f9ff !important; }
-.redesign-shell td, .redesign-shell th { border-color: #e9edf5 !important; }
-.redesign-shell [class*="bg-[#0B3029]"], .redesign-shell [class*="bg-emerald-950"] { background: #e8f8f2 !important; }
-.redesign-shell [class*="text-emerald-400"], .redesign-shell [class*="text-[#00B386]"] { color: #07886b !important; }
-.redesign-shell [class*="bg-red-950"], .redesign-shell [class*="bg-[#351B23]"] { background: #fff0f0 !important; }
-.redesign-shell [class*="text-red-400"], .redesign-shell [class*="text-[#F87171]"] { color: #c53c50 !important; }
-.redesign-shell [class*="bg-amber-950"], .redesign-shell [class*="bg-[#352A17]"] { background: #fff6df !important; }
-.redesign-shell [class*="text-amber-400"], .redesign-shell [class*="text-[#FBBF24]"] { color: #996300 !important; }
-.redesign-shell [class*="bg-sky-950"] { background: #e8f5ff !important; }
-.redesign-shell [class*="text-sky-400"], .redesign-shell [class*="text-[#38BDF8]"] { color: #1478ba !important; }
-.redesign-shell hr { border-color: #e4eaf3 !important; }
-@media (min-width: 1280px) { .redesign-shell { padding-bottom: 36px; } }
-@media (max-width: 640px) {
- .redesign-shell header { padding-left: 18px !important; padding-right: 18px !important; }
- .redesign-shell h1 { font-size: 1.75rem !important; }
- .redesign-shell [class*="grid-cols-"] { gap: 12px !important; }
-}
-`;
-
 const CAMPUS_DEPARTMENTS = [
   'Electrical',
   'Plumbing',
@@ -244,7 +172,7 @@ export default function SuperAdminDashboard() {
 
   return (
     <div
-      className="redesign-shell w-full min-h-screen font-sans antialiased box-border transition-colors duration-200"
+      className="w-full min-h-screen font-sans antialiased box-border transition-colors duration-200"
       style={{
         '--page-bg': '#0D1117',
         '--navigation-bg': '#0B0F14',
@@ -266,7 +194,6 @@ export default function SuperAdminDashboard() {
         '--healthy': '#2DD4BF',
       }}
     >
-      <style>{COMPLETE_REHAUL_STYLES}</style>
       {/* 4. Page Heading Section: full width, 32-36px gutters on 1120px, 36-50px on wide desktop */}
       <header className="w-full bg-[#161C24] border-b border-[#252D38] px-5 sm:px-8 lg:px-10 xl:px-12 py-4">
         <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-3">

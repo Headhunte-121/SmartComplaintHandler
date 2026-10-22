@@ -6,8 +6,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext({
-  theme: 'dark',
-  isDark: true,
+  theme: 'light',
+  isDark: false,
   toggleTheme: () => {},
   setTheme: () => {},
 });
@@ -15,13 +15,11 @@ const ThemeContext = createContext({
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     try {
-      const stored = localStorage.getItem('theme');
-      if (stored === 'light' || stored === 'dark') {
-        return stored;
-      }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const stored = localStorage.getItem('ui-theme-v2');
+      if (stored === 'light' || stored === 'dark') return stored;
+      return 'light';
     } catch {
-      return 'dark';
+      return 'light';
     }
   });
 
@@ -38,7 +36,7 @@ export function ThemeProvider({ children }) {
     }
 
     try {
-      localStorage.setItem('theme', theme);
+      localStorage.setItem('ui-theme-v2', theme);
     } catch {}
 
     // Update color-scheme meta tag if present
@@ -51,7 +49,7 @@ export function ThemeProvider({ children }) {
   // Sync across tabs
   useEffect(() => {
     const handleStorage = (e) => {
-      if (e.key === 'theme' && (e.newValue === 'light' || e.newValue === 'dark')) {
+      if (e.key === 'ui-theme-v2' && (e.newValue === 'light' || e.newValue === 'dark')) {
         setThemeState(e.newValue);
       }
     };

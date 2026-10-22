@@ -118,6 +118,7 @@ function NotFound() {
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <div className="modern-app min-h-screen">
       <Routes>
         {/* Standalone Authentication & Onboarding Pages (NO Navbar / Footer) */}
         <Route path="/login" element={<Login />} />
@@ -225,6 +226,7 @@ export default function AppRouter() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
+      </div>
     </BrowserRouter>
   );
 }
