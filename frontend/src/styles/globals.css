@@ -16,9 +16,23 @@
   --ui-shadow: 0 10px 30px rgba(24, 39, 75, .055), 0 2px 6px rgba(24, 39, 75, .025);
 }
 
+.dark {
+  color-scheme: dark;
+  --ui-bg: #0b1020;
+  --ui-surface: #141b2d;
+  --ui-surface-soft: #1a233b;
+  --ui-ink: #f8fafc;
+  --ui-muted: #94a3b8;
+  --ui-line: #26334d;
+  --ui-primary: #6366f1;
+  --ui-primary-strong: #818cf8;
+  --ui-mint: #14b8a6;
+  --ui-shadow: 0 10px 30px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+}
+
 @layer base {
   html { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
-  body { margin: 0; background: var(--ui-bg); color: var(--ui-ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  body { margin: 0; background: var(--ui-bg); color: var(--ui-ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; transition: background-color 0.2s ease, color 0.2s ease; }
   ::selection { background: #dfe4ff; color: #28256d; }
   button, input, select, textarea { font: inherit; }
   button, a { -webkit-tap-highlight-color: transparent; }
@@ -26,115 +40,83 @@
 }
 
 @layer components {
-  .bento-card { @apply rounded-2xl border border-slate-200 bg-white text-slate-800; box-shadow: var(--ui-shadow); }
-  .bento-card-interactive { @apply rounded-2xl border border-slate-200 bg-white text-slate-800 transition-all duration-200; box-shadow: var(--ui-shadow); }
+  .bento-card { @apply rounded-2xl border border-slate-200 bg-white text-slate-800 dark:border-slate-800 dark:bg-[#141b2d] dark:text-slate-100; box-shadow: var(--ui-shadow); }
+  .bento-card-interactive { @apply rounded-2xl border border-slate-200 bg-white text-slate-800 transition-all duration-200 dark:border-slate-800 dark:bg-[#141b2d] dark:text-slate-100; box-shadow: var(--ui-shadow); }
   .bento-card-interactive:hover { transform: translateY(-2px); border-color: #c7d2fe; box-shadow: 0 16px 36px rgba(79,70,229,.1); }
-  .enterprise-input { @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all; }
-  .enterprise-input:focus { @apply border-indigo-400 outline-none ring-4 ring-indigo-100; }
+  .dark .bento-card-interactive:hover { border-color: #6366f1; box-shadow: 0 16px 36px rgba(0,0,0,.5); }
+  .enterprise-input { @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all dark:border-slate-700 dark:bg-[#0e1424] dark:text-slate-100 dark:placeholder-slate-500; }
+  .enterprise-input:focus { @apply border-indigo-400 outline-none ring-4 ring-indigo-100 dark:border-indigo-500 dark:ring-indigo-900/30; }
   .btn-botanical-primary { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-600 bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white transition-all; box-shadow: 0 6px 14px rgba(79,70,229,.18); }
   .btn-botanical-primary:hover { @apply bg-indigo-700; transform: translateY(-1px); }
-  .btn-botanical-secondary { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition-all; }
-  .btn-botanical-secondary:hover { @apply border-slate-300 bg-slate-50; }
-  .btn-botanical-moss { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-800 transition-all; }
-  .chip-domain-electrical { @apply border border-amber-200 bg-amber-50 font-semibold text-amber-800; }
-  .chip-domain-plumbing { @apply border border-sky-200 bg-sky-50 font-semibold text-sky-800; }
-  .chip-domain-it { @apply border border-indigo-200 bg-indigo-50 font-semibold text-indigo-800; }
-  .chip-domain-carpentry { @apply border border-orange-200 bg-orange-50 font-semibold text-orange-800; }
-  .chip-domain-sanitation { @apply border border-teal-200 bg-teal-50 font-semibold text-teal-800; }
-  .chip-domain-facilities { @apply border border-emerald-200 bg-emerald-50 font-semibold text-emerald-800; }
+  .btn-botanical-secondary { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition-all dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200; }
+  .btn-botanical-secondary:hover { @apply border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-700; }
+  .btn-botanical-moss { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-800 transition-all dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300; }
+  .chip-domain-electrical { @apply border border-amber-200 bg-amber-50 font-semibold text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300; }
+  .chip-domain-plumbing { @apply border border-sky-200 bg-sky-50 font-semibold text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300; }
+  .chip-domain-it { @apply border border-indigo-200 bg-indigo-50 font-semibold text-indigo-800 dark:border-indigo-800/60 dark:bg-indigo-950/40 dark:text-indigo-300; }
+  .chip-domain-carpentry { @apply border border-orange-200 bg-orange-50 font-semibold text-orange-800 dark:border-orange-800/60 dark:bg-orange-950/40 dark:text-orange-300; }
+  .chip-domain-sanitation { @apply border border-teal-200 bg-teal-50 font-semibold text-teal-800 dark:border-teal-800/60 dark:bg-teal-950/40 dark:text-teal-300; }
+  .chip-domain-facilities { @apply border border-emerald-200 bg-emerald-50 font-semibold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300; }
 }
 
 /* App shell and navigation */
-.modern-app { min-height: 100vh; background: var(--ui-bg); color: var(--ui-ink); }
-.modern-navbar { height: 68px !important; min-height: 68px; background: rgba(255,255,255,.92) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; box-shadow: 0 1px 0 rgba(24,39,75,.025); backdrop-filter: blur(18px); }
+.modern-app { min-height: 100vh; background-color: var(--ui-bg); color: var(--ui-ink); transition: background-color 0.2s ease, color 0.2s ease; }
+.modern-navbar { height: 56px !important; min-height: 56px; background: rgba(255,255,255,.94) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; box-shadow: 0 1px 3px rgba(24,39,75,.04); backdrop-filter: blur(16px); }
+.dark .modern-navbar { background: rgba(14,21,37,.94) !important; color: #f8fafc !important; border-color: var(--ui-line) !important; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
 .modern-navbar > div { max-width: 1680px; margin: 0 auto; }
 .modern-navbar nav { border-color: var(--ui-line) !important; }
 .modern-navbar a, .modern-navbar button { border-radius: 10px; }
 .modern-navbar a[class*="after:bg-"] { font-weight: 650; }
 .modern-navbar a[class*="after:bg-[#00B386]"], .modern-navbar a[class*="after:bg-emerald"] { color: var(--ui-primary) !important; }
 .modern-app main { min-width: 0; }
-.modern-app footer { background: #fff !important; border-color: var(--ui-line) !important; color: var(--ui-muted) !important; }
+.modern-app footer { background: #ffffff !important; border-color: var(--ui-line) !important; color: var(--ui-muted) !important; }
+.dark .modern-app footer { background: #0f1629 !important; border-color: var(--ui-line) !important; color: var(--ui-muted) !important; }
 
-/* Make the new light visual system deterministic, even for older components with hard-coded dark utility classes. */
-.modern-app [class*="bg-[#0e1117]"], .modern-app [class*="bg-[#0D1117]"], .modern-app [class*="bg-[#0B0F14]"],
-.modern-app [class*="bg-[#161b22]"], .modern-app [class*="bg-[#161C24]"], .modern-app [class*="bg-[#1C2430]"],
-.modern-app [class*="bg-[#0D1117]"], .modern-app [class*="bg-slate-950"], .modern-app [class*="bg-zinc-950"],
-.modern-app [class*="bg-zinc-900"], .modern-app [class*="bg-slate-900"], .modern-app [class*="bg-[#0e1117]"] {
-  background-color: #fff !important; background-image: none !important;
+/* In light mode only, map legacy dark container classes to clean light backgrounds */
+html:not(.dark) .modern-app [class*="bg-[#0e1117]"]:not(header):not(button),
+html:not(.dark) .modern-app [class*="bg-[#0D1117]"]:not(header):not(button),
+html:not(.dark) .modern-app [class*="bg-[#0B0F14]"]:not(header):not(button),
+html:not(.dark) .modern-app [class*="bg-[#161b22]"]:not(header):not(button),
+html:not(.dark) .modern-app [class*="bg-[#161C24]"]:not(header):not(button) {
+  background-color: #ffffff;
 }
-.modern-app [class*="bg-[#1c2430]"], .modern-app [class*="bg-slate-800"], .modern-app [class*="bg-zinc-800"],
-.modern-app [class*="bg-[#252D38]"], .modern-app [class*="bg-[#202833]"] { background-color: #f5f7fc !important; background-image: none !important; }
-.modern-app [class*="text-zinc-100"], .modern-app [class*="text-zinc-200"], .modern-app [class*="text-slate-100"],
-.modern-app [class*="text-slate-200"], .modern-app [class*="text-[#F1F5F9]"], .modern-app [class*="text-[#E2E8F0]"],
-.modern-app [class*="text-[#CBD5E1]"], .modern-app [class*="text-white"] { color: #17243b !important; }
-.modern-app [class*="text-zinc-400"], .modern-app [class*="text-zinc-500"], .modern-app [class*="text-slate-400"],
-.modern-app [class*="text-slate-500"], .modern-app [class*="text-[#94A3B8]"], .modern-app [class*="text-[#64748B]"] { color: #687892 !important; }
-.modern-app [class*="border-zinc-800"], .modern-app [class*="border-slate-800"], .modern-app [class*="border-[#252D38]"],
-.modern-app [class*="border-[#343E4B]"], .modern-app [class*="border-zinc-700"], .modern-app [class*="border-slate-700"] { border-color: #e3e9f2 !important; }
-.modern-app [class*="rounded-3xl"] { border-radius: 22px !important; }
-.modern-app [class*="rounded-2xl"] { border-radius: 18px !important; }
-.modern-app [class*="rounded-xl"] { border-radius: 13px !important; }
-.modern-app [class*="shadow-xl"], .modern-app [class*="shadow-2xl"], .modern-app [class*="shadow-lg"] { box-shadow: var(--ui-shadow) !important; }
-.modern-app [class*="border-2"] { border-width: 1px !important; }
-.modern-app [class*="bg-emerald-950"], .modern-app [class*="bg-green-950"], .modern-app [class*="bg-[#0B3029]"] { background-color: #e8f8f2 !important; }
-.modern-app [class*="text-emerald-400"], .modern-app [class*="text-green-400"], .modern-app [class*="text-[#00B386]"] { color: #087f68 !important; }
-.modern-app [class*="bg-red-950"], .modern-app [class*="bg-rose-950"], .modern-app [class*="bg-[#351B23]"] { background-color: #fff0f1 !important; }
-.modern-app [class*="text-red-400"], .modern-app [class*="text-rose-400"], .modern-app [class*="text-[#F87171]"] { color: #bd334b !important; }
-.modern-app [class*="bg-amber-950"], .modern-app [class*="bg-[#352A17]"] { background-color: #fff6df !important; }
-.modern-app [class*="text-amber-400"], .modern-app [class*="text-[#FBBF24]"] { color: #946200 !important; }
-.modern-app [class*="bg-sky-950"] { background-color: #e9f5ff !important; }
-.modern-app [class*="text-sky-400"], .modern-app [class*="text-[#38BDF8]"] { color: #176fa9 !important; }
+html:not(.dark) .modern-app [class*="bg-[#1c2430]"]:not(button),
+html:not(.dark) .modern-app [class*="bg-[#252D38]"]:not(button) {
+  background-color: #f5f7fc;
+}
 
-/* Consistent cards, panels, forms, tables and interaction */
-.modern-app [class*="rounded-3xl"][class*="border"], .modern-app [class*="rounded-2xl"][class*="border"],
-.modern-app [class*="rounded-xl"][class*="border"] { border-color: var(--ui-line) !important; }
-.modern-app [class*="bg-white"][class*="border"], .modern-app [class*="bg-slate-50"][class*="border"] { box-shadow: var(--ui-shadow); }
-.modern-app input, .modern-app select, .modern-app textarea { border-radius: 12px !important; border-color: #d9e1ee !important; }
-.modern-app input:focus, .modern-app select:focus, .modern-app textarea:focus { border-color: #818cf8 !important; box-shadow: 0 0 0 4px rgba(99,102,241,.12) !important; outline: none !important; }
+/* Card radius and borders */
+.modern-app [class*="rounded-3xl"] { border-radius: 22px; }
+.modern-app [class*="rounded-2xl"] { border-radius: 18px; }
+.modern-app [class*="rounded-xl"] { border-radius: 13px; }
+.modern-app [class*="shadow-xl"], .modern-app [class*="shadow-2xl"], .modern-app [class*="shadow-lg"] { box-shadow: var(--ui-shadow); }
+
+/* Consistent cards, forms, tables and interactions */
+.modern-app input, .modern-app select, .modern-app textarea { border-radius: 12px; }
+.modern-app input:focus, .modern-app select:focus, .modern-app textarea:focus { border-color: #818cf8; outline: none; }
 .modern-app table { border-collapse: separate !important; border-spacing: 0; }
-.modern-app thead th { background: #f5f7fc !important; color: #687892 !important; font-size: 10px !important; letter-spacing: .075em; text-transform: uppercase; border-color: var(--ui-line) !important; }
+.modern-app thead th { background: #f5f7fc; color: #687892; font-size: 10px !important; letter-spacing: .075em; text-transform: uppercase; border-color: var(--ui-line); }
+.dark .modern-app thead th { background: #131c31; color: #94a3b8; border-color: var(--ui-line); }
 .modern-app tbody tr { transition: background-color .15s ease; }
-.modern-app tbody tr:hover { background-color: #f7f8ff !important; }
-.modern-app td, .modern-app th { border-color: #e8edf5 !important; }
+.modern-app tbody tr:hover { background-color: #f7f8ff; }
+.dark .modern-app tbody tr:hover { background-color: #1a243c; }
+.modern-app td, .modern-app th { border-color: var(--ui-line); }
+
 .modern-app button, .modern-app a, .modern-app [role="button"] { transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
-.modern-app button:hover, .modern-app [role="button"]:hover { border-color: #c7d2fe; }
-.modern-app button[class*="bg-emerald-600"], .modern-app button[class*="bg-emerald-500"], .modern-app button[class*="bg-green-600"],
-.modern-app a[class*="bg-emerald-600"], .modern-app a[class*="bg-green-600"], .modern-app button[class*="bg-indigo-600"],
-.modern-app a[class*="bg-indigo-600"], .modern-app button[class*="bg-blue-600"], .modern-app a[class*="bg-blue-600"] {
-  background-color: var(--ui-primary) !important; background-image: none !important; color: #fff !important; border-color: var(--ui-primary) !important;
-  box-shadow: 0 6px 16px rgba(79,70,229,.18);
-}
-.modern-app button[class*="bg-emerald-600"]:hover, .modern-app button[class*="bg-indigo-600"]:hover, .modern-app a[class*="bg-indigo-600"]:hover { background-color: var(--ui-primary-strong) !important; }
-.modern-app button[class*="bg-emerald-600"], .modern-app button[class*="bg-emerald-500"], .modern-app button[class*="bg-green-600"],
-.modern-app a[class*="bg-emerald-600"], .modern-app a[class*="bg-green-600"], .modern-app button[class*="bg-indigo-600"],
-.modern-app a[class*="bg-indigo-600"], .modern-app button[class*="bg-blue-600"], .modern-app a[class*="bg-blue-600"] { color: #fff !important; }
-.modern-app button[class*="bg-emerald-600"] [class*="text-white"], .modern-app button[class*="bg-indigo-600"] [class*="text-white"],
-.modern-app a[class*="bg-indigo-600"] [class*="text-white"], .modern-app a[class*="bg-emerald-600"] [class*="text-white"] { color: #fff !important; }
-.modern-app hr { border-color: var(--ui-line) !important; }
+.modern-app hr { border-color: var(--ui-line); }
 .modern-app h1 { letter-spacing: -.04em; line-height: 1.1; }
 .modern-app h2, .modern-app h3 { letter-spacing: -.025em; }
-
-/* Auth pages receive the same visual identity, with more generous breathing room. */
-.modern-app > div.min-h-screen, .modern-app > main.min-h-screen { background-color: var(--ui-bg) !important; }
-.modern-app [class*="bg-gradient-to-br"], .modern-app [class*="bg-gradient-to-r"] { background-image: none; }
 
 @media (min-width: 1280px) {
   .modern-app main > div[class*="px-4"] { padding-left: clamp(24px, 3vw, 52px); padding-right: clamp(24px, 3vw, 52px); }
 }
 @media (max-width: 767px) {
-  .modern-navbar { height: 60px !important; min-height: 60px; }
+  .modern-navbar { height: 56px !important; min-height: 56px; }
   .modern-app h1 { font-size: clamp(1.55rem, 6vw, 2.15rem); }
-  .modern-app [class*="grid-cols-"] { gap: 12px !important; }
-  .modern-app [class*="p-8"] { padding: 1.15rem !important; }
-  .modern-app [class*="p-10"] { padding: 1.25rem !important; }
+  .modern-app [class*="grid-cols-"] { gap: 12px; }
+  .modern-app [class*="p-8"] { padding: 1.15rem; }
+  .modern-app [class*="p-10"] { padding: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
-
-/* Normalize legacy inline palette values used by the campus health and category badges. */
-.modern-app [style*="#1C2430"], .modern-app [style*="#1c2430"] { background-color: #f4f6fc !important; border-color: #e3e9f2 !important; }
-.modern-app [style*="#0B3029"], .modern-app [style*="#0b3029"] { background-color: #e8f8f2 !important; }
-.modern-app [style*="#352A17"], .modern-app [style*="#352a17"] { background-color: #fff5dc !important; }
-.modern-app [style*="#351B23"], .modern-app [style*="#351b23"] { background-color: #fff0f1 !important; }
-.modern-app [style*="#F1F5F9"], .modern-app [style*="#F1f5f9"] { color: #17243b !important; }
