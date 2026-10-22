@@ -1,12 +1,12 @@
 /**
- * SmartComplaintHandler - Directorate Executive Overview
- * High-level institutional telemetry, departmental health radar, campus digital twin
- * building fault distribution, and SLA exception monitoring for the Director / Chief Administrator.
+ * SmartComplaintHandler - Campus Facilities Directorate Overview
+ * Style: Dark Enterprise Operations Dashboard (Command Center)
+ * Reference: Executive Oversight telemetry, departmental operational stability,
+ * building fault density, and SLA exception monitoring across IIIT Naya Raipur.
  */
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { fetchAdmins } from '../api/auth';
 import { fetchSquadWorkloads } from '../api/assignment';
 import { fetchComplaints } from '../api/complaints';
@@ -31,9 +31,20 @@ const DEPT_ICONS = {
   'General Administration': '🏛️',
 };
 
+// Facility Category Badges with consistent subdued dark enterprise tones
+const CATEGORY_COLORS = {
+  ACADEMIC: { bg: '#1C2430', border: '#343E4B', text: '#38BDF8' },
+  HOSTEL: { bg: '#1C2430', border: '#343E4B', text: '#00B386' },
+  DINING: { bg: '#1C2430', border: '#343E4B', text: '#FBBF24' },
+  CULTURE: { bg: '#1C2430', border: '#343E4B', text: '#C084FC' },
+  SPORTS: { bg: '#1C2430', border: '#343E4B', text: '#2DD4BF' },
+  AMENITY: { bg: '#1C2430', border: '#343E4B', text: '#94A3B8' },
+  ADMIN: { bg: '#1C2430', border: '#343E4B', text: '#F1F5F9' },
+};
+
 export default function SuperAdminDashboard() {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { isDark } = useTheme();
 
   const [admins, setAdmins] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -42,8 +53,9 @@ export default function SuperAdminDashboard() {
   const [buildings] = useState(() => getCampusBuildings());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -57,16 +69,17 @@ export default function SuperAdminDashboard() {
       setTeams(Array.isArray(teamList) ? teamList : []);
       setTickets(Array.isArray(ticketList) ? ticketList : []);
       setBreaches(Array.isArray(breachList) ? breachList : []);
+      setLastUpdated(new Date());
     } catch (err) {
-      setError('Failed to load directorate executive telemetry.');
+      setError('Failed to refresh directorate executive telemetry. Check network connection.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   // Executive KPI Math
   const totalTickets = tickets.length;
@@ -96,7 +109,7 @@ export default function SuperAdminDashboard() {
       ? Math.max(0, Math.round(((totalTickets - overdueBreaches) / totalTickets) * 100))
       : 100;
 
-  // Department distribution
+  // Department distribution with authentic health score
   const departmentStats = useMemo(() => {
     return CAMPUS_DEPARTMENTS.map((dept) => {
       const deptTickets = tickets.filter((t) => t.department_name === dept);
@@ -108,7 +121,11 @@ export default function SuperAdminDashboard() {
       ).length;
       const total = deptTickets.length;
       const rate = total > 0 ? Math.round((resolved / total) * 100) : 100;
-      const health = Math.max(65, 100 - active * 5);
+      
+      // Health calculation: 100 if zero active, drops with backlog severity
+      const penalty = active * 6 + (active > 3 ? 12 : 0);
+      const health = Math.max(55, Math.min(100, 100 - penalty));
+
       return {
         name: dept,
         icon: DEPT_ICONS[dept] || '🏢',
@@ -139,8 +156,8 @@ export default function SuperAdminDashboard() {
         id: b.id,
         name: b.name,
         shortName: b.shortName || b.name,
-        category: b.category,
-        color: b.trace?.color || b.mapPin?.color || '#10b981',
+        category: b.category || 'FACILITY',
+        color: b.trace?.color || b.mapPin?.color || '#00B386',
         total: matchedTickets.length,
         active,
       };
@@ -148,408 +165,537 @@ export default function SuperAdminDashboard() {
     return list.sort((a, b) => b.total - a.total);
   }, [buildings, tickets]);
 
+  const handleFacilityClick = (building) => {
+    // Navigate to track status or operations filtered by location
+    navigate(`/track?search=${encodeURIComponent(building.shortName)}`);
+  };
+
   return (
     <div
-      className={`w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
-        isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
-      }`}
+      className="w-full min-h-screen bg-[#0D1117] text-[#F1F5F9] font-sans antialiased transition-colors duration-200"
+      style={{
+        '--page-bg': '#0D1117',
+        '--navigation-bg': '#0B0F14',
+        '--surface': '#161C24',
+        '--surface-raised': '#1C2430',
+        '--border': '#252D38',
+        '--border-strong': '#343E4B',
+        '--text-primary': '#F1F5F9',
+        '--text-secondary': '#94A3B8',
+        '--text-muted': '#64748B',
+        '--accent': '#00B386',
+        '--accent-hover': '#00C795',
+        '--accent-soft': '#0B3029',
+        '--critical': '#F87171',
+        '--critical-soft': '#351B23',
+        '--warning': '#FBBF24',
+        '--warning-soft': '#352A17',
+        '--info': '#38BDF8',
+        '--healthy': '#2DD4BF',
+      }}
     >
-      {/* Directorate Executive Header */}
-      <div
-        className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden transition-colors ${
-          isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xs'
-        }`}
-      >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* 4. Page Heading Section directly below Top Navigation */}
+      <section className="w-full bg-[#161C24] border-b border-[#252D38] px-6 sm:px-8 lg:px-10 py-5 sm:py-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className={`text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border ${
-                isDark ? 'bg-zinc-800/80 border-zinc-700 text-emerald-400' : 'bg-white border-slate-300 text-emerald-800'
-              }`}>
-                Institutional Directorate Command
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded-[6px] bg-[#0B3029] border border-[#00B386]/30 text-[#00B386]">
+                INSTITUTIONAL DIRECTORATE COMMAND
               </span>
-              <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>•</span>
-              <span className={`text-xs font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+              <span className="text-[#64748B] text-xs">•</span>
+              <span className="text-xs font-mono text-[#94A3B8]">
                 Executive Oversight
               </span>
+              {lastUpdated && (
+                <>
+                  <span className="text-[#64748B] text-xs">•</span>
+                  <span className="text-[11px] font-mono text-[#64748B]">
+                    Telemetry Synced {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </span>
+                </>
+              )}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <h1 className="text-2xl sm:text-[28px] font-bold text-[#F1F5F9] tracking-tight leading-snug">
               Campus Facilities Directorate Overview
             </h1>
-            <p className={`text-xs mt-1 max-w-2xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              High-level institutional telemetry, cross-department operational stability, building fault density, and SLA exception monitoring across IIIT Naya Raipur.
+            <p className="text-xs sm:text-[13px] text-[#94A3B8] mt-1 max-w-3xl leading-relaxed">
+              Campus-wide complaint monitoring, departmental operations stability, building fault density, and contractual SLA oversight across IIIT Naya Raipur.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               type="button"
               onClick={loadData}
               disabled={loading}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer border ${
-                isDark
-                  ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700'
-                  : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300 shadow-xs'
-              }`}
+              className="px-3.5 py-2 rounded-[10px] text-xs font-semibold text-[#F1F5F9] bg-[#1C2430] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#252D38] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <span>{loading ? 'Refreshing...' : '🔄 Refresh Telemetry'}</span>
+              <span className={loading ? 'animate-spin inline-block' : ''}>🔄</span>
+              <span>{loading ? 'Refreshing...' : 'Refresh Telemetry'}</span>
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Main Content Area */}
-      <div className="w-full px-4 sm:px-8 lg:px-12 py-8 space-y-8">
+      {/* Main Body Container: padding 28-36px desktop */}
+      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-7 sm:py-8 space-y-6 sm:space-y-7">
+        {/* Error notification banner if any */}
         {error && (
-          <div className={`p-4 rounded-xl border text-xs font-bold ${
-            isDark ? 'bg-rose-950/60 border-rose-800 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-800'
-          }`}>
-            ⚠️ {error}
+          <div className="p-3.5 rounded-[12px] bg-[#351B23] border border-[#F87171]/40 text-[#F87171] text-xs font-medium flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+            <button
+              type="button"
+              onClick={loadData}
+              className="underline text-[11px] hover:text-white font-mono cursor-pointer"
+            >
+              Retry
+            </button>
           </div>
         )}
 
-        {/* Executive KPI Bento Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300 shadow-2xs'}`}>
-            <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+        {/* 5. KPI Strip: 6 compact metric cards in 1 row on desktop, 3 on tablet, 2 on mobile */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
+          {/* KPI 1: Total Grievances */}
+          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
+            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
               Total Grievances
             </span>
-            <span className={`text-2xl font-black block mt-1 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-              {totalTickets}
-            </span>
-            <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+            <div className="my-1">
+              <span className="text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                {loading ? '—' : totalTickets}
+              </span>
+            </div>
+            <span className="text-[11px] text-[#2DD4BF] font-medium block truncate">
               Institutional Lifetime
             </span>
           </div>
 
-          <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300 shadow-2xs'}`}>
-            <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+          {/* KPI 2: Active Operations */}
+          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
+            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
               Active Operations
             </span>
-            <span className={`text-2xl font-black block mt-1 ${activeLoad > 0 ? (isDark ? 'text-amber-400' : 'text-amber-700') : (isDark ? 'text-zinc-100' : 'text-slate-900')}`}>
-              {activeLoad}
-            </span>
-            <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+            <div className="my-1">
+              <span className={`text-[26px] font-bold leading-none block font-mono ${activeLoad > 0 ? 'text-[#FBBF24]' : 'text-[#F1F5F9]'}`}>
+                {loading ? '—' : activeLoad}
+              </span>
+            </div>
+            <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
               {pendingTickets} Pending • {inProgressTickets} In-Work
             </span>
           </div>
 
-          <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300 shadow-2xs'}`}>
-            <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+          {/* KPI 3: Resolution Rate */}
+          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
+            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
               Resolution Rate
             </span>
-            <span className={`text-2xl font-black block mt-1 ${resolutionRate >= 80 ? (isDark ? 'text-emerald-400' : 'text-emerald-700') : (isDark ? 'text-amber-400' : 'text-amber-700')}`}>
-              {resolutionRate}%
-            </span>
-            <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+            <div className="my-1">
+              <span className={`text-[26px] font-bold leading-none block font-mono ${resolutionRate >= 80 ? 'text-[#00B386]' : 'text-[#FBBF24]'}`}>
+                {loading ? '—' : `${resolutionRate}%`}
+              </span>
+            </div>
+            <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
               {resolvedTickets} Closed Tickets
             </span>
           </div>
 
-          <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300 shadow-2xs'}`}>
-            <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+          {/* KPI 4: SLA Compliance */}
+          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
+            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
               SLA Compliance
             </span>
-            <span className={`text-2xl font-black block mt-1 ${overdueBreaches === 0 ? (isDark ? 'text-emerald-400' : 'text-emerald-700') : (isDark ? 'text-rose-400' : 'text-rose-600')}`}>
-              {slaCompliance}%
-            </span>
-            <span className={`text-[11px] block mt-0.5 ${overdueBreaches > 0 ? 'text-rose-500 font-bold' : isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+            <div className="my-1">
+              <span className={`text-[26px] font-bold leading-none block font-mono ${overdueBreaches === 0 ? 'text-[#00B386]' : 'text-[#F87171]'}`}>
+                {loading ? '—' : `${slaCompliance}%`}
+              </span>
+            </div>
+            <span className={`text-[11px] font-medium block truncate ${overdueBreaches > 0 ? 'text-[#F87171] font-bold' : 'text-[#00B386]'}`}>
               {overdueBreaches > 0 ? `⚠️ ${overdueBreaches} Overdue` : '✓ Zero Overdue'}
             </span>
           </div>
 
-          <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300 shadow-2xs'}`}>
-            <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+          {/* KPI 5: Field Squads */}
+          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
+            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
               Field Squads
             </span>
-            <span className={`text-2xl font-black block mt-1 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-              {teams.length}
-            </span>
-            <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-              Active Balancing
+            <div className="my-1">
+              <span className="text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                {loading ? '—' : teams.length}
+              </span>
+            </div>
+            <span className="text-[11px] text-[#38BDF8] font-medium block truncate">
+              Active Trade Balancing
             </span>
           </div>
 
-          <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300 shadow-2xs'}`}>
-            <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+          {/* KPI 6: Staff & Admins */}
+          <div className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-3.5 flex flex-col justify-between min-h-[82px] hover:border-[#343E4B] transition-colors">
+            <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
               Staff &amp; Admins
             </span>
-            <span className={`text-2xl font-black block mt-1 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-              {admins.length}
-            </span>
-            <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              6 Departments
+            <div className="my-1">
+              <span className="text-[26px] font-bold text-[#F1F5F9] leading-none block font-mono">
+                {loading ? '—' : admins.length}
+              </span>
+            </div>
+            <span className="text-[11px] text-[#94A3B8] font-medium block truncate">
+              6 Operational Trades
             </span>
           </div>
         </div>
 
-        {/* Quick Command Navigators */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* 6. Quick-Access Operational Cards: 3 cards horizontally aligned */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+          {/* Card A: Operations Console */}
           <Link
             to="/operations"
-            className={`p-5 rounded-2xl border transition-all flex items-center justify-between group ${
-              isDark
-                ? 'bg-[#161b22] border-zinc-800 hover:border-emerald-600 text-zinc-100'
-                : 'bg-white border-slate-300 hover:border-emerald-600 text-slate-900 shadow-xs'
-            }`}
+            className="bg-[#161C24] border border-[#252D38] hover:border-[#00B386]/60 hover:bg-[#1C2430] rounded-[12px] p-3.5 px-4 flex items-center justify-between group transition-all min-h-[60px]"
           >
-            <div className="flex items-center gap-3.5">
-              <span className="text-2xl">🚨</span>
-              <div>
-                <h3 className="text-sm font-bold group-hover:text-emerald-500 transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-[8px] bg-[#0B3029] border border-[#00B386]/30 flex items-center justify-center shrink-0 text-sm">
+                🚨
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#00B386] transition-colors truncate">
                   Operations Console
                 </h3>
-                <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                  Live queue triage, priority overrides &amp; incident dispatch.
+                <p className="text-[11px] text-[#94A3B8] truncate">
+                  Live queue triage, priority overrides, and incident dispatch.
                 </p>
               </div>
             </div>
-            <span className="text-emerald-500 text-sm font-bold">→</span>
+            <span className="text-[#00B386] text-sm font-bold pl-2 group-hover:translate-x-1 transition-transform">
+              →
+            </span>
           </Link>
 
+          {/* Card B: Squads & Dispatch */}
           <Link
             to="/squads"
-            className={`p-5 rounded-2xl border transition-all flex items-center justify-between group ${
-              isDark
-                ? 'bg-[#161b22] border-zinc-800 hover:border-blue-600 text-zinc-100'
-                : 'bg-white border-slate-300 hover:border-blue-600 text-slate-900 shadow-xs'
-            }`}
+            className="bg-[#161C24] border border-[#252D38] hover:border-[#38BDF8]/60 hover:bg-[#1C2430] rounded-[12px] p-3.5 px-4 flex items-center justify-between group transition-all min-h-[60px]"
           >
-            <div className="flex items-center gap-3.5">
-              <span className="text-2xl">🛠️</span>
-              <div>
-                <h3 className="text-sm font-bold group-hover:text-blue-500 transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-[8px] bg-[#102A43] border border-[#38BDF8]/30 flex items-center justify-center shrink-0 text-sm">
+                🛠️
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#38BDF8] transition-colors truncate">
                   Squads &amp; Dispatch
                 </h3>
-                <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                  Line-by-line workload balancer ranked by bottleneck stress.
+                <p className="text-[11px] text-[#94A3B8] truncate">
+                  Workload balancing and team dispatch.
                 </p>
               </div>
             </div>
-            <span className="text-blue-500 text-sm font-bold">→</span>
+            <span className="text-[#38BDF8] text-sm font-bold pl-2 group-hover:translate-x-1 transition-transform">
+              →
+            </span>
           </Link>
 
+          {/* Card C: Staff & RBAC Directory */}
           <Link
             to="/superadmin/staff"
-            className={`p-5 rounded-2xl border transition-all flex items-center justify-between group ${
-              isDark
-                ? 'bg-[#161b22] border-zinc-800 hover:border-purple-600 text-zinc-100'
-                : 'bg-white border-slate-300 hover:border-purple-600 text-slate-900 shadow-xs'
-            }`}
+            className="bg-[#161C24] border border-[#252D38] hover:border-[#C084FC]/60 hover:bg-[#1C2430] rounded-[12px] p-3.5 px-4 flex items-center justify-between group transition-all min-h-[60px]"
           >
-            <div className="flex items-center gap-3.5">
-              <span className="text-2xl">👥</span>
-              <div>
-                <h3 className="text-sm font-bold group-hover:text-purple-500 transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-[8px] bg-[#2E1065] border border-[#C084FC]/30 flex items-center justify-center shrink-0 text-sm">
+                👥
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-[13px] font-bold text-[#F1F5F9] group-hover:text-[#C084FC] transition-colors truncate">
                   Staff &amp; RBAC Directory
                 </h3>
-                <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                  Authorize facility admins, squad leads &amp; manage access.
+                <p className="text-[11px] text-[#94A3B8] truncate">
+                  Staff management, permissions, and access administration.
                 </p>
               </div>
             </div>
-            <span className="text-purple-500 text-sm font-bold">→</span>
+            <span className="text-[#C084FC] text-sm font-bold pl-2 group-hover:translate-x-1 transition-transform">
+              →
+            </span>
           </Link>
         </div>
 
-        {/* Department Health Radar */}
-        <div className="space-y-4">
+        {/* 7. Departmental Infrastructure Health & Operational Radar (3x2 Grid on desktop) */}
+        <section className="space-y-3.5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h2 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+              <h2 className="text-[16px] font-bold text-[#F1F5F9] tracking-tight">
                 Departmental Infrastructure Health &amp; Operational Radar
               </h2>
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+              <p className="text-xs text-[#94A3B8] mt-0.5">
                 Cross-functional telemetry tracking complaint volume, resolution percentages, and service stability across all 6 campus trades.
               </p>
             </div>
-            <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-full border shrink-0 ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-emerald-400' : 'bg-[#f1f5f9] border-slate-300 text-emerald-800'
-            }`}>
+            <span className="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-[#0B3029] border border-[#00B386]/30 text-[#00B386] flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00B386] animate-pulse" />
               Live Radar Active
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {departmentStats.map((dept) => (
-              <div
-                key={dept.name}
-                className={`p-5 rounded-2xl border transition-all ${
-                  isDark
-                    ? 'bg-[#161b22] border-zinc-800 hover:border-zinc-700 text-zinc-100'
-                    : 'bg-white border-slate-300 hover:border-slate-400 text-slate-900 shadow-xs'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-xl">{dept.icon}</span>
-                    <div>
-                      <h3 className={`text-sm font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                        {dept.name}
-                      </h3>
-                      <span className={`text-[10px] font-mono ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                        {dept.total} Total Grievances
-                      </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5">
+            {departmentStats.map((dept) => {
+              const isHealthy = dept.health >= 85;
+              const isDegraded = dept.health >= 70 && dept.health < 85;
+              const healthColor = isHealthy ? '#00B386' : isDegraded ? '#FBBF24' : '#F87171';
+
+              return (
+                <div
+                  key={dept.name}
+                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] rounded-[12px] p-4 flex flex-col justify-between transition-colors min-h-[118px]"
+                >
+                  <div>
+                    {/* Header Row: Dept Icon + Name + Health Score */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-lg shrink-0">{dept.icon}</span>
+                        <div className="min-w-0">
+                          <h3 className="text-[13px] font-bold text-[#F1F5F9] truncate">
+                            {dept.name}
+                          </h3>
+                          <span className="text-[10px] font-mono text-[#64748B]">
+                            {dept.total} Total Grievances
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span
+                          className="text-xs font-mono font-bold px-2 py-0.5 rounded-[6px]"
+                          style={{
+                            color: healthColor,
+                            backgroundColor: isHealthy ? '#0B3029' : isDegraded ? '#352A17' : '#351B23',
+                            border: `1px solid ${healthColor}40`,
+                          }}
+                        >
+                          {dept.health}/100 Health
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Metrics Row */}
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                      <div>
+                        <span className="text-[#64748B] text-[11px] block">Active Workload</span>
+                        <span className={`font-mono font-bold text-[12px] ${dept.active > 0 ? 'text-[#FBBF24]' : 'text-[#00B386]'}`}>
+                          {dept.active} Active Faults
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[#64748B] text-[11px] block">Resolved on Campus</span>
+                        <span className="font-mono font-bold text-[12px] text-[#F1F5F9]">
+                          {dept.resolved} ({dept.rate}%)
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className={`text-xs font-mono font-bold ${dept.health >= 85 ? 'text-emerald-500' : dept.health >= 70 ? 'text-amber-500' : 'text-rose-500'}`}>
-                      {dept.health}/100 Health
-                    </span>
-                  </div>
-                </div>
 
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className={isDark ? 'text-zinc-400' : 'text-slate-600'}>Active Workload:</span>
-                    <span className={`font-mono font-bold ${dept.active > 0 ? (isDark ? 'text-amber-400' : 'text-amber-700') : (isDark ? 'text-emerald-400' : 'text-emerald-700')}`}>
-                      {dept.active} Active Faults
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs">
-                    <span className={isDark ? 'text-zinc-400' : 'text-slate-600'}>Resolved on Campus:</span>
-                    <span className={`font-mono font-bold ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>
-                      {dept.resolved} ({dept.rate}%)
-                    </span>
-                  </div>
-
-                  {/* Health Bar */}
-                  <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-slate-200'}`}>
+                  {/* Thin horizontal progress bar (4-5px high) */}
+                  <div className="w-full h-[5px] rounded-full bg-[#1C2430] overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        dept.health >= 85 ? 'bg-emerald-500' : dept.health >= 70 ? 'bg-amber-500' : 'bg-rose-500'
-                      }`}
-                      style={{ width: `${dept.health}%` }}
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${dept.health}%`,
+                        backgroundColor: healthColor,
+                      }}
                     />
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
+        </section>
 
-        {/* Campus Building Fault Distribution */}
-        <div className="space-y-4">
+        {/* 8. Campus Digital Twin Infrastructure Density: 4 columns on wide desktop */}
+        <section className="space-y-3.5">
           <div>
-            <h2 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+            <h2 className="text-[16px] font-bold text-[#F1F5F9] tracking-tight">
               Campus Digital Twin Infrastructure Density
             </h2>
-            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Fault distribution and complaint density across Academic Complexes, Hostels, Amenity Centres, and Sports Grounds.
+            <p className="text-xs text-[#94A3B8] mt-0.5">
+              Fault distribution and complaint density across academic buildings, hostels, amenity centers, and sports grounds.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {buildingStats.map((b) => (
-              <div
-                key={b.id}
-                className={`p-4 rounded-xl border transition-colors ${
-                  isDark
-                    ? 'bg-[#161b22] border-zinc-800 hover:border-zinc-700'
-                    : 'bg-white border-slate-300 hover:border-slate-400 shadow-2xs'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1 mb-2">
-                  <div className="flex items-center gap-2 min-w-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {buildingStats.map((b) => {
+              const catStyle = CATEGORY_COLORS[b.category] || CATEGORY_COLORS.FACILITY || {
+                bg: '#1C2430',
+                border: '#343E4B',
+                text: '#94A3B8',
+              };
+
+              return (
+                <div
+                  key={b.id}
+                  onClick={() => handleFacilityClick(b)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleFacilityClick(b);
+                    }
+                  }}
+                  className="bg-[#161C24] border border-[#252D38] hover:border-[#343E4B] hover:bg-[#1C2430] rounded-[12px] p-3 flex flex-col justify-between transition-all cursor-pointer group focus:outline-none focus:ring-1 focus:ring-[#00B386]"
+                >
+                  <div className="flex items-center justify-between gap-1 mb-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: b.color }}
+                      />
+                      <h4
+                        className="text-xs font-bold text-[#F1F5F9] truncate group-hover:text-[#00B386] transition-colors"
+                        title={b.name}
+                      >
+                        {b.shortName}
+                      </h4>
+                    </div>
                     <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: b.color }}
-                    />
-                    <h4 className={`text-xs font-bold truncate ${isDark ? 'text-zinc-100' : 'text-slate-900'}`} title={b.name}>
-                      {b.shortName}
-                    </h4>
+                      className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] border shrink-0 uppercase"
+                      style={{
+                        backgroundColor: catStyle.bg,
+                        borderColor: catStyle.border,
+                        color: catStyle.text,
+                      }}
+                    >
+                      {b.category}
+                    </span>
                   </div>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 ${
-                    isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-400' : 'bg-slate-50 border-slate-300 text-slate-600'
-                  }`}>
-                    {b.category}
-                  </span>
-                </div>
 
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>Total Tickets:</span>
-                  <span className={`font-mono font-bold ${isDark ? 'text-zinc-200' : 'text-slate-900'}`}>
-                    {b.total}
-                  </span>
-                </div>
+                  <div className="space-y-1 pt-1 border-t border-[#252D38]/60 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-[#64748B]">Total Tickets</span>
+                      <span className="font-mono font-bold text-[#F1F5F9]">
+                        {b.total}
+                      </span>
+                    </div>
 
-                <div className="flex items-center justify-between text-xs">
-                  <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>Active Faults:</span>
-                  <span className={`font-mono font-bold ${b.active > 0 ? (isDark ? 'text-amber-400' : 'text-amber-700') : (isDark ? 'text-emerald-400' : 'text-emerald-700')}`}>
-                    {b.active}
-                  </span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-[#64748B]">Active Faults</span>
+                      <span
+                        className={`font-mono font-bold ${
+                          b.active > 0 ? 'text-[#FBBF24]' : 'text-[#00B386]'
+                        }`}
+                      >
+                        {b.active}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
+        </section>
 
-        {/* SLA Breach Radar & Safety Hazard Alert Banner */}
-        <div className={`p-6 rounded-2xl border transition-colors ${
-          isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-white border-slate-300 shadow-sm'
-        }`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-inherit">
+        {/* 9. SLA Exception Radar & Escalation Gate: wide panel with 3 metric cards */}
+        <section className="bg-[#161C24] border border-[#252D38] rounded-[12px] p-5 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#252D38]">
             <div>
-              <h3 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+              <h2 className="text-[16px] font-bold text-[#F1F5F9] tracking-tight">
                 SLA Exception Radar &amp; Escalation Gate
-              </h3>
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+              </h2>
+              <p className="text-xs text-[#94A3B8] mt-0.5">
                 Real-time monitoring of campus tickets nearing or breaching contractual SLA limits.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
-                overdueBreaches === 0
-                  ? isDark
-                    ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800'
-                    : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  : 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse font-bold'
-              }`}>
-                {overdueBreaches === 0 ? '✓ Zero SLA Breaches' : `⚠️ ${overdueBreaches} Overdue Breaches`}
+              <span
+                className={`text-xs font-semibold px-3 py-1 rounded-full border flex items-center gap-1.5 ${
+                  overdueBreaches === 0
+                    ? 'bg-[#0B3029] text-[#00B386] border-[#00B386]/30'
+                    : 'bg-[#351B23] text-[#F87171] border-[#F87171]/40 animate-pulse font-bold'
+                }`}
+              >
+                {overdueBreaches === 0 ? (
+                  <>
+                    <span>✓</span>
+                    <span>Zero SLA Breaches</span>
+                  </>
+                ) : (
+                  <>
+                    <span>⚠️</span>
+                    <span>{overdueBreaches} Overdue Beyond SLA</span>
+                  </>
+                )}
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-            <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300'}`}>
-              <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+            {/* SLA Card 1 */}
+            <Link
+              to="/operations"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#F87171]/60 rounded-[12px] p-4 flex flex-col justify-between transition-colors group cursor-pointer min-h-[96px]"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Overdue Beyond SLA
               </span>
-              <span className={`text-2xl font-black font-mono block mt-1 ${overdueBreaches > 0 ? 'text-rose-500' : isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                {overdueBreaches}
+              <div className="my-1">
+                <span
+                  className={`text-[28px] font-bold font-mono block leading-none ${
+                    overdueBreaches > 0 ? 'text-[#F87171]' : 'text-[#00B386]'
+                  }`}
+                >
+                  {loading ? '—' : overdueBreaches}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] group-hover:text-[#F87171] transition-colors block">
+                Active breaches requiring supervisory intervention →
               </span>
-              <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Active breaches requiring supervisory intervention
-              </span>
-            </div>
+            </Link>
 
-            <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300'}`}>
-              <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+            {/* SLA Card 2 */}
+            <Link
+              to="/operations"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#FBBF24]/60 rounded-[12px] p-4 flex flex-col justify-between transition-colors group cursor-pointer min-h-[96px]"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Approaching Breach Window
               </span>
-              <span className={`text-2xl font-black font-mono block mt-1 ${approachingBreaches > 0 ? 'text-amber-500' : isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                {approachingBreaches}
+              <div className="my-1">
+                <span
+                  className={`text-[28px] font-bold font-mono block leading-none ${
+                    approachingBreaches > 0 ? 'text-[#FBBF24]' : 'text-[#94A3B8]'
+                  }`}
+                >
+                  {loading ? '—' : approachingBreaches}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] group-hover:text-[#FBBF24] transition-colors block">
+                Tickets with &lt; 20% remaining SLA duration →
               </span>
-              <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Tickets with &lt; 20% remaining SLA duration
-              </span>
-            </div>
+            </Link>
 
-            <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300'}`}>
-              <span className={`text-[10px] font-mono uppercase block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+            {/* SLA Card 3 */}
+            <Link
+              to="/operations"
+              className="bg-[#0D1117] border border-[#252D38] hover:border-[#00B386]/60 rounded-[12px] p-4 flex flex-col justify-between transition-colors group cursor-pointer min-h-[96px]"
+            >
+              <span className="text-[10px] font-mono uppercase font-semibold text-[#64748B] tracking-wider block">
                 Critical Safety Breakdowns
               </span>
-              <span className={`text-2xl font-black font-mono block mt-1 ${criticalTickets > 0 ? 'text-rose-500' : isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                {criticalTickets}
+              <div className="my-1">
+                <span
+                  className={`text-[28px] font-bold font-mono block leading-none ${
+                    criticalTickets > 0 ? 'text-[#F87171]' : 'text-[#00B386]'
+                  }`}
+                >
+                  {loading ? '—' : criticalTickets}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#94A3B8] group-hover:text-[#00B386] transition-colors block">
+                Immediate hazards or emergency campus breakdowns →
               </span>
-              <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Immediate hazards or 2-hour SLA items
-              </span>
-            </div>
+            </Link>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }
