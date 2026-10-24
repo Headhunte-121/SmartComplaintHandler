@@ -1,8 +1,8 @@
 # Smart Complaint Handler — Master Documentation Portal
 
-> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md) &nbsp;│&nbsp; [👥 Team Workflow & Git Guide](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md)
+> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md) &nbsp;│&nbsp; [👥 Team Workflow & Git Guide](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md)
 
-Welcome to the central documentation portal for the **Automated Smart Complaint Routing & Workflow Automation Platform (`SmartComplaintHandler`)**. This repository contains the complete technical specifications, architectural blueprints, foundational engineering manuals, and developer implementation guides.
+Welcome to the central documentation portal for the **Automated Smart Complaint Routing & Workflow Automation Platform (`SmartComplaintHandler`)**. This repository contains the complete technical specifications, architectural blueprints, foundational engineering manuals, line-by-line codebase walkthroughs, and developer implementation guides.
 
 ---
 
@@ -10,6 +10,7 @@ Welcome to the central documentation portal for the **Automated Smart Complaint 
 
 | Objective | Primary Resources | Scope & Deliverables |
 | :--- | :--- | :--- |
+| **Codebase Documentation (97 Manuals)** | [**`Codebase Documentation Hub`**](codebase/README.md)<br>[**`Full-Stack Architecture Guide`**](FULL_STACK_ARCHITECTURE.md)<br>[**`Master Documentation Roadmap`**](DOCUMENTATION_ROADMAP.md) | Exhaustive 4-iteration line-by-line manual for all 97 codebase modules, request lifecycles, and viva defense guide |
 | **Product Specification & PDR** | [**`Product Design Report (PDR/PRD)`**](PRODUCT_DESIGN_REPORT_PDR.md) | Official PDR/PRD: Personas, functional requirements, NFRs, KPIs, work breakdown |
 | **Module Implementation** | [**`V1 Module Blueprints`**](V1/README.md)<br>[**`Team Workflow & Git Guide`**](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md) | File-by-file blueprints (M1–M5), zero-blocking mock data contracts, concurrency DAG |
 | **Engineering Concepts** | [**`Developer Guide Suite`**](developer_guide/README.md) | 34 monotonic manuals covering CS fundamentals, runtimes, protocols, security |
@@ -18,7 +19,29 @@ Welcome to the central documentation portal for the **Automated Smart Complaint 
 
 ---
 
-## 1. Version 1.0 Implementation Blueprints (`V1/`)
+## 1. Master Codebase Documentation Hub & Viva Suite (`codebase/`)
+
+The platform features an exhaustive, line-by-line documentation suite covering **100% of all 97 modules** in the repository across 9 phases. Every single file is documented following the **4-Iteration Progressive Refinement Standard** (grounded in basic C/Python, zero buzzwords, edge cases analyzed, and Viva Q&A included):
+
+* 📚 [**`docs/codebase/README.md`**](codebase/README.md) — **Master Codebase Documentation Hub**: Central index and links to all 97 file manuals.
+* 🏛 [**`docs/FULL_STACK_ARCHITECTURE.md`**](FULL_STACK_ARCHITECTURE.md) — **Full-Stack Architecture & Connection Guide**: Explains how every layer connects, the life of a request sequence diagram, and viva examiner cheat sheets.
+* 🗺️ [**`docs/DOCUMENTATION_ROADMAP.md`**](DOCUMENTATION_ROADMAP.md) — **Master Documentation Roadmap & Progress Tracker**: Phase-by-phase status tracking.
+
+| Phase | Layer / Subsystem | Manuals | Direct Hub Jump |
+| :---: | :--- | :---: | :--- |
+| **Phase 1** | Backend Foundation & Core Configuration | 7 | [Phase 1 Manuals](codebase/README.md#phase-1-backend-foundation--core-configuration) |
+| **Phase 2** | Backend Data Models (SQLAlchemy ORM) | 7 | [Phase 2 Manuals](codebase/README.md#phase-2-backend-data-models-sqlalchemy-orm) |
+| **Phase 3** | Backend Schemas (Pydantic Data Contracts) | 8 | [Phase 3 Manuals](codebase/README.md#phase-3-backend-schemas-pydantic-contracts) |
+| **Phase 4** | Autonomous Business Logic Engines | 11 | [Phase 4 Manuals](codebase/README.md#phase-4-backend-business-logic--autonomous-service-engines) |
+| **Phase 5** | Backend API Layer & REST Endpoints | 9 | [Phase 5 Manuals](codebase/README.md#phase-5-backend-api-layer--rest-endpoints) |
+| **Phase 6** | Frontend Architecture, HTTP Client & Global State | 15 | [Phase 6 Manuals](codebase/README.md#phase-6-frontend-architecture-http-client--state) |
+| **Phase 7** | Frontend Reusable Components & Campus Digital Twin | 22 | [Phase 7 Manuals](codebase/README.md#phase-7-frontend-reusable-components--digital-twin) |
+| **Phase 8** | Frontend Pages & Interactive Workstations | 13 | [Phase 8 Manuals](codebase/README.md#phase-8-frontend-pages--interactive-workstations) |
+| **Phase 9** | Serverless Cloud Bridge, Tooling & Build Configs | 5 | [Phase 9 Manuals](codebase/README.md#phase-9-serverless-tooling--build-infrastructure) |
+
+---
+
+## 2. Version 1.0 Implementation Blueprints (`V1/`)
 
 The platform is designed around **5 core operational modules (M1–M5)**. Each module contains its own central overview, architectural flowchart, and file-by-file blueprints for backend and frontend:
 
@@ -35,7 +58,7 @@ The platform is designed around **5 core operational modules (M1–M5)**. Each m
 
 ---
 
-## 2. Master Developer Engineering & Architecture Suite (`developer_guide/`)
+## 3. Master Developer Engineering & Architecture Suite (`developer_guide/`)
 
 The authoritative 34-manual engineering curriculum teaching every language, runtime, protocol, and computer science primitive used in the project from the absolute basics with 100% code comments:
 
@@ -83,7 +106,7 @@ The authoritative 34-manual engineering curriculum teaching every language, runt
 
 ---
 
-## 3. Team Operations & Collaboration Manuals
+## 4. Team Operations & Collaboration Manuals
 
 * 👥 [**`V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md`**](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md)  
   The operational handbook for the 5-student team:
@@ -94,7 +117,7 @@ The authoritative 34-manual engineering curriculum teaching every language, runt
 
 ---
 
-## 4. Architectural Foundations & Design Rationales
+## 5. Architectural Foundations & Design Rationales
 
 * 🗺️ [**`FILE_ARCHITECTURE_GUIDE.md`**](FILE_ARCHITECTURE_GUIDE.md)  
   Exhaustive inventory of all 72 source files across `backend/` and `frontend/` with layer-by-layer descriptions.
@@ -106,3 +129,10 @@ The authoritative 34-manual engineering curriculum teaching every language, runt
   Evolution roadmap from V1.0 (Rule-Based Closed-Loop Automation) to V2.0 (AI/NLP Classification & Analytics) and V3.0 (Distributed IoT Integration).
 * 📜 [**Original Design Specification**](Automated%20Smart%20Complaint%20Routing%20System)  
   System design prompt and initial functional requirements.
+
+---
+
+## 🧭 Navigation Footer
+
+> **Quick Jump**:  
+> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)

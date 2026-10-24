@@ -1,5 +1,6 @@
 # SmartComplaintHandler — Full-Stack Architecture & System Connection Guide
 
+> **Navigation**: [🏠 Project Root](../README.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)  
 > **Target Audience**: College Viva Examiners, Project Review Committees, Technical Interviewers, and Software Engineers.  
 > **Repository Branch**: `documentation`  
 > **Core Architecture**: Modern 3-Tier Decoupled Client-Server Single-Page Application (SPA) with Autonomous Business Engines and 2D Digital Twin Cartography.
@@ -98,40 +99,40 @@ flowchart TD
 ### Layer 1: Client & Presentation (Frontend)
 | File / Directory | Direct Purpose | How It Connects to the Rest of the Stack |
 | :--- | :--- | :--- |
-| [`frontend/index.html`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/index.html.md) | Single HTML page delivered by server; contains root `<div>` and anti-FOUC theme script. | Mounts `main.jsx`; loads Google GSI library and Google fonts. |
-| [`frontend/src/main.jsx`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/src/main.jsx.md) | JavaScript entrypoint instantiating `ReactDOM.createRoot`. | Injects `App.jsx` into `<div id="root">`; imports `globals.css`. |
-| [`frontend/src/App.jsx`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/src/App.jsx.md) | Root component setting up application providers. | Wraps application in `ThemeProvider`, `AuthProvider`, and `AppRouter`. |
-| [`frontend/src/router/AppRouter.jsx`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/src/router/AppRouter.jsx.md) | Client-side routing engine mapping URLs to page components. | Reads `currentUser.role` from `AuthContext` to protect admin/tech routes. |
-| [`frontend/src/context/AuthContext.jsx`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/src/context/AuthContext.jsx.md) | Global authentication state store. | Stores JWT tokens in `localStorage`; informs all pages of user identity. |
-| [`frontend/src/api/client.js`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/src/api/client.js.md) | Centralized Axios HTTP client. | Intercepts all outgoing calls to attach `Bearer <JWT>`; redirects to `/login` on 401. |
-| [`frontend/src/api/*.js`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/src/api/) | Domain-specific API function libraries (`auth`, `complaints`, `sla`, etc.). | Called by UI pages; calls `client.js` to dispatch HTTP requests to FastAPI. |
-| [`frontend/src/pages/*.jsx`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/src/pages/) | Interactive role workstations (Student, Tech, Admin, SuperAdmin). | Renders UI; triggers API calls; displays modals and lists. |
-| [`frontend/src/components/campusTwin/`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/frontend/src/components/campusTwin/) | Declarative SVG campus digital twin canvas and camera matrix hook. | Reads spatial data from `iiitnrCampusData.js`; renders interactive 2D map. |
+| [`frontend/index.html`](codebase/frontend/index.html.md) | Single HTML page delivered by server; contains root `<div>` and anti-FOUC theme script. | Mounts `main.jsx`; loads Google GSI library and Google fonts. |
+| [`frontend/src/main.jsx`](codebase/frontend/src/main.jsx.md) | JavaScript entrypoint instantiating `ReactDOM.createRoot`. | Injects `App.jsx` into `<div id="root">`; imports `globals.css`. |
+| [`frontend/src/App.jsx`](codebase/frontend/src/App.jsx.md) | Root component setting up application providers. | Wraps application in `ThemeProvider`, `AuthProvider`, and `AppRouter`. |
+| [`frontend/src/router/AppRouter.jsx`](codebase/frontend/src/router/AppRouter.jsx.md) | Client-side routing engine mapping URLs to page components. | Reads `currentUser.role` from `AuthContext` to protect admin/tech routes. |
+| [`frontend/src/context/AuthContext.jsx`](codebase/frontend/src/context/AuthContext.jsx.md) | Global authentication state store. | Stores JWT tokens in `localStorage`; informs all pages of user identity. |
+| [`frontend/src/api/client.js`](codebase/frontend/src/api/client.js.md) | Centralized Axios HTTP client. | Intercepts all outgoing calls to attach `Bearer <JWT>`; redirects to `/login` on 401. |
+| [`frontend/src/api/*.js`](codebase/frontend/src/api/client.js.md) | Domain-specific API function libraries (`auth`, `complaints`, `sla`, etc.). | Called by UI pages; calls `client.js` to dispatch HTTP requests to FastAPI. |
+| [`frontend/src/pages/*.jsx`](codebase/frontend/src/pages/Home.jsx.md) | Interactive role workstations (Student, Tech, Admin, SuperAdmin). | Renders UI; triggers API calls; displays modals and lists. |
+| [`frontend/src/components/campusTwin/`](codebase/frontend/src/components/campusTwin/DigitalTwinCanvas.jsx.md) | Declarative SVG campus digital twin canvas and camera matrix hook. | Reads spatial data from `iiitnrCampusData.js`; renders interactive 2D map. |
 
 ---
 
 ### Layer 2: Application & Business Logic (Backend)
 | File / Directory | Direct Purpose | How It Connects to the Rest of the Stack |
 | :--- | :--- | :--- |
-| [`backend/index.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/index.py.md) | Serverless execution adapter for cloud platforms (Vercel). | Injects `backend/` into `sys.path`; exports FastAPI `app` to cloud runtime. |
-| [`backend/app/main.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/main.py.md) | Core FastAPI server setup, lifespan database startup, and CORS rules. | Mounts `/api/v1` router; initializes tables via `Base.metadata.create_all()`. |
-| [`backend/app/core/config.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/core/config.py.md) | Environment configuration parser (`.env`). | Injects secrets, database paths, and CORS origins into `security.py` and `database.py`. |
-| [`backend/app/core/security.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/core/security.py.md) | Cryptographic security utilities. | Hashes passwords with bcrypt; generates and verifies HS256 JWT tokens. |
-| [`backend/app/api/deps.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/api/deps.py.md) | Dependency injection gatekeeper. | Injects `db` session (`get_db`) and authenticated `user` (`get_current_user`) into routes. |
-| [`backend/app/api/v1/endpoints/*.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/api/v1/endpoints/) | REST route handlers (Auth, Complaints, Priority, Assignment, SLA). | Validates request bodies with Pydantic; invokes Service layer; returns JSON. |
-| [`backend/app/schemas/*.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/schemas/) | Pydantic data contracts and validation rules. | Validates data entering API endpoints and serializes data leaving for frontend. |
-| [`backend/app/services/*.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/services/) | Autonomous business logic engines. | Executes NLP classification, priority scoring, dispatch balancing, and SLA timers. |
+| [`backend/index.py`](codebase/backend/index.py.md) | Serverless execution adapter for cloud platforms (Vercel). | Injects `backend/` into `sys.path`; exports FastAPI `app` to cloud runtime. |
+| [`backend/app/main.py`](codebase/backend/app/main.py.md) | Core FastAPI server setup, lifespan database startup, and CORS rules. | Mounts `/api/v1` router; initializes tables via `Base.metadata.create_all()`. |
+| [`backend/app/core/config.py`](codebase/backend/app/core/config.py.md) | Environment configuration parser (`.env`). | Injects secrets, database paths, and CORS origins into `security.py` and `database.py`. |
+| [`backend/app/core/security.py`](codebase/backend/app/core/security.py.md) | Cryptographic security utilities. | Hashes passwords with bcrypt; generates and verifies HS256 JWT tokens. |
+| [`backend/app/api/deps.py`](codebase/backend/app/api/deps.py.md) | Dependency injection gatekeeper. | Injects `db` session (`get_db`) and authenticated `user` (`get_current_user`) into routes. |
+| [`backend/app/api/v1/endpoints/*.py`](codebase/backend/app/api/v1/router.py.md) | REST route handlers (Auth, Complaints, Priority, Assignment, SLA). | Validates request bodies with Pydantic; invokes Service layer; returns JSON. |
+| [`backend/app/schemas/*.py`](codebase/backend/app/schemas/ticket.py.md) | Pydantic data contracts and validation rules. | Validates data entering API endpoints and serializes data leaving for frontend. |
+| [`backend/app/services/*.py`](codebase/backend/app/services/ticket_service.py.md) | Autonomous business logic engines. | Executes NLP classification, priority scoring, dispatch balancing, and SLA timers. |
 
 ---
 
 ### Layer 3: Persistence & Database (SQLAlchemy)
 | File / Directory | Direct Purpose | How It Connects to the Rest of the Stack |
 | :--- | :--- | :--- |
-| [`backend/app/core/database.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/core/database.py.md) | SQLAlchemy database engine and session factory. | Creates connection pool; yields isolated DB sessions to `deps.py`. |
-| [`backend/app/models/base.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/models/base.py.md) | Common model ancestor. | Provides `id`, `created_at`, and `updated_at` columns to all database tables. |
-| [`backend/app/models/*.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/models/) | ORM table entities (`User`, `Ticket`, `Department`, `Team`, `CampusBuilding`). | Defines relational schemas, column types, indexes, and foreign key relationships. |
-| [`backend/app/models/__init__.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/models/__init__.py.md) | Model facade and metadata aggregator. | Imports all models together so SQLAlchemy's `Base.metadata` discovers all tables. |
-| [`backend/app/db/seed.py`](file:///c:/College/IT%20Workshop/SmartComplaintHandler/docs/codebase/backend/app/db/seed.py.md) | Database initial data seeder. | Populates verified departments, squads, test accounts, and facilities upon first run. |
+| [`backend/app/core/database.py`](codebase/backend/app/core/database.py.md) | SQLAlchemy database engine and session factory. | Creates connection pool; yields isolated DB sessions to `deps.py`. |
+| [`backend/app/models/base.py`](codebase/backend/app/models/base.py.md) | Common model ancestor. | Provides `id`, `created_at`, and `updated_at` columns to all database tables. |
+| [`backend/app/models/*.py`](codebase/backend/app/models/ticket.py.md) | ORM table entities (`User`, `Ticket`, `Department`, `Team`, `CampusBuilding`). | Defines relational schemas, column types, indexes, and foreign key relationships. |
+| [`backend/app/models/__init__.py`](codebase/backend/app/models/__init__.py.md) | Model facade and metadata aggregator. | Imports all models together so SQLAlchemy's `Base.metadata` discovers all tables. |
+| [`backend/app/db/seed.py`](codebase/backend/app/db/seed.py.md) | Database initial data seeder. | Populates verified departments, squads, test accounts, and facilities upon first run. |
 
 ---
 
@@ -242,3 +243,10 @@ The 2D digital twin is built using pure **Scalable Vector Graphics (SVG)**.
 | **Backend** | FastAPI, Python 3.14, Pydantic v2, Starlette | Dependency Injection (DI), Finite State Machine (FSM), Multi-Stage Heuristic Triage, Asynchronous Event Loop |
 | **Database** | SQLAlchemy 2.0, SQLite / PostgreSQL | Object-Relational Mapping (ORM), Declarative Base, Foreign Key Cascades, Connection Pooling |
 | **DevOps** | Node.js, PostCSS, Autoprefixer, esbuild, Vercel | JIT CSS Purging, Multi-Chunk Code Splitting, Serverless ASGI Cloud Bridge |
+
+---
+
+## 🧭 Navigation Footer
+
+> **Quick Jump**:  
+> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)

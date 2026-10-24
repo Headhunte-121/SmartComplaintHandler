@@ -8,6 +8,8 @@
 [![React 18](https://img.shields.io/badge/React-18.2-61DAFB.svg)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5.1-646CFF.svg)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg)](https://tailwindcss.com/)
+[![Codebase Manuals](https://img.shields.io/badge/Codebase%20Docs-97%20Modules%20(100%25)-purple.svg)](docs/codebase/README.md)
+[![Full-Stack Architecture](https://img.shields.io/badge/Architecture-Full--Stack%20Trace-orange.svg)](docs/FULL_STACK_ARCHITECTURE.md)
 [![Engineering Guides](https://img.shields.io/badge/Developer%20Guides-34%20Manuals-success.svg)](docs/developer_guide/README.md)
 [![Verification Suite](https://img.shields.io/badge/Quality%20Gate-100%25%20Passing-brightgreen.svg)](backend/tests/test_closed_loop.py)
 
@@ -16,6 +18,8 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [📚 Comprehensive Codebase Documentation (97 Manuals)](#-comprehensive-codebase-documentation--viva-defense-suite-97-detailed-manuals)
+- [Full-Stack Architecture & Connection Guide](#full-stack-architecture--connection-guide)
 - [Architecture & Workflow](#architecture--workflow)
 - [Quick Start](#quick-start)
 - [Installation & Local Setup](#installation--local-setup)
@@ -41,6 +45,65 @@
 * **Workload-Balanced Squad Dispatch:** Evaluates real-time active queues across maintenance teams to assign incoming tickets to the least-loaded qualified squad.
 * **SLA Countdown & Escalation:** Calculates priority-based resolution deadlines (4h, 12h, 24h, 72h), tracks countdown timers, and flags overdue tickets for administrative intervention.
 * **Dual-Sided Resolution Tracking:** Enforces a finite-state lifecycle machine (`SUBMITTED` $\to$ `IN_PROGRESS` $\to$ `RESOLVED`), requiring verified staff repair documentation before closure.
+
+---
+
+## 📚 Comprehensive Codebase Documentation & Viva Defense Suite (97 Detailed Manuals)
+
+> **Standard**: **4-Iteration Progressive Refinement**  
+> Every single source file in this repository is documented function-by-function and line-by-line so that anyone with basic C and Python knowledge can understand every line of code, every keyword, and defend every design decision in a college viva or technical interview.
+>
+> 🧭 **Central Documentation Hubs**:  
+> • 📚 [**Master Codebase Documentation Hub (`docs/codebase/README.md`)**](docs/codebase/README.md) — Central directory and links to all 97 file manuals.  
+> • 🏛 [**Full-Stack Architecture & Connection Guide (`docs/FULL_STACK_ARCHITECTURE.md`)**](docs/FULL_STACK_ARCHITECTURE.md) — Complete end-to-end breakdown of how frontend, backend, and database interact, request lifecycles, and viva defense answers.  
+> • 🗺️ [**Master Documentation Roadmap & Progress Tracker (`docs/DOCUMENTATION_ROADMAP.md`)**](docs/DOCUMENTATION_ROADMAP.md) — Phase-by-phase completion roadmap.
+
+### Quick Navigation by Implementation Phase
+
+| Phase | Subsystem / Layer | Files | Highlights & Direct Manual Links |
+| :---: | :--- | :---: | :--- |
+| **Phase 1** | **Backend Foundation & Core Config** | 7 | Server boot, CORS, database engine, bcrypt/JWT security, seeder &rarr; [Explore Phase 1](docs/codebase/README.md#phase-1-backend-foundation--core-configuration) |
+| **Phase 2** | **Backend Data Models (ORM)** | 7 | SQLAlchemy entities: `User`, `Ticket`, `Department`, `Team`, `CampusBuilding` &rarr; [Explore Phase 2](docs/codebase/README.md#phase-2-backend-data-models-sqlalchemy-orm) |
+| **Phase 3** | **Backend Schemas (Pydantic)** | 8 | Request/response DTOs, data validation, serialization, mass-assignment defense &rarr; [Explore Phase 3](docs/codebase/README.md#phase-3-backend-schemas-pydantic-contracts) |
+| **Phase 4** | **Autonomous Service Engines** | 11 | NLP classification, priority scoring, dispatch balancing, SLA countdowns, FSM &rarr; [Explore Phase 4](docs/codebase/README.md#phase-4-backend-business-logic--autonomous-service-engines) |
+| **Phase 5** | **Backend REST API Endpoints** | 9 | FastAPI routers, JWT authentication gatekeepers, RBAC security guards &rarr; [Explore Phase 5](docs/codebase/README.md#phase-5-backend-api-layer--rest-endpoints) |
+| **Phase 6** | **Frontend Core, State & Client** | 15 | React 18, Axios client, JWT interceptor, AuthContext, ThemeContext, date utils &rarr; [Explore Phase 6](docs/codebase/README.md#phase-6-frontend-architecture-http-client--state) |
+| **Phase 7** | **Reusable Components & Digital Twin** | 22 | Modals, SLA countdown timer, live triage card, 2D SVG canvas, camera matrix &rarr; [Explore Phase 7](docs/codebase/README.md#phase-7-frontend-reusable-components--digital-twin) |
+| **Phase 8** | **Frontend Pages & Workstations** | 13 | Student portal, technician workstation, admin desk, superadmin directorate &rarr; [Explore Phase 8](docs/codebase/README.md#phase-8-frontend-pages--interactive-workstations) |
+| **Phase 9** | **Serverless Tooling & Build Config** | 5 | Vercel Python bridge, SPA HTML, Vite bundler proxy, Tailwind, PostCSS &rarr; [Explore Phase 9](docs/codebase/README.md#phase-9-serverless-tooling--build-infrastructure) |
+
+---
+
+## Full-Stack Architecture & Connection Guide
+
+`SmartComplaintHandler` is engineered as a decoupled 3-Tier Enterprise Single-Page Application (SPA):
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       TIER 1: PRESENTATION LAYER                            │
+│  React 18 SPA + Vite + Tailwind CSS + Interactive 2D Digital Twin SVG       │
+│  (State: Context API, Hooks; Styling: JIT Utility CSS; Routing: React Router) │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ HTTP / HTTPS (REST API)
+                                       │ JSON Payloads + JWT Bearer Tokens
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    TIER 2: APPLICATION & LOGIC LAYER                        │
+│  FastAPI (Python 3.14) + Pydantic v2 + Autonomous Algorithmic Engines       │
+│  (Auth: Passlib/Bcrypt/OAuth2; NLP Triage; Priority Scoring; Dispatch Balancer; │
+│   SLA Monitor; Finite State Machine; Dependency Injection Gatekeeper)       │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ SQLAlchemy 2.0 ORM Engine
+                                       │ Thread-Safe Connection Pooling
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       TIER 3: DATA & PERSISTENCE LAYER                      │
+│  Relational Database (SQLite / PostgreSQL) + Declarative Schemas            │
+│  (Tables: Users, Tickets, Departments, Teams, Buildings, Roads; Seed Data)  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+> 📖 **Deep Dive**: For full sequence diagrams, file inter-connectivity matrices, and examiner defense answers, see [**`docs/FULL_STACK_ARCHITECTURE.md`**](docs/FULL_STACK_ARCHITECTURE.md).
 
 ---
 
@@ -107,7 +170,7 @@ cd SmartComplaintHandler
 ```
 
 ### Step 2: Checkout the Development Branch
-All active development, feature implementations, and team contributions take place on the `develop` branch:
+All active development, feature implementations, and team contributions take place on the `develop` branch (or `documentation` branch for docs):
 ```bash
 git checkout develop
 ```
@@ -147,6 +210,7 @@ Start the development servers via `run_all.bat` or the CLI commands above, and v
 ### Branch Strategy
 * **`main`:** Production-ready release branch. Only merged via tested pull requests.
 * **`develop`:** Primary integration branch. All daily development, module implementation, and team contributions target this branch.
+* **`documentation`:** Exhaustive codebase documentation, developer manuals, and viva defense suites.
 
 ---
 
@@ -278,6 +342,9 @@ npm run build
 
 ## Documentation Index
 
+* 📚 [**`docs/codebase/README.md`**](docs/codebase/README.md) — **Master Codebase Documentation Hub**: Index of all 97 file manuals with 4-iteration line-by-line breakdowns.
+* 🏛 [**`docs/FULL_STACK_ARCHITECTURE.md`**](docs/FULL_STACK_ARCHITECTURE.md) — **Full-Stack Architecture & System Connection Guide**: 3-tier decoupling, request lifecycle, and viva defense guide.
+* 🗺️ [**`docs/DOCUMENTATION_ROADMAP.md`**](docs/DOCUMENTATION_ROADMAP.md) — **Master Documentation Roadmap & Progress Tracker**: 100% completion roadmap.
 * 📄 [**`docs/PRODUCT_DESIGN_REPORT_PDR.md`**](docs/PRODUCT_DESIGN_REPORT_PDR.md) — **Product Design Report (PDR / PRD)**: Executive summary, user personas, NFRs, system architecture, data dictionary, and 5-student ownership matrix.
 * 🧭 [**`docs/README.md`**](docs/README.md) — Master documentation portal.
 * 📐 [**`docs/V1/README.md`**](docs/V1/README.md) — Version 1.0 module hub and blueprint index.
