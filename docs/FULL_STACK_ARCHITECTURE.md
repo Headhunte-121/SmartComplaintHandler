@@ -1,6 +1,6 @@
 # SmartComplaintHandler — Full-Stack Architecture & System Connection Guide
 
-> **Navigation**: [🏠 Project Root](../README.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)  
+> **Navigation**: [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)  
 > **Target Audience**: College Viva Examiners, Project Review Committees, Technical Interviewers, and Software Engineers.  
 > **Repository Branch**: `documentation`  
 > **Core Architecture**: Modern 3-Tier Decoupled Client-Server Single-Page Application (SPA) with Autonomous Business Engines and 2D Digital Twin Cartography.
@@ -249,4 +249,4 @@ The 2D digital twin is built using pure **Scalable Vector Graphics (SVG)**.
 ## 🧭 Navigation Footer
 
 > **Quick Jump**:  
-> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)
+> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)

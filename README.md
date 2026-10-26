@@ -54,6 +54,7 @@
 > Every single source file in this repository is documented function-by-function and line-by-line so that anyone with basic C and Python knowledge can understand every line of code, every keyword, and defend every design decision in a college viva or technical interview.
 >
 > 🧭 **Central Documentation Hubs**:  
+> • 👥 [**5-Student Complete File Ownership & Viva Matrix (`docs/TEAM_RESPONSIBILITY_MATRIX.md`)**](docs/TEAM_RESPONSIBILITY_MATRIX.md) — Exact mapping of all 97 codebase files across the 5 students, theoretical concepts, and personal viva defense answers.  
 > • 📚 [**Master Codebase Documentation Hub (`docs/codebase/README.md`)**](docs/codebase/README.md) — Central directory and links to all 97 file manuals.  
 > • 🏛 [**Full-Stack Architecture & Connection Guide (`docs/FULL_STACK_ARCHITECTURE.md`)**](docs/FULL_STACK_ARCHITECTURE.md) — Complete end-to-end breakdown of how frontend, backend, and database interact, request lifecycles, and viva defense answers.  
 > • 🗺️ [**Master Documentation Roadmap & Progress Tracker (`docs/DOCUMENTATION_ROADMAP.md`)**](docs/DOCUMENTATION_ROADMAP.md) — Phase-by-phase completion roadmap.
@@ -342,6 +343,7 @@ npm run build
 
 ## Documentation Index
 
+* 👥 [**`docs/TEAM_RESPONSIBILITY_MATRIX.md`**](docs/TEAM_RESPONSIBILITY_MATRIX.md) — **5-Student Complete File Ownership & Viva Defense Matrix**: Detailed mapping of all 97 codebase files across the 5 students, theoretical concepts, and viva answers.
 * 📚 [**`docs/codebase/README.md`**](docs/codebase/README.md) — **Master Codebase Documentation Hub**: Index of all 97 file manuals with 4-iteration line-by-line breakdowns.
 * 🏛 [**`docs/FULL_STACK_ARCHITECTURE.md`**](docs/FULL_STACK_ARCHITECTURE.md) — **Full-Stack Architecture & System Connection Guide**: 3-tier decoupling, request lifecycle, and viva defense guide.
 * 🗺️ [**`docs/DOCUMENTATION_ROADMAP.md`**](docs/DOCUMENTATION_ROADMAP.md) — **Master Documentation Roadmap & Progress Tracker**: 100% completion roadmap.

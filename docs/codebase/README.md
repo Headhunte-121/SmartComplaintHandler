@@ -1,6 +1,6 @@
 # 📚 SmartComplaintHandler — Codebase Documentation Hub
 
-> **Navigation**: [🏠 Project Root](../../README.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](../DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](../FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [📄 Product Design Report](../PRODUCT_DESIGN_REPORT_PDR.md)  
+> **Navigation**: [🏠 Project Root](../../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](../TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](../DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](../FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [📄 Product Design Report](../PRODUCT_DESIGN_REPORT_PDR.md)  
 > **Writing Standard**: **4-Iteration Progressive Refinement** (Every line grounded in basic C/Python, zero unexplained buzzwords, edge cases analyzed, and Viva Q&A included).  
 > **Status**: **100% Complete — 97 Exhaustive Codebase Manuals**
 
@@ -221,4 +221,4 @@ Serverless runtime adapters, build tooling, bundlers, and CSS preprocessing pipe
 ## 🧭 Navigation Footer
 
 > **Quick Jump**:  
-> [🏠 Project Root](../../README.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](../DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](../FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [📄 Product Design Report](../PRODUCT_DESIGN_REPORT_PDR.md)
+> [🏠 Project Root](../../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](../TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](../DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](../FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [📄 Product Design Report](../PRODUCT_DESIGN_REPORT_PDR.md)

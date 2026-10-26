@@ -1,6 +1,6 @@
 # Smart Complaint Handler — Master Documentation Portal
 
-> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md) &nbsp;│&nbsp; [👥 Team Workflow & Git Guide](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md)
+> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md)
 
 Welcome to the central documentation portal for the **Automated Smart Complaint Routing & Workflow Automation Platform (`SmartComplaintHandler`)**. This repository contains the complete technical specifications, architectural blueprints, foundational engineering manuals, line-by-line codebase walkthroughs, and developer implementation guides.
 
@@ -10,6 +10,7 @@ Welcome to the central documentation portal for the **Automated Smart Complaint 
 
 | Objective | Primary Resources | Scope & Deliverables |
 | :--- | :--- | :--- |
+| **Team Ownership & Viva Guide** | [**`5-Student Responsibility Matrix`**](TEAM_RESPONSIBILITY_MATRIX.md) | Person-by-person module assignments (M1–M5), file ownership, and viva defense cheat sheet |
 | **Codebase Documentation (97 Manuals)** | [**`Codebase Documentation Hub`**](codebase/README.md)<br>[**`Full-Stack Architecture Guide`**](FULL_STACK_ARCHITECTURE.md)<br>[**`Master Documentation Roadmap`**](DOCUMENTATION_ROADMAP.md) | Exhaustive 4-iteration line-by-line manual for all 97 codebase modules, request lifecycles, and viva defense guide |
 | **Product Specification & PDR** | [**`Product Design Report (PDR/PRD)`**](PRODUCT_DESIGN_REPORT_PDR.md) | Official PDR/PRD: Personas, functional requirements, NFRs, KPIs, work breakdown |
 | **Module Implementation** | [**`V1 Module Blueprints`**](V1/README.md)<br>[**`Team Workflow & Git Guide`**](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md) | File-by-file blueprints (M1–M5), zero-blocking mock data contracts, concurrency DAG |
@@ -19,10 +20,11 @@ Welcome to the central documentation portal for the **Automated Smart Complaint 
 
 ---
 
-## 1. Master Codebase Documentation Hub & Viva Suite (`codebase/`)
+## 1. Team Ownership Matrix & Codebase Documentation Hub
 
-The platform features an exhaustive, line-by-line documentation suite covering **100% of all 97 modules** in the repository across 9 phases. Every single file is documented following the **4-Iteration Progressive Refinement Standard** (grounded in basic C/Python, zero buzzwords, edge cases analyzed, and Viva Q&A included):
+The platform features an exhaustive, line-by-line documentation suite covering **100% of all 97 modules** in the repository across 9 phases, mapped to our 5-student team:
 
+* 👥 [**`docs/TEAM_RESPONSIBILITY_MATRIX.md`**](TEAM_RESPONSIBILITY_MATRIX.md) — **5-Student Team Responsibility & Module Ownership Matrix**: Complete breakdown of which person built what across Modules M1–M5, their files, and viva cheat sheet.
 * 📚 [**`docs/codebase/README.md`**](codebase/README.md) — **Master Codebase Documentation Hub**: Central index and links to all 97 file manuals.
 * 🏛 [**`docs/FULL_STACK_ARCHITECTURE.md`**](FULL_STACK_ARCHITECTURE.md) — **Full-Stack Architecture & Connection Guide**: Explains how every layer connects, the life of a request sequence diagram, and viva examiner cheat sheets.
 * 🗺️ [**`docs/DOCUMENTATION_ROADMAP.md`**](DOCUMENTATION_ROADMAP.md) — **Master Documentation Roadmap & Progress Tracker**: Phase-by-phase status tracking.
@@ -124,7 +126,7 @@ The authoritative 34-manual engineering curriculum teaching every language, runt
 * 💡 [**`FUNDAMENTALS_OF_FULL_STACK.md`**](FUNDAMENTALS_OF_FULL_STACK.md)  
   Deep dive into core design concepts: FastAPI dependency injection, SQLite WAL mode, SQLAlchemy ORM identity maps, and client-side routing.
 * ⚖️ [**`TECH_STACK_DECISION.md`**](TECH_STACK_DECISION.md)  
-  Technical analysis and rationale behind choosing FastAPI, SQLite WAL, React 18 Vite, and Tailwind CSS over alternative stacks.
+  Technical analysis and rationale behind choosing FastAPI, SQLite WAL, React Vite, and Tailwind CSS over alternative stacks.
 * 🚀 [**`VERSION_BLUEPRINT_ROADMAP.md`**](VERSION_BLUEPRINT_ROADMAP.md)  
   Evolution roadmap from V1.0 (Rule-Based Closed-Loop Automation) to V2.0 (AI/NLP Classification & Analytics) and V3.0 (Distributed IoT Integration).
 * 📜 [**Original Design Specification**](Automated%20Smart%20Complaint%20Routing%20System)  
@@ -135,4 +137,4 @@ The authoritative 34-manual engineering curriculum teaching every language, runt
 ## 🧭 Navigation Footer
 
 > **Quick Jump**:  
-> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)
+> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)
