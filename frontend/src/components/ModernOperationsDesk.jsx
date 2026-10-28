@@ -436,7 +436,12 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
   }, []);
 
   return (
-    <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-7 space-y-4 max-w-[1720px] mx-auto animate-fade-in">
+    <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-7 space-y-5 max-w-[1720px] mx-auto animate-fade-in relative">
+      {/* Vaulto Atmospheric Radiant Orange Ambient Blooms */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 right-[18%] w-[680px] h-[460px] bg-[#ff5a36]/[0.08] rounded-full blur-[130px]" />
+        <div className="absolute top-[28%] -left-36 w-[520px] h-[360px] bg-[#ff5a36]/[0.045] rounded-full blur-[110px]" />
+      </div>
           {/* Notifications */}
           {toastMsg && (
             <div className="flex items-center justify-between gap-4 rounded-xl border border-white/20 bg-white/[0.08] px-4 py-3 text-xs font-medium text-white animate-fade-in">
@@ -462,25 +467,19 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             className="p-5 sm:p-6 rounded-3xl border border-white/[0.08] bg-[#0c0e15]/95 relative overflow-hidden backdrop-blur-xl transition-all shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)]"
           >
             {/* Top specular glow rim matching theme */}
-            <div
-              className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/[0.12] to-transparent pointer-events-none"
-            />
+            <div className="absolute top-0 left-8 right-8 h-[1.5px] bg-gradient-to-r from-transparent via-[#ff5a36]/50 to-transparent pointer-events-none shadow-[0_0_12px_rgba(255,90,54,0.5)]" />
 
             <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
               {/* Left Identity Pod */}
               <div className="flex items-start sm:items-center gap-4">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-inner border border-white/[0.1] bg-white/[0.04] text-[#ff5a36]"
-                >
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-inner border border-[#ff5a36]/40 bg-gradient-to-b from-[#2a1714] to-[#171821] text-[#ff5a36] shadow-[0_0_22px_rgba(255,90,54,0.35),inset_0_1px_0_rgba(255,255,255,0.15)]">
                   {isSuperAdminMode ? <ShieldCheck size={28} /> : <LayoutDashboard size={28} />}
                 </div>
 
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-white/[0.1] bg-white/[0.04] text-zinc-300"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#ff5a36] animate-ping" />
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-[#ff5a36]/40 bg-[#ff5a36]/15 text-[#ff7a5c] shadow-[0_0_14px_rgba(255,90,54,0.25)]">
+                      <span className="w-2 h-2 rounded-full bg-[#ff5a36] shadow-[0_0_8px_#ff5a36] animate-pulse" />
                       <span>
                         {isSuperAdminMode
                           ? 'Campus Facilities Directorate · Executive Oversight'
@@ -528,14 +527,14 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   <>
                     <Link
                       to="/superadmin/staff"
-                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-semibold text-xs shadow-[0_4px_16px_rgba(240,72,36,0.35)] border border-white/20 transition-all inline-flex items-center gap-2 cursor-pointer"
+                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#ff5a36] via-[#ff6538] to-[#f0441d] hover:from-[#ff6e4a] hover:to-[#ff5a36] text-white font-bold text-xs shadow-[0_4px_25px_rgba(255,90,54,0.45),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/25 transition-all hover:scale-[1.02] active:scale-[0.98] inline-flex items-center gap-2 cursor-pointer"
                     >
                       <UsersRound size={14} />
                       <span>Staff Directory & RBAC</span>
                     </Link>
                     <Link
                       to="/squads"
-                      className="px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-200 hover:text-white font-semibold text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+                      className="px-4 py-2.5 rounded-full border border-white/[0.12] bg-[#1a1c24] hover:bg-white/[0.09] text-zinc-200 hover:text-white font-semibold text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
                     >
                       <Users size={14} />
                       <span>Squads Balancer</span>
@@ -610,84 +609,156 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           </section>
 
           {/* ========================================================================= */}
-          {/* ROW 1: TOP 4 KPI CARDS (Unified Obsidian Surface, Tasteful Semantic Pods) */}
+          {/* ROW 1: TOP 4 KPI CARDS (Vaulto Telemetry with Glowing Orange Waves & Accents) */}
           {/* ========================================================================= */}
-          <section className="grid grid-cols-2 gap-3.5 xl:grid-cols-4">
-            {/* Card 1: Now Serving */}
-            <article className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] hover:border-white/[0.15] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+          <section className="grid grid-cols-2 gap-4 xl:grid-cols-4 relative z-10">
+            {/* Card 1: Now Serving (With Glowing Radiant Orange Sparkline Wave) */}
+            <article className="rounded-2xl border border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-[#ff5a36]/50 transition-all duration-300 backdrop-blur-xl p-5 relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group">
+              <div className="absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-[#ff5a36]/60 to-transparent pointer-events-none shadow-[0_0_8px_rgba(255,90,54,0.6)]" />
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-300">Now Serving</span>
-                <div className="p-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] text-white">
-                  <Users size={15} />
+                <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider font-mono">Live Intake</span>
+                <div className="w-8 h-8 rounded-xl border border-[#ff5a36]/35 bg-[#ff5a36]/15 text-[#ff7a5c] shadow-[0_0_14px_rgba(255,90,54,0.35)] flex items-center justify-center">
+                  <Users size={16} />
                 </div>
               </div>
-              <div className="mt-2.5">
-                <span className="text-2xl font-black tracking-tight text-white">{metrics.active}</span>
-                <p className="text-[11px] text-zinc-400 mt-0.5">Across all campus buildings</p>
+              <div className="mt-3 flex items-baseline justify-between">
+                <div>
+                  <span className="text-3xl font-black tracking-tight text-white font-mono">{metrics.active}</span>
+                  <span className="text-[11px] text-zinc-400 block mt-0.5">Now Serving</span>
+                </div>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-[#ff5a36]/30 bg-[#ff5a36]/10 text-[#ff7a5c] text-[10px] font-mono font-bold shadow-[0_0_8px_rgba(255,90,54,0.2)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ff5a36] animate-pulse" />
+                  Live
+                </span>
+              </div>
+              {/* Vaulto Signature Glowing Orange Mini Sparkline Curve */}
+              <div className="mt-3 pt-2 border-t border-white/[0.05]">
+                <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
+                  <defs>
+                    <linearGradient id="vOrangeGrad1" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ff5a36" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#ff5a36" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,18 Q20,12 40,16 T80,8 T100,4 L100,24 L0,24 Z" fill="url(#vOrangeGrad1)" />
+                  <path d="M0,18 Q20,12 40,16 T80,8 T100,4" stroke="#ff5a36" strokeWidth="2.2" strokeLinecap="round" className="drop-shadow-[0_0_6px_rgba(255,90,54,0.85)]" />
+                  <circle cx="100" cy="4" r="3" fill="#ffffff" stroke="#ff5a36" strokeWidth="1.5" className="drop-shadow-[0_0_8px_#ff5a36]" />
+                </svg>
               </div>
             </article>
 
             {/* Card 2: Active Alerts */}
-            <article className={`rounded-2xl border transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.05)] ${
+            <article className={`rounded-2xl border transition-all duration-300 backdrop-blur-xl p-5 relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group ${
               metrics.critical > 0
-                ? 'border-rose-500/30 bg-rose-950/10 hover:border-rose-500/40'
-                : 'border-white/[0.08] bg-[#0c0e15]/90 hover:border-white/[0.14]'
+                ? 'border-[#ff453a]/50 bg-gradient-to-b from-[#2a1315] via-[#1a1417] to-[#13141a] shadow-[0_0_25px_rgba(255,69,58,0.25)]'
+                : 'border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-emerald-500/50'
             }`}>
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+              <div className={`absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent to-transparent pointer-events-none ${
+                metrics.critical > 0 ? 'via-[#ff453a]/80 shadow-[0_0_10px_#ff453a]' : 'via-emerald-400/60 shadow-[0_0_8px_#10b981]'
+              }`} />
               <div className="flex items-center justify-between">
-                <span className={`text-xs font-semibold ${metrics.critical > 0 ? 'text-rose-300 font-bold' : 'text-zinc-300'}`}>
-                  Active Alerts
+                <span className={`text-xs font-bold uppercase tracking-wider font-mono ${metrics.critical > 0 ? 'text-[#ff6961]' : 'text-zinc-300'}`}>
+                  Emergency Grid
                 </span>
-                <div className={`p-1.5 rounded-lg border ${
+                <div className={`w-8 h-8 rounded-xl border flex items-center justify-center shadow-xs ${
                   metrics.critical > 0
-                    ? 'border-rose-500/30 bg-rose-500/15 text-rose-400'
-                    : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                    ? 'border-[#ff453a]/40 bg-[#ff453a]/20 text-[#ff453a] shadow-[0_0_14px_rgba(255,69,58,0.4)]'
+                    : 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.3)]'
                 }`}>
-                  {metrics.critical > 0 ? <AlertTriangle size={15} /> : <CheckCircle2 size={15} />}
+                  {metrics.critical > 0 ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
                 </div>
               </div>
-              <div className="mt-2.5">
-                <span className={`text-2xl font-black tracking-tight ${metrics.critical > 0 ? 'text-rose-300' : 'text-white'}`}>
-                  {metrics.critical}
+              <div className="mt-3 flex items-baseline justify-between">
+                <div>
+                  <span className={`text-3xl font-black tracking-tight font-mono ${metrics.critical > 0 ? 'text-[#ff6961]' : 'text-white'}`}>
+                    {metrics.critical}
+                  </span>
+                  <span className="text-[11px] text-zinc-400 block mt-0.5">
+                    {metrics.critical > 0 ? 'Active Hazards' : 'Active Alerts'}
+                  </span>
+                </div>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-mono font-bold ${
+                  metrics.critical > 0
+                    ? 'border-[#ff453a]/40 bg-[#ff453a]/15 text-[#ff6961] shadow-[0_0_8px_rgba(255,69,58,0.3)]'
+                    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.2)]'
+                }`}>
+                  {metrics.critical > 0 ? 'Attention' : '100% SLA'}
                 </span>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
-                  {metrics.critical > 0 ? `${metrics.critical} emergency hazards` : 'All clear · 0 emergencies'}
-                </p>
+              </div>
+              {/* Vaulto Sparkline Wave (Green or Red) */}
+              <div className="mt-3 pt-2 border-t border-white/[0.05]">
+                <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
+                  <defs>
+                    <linearGradient id="vAlertGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={metrics.critical > 0 ? '#ff453a' : '#10b981'} stopOpacity="0.3" />
+                      <stop offset="100%" stopColor={metrics.critical > 0 ? '#ff453a' : '#10b981'} stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,20 Q30,18 50,14 T80,10 T100,5 L100,24 L0,24 Z" fill="url(#vAlertGrad)" />
+                  <path d="M0,20 Q30,18 50,14 T80,10 T100,5" stroke={metrics.critical > 0 ? '#ff453a' : '#10b981'} strokeWidth="2.2" strokeLinecap="round" className={metrics.critical > 0 ? 'drop-shadow-[0_0_6px_rgba(255,69,58,0.85)]' : 'drop-shadow-[0_0_6px_rgba(16,185,129,0.85)]'} />
+                  <circle cx="100" cy="5" r="3" fill="#ffffff" stroke={metrics.critical > 0 ? '#ff453a' : '#10b981'} strokeWidth="1.5" />
+                </svg>
               </div>
             </article>
 
             {/* Card 3: Sensors & Active Squads */}
-            <article className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] hover:border-white/[0.15] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+            <article className="rounded-2xl border border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-[#ff8c42]/50 transition-all duration-300 backdrop-blur-xl p-5 relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group">
+              <div className="absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-[#ff8c42]/60 to-transparent pointer-events-none shadow-[0_0_8px_rgba(255,140,66,0.6)]" />
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-300">Sensors &amp; Squads</span>
-                <div className="p-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] text-zinc-300">
-                  <Radio size={15} />
+                <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider font-mono">Telemetry</span>
+                <div className="w-8 h-8 rounded-xl border border-[#ff8c42]/35 bg-[#ff8c42]/15 text-[#ffaa66] shadow-[0_0_14px_rgba(255,140,66,0.35)] flex items-center justify-center">
+                  <Radio size={16} />
                 </div>
               </div>
-              <div className="mt-2.5">
-                <span className="text-2xl font-black tracking-tight text-white">{squads.length || 6}</span>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
-                  {squads.filter((s) => s.assigned_technicians > 0).length || squads.length || 6} active teams online
-                </p>
+              <div className="mt-3 flex items-baseline justify-between">
+                <div>
+                  <span className="text-3xl font-black tracking-tight text-white font-mono">{squads.length || 8}</span>
+                  <span className="text-[11px] text-zinc-400 block mt-0.5">Sensors &amp; Squads</span>
+                </div>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-[#ff8c42]/30 bg-[#ff8c42]/10 text-[#ffaa66] text-[10px] font-mono font-bold shadow-[0_0_8px_rgba(255,140,66,0.2)]">
+                  8 Teams
+                </span>
+              </div>
+              {/* Vaulto Telemetry Wave */}
+              <div className="mt-3 pt-2 border-t border-white/[0.05]">
+                <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
+                  <defs>
+                    <linearGradient id="vSquadGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ff8c42" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#ff8c42" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,16 Q25,22 50,12 T85,14 T100,6 L100,24 L0,24 Z" fill="url(#vSquadGrad)" />
+                  <path d="M0,16 Q25,22 50,12 T85,14 T100,6" stroke="#ff8c42" strokeWidth="2.2" strokeLinecap="round" className="drop-shadow-[0_0_6px_rgba(255,140,66,0.85)]" />
+                  <circle cx="100" cy="6" r="3" fill="#ffffff" stroke="#ff8c42" strokeWidth="1.5" />
+                </svg>
               </div>
             </article>
 
-            {/* Card 4: Open Incidents & Escalations */}
-            <article className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] hover:border-white/[0.15] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+            {/* Card 4: Incident Governance */}
+            <article className="rounded-2xl border border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-white/[0.2] transition-all duration-300 backdrop-blur-xl p-5 relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group">
+              <div className="absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-white/[0.2] to-transparent pointer-events-none" />
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-300">Open Incidents</span>
-                <div className="p-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] text-zinc-300">
-                  <ClipboardList size={15} />
+                <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider font-mono">Governance</span>
+                <div className="w-8 h-8 rounded-xl border border-white/[0.12] bg-white/[0.06] text-white flex items-center justify-center shadow-xs">
+                  <ClipboardList size={16} />
                 </div>
               </div>
-              <div className="mt-2.5">
-                <span className="text-2xl font-black tracking-tight text-white">{metrics.escalated}</span>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
-                  {metrics.escalated ? `${metrics.escalated} escalated for decision` : 'All requests within SLA'}
-                </p>
+              <div className="mt-3 flex items-baseline justify-between">
+                <div>
+                  <span className="text-3xl font-black tracking-tight text-white font-mono">{metrics.escalated}</span>
+                  <span className="text-[11px] text-zinc-400 block mt-0.5">Open Incidents</span>
+                </div>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-white/[0.1] bg-white/[0.04] text-zinc-300 text-[10px] font-mono font-bold">
+                  SLA Target &gt;90%
+                </span>
+              </div>
+              {/* Vaulto Telemetry Wave */}
+              <div className="mt-3 pt-2 border-t border-white/[0.05]">
+                <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
+                  <path d="M0,18 Q30,12 60,18 T100,8" stroke="#94a3b8" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="3 3" />
+                  <circle cx="100" cy="8" r="3" fill="#ffffff" stroke="#94a3b8" strokeWidth="1.5" />
+                </svg>
               </div>
             </article>
           </section>
@@ -905,42 +976,60 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       <div className="absolute inset-x-0 top-3/4 border-b border-dashed border-white/[0.08]" />
                       <div className="absolute inset-x-0 bottom-5 border-b border-white/[0.12]" />
 
-                      {/* Real Stacked Bars */}
+                      {/* Real Stacked Bars (Vaulto Architecture: Capsule Wells with Glowing Orange Peak) */}
                       <div className="absolute inset-0 bottom-5 flex items-end justify-between px-2 gap-2 sm:gap-3">
-                        {volumeData.map((d) => {
+                        {volumeData.map((d, idx) => {
+                          const isToday = d.label === 'Today' || idx === volumeData.length - 1;
                           const barHeightPercent = yMax > 0 && d.total > 0 ? (d.total / yMax) * 100 : 0;
 
                           return (
                             <div key={d.key} className="flex-1 flex flex-col items-center h-full justify-end group relative">
-                              {/* Stacked Bar Container */}
-                              <div
-                                style={{ height: `${barHeightPercent}%` }}
-                                className={`w-full max-w-[32px] flex flex-col rounded-t-md overflow-hidden transition-all duration-300 ${
-                                  d.total > 0 ? 'shadow-md group-hover:scale-105' : 'opacity-40'
-                                }`}
-                              >
+                              {/* Capsule Well Track (Vaulto Style) */}
+                              <div className={`w-full max-w-[34px] h-full rounded-xl bg-[#161720] border p-1 flex flex-col justify-end transition-all duration-300 ${
+                                isToday
+                                  ? 'border-[#ff5a36]/40 bg-[#1c1a24] shadow-[0_0_15px_rgba(255,90,54,0.15)]'
+                                  : 'border-white/[0.04] group-hover:border-white/[0.12] group-hover:bg-[#1c1e28]'
+                              }`}>
                                 {d.total > 0 ? (
-                                  <>
-                                    {/* Segment 5 (Top): General Admin */}
-                                    {d.general > 0 && <div style={{ flexGrow: d.general }} className="w-full bg-[#64748b] min-h-[3px] transition-all" />}
-                                    {/* Segment 4: Electrical */}
-                                    {d.electrical > 0 && <div style={{ flexGrow: d.electrical }} className="w-full bg-[#ff5a36] min-h-[3px] transition-all" />}
-                                    {/* Segment 3: Plumbing */}
-                                    {d.plumbing > 0 && <div style={{ flexGrow: d.plumbing }} className="w-full bg-[#f97316] min-h-[3px] transition-all" />}
-                                    {/* Segment 2: Sanitation */}
-                                    {d.sanitation > 0 && <div style={{ flexGrow: d.sanitation }} className="w-full bg-[#10b981] min-h-[3px] transition-all" />}
-                                    {/* Segment 1 (Bottom): IT Support */}
-                                    {d.it > 0 && <div style={{ flexGrow: d.it }} className="w-full bg-[#3b82f6] min-h-[3px] transition-all" />}
-                                  </>
+                                  <div
+                                    style={{ height: `${Math.max(14, barHeightPercent)}%` }}
+                                    className={`w-full flex flex-col rounded-lg overflow-hidden transition-all duration-300 ${
+                                      isToday
+                                        ? 'shadow-[0_0_20px_rgba(255,90,54,0.8)] ring-1 ring-[#ff5a36]'
+                                        : 'shadow-md group-hover:scale-[1.02]'
+                                    }`}
+                                  >
+                                    {isToday ? (
+                                      /* Vaulto Signature Glowing Orange Column for Today / Peak */
+                                      <div className="w-full h-full bg-gradient-to-t from-[#f0441d] via-[#ff5a36] to-[#ff7a5c]" />
+                                    ) : (
+                                      <>
+                                        {/* Stacked Breakdown for prior days */}
+                                        {d.general > 0 && <div style={{ flexGrow: d.general }} className="w-full bg-[#64748b] min-h-[2px]" />}
+                                        {d.electrical > 0 && <div style={{ flexGrow: d.electrical }} className="w-full bg-[#ff5a36] min-h-[2px]" />}
+                                        {d.plumbing > 0 && <div style={{ flexGrow: d.plumbing }} className="w-full bg-[#f97316] min-h-[2px]" />}
+                                        {d.sanitation > 0 && <div style={{ flexGrow: d.sanitation }} className="w-full bg-[#10b981] min-h-[2px]" />}
+                                        {d.it > 0 && <div style={{ flexGrow: d.it }} className="w-full bg-[#3b82f6] min-h-[2px]" />}
+                                      </>
+                                    )}
+                                  </div>
                                 ) : (
-                                  <div className="w-full h-[2px] bg-white/[0.15]" />
+                                  /* Empty day track fill with glowing accent if today */
+                                  <div
+                                    className={`w-full h-2 rounded-full transition-all ${
+                                      isToday
+                                        ? 'bg-gradient-to-r from-[#ff5a36] to-[#f0441d] shadow-[0_0_12px_rgba(255,90,54,0.85)]'
+                                        : 'bg-white/[0.08]'
+                                    }`}
+                                  />
                                 )}
                               </div>
 
                               {/* Hover Tooltip */}
                               <div className="absolute -top-11 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none">
-                                <span className="rounded bg-black/95 border border-white/20 px-2 py-0.5 text-[9px] font-mono text-white shadow-xl whitespace-nowrap">
-                                  {d.fullDate}: {d.total} {d.total === 1 ? 'Req' : 'Reqs'}
+                                <span className="rounded-lg bg-[#0e0f14] border border-[#ff5a36]/40 px-2.5 py-1 text-[10px] font-mono text-white shadow-[0_4px_16px_rgba(0,0,0,0.8),0_0_12px_rgba(255,90,54,0.35)] whitespace-nowrap flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#ff5a36]" />
+                                  <span>{d.fullDate}: {d.total} {d.total === 1 ? 'Req' : 'Reqs'}</span>
                                 </span>
                               </div>
                             </div>
@@ -948,11 +1037,14 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                         })}
                       </div>
 
-                      {/* X-Axis Labels */}
+                      {/* X-Axis Labels (Vaulto Glowing Dot for Today) */}
                       <div className="absolute inset-x-0 bottom-0 flex justify-between px-2">
                         {volumeData.map((d) => (
-                          <span key={d.key} className="flex-1 text-center font-mono text-[9px] text-zinc-400">
-                            {d.label}
+                          <span key={d.key} className={`flex-1 text-center font-mono text-[9px] flex items-center justify-center gap-1 ${
+                            d.label === 'Today' ? 'text-white font-bold' : 'text-zinc-400'
+                          }`}>
+                            {d.label === 'Today' && <span className="w-1.5 h-1.5 rounded-full bg-[#ff5a36] shadow-[0_0_6px_#ff5a36]" />}
+                            <span>{d.label}</span>
                           </span>
                         ))}
                       </div>
@@ -1048,32 +1140,27 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   <div className="flex flex-col items-center justify-center border-t border-white/[0.06] pt-4 md:border-t-0 md:border-l md:pl-5">
                     <p className="text-xs font-semibold text-slate-300 mb-2">Facility Utilization</p>
                     <div className="relative h-28 w-28">
-                      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+                      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90 overflow-visible">
+                        <defs>
+                          <linearGradient id="vDonutGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#ff7a5c" />
+                            <stop offset="100%" stopColor="#f0441d" />
+                          </linearGradient>
+                        </defs>
                         {/* Background track */}
-                        <circle cx="50" cy="50" r="38" fill="none" stroke="#1c1e27" strokeWidth="8" />
-                        {/* Segment 1: Progress arc */}
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#1c1e27" strokeWidth="9" />
+                        {/* Glowing Orange Progress arc */}
                         <circle
                           cx="50"
                           cy="50"
                           r="38"
                           fill="none"
-                          stroke="#ff5a36"
-                          strokeWidth="8"
+                          stroke="url(#vDonutGrad)"
+                          strokeWidth="9"
                           strokeDasharray="238.7"
                           strokeDashoffset={238.7 * (1 - metrics.resolutionRate / 100)}
                           strokeLinecap="round"
-                          className="transition-all duration-700"
-                        />
-                        {/* Segment 2: Violet accent dots */}
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="38"
-                          fill="none"
-                          stroke="rgba(255, 90, 54, 0.4)"
-                          strokeWidth="8"
-                          strokeDasharray="4 8"
-                          strokeOpacity="0.6"
+                          className="transition-all duration-700 filter drop-shadow-[0_0_8px_rgba(255,90,54,0.7)]"
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

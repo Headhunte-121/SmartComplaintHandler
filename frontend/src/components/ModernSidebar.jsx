@@ -259,8 +259,8 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
             const Icon = tile.icon;
             const isTileActive = tile.active;
 
-            const activeTileClass = 'border-white/[0.14] bg-white/[0.08] text-white font-bold shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.3)]';
-            const activeIconClass = 'text-[#ff5a36]';
+            const activeTileClass = 'border-[#ff5a36]/50 bg-gradient-to-b from-[#242733] to-[#181a22] text-white font-bold shadow-[0_4px_16px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.15),0_0_15px_rgba(255,90,54,0.2)]';
+            const activeIconClass = 'text-[#ff5a36] filter drop-shadow-[0_0_6px_rgba(255,90,54,0.85)]';
 
             return (
               <Link
@@ -289,9 +289,9 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
         <Link
           to="/submit"
           onClick={() => setMobileOpen && setMobileOpen(false)}
-          className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] hover:bg-white/[0.1] px-3 py-2 text-xs font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition"
+          className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff5a36] via-[#ff6538] to-[#f0441d] hover:from-[#ff6e4a] hover:to-[#ff5a36] px-3.5 py-2.5 text-xs font-bold text-white shadow-[0_4px_16px_rgba(240,72,36,0.35),inset_0_1px_0_rgba(255,255,255,0.25)] border border-white/20 transition-all hover:scale-[1.02] cursor-pointer"
         >
-          <Plus size={14} /> Create Request
+          <Plus size={15} /> + New Request
         </Link>
         {isSuperAdmin && (
           <Link
