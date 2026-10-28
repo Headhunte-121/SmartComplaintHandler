@@ -209,8 +209,13 @@ export default function StudentDashboard() {
     }
   };
 
-  const currentHostelLabel = activeUser?.hostel_name || hostelsList[0]?.name || 'Ramanujan House';
-  const currentRoomLabel = activeUser?.room_number || 'Room 204';
+  const isDayScholar = activeUser?.hostel_name === 'Day Scholar (Off-Campus)';
+  const currentHostelLabel = activeUser?.hostel_name
+    ? (isDayScholar ? 'Day Scholar' : activeUser.hostel_name)
+    : 'Residence Not Set';
+  const currentRoomLabel = isDayScholar
+    ? 'Off-Campus'
+    : (activeUser?.room_number || 'Not Set');
 
   return (
     <div className="w-full min-h-screen bg-[#121317] text-zinc-100 font-sans antialiased selection:bg-[#ff5a36]/30 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
@@ -264,7 +269,7 @@ export default function StudentDashboard() {
                   onClick={() => setIsResidenceModalOpen(true)}
                   className="px-3 py-1 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
                 >
-                  Change Room
+                  {activeUser?.hostel_name ? 'Change Room' : 'Set Room'}
                 </button>
                 <button
                   type="button"

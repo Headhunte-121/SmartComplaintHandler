@@ -24,10 +24,10 @@
 - [ ] **Step 1.2**: Click **"Sign in with Google (@iiitnr.edu.in)"** and complete authentication with your `@iiitnr.edu.in` Google account.
 - [ ] **Step 1.3**: Verify the application routes directly to `/residence-info` (Residence Onboarding) without any `401 Unauthorized` error.
 - [ ] **Step 1.4**: On `/residence-info`, verify the student badge displays your auto-detected Department and Name.
-- [ ] **Step 1.5**: Verify the form has **no phantom pre-fills** (Hostel and Room Number are not pre-locked to old cached values like `Room 331`).
+- [ ] **Step 1.5**: Verify the form has **no phantom pre-fills** *(Implemented Update: Hostel starts on `"Select Hostel / Residence..."`, floor and room fields start completely blank without forced defaults, floors are unconstrained/flexible, and room number is 100% freeform)*.
 - [ ] **Step 1.6**: In the **Hostel Residence House** dropdown, select `Raman House (Boys Hostel 1)`.
-- [ ] **Step 1.7**: In the **Floor** dropdown, select `Floor 3`.
-- [ ] **Step 1.8**: In the **Room Number** field, select or type `Room 331`.
+- [ ] **Step 1.7**: In the **Floor** section, click the quick pill **"Floor 3"** (or select it from the dropdown) to generate Floor 3 suggestions.
+- [ ] **Step 1.8**: In the **Room Number** field, click the suggestion pill `Room 331` (or freely type any custom format like `Room 331`, `331`, or `B-312`).
 - [ ] **Step 1.9**: Click **"Save & Continue"**, verify the green success notice appears, and verify automatic redirect to the Student Portal (`/student` or `/submit`).
 - [ ] **Step 1.10**: Navigate to **File Grievance** (`/submit`).
 - [ ] **Step 1.11**: Verify the **"🏠 My Room"** mode is active by default and displays: `Raman House (Boys Hostel 1) 📍 Room 331`.

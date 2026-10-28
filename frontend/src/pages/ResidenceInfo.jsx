@@ -8,7 +8,6 @@ import { useAuth } from '../context/AuthContext';
 import { isUndergradHostelStudent, resolveIiitnrProfileFromEmail } from '../api/auth';
 import { Home, MapPin, GraduationCap, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import {
-  HOSTEL_FLOORS,
   getHostelBuildings,
   getFloorsForBuilding,
   getRoomsForBuilding,
@@ -35,15 +34,29 @@ export default function ResidenceInfo() {
   const hostels = hostelList;
 
   const [selectedHostel, setSelectedHostel] = useState(
-    currentUser?.hostel_name || hostels[0]?.name || 'Raman House (Boys Hostel 1)'
+    currentUser?.hostel_name || ''
   );
   const [selectedFloor, setSelectedFloor] = useState(() => {
-    return inferFloorFromItem(currentUser?.room_number) || '2';
+    return inferFloorFromItem(currentUser?.room_number) || '';
   });
   const [selectedRoomNumber, setSelectedRoomNumber] = useState(
     currentUser?.room_number || ''
   );
   const [phone, setPhone] = useState(currentUser?.phone || '');
+
+  useEffect(() => {
+    if (currentUser?.hostel_name && !selectedHostel) {
+      setSelectedHostel(currentUser.hostel_name);
+    }
+    if (currentUser?.room_number && !selectedRoomNumber) {
+      setSelectedRoomNumber(currentUser.room_number);
+      const inferred = inferFloorFromItem(currentUser.room_number);
+      if (inferred && !selectedFloor) setSelectedFloor(inferred);
+    }
+    if (currentUser?.phone && !phone) {
+      setPhone(currentUser.phone);
+    }
+  }, [currentUser]);
 
   const [loading, setLoading] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -61,64 +74,116 @@ export default function ResidenceInfo() {
     return resolveIiitnrProfileFromEmail(cleanEmail, currentUser?.name);
   }, [cleanEmail, currentUser?.name]);
 
-  const availableFloors = useMemo(
-    () => getFloorsForBuilding(selectedHostel, hostels),
-    [selectedHostel, hostels]
-  );
+  // Comprehensive flexible floors: standard campus levels plus any GIS database floors
+  const availableFloors = useMemo(() => {
+    if (!selectedHostel || selectedHostel === 'Day Scholar (Off-Campus)') return [];
+    const dbFloors = getFloorsForBuilding(selectedHostel, hostels) || [];
 
-  const availableRooms = useMemo(
-    () => getRoomsForBuilding(selectedHostel, selectedFloor, null, hostels),
-    [selectedHostel, selectedFloor, hostels]
-  );
+    const standardFloors = [
+      { id: 'G', label: 'Ground Floor (G)' },
+      { id: '1', label: 'Floor 1 (1xx)' },
+      { id: '2', label: 'Floor 2 (2xx)' },
+      { id: '3', label: 'Floor 3 (3xx)' },
+      { id: '4', label: 'Floor 4 (4xx)' },
+      { id: '5', label: 'Floor 5 (5xx)' },
+      { id: '6', label: 'Floor 6 (6xx)' },
+      { id: '7', label: 'Floor 7 (7xx)' },
+      { id: '8', label: 'Floor 8 (8xx)' },
+    ];
+
+    const floorMap = new Map();
+    standardFloors.forEach((sf) => floorMap.set(String(sf.id).toUpperCase(), sf));
+    dbFloors.forEach((df) => {
+      const key = String(df.id).toUpperCase();
+      if (!floorMap.has(key)) {
+        floorMap.set(key, { id: String(df.id), label: df.label || `Floor ${df.id}` });
+      }
+    });
+
+    return Array.from(floorMap.values());
+  }, [selectedHostel, hostels]);
+
+  const availableRooms = useMemo(() => {
+    if (!selectedHostel || !selectedFloor) return [];
+    return getRoomsForBuilding(selectedHostel, selectedFloor, null, hostels);
+  }, [selectedHostel, selectedFloor, hostels]);
 
   const filteredRooms = useMemo(() => {
     const onlyRooms = availableRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
     return onlyRooms.length > 0 ? onlyRooms : availableRooms;
   }, [availableRooms]);
 
+  const roomSuggestions = useMemo(() => {
+    if (!selectedHostel || selectedHostel === 'Day Scholar (Off-Campus)') return [];
+
+    // 1. From database / GIS if rooms are explicitly defined
+    const gisRooms = filteredRooms.filter(
+      (r) => !r.toLowerCase().includes('washroom') && !r.toLowerCase().includes('cooler')
+    );
+    if (gisRooms.length > 0) return gisRooms;
+
+    // 2. Dynamic suggestions if a floor is selected
+    if (selectedFloor) {
+      const cleanFloor = String(selectedFloor).toUpperCase();
+      if (cleanFloor === 'G' || cleanFloor === 'GROUND') {
+        return [
+          'Room G01',
+          'Room G02',
+          'Room G05',
+          'Room G10',
+          'Room G12',
+          'G01',
+          'G10',
+          'G12',
+        ];
+      }
+      if (!isNaN(Number(cleanFloor))) {
+        const fl = Number(cleanFloor);
+        const base = fl * 100;
+        return [
+          `Room ${base + 1}`,
+          `Room ${base + 2}`,
+          `Room ${base + 5}`,
+          `Room ${base + 12}`,
+          `Room ${base + 20}`,
+          `Room ${base + 31}`,
+          `${base + 1}`,
+          `${base + 12}`,
+          `${base + 31}`,
+        ];
+      }
+    }
+
+    // 3. Fallback general suggestions if no floor chosen yet
+    return [
+      'Room 101',
+      'Room 201',
+      'Room 204',
+      'Room 301',
+      'Room 312',
+      'Room 331',
+      'Room 401',
+      'Room 501',
+      '331',
+      '204',
+    ];
+  }, [filteredRooms, selectedHostel, selectedFloor]);
+
   const handleHostelChange = (newHostel) => {
     setSelectedHostel(newHostel);
     if (newHostel === 'Day Scholar (Off-Campus)') {
       setSelectedRoomNumber('Day Scholar');
+      setSelectedFloor('');
       return;
     }
-    const targetFloors = getFloorsForBuilding(newHostel, hostels);
-    const validFloorIds = targetFloors.map((f) => String(f.id));
-    const nextFloor = validFloorIds.includes(String(selectedFloor))
-      ? selectedFloor
-      : (targetFloors[0]?.id || '1');
-    setSelectedFloor(nextFloor);
-    const targetRooms = getRoomsForBuilding(newHostel, nextFloor, null, hostels);
-    const roomCandidates = targetRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
-    const finalRoomList = roomCandidates.length > 0 ? roomCandidates : targetRooms;
-    if (finalRoomList.length > 0) {
-      setSelectedRoomNumber(finalRoomList[0]);
-    } else {
+    if (selectedRoomNumber === 'Day Scholar') {
       setSelectedRoomNumber('');
     }
   };
 
   const handleFloorChange = (newFloor) => {
     setSelectedFloor(newFloor);
-    const nextRooms = getRoomsForBuilding(selectedHostel, newFloor, null, hostels);
-    const roomCandidates = nextRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
-    const finalRoomList = roomCandidates.length > 0 ? roomCandidates : nextRooms;
-    if (finalRoomList.length > 0) {
-      setSelectedRoomNumber(finalRoomList[0]);
-    } else {
-      setSelectedRoomNumber('');
-    }
   };
-
-  useEffect(() => {
-    if (
-      selectedHostel !== 'Day Scholar (Off-Campus)' &&
-      filteredRooms.length > 0 &&
-      !filteredRooms.includes(selectedRoomNumber)
-    ) {
-      setSelectedRoomNumber(filteredRooms[0]);
-    }
-  }, [filteredRooms, selectedHostel]);
 
   useEffect(() => {
     if (authInitializing) return;
@@ -139,12 +204,16 @@ export default function ResidenceInfo() {
     setLoading(true);
 
     try {
+      if (!selectedHostel) {
+        throw new Error('Please select your hostel residence house or choose Day Scholar.');
+      }
+
       const isDayScholar = selectedHostel === 'Day Scholar (Off-Campus)';
       const finalHostel = selectedHostel;
       const finalRoom = isDayScholar ? 'Day Scholar' : selectedRoomNumber.trim();
 
       if (!isDayScholar && !finalRoom) {
-        throw new Error('Please enter or select your hostel room number.');
+        throw new Error('Please enter your hostel room number.');
       }
 
       await updateProfile({
@@ -275,8 +344,12 @@ export default function ResidenceInfo() {
               <select
                 value={selectedHostel}
                 onChange={(e) => handleHostelChange(e.target.value)}
+                required
                 className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white px-3.5 py-2.5 text-xs sm:text-sm focus:border-white/30 focus:outline-none transition-all"
               >
+                <option value="" disabled className="bg-[#050608] text-zinc-500">
+                  Select Hostel / Residence...
+                </option>
                 {hostels.map((h) => (
                   <option key={h.id} value={h.name} className="bg-[#050608] text-white">
                     {h.name}
@@ -288,68 +361,98 @@ export default function ResidenceInfo() {
               </select>
             </div>
 
-            {selectedHostel !== 'Day Scholar (Off-Campus)' && (
-              <div className="p-3.5 rounded-xl border border-white/[0.08] bg-[#07080c] space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
-                      Floor <span className="text-white">*</span>
+            {selectedHostel && selectedHostel !== 'Day Scholar (Off-Campus)' && (
+              <div className="p-4 rounded-xl border border-white/[0.08] bg-[#07080c] space-y-3.5">
+                {/* Flexible Floor Selector */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-semibold text-zinc-300">
+                      Floor <span className="text-zinc-500 font-normal">(Optional helper for suggestions)</span>
                     </label>
-                    <select
-                      value={selectedFloor}
-                      onChange={(e) => handleFloorChange(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white px-3 py-2 text-xs focus:border-white/30"
-                    >
-                      {availableFloors.length > 0 ? (
-                        availableFloors.map((f) => (
-                          <option key={f.id} value={f.id} className="bg-[#050608] text-white">
-                            {f.label}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="1" className="bg-[#050608] text-white">
-                          Floor 1
-                        </option>
-                      )}
-                    </select>
+                    {selectedFloor && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFloor('')}
+                        className="text-[10px] font-mono text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
+                      >
+                        Clear Floor
+                      </button>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
-                      Room Number <span className="text-white">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      list="res-room-options"
-                      required
-                      placeholder="e.g. Room 204"
-                      value={selectedRoomNumber}
-                      onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3 py-2 text-xs font-mono focus:border-white/30 focus:outline-none"
-                    />
-                    <datalist id="res-room-options">
-                      {filteredRooms.map((r) => (
-                        <option key={r} value={r} />
-                      ))}
-                    </datalist>
+                  {/* Floor Quick Pills */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {['G', '1', '2', '3', '4', '5', '6'].map((flId) => (
+                      <button
+                        key={flId}
+                        type="button"
+                        onClick={() => setSelectedFloor(selectedFloor === flId ? '' : flId)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer border ${
+                          selectedFloor === flId
+                            ? 'bg-indigo-600/30 text-indigo-200 border-indigo-400/50 font-bold shadow-[inset_0_1px_0_0_rgba(129,140,248,0.3)]'
+                            : 'bg-[#050608] text-zinc-400 border-white/[0.08] hover:border-white/20 hover:text-white'
+                        }`}
+                      >
+                        {flId === 'G' ? 'Ground' : `Floor ${flId}`}
+                      </button>
+                    ))}
                   </div>
+
+                  {/* Floor Dropdown for full list */}
+                  <select
+                    value={selectedFloor}
+                    onChange={(e) => handleFloorChange(e.target.value)}
+                    className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white px-3 py-2 text-xs focus:border-white/30"
+                  >
+                    <option value="">Select Floor (or use pills above)...</option>
+                    {availableFloors.map((f) => (
+                      <option key={f.id} value={f.id} className="bg-[#050608] text-white">
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {filteredRooms.length > 0 && (
-                  <div className="pt-1">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider block mb-1.5 text-zinc-500">
-                      Quick Select ({availableFloors.find((f) => String(f.id) === String(selectedFloor))?.label || `Floor ${selectedFloor}`}):
+                {/* Freeform Room Number Input */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-semibold text-zinc-300">
+                    Room Number <span className="text-white">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    list="res-room-options"
+                    required
+                    placeholder="e.g. 331, Room 331, B-312, Suite 4"
+                    value={selectedRoomNumber}
+                    onChange={(e) => setSelectedRoomNumber(e.target.value)}
+                    className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3.5 py-2.5 text-xs sm:text-sm font-mono focus:border-white/30 focus:outline-none"
+                  />
+                  <datalist id="res-room-options">
+                    {roomSuggestions.map((r) => (
+                      <option key={r} value={r} />
+                    ))}
+                  </datalist>
+                  <p className="text-[10px] font-mono text-zinc-500">
+                    Freeform room number — enter any custom format (e.g. <span className="text-zinc-300">331</span>, <span className="text-zinc-300">Room 331</span>, <span className="text-zinc-300">B-312</span>), or click a suggestion below:
+                  </p>
+                </div>
+
+                {/* Room Suggestions Chips */}
+                {roomSuggestions.length > 0 && (
+                  <div className="pt-2 border-t border-white/[0.06]">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider block mb-1.5 text-zinc-400">
+                      Room Suggestions ({selectedFloor ? (selectedFloor === 'G' ? 'Ground Floor' : `Floor ${selectedFloor}`) : 'Common Rooms'}) — Click to Fill:
                     </span>
                     <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
-                      {filteredRooms.slice(0, 15).map((r) => (
+                      {roomSuggestions.slice(0, 20).map((r) => (
                         <button
                           key={r}
                           type="button"
                           onClick={() => setSelectedRoomNumber(r)}
                           className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors cursor-pointer border ${
                             selectedRoomNumber === r
-                              ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 font-bold shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
-                              : 'bg-[#050608] text-zinc-300 border-white/[0.08] hover:border-white/20'
+                              ? 'bg-indigo-600/30 text-indigo-200 border-indigo-400/50 font-bold shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
+                              : 'bg-[#050608] text-zinc-300 border-white/[0.08] hover:border-white/20 hover:text-white'
                           }`}
                         >
                           {r}
@@ -358,6 +461,12 @@ export default function ResidenceInfo() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {!selectedHostel && (
+              <div className="p-4 rounded-xl border border-dashed border-white/10 bg-white/[0.02] text-center text-xs text-zinc-400">
+                Please select your Hostel Residence House above to enter your room details.
               </div>
             )}
 
