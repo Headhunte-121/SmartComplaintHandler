@@ -1,10 +1,12 @@
 /**
  * SmartComplaintHandler - Campus Facility Triage & SLA Guide
- * 100% Client-Side Standby Guide — 0 Background Network Calls & 0 Token Burn While Typing.
- * Classification & Dynamic SLA are executed strictly once upon submission.
+ * High-Density Obsidian Command Desk Standard:
+ *  - Translucent glassmorphic card container (bg-[#0e131f]/80 border-white/[0.08])
+ *  - Cyan/Emerald glowing pulse live triage status
+ *  - High-density department category cards
+ *  - Standard SLA resolution commitment badges
  */
 import React from 'react';
-import { useTheme } from '../context/ThemeContext';
 
 const DEPARTMENTS = [
   { name: 'Electrical', icon: '⚡', scope: 'Power, lights, fans, AC, MCB, geysers' },
@@ -16,109 +18,72 @@ const DEPARTMENTS = [
 ];
 
 const SLA_TIERS = [
-  { level: 'CRITICAL', time: '2h SLA', desc: 'Severe facility failure (pipe burst, full power cut)', colorDark: 'text-rose-400 border-rose-800/80 bg-rose-950/40', colorLight: 'text-rose-700 border-rose-300 bg-rose-50' },
-  { level: 'HIGH', time: '8h SLA', desc: 'Major room/lab disruption or locked out', colorDark: 'text-amber-400 border-amber-800/80 bg-amber-950/40', colorLight: 'text-amber-700 border-amber-300 bg-amber-50' },
-  { level: 'MEDIUM', time: '24h SLA', desc: 'Routine functional maintenance (fans, taps)', colorDark: 'text-blue-400 border-blue-800/80 bg-blue-950/40', colorLight: 'text-blue-700 border-blue-300 bg-blue-50' },
-  { level: 'LOW', time: '72h SLA', desc: 'Minor cosmetic & non-urgent repairs', colorDark: 'text-zinc-400 border-zinc-700 bg-zinc-800/50', colorLight: 'text-slate-700 border-slate-300 bg-slate-100' },
+  { level: 'CRITICAL', time: '2h SLA', desc: 'Severe hazard / full outage', color: 'text-rose-400 border-rose-500/30 bg-rose-500/10' },
+  { level: 'HIGH', time: '8h SLA', desc: 'Disruption or locked out', color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
+  { level: 'MEDIUM', time: '24h SLA', desc: 'Routine functional maintenance', color: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10' },
+  { level: 'LOW', time: '72h SLA', desc: 'Cosmetic / minor servicing', color: 'text-slate-400 border-white/[0.08] bg-white/[0.03]' },
 ];
 
 export default function LiveTriageCard({ title = '', description = '' }) {
-  const { isDark } = useTheme();
-
   const cleanTitle = (title || '').trim();
   const cleanDesc = (description || '').trim();
   const isReady = cleanTitle.length >= 5 && cleanDesc.length >= 10;
 
   return (
-    <div
-      className={`p-5 sm:p-6 space-y-4 rounded-2xl border transition-colors ${
-        isDark
-          ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl'
-          : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
-      }`}
-    >
+    <div className="p-5 sm:p-6 space-y-4 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md text-slate-100 shadow-xl">
       {/* Header bar */}
-      <div
-        className={`flex items-center justify-between border-b pb-3 ${
-          isDark ? 'border-zinc-800' : 'border-slate-300'
-        }`}
-      >
+      <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2.5 w-2.5">
             <span
               className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                isReady ? 'bg-emerald-400' : 'bg-cyan-400'
+                isReady ? 'bg-cyan-400' : 'bg-slate-400'
               }`}
             />
             <span
               className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                isReady ? 'bg-emerald-500' : 'bg-cyan-500'
+                isReady ? 'bg-cyan-400' : 'bg-slate-500'
               }`}
             />
           </span>
-          <span
-            className={`text-xs font-bold tracking-tight ${
-              isDark ? 'text-zinc-100' : 'text-slate-900'
-            }`}
-          >
+          <span className="text-xs font-bold tracking-tight text-white">
             Automated Facility Triage
           </span>
         </div>
         <span
-          className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+          className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border tracking-wider uppercase ${
             isReady
-              ? isDark
-                ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800'
-                : 'text-emerald-800 bg-emerald-100 border-emerald-300'
-              : isDark
-              ? 'text-zinc-400 bg-zinc-800 border-zinc-700'
-              : 'text-slate-600 bg-slate-200 border-slate-300'
+              ? 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30'
+              : 'text-slate-400 bg-white/[0.04] border-white/[0.08]'
           }`}
         >
-          {isReady ? 'Ready to Submit' : 'Awaiting Input'}
+          {isReady ? 'Ready for Dispatch' : 'Awaiting Input'}
         </span>
       </div>
 
       {/* Explanatory text */}
-      <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-        When you submit your complaint, it is automatically categorized to the right maintenance
-        department, assigned a resolution timeline, and sent to the campus squad.
+      <p className="text-xs text-slate-400 leading-relaxed">
+        When submitted, NLP triage dynamically categorizes the trade, commits an SLA target, and auto-dispatches to the assigned squad.
       </p>
 
       {/* Campus Service Domains */}
       <div className="space-y-1.5">
-        <span
-          className={`text-[10px] font-mono uppercase tracking-wider block font-bold ${
-            isDark ? 'text-zinc-500' : 'text-slate-500'
-          }`}
-        >
+        <span className="text-[10px] font-mono uppercase tracking-wider block font-bold text-slate-500">
           6 Maintenance Categories
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {DEPARTMENTS.map((dept) => (
             <div
               key={dept.name}
-              className={`p-2.5 rounded-xl border flex flex-col justify-between transition-colors ${
-                isDark
-                  ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700'
-                  : 'bg-[#e2e8f0] border-slate-300 hover:border-slate-400 shadow-2xs'
-              }`}
+              className="p-2.5 rounded-xl border border-white/[0.06] bg-[#0b0f19] hover:border-cyan-500/30 flex flex-col justify-between transition-colors"
             >
               <div className="flex items-center gap-1.5">
                 <span className="text-base">{dept.icon}</span>
-                <span
-                  className={`text-xs font-bold truncate ${
-                    isDark ? 'text-zinc-200' : 'text-slate-800'
-                  }`}
-                >
+                <span className="text-xs font-bold text-slate-200 truncate">
                   {dept.name}
                 </span>
               </div>
-              <span
-                className={`text-[10px] mt-1 line-clamp-1 ${
-                  isDark ? 'text-zinc-400' : 'text-slate-600'
-                }`}
-              >
+              <span className="text-[10px] text-slate-400 mt-1 line-clamp-1">
                 {dept.scope}
               </span>
             </div>
@@ -128,20 +93,14 @@ export default function LiveTriageCard({ title = '', description = '' }) {
 
       {/* Dynamic SLA Commitments */}
       <div className="space-y-1.5 pt-1">
-        <span
-          className={`text-[10px] font-mono uppercase tracking-wider block font-bold ${
-            isDark ? 'text-zinc-500' : 'text-slate-500'
-          }`}
-        >
+        <span className="text-[10px] font-mono uppercase tracking-wider block font-bold text-slate-500">
           Resolution Timeline Standards
         </span>
         <div className="grid grid-cols-2 gap-2 text-xs">
           {SLA_TIERS.map((tier) => (
             <div
               key={tier.level}
-              className={`p-2.5 rounded-xl border flex items-center justify-between ${
-                isDark ? tier.colorDark : tier.colorLight
-              }`}
+              className={`p-2.5 rounded-xl border flex items-center justify-between ${tier.color}`}
             >
               <div>
                 <span className="block font-black text-xs">{tier.level}</span>
@@ -154,16 +113,10 @@ export default function LiveTriageCard({ title = '', description = '' }) {
       </div>
 
       {/* Routine Complaint Assurance */}
-      <div
-        className={`p-2.5 rounded-xl border flex items-center gap-2 text-[11px] ${
-          isDark
-            ? 'bg-[#0e1117] border-zinc-800 text-zinc-400'
-            : 'bg-[#e2e8f0] border-slate-300 text-slate-700 shadow-2xs'
-        }`}
-      >
-        <span className="text-emerald-500 font-bold">✓ Direct Routing:</span>
+      <div className="p-2.5 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex items-center gap-2 text-[11px] text-slate-300">
+        <span className="text-cyan-400 font-bold font-mono">✓ AI Triage:</span>
         <span className="leading-tight">
-          No manual department selection needed. Type naturally and submit.
+          No manual trade routing needed. Detail your issue and our system classifies automatically.
         </span>
       </div>
     </div>

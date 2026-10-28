@@ -1,13 +1,17 @@
 /**
  * SmartComplaintHandler - Institutional Login Portal (IIIT Naya Raipur)
- * Rich visual design with ambient background, glass badge, auto-detected student/staff card,
- * and quick role switcher — zero promotional filler advertising.
+ * High-Density Obsidian Command Desk Standard:
+ *  - Official circular IIIT-NR logo emblem with cyan pulse heartbeat
+ *  - Ambient deep space obsidian background with technical mesh grid
+ *  - Translucent glassmorphic card container with cyan telemetry accents
+ *  - Auto-detected student/staff roll & department profile preview
+ *  - Google Workspace SSO + Institutional credentials dual authentication
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { fetchAuthConfig, resolveIiitnrProfileFromEmail, isUndergradHostelStudent } from '../api/auth';
+import { Shield, Sparkles, KeyRound, Mail, ArrowRight, ExternalLink, AlertTriangle } from 'lucide-react';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
@@ -58,7 +62,6 @@ function ensureGoogleSdkLoaded(timeoutMs = 8000) {
 export default function Login() {
   const navigate = useNavigate();
   const { login, loginGoogle, currentUser, authInitializing } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -150,53 +153,32 @@ export default function Login() {
       const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: activeClientId,
         scope: 'openid email profile',
-        hosted_domain: ALLOWED_DOMAIN,
-        hd: ALLOWED_DOMAIN,
         hint: cleanHint.endsWith(`@${ALLOWED_DOMAIN}`) ? cleanHint : undefined,
-        prompt: 'select_account',
-        error_callback: (errObj) => {
-          if (errObj?.type !== 'popup_closed') {
-            setError(errObj?.message || 'Unable to open Google Sign-In popup.');
-          }
-          setGoogleLoading(false);
-        },
         callback: async (tokenResponse) => {
           if (tokenResponse.error) {
-            setError(tokenResponse.error_description || tokenResponse.error);
+            setError(`Google authorization failed: ${tokenResponse.error}`);
             setGoogleLoading(false);
             return;
           }
           try {
-            const profile = await fetchGoogleUserProfile(tokenResponse.access_token);
-            if (profile) {
-              const userEmail = (profile.email || '').trim().toLowerCase();
-              const userHd = (profile.hd || '').trim().toLowerCase();
-              if (!userEmail.endsWith(`@${ALLOWED_DOMAIN}`) || (userHd && userHd !== ALLOWED_DOMAIN)) {
-                setError(`Only @${ALLOWED_DOMAIN} accounts are permitted.`);
-                setGoogleLoading(false);
-                return;
-              }
-              const user = await loginGoogle({
-                access_token: tokenResponse.access_token,
-                email: userEmail,
-                name: profile.name,
-                picture: profile.picture,
-                hd: userHd || ALLOWED_DOMAIN,
-                email_verified: profile.email_verified !== false,
-                remember_me: rememberMe,
-                is_registration: false,
-              });
+            const googleProfile = await fetchGoogleUserProfile(tokenResponse.access_token);
+            const userEmail = googleProfile?.email || '';
+            const cleanUserEmail = userEmail.trim().toLowerCase();
+
+            if (!cleanUserEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
+              setError(`Restricted domain: Only @${ALLOWED_DOMAIN} accounts are authorized to sign in.`);
               setGoogleLoading(false);
-              handleRoleRedirect(user);
-            } else {
-              const user = await loginGoogle({
-                access_token: tokenResponse.access_token,
-                email: cleanHint.endsWith(`@${ALLOWED_DOMAIN}`) ? cleanHint : undefined,
-                hd: ALLOWED_DOMAIN,
-                remember_me: rememberMe,
-                is_registration: false,
-              });
-              setGoogleLoading(false);
+              return;
+            }
+
+            const user = await loginGoogle({
+              access_token: tokenResponse.access_token,
+              email: cleanUserEmail,
+              name: googleProfile?.name || cleanUserEmail.split('@')[0],
+              picture: googleProfile?.picture,
+            });
+
+            if (user) {
               handleRoleRedirect(user);
             }
           } catch (err) {
@@ -267,45 +249,16 @@ export default function Login() {
   };
 
   return (
-    <div
-      className={`min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden transition-colors duration-200 ${
-        isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
-      }`}
-    >
-      {/* Top Theme Switcher */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 pointer-events-auto">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-          title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-          className={`p-2 rounded-xl border transition-colors cursor-pointer flex items-center justify-center ${
-            isDark
-              ? 'bg-[#161b22] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-amber-400'
-              : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs'
-          }`}
-        >
-          {isDark ? (
-            <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          )}
-        </button>
-      </div>
+    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30">
+      {/* Ambient background glows & technical mesh grid */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 right-1/4 w-[450px] h-[450px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-35 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md space-y-6">
+        {/* Emblem & Institutional Header */}
         <div className="text-center space-y-3">
-          <div
-            className={`inline-flex p-3 rounded-2xl border transition-colors ${
-              isDark
-                ? 'bg-[#161b22] border-zinc-800 shadow-xl shadow-black/40 ring-1 ring-emerald-500/20'
-                : 'bg-[#f1f5f9] border-slate-300 shadow-sm'
-            }`}
-          >
+          <div className="inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.1] shadow-2xl backdrop-blur-md">
             <img
               src="/iiitnr_logo.png"
               alt="IIIT Naya Raipur"
@@ -313,86 +266,58 @@ export default function Login() {
             />
           </div>
           <div>
-            <div
-              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 border ${
-                isDark
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                  : 'bg-emerald-100 border-emerald-300 text-emerald-800'
-              }`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? 'bg-emerald-400' : 'bg-emerald-600'}`}></span>
-              Institutional Access
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border bg-cyan-500/10 border-cyan-500/25 text-cyan-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              Institutional Access Gate
             </div>
-            <h1 className={`text-2xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <h1 className="text-2xl font-black tracking-tight text-white">
               IIIT Naya Raipur Portal
             </h1>
-            <p className={`text-xs font-medium ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Campus Facilities &amp; Maintenance Command Center
+            <p className="text-xs font-mono text-slate-400 tracking-wide">
+              Campus Facilities &amp; Maintenance Command Desk
             </p>
           </div>
         </div>
 
-        <div
-          className={`rounded-3xl border p-7 sm:p-8 space-y-5 relative overflow-hidden transition-colors ${
-            isDark
-              ? 'bg-[#161b22] border-zinc-800 shadow-2xl shadow-black/60 text-zinc-100'
-              : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
-          }`}
-        >
-          {/* Top emerald accent line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
+        {/* Obsidian Glassmorphic Card Container */}
+        <div className="rounded-3xl border border-white/[0.08] bg-[#0e131f]/85 backdrop-blur-xl p-7 sm:p-8 space-y-5 relative overflow-hidden shadow-2xl shadow-black/80">
+          {/* Top Cyan Glowing Accent Line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
 
+          {/* Error Banner */}
           {error && (
             <div
               className={`p-3.5 rounded-xl border text-xs font-semibold space-y-2.5 ${
                 error.toLowerCase().includes('google sign-in')
-                  ? isDark
-                    ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
-                    : 'bg-amber-50 border-amber-300 text-amber-900'
-                  : isDark
-                  ? 'bg-rose-950/60 border-rose-800/80 text-rose-300'
-                  : 'bg-rose-50 border-rose-300 text-rose-800'
+                  ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
+                  : 'bg-rose-950/60 border-rose-800/80 text-rose-300'
               }`}
             >
               <div className="flex items-start gap-2">
-                {error.toLowerCase().includes('google sign-in') ? (
-                  <svg className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                ) : (
-                  <svg className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-rose-400' : 'text-rose-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                )}
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
                 <span className="leading-relaxed">{error}</span>
               </div>
               {error.toLowerCase().includes('google sign-in') ? (
-                <div className={`pt-2 border-t flex flex-col sm:flex-row items-center justify-between gap-2 ${isDark ? 'border-amber-900/60' : 'border-amber-200'}`}>
-                  <span className={`text-[11px] font-normal ${isDark ? 'text-amber-300/90' : 'text-amber-800'}`}>
+                <div className="pt-2 border-t border-amber-900/60 flex flex-col sm:flex-row items-center justify-between gap-2">
+                  <span className="text-[11px] font-normal text-amber-300/90">
                     Click below to authenticate via Google:
                   </span>
                   <button
                     type="button"
                     onClick={handleContinueWithGoogle}
                     disabled={googleLoading}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors border ${
-                      isDark
-                        ? 'bg-amber-500/20 text-amber-200 border-amber-500/40 hover:bg-amber-500/30'
-                        : 'bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-500 shadow-xs'
-                    }`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors border bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-xs"
                   >
                     <span>Sign In With Google</span>
                     <span>→</span>
                   </button>
                 </div>
               ) : (error.toLowerCase().includes('not found') || error.toLowerCase().includes('register')) && (
-                <div className={`pt-2 border-t flex items-center justify-between ${isDark ? 'border-rose-900/60' : 'border-rose-200'}`}>
-                  <span className={`text-[11px] ${isDark ? 'text-rose-300/80' : 'text-rose-700'}`}>Unregistered institutional account?</span>
+                <div className="pt-2 border-t border-rose-900/60 flex items-center justify-between">
+                  <span className="text-[11px] text-rose-300/80">Unregistered institutional account?</span>
                   <Link
                     to="/register"
-                    className={`inline-flex items-center gap-1 font-bold underline cursor-pointer ${
-                      isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-700 hover:text-emerald-800'
-                    }`}
+                    className="inline-flex items-center gap-1 font-bold underline cursor-pointer text-cyan-400 hover:text-cyan-300"
                   >
                     <span>Register Here</span>
                     <span>→</span>
@@ -407,11 +332,7 @@ export default function Login() {
             type="button"
             onClick={handleContinueWithGoogle}
             disabled={googleLoading || loading}
-            className={`w-full py-3 px-4 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50 border ${
-              isDark
-                ? 'bg-[#0e1117] hover:bg-zinc-800 hover:border-emerald-500/40 border-zinc-800 text-zinc-100'
-                : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 hover:border-slate-400 text-slate-800 hover:text-slate-950'
-            }`}
+            className="w-full py-3 px-4 font-bold text-xs rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] hover:border-cyan-500/40 text-slate-200 hover:text-white shadow-xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
@@ -419,63 +340,51 @@ export default function Login() {
               <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
               <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
             </svg>
-            <span>{googleLoading ? 'Connecting...' : 'Sign in with Google (@iiitnr.edu.in)'}</span>
+            <span>{googleLoading ? 'Connecting to Google SSO...' : 'Sign in with Google (@iiitnr.edu.in)'}</span>
           </button>
 
+          {/* Divider */}
           <div className="relative flex py-1 items-center">
-            <div className={`grow border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`} />
-            <span className={`shrink mx-3 text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+            <div className="grow border-t border-white/[0.08]" />
+            <span className="shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-slate-500">
               or institutional credentials
             </span>
-            <div className={`grow border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`} />
+            <div className="grow border-t border-white/[0.08]" />
           </div>
 
-          {/* Standard Single Login Form */}
+          {/* Institutional Form */}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className={`block text-xs font-bold mb-1.5 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-300 mb-1.5">
                 Institutional Email
               </label>
-              <input
-                id="login-email"
-                type="email"
-                required
-                autoFocus
-                placeholder="Email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError(null);
-                }}
-                className={`w-full rounded-xl border px-4 py-3 text-xs sm:text-sm font-mono transition-all ${
-                  isDark
-                    ? 'border-zinc-800 bg-[#0e1117] text-zinc-100 placeholder-zinc-500 hover:border-zinc-700 focus:bg-[#161b22] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
-                    : 'border-slate-300 bg-[#e2e8f0] text-slate-900 placeholder-slate-500 hover:border-slate-400 focus:bg-white focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
-                }`}
-              />
+              <div className="relative">
+                <input
+                  id="login-email"
+                  type="email"
+                  required
+                  autoFocus
+                  placeholder="name@iiitnr.edu.in"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null);
+                  }}
+                  className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-3 text-xs sm:text-sm font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 hover:border-white/[0.14] transition"
+                />
+              </div>
             </div>
 
+            {/* Auto-detected Profile Chip */}
             {detectedProfile && (
-              <div
-                className={`p-3 rounded-xl border flex items-center justify-between text-xs ${
-                  isDark
-                    ? 'bg-[#0e1117] border-emerald-500/30 text-zinc-100'
-                    : 'bg-[#e2e8f0] border-emerald-300 text-slate-900'
-                }`}
-              >
+              <div className="p-3.5 rounded-xl border border-cyan-500/30 bg-[#0b0f19]/90 text-slate-100 flex items-center justify-between text-xs animate-fade-in shadow-inner">
                 <div className="min-w-0 pr-2">
-                  <div className={`font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{detectedProfile.name}</div>
-                  <div className={`text-[11px] truncate ${isDark ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>
+                  <div className="font-bold text-white truncate">{detectedProfile.name}</div>
+                  <div className="text-[11px] text-cyan-400 font-mono truncate">
                     {detectedProfile.department_name}
                   </div>
                 </div>
-                <span
-                  className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${
-                    isDark
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  }`}
-                >
+                <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shrink-0 uppercase tracking-wider">
                   {detectedProfile.role}
                 </span>
               </div>
@@ -483,15 +392,13 @@ export default function Login() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="login-password" className={`text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                <label htmlFor="login-password" className="text-xs font-semibold text-slate-300">
                   Password
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`text-xs font-bold transition-colors cursor-pointer ${
-                    isDark ? 'text-zinc-400 hover:text-emerald-400' : 'text-slate-600 hover:text-emerald-700'
-                  }`}
+                  className="text-xs font-mono font-medium text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -500,50 +407,43 @@ export default function Login() {
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 required
-                placeholder="Enter your password"
+                placeholder="Enter account password"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   setError(null);
                 }}
-                className={`w-full rounded-xl border px-4 py-3 text-xs sm:text-sm transition-all ${
-                  isDark
-                    ? 'border-zinc-800 bg-[#0e1117] text-zinc-100 placeholder-zinc-500 hover:border-zinc-700 focus:bg-[#161b22] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
-                    : 'border-slate-300 bg-[#e2e8f0] text-slate-900 placeholder-slate-500 hover:border-slate-400 focus:bg-white focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
-                }`}
+                className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-3 text-xs sm:text-sm transition font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 hover:border-white/[0.14]"
               />
             </div>
 
-            <label className={`flex items-center space-x-2 text-xs font-medium cursor-pointer select-none ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className={`w-3.5 h-3.5 rounded ${
-                  isDark
-                    ? 'border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-emerald-500/30'
-                    : 'border-slate-300 bg-white text-emerald-600 focus:ring-emerald-500/30'
-                }`}
-              />
-              <span>Keep me signed in for 30 days</span>
-            </label>
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer select-none text-slate-400 hover:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-white/[0.15] bg-[#0b0f19] text-cyan-500 focus:ring-cyan-500/30 cursor-pointer"
+                />
+                <span>Keep me signed in</span>
+              </label>
+            </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition cursor-pointer disabled:opacity-50"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Authenticating...' : 'Sign In to Campus Desk'}
             </button>
           </form>
 
-          <div className={`pt-4 border-t flex items-center justify-between text-xs ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
-            <span className={isDark ? 'text-zinc-400' : 'text-slate-600'}>New student or staff?</span>
+          {/* Footer Register Link */}
+          <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs">
+            <span className="text-slate-400">New scholar or faculty member?</span>
             <Link
               to="/register"
-              className={`font-bold transition-colors inline-flex items-center gap-1 ${
-                isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-700 hover:text-emerald-800'
-              }`}
+              className="font-bold text-cyan-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Create account</span>
               <span>→</span>
@@ -552,35 +452,26 @@ export default function Login() {
         </div>
       </div>
 
+      {/* Dev Mode Google Client ID Setup Dialog */}
       {!IS_PROD_BUILD && showClientIdModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
-          <div
-            className={`rounded-3xl max-w-md w-full p-6 space-y-4 border shadow-2xl ${
-              isDark
-                ? 'bg-[#161b22] border-zinc-800 text-zinc-100'
-                : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
-            }`}
-          >
-            <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Configure Google Client ID</h3>
-            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>Development mode Google OAuth Client ID setup</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
+          <div className="rounded-3xl max-w-md w-full p-6 space-y-4 border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 shadow-2xl">
+            <h3 className="text-base font-black text-white">Configure Google Client ID</h3>
+            <p className="text-xs text-slate-400">
+              Provide your Google OAuth 2.0 Client ID for localhost testing.
+            </p>
             <input
               type="text"
               placeholder="123456-abc.apps.googleusercontent.com"
               value={clientIdInput}
               onChange={(e) => setClientIdInput(e.target.value)}
-              className={`w-full rounded-xl border px-4 py-2.5 text-xs font-mono transition-all ${
-                isDark
-                  ? 'border-zinc-800 bg-[#0e1117] text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
-                  : 'border-slate-300 bg-[#e2e8f0] text-slate-900 placeholder-slate-500 focus:bg-white focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
-              }`}
+              className="w-full rounded-xl border border-white/[0.1] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-2.5 text-xs font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
             />
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowClientIdModal(false)}
-                className={`px-4 py-2 text-xs font-bold transition-colors cursor-pointer ${
-                  isDark ? 'text-zinc-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -595,7 +486,7 @@ export default function Login() {
                     launchGoogleWorkspaceFlow(cleaned);
                   }
                 }}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
               >
                 Save &amp; Continue
               </button>

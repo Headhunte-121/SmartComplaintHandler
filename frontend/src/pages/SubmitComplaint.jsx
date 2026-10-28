@@ -1,15 +1,23 @@
 /**
  * SmartComplaintHandler - Submit Maintenance Request Workstation
- * Flush Edge-to-Edge Dark Command Twin Layout with Consistent Institutional Palette
+ * High-Density Obsidian Command Desk Standard:
+ *  - Seamless Deep Space Obsidian canvas (#090d14)
+ *  - Translucent glassmorphic surfaces (bg-[#0e131f]/80 border-white/[0.08])
+ *  - 3-Mode Location Segmented Selector (🏠 My Room, 🔍 Omni-Search, 🗺️ Browse / Map)
+ *  - Real-time client-side NLP triage & dynamic SLA commitment panel
+ *  - Integrated GIS Campus Digital Twin map picker dialog
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { submitComplaint } from '../api/complaints';
 import LiveTriageCard from '../components/LiveTriageCard';
 import SubmissionSuccessModal from '../components/SubmissionSuccessModal';
 import CampusMapSelector from '../components/CampusMapSelector';
+import {
+  MapPin, Compass, Search, Home as HomeIcon, CheckCircle2,
+  AlertTriangle, Sparkles, ArrowRight, X, Clock, Layers,
+} from 'lucide-react';
 import {
   IIITNR_MAP_UPDATED_EVENT,
   getCampusBuildings,
@@ -37,7 +45,6 @@ function inferFloorFromRoomString(roomStr = '') {
 
 export default function SubmitComplaint() {
   const { currentUser, updateProfile } = useAuth();
-  const { isDark } = useTheme();
   const activeUser = currentUser;
   const [searchParams] = useSearchParams();
 
@@ -206,777 +213,567 @@ export default function SubmitComplaint() {
   const resolvedRoomLabel = customRoomOverride.trim() || specificLocation;
 
   return (
-    <div className={`w-full min-h-screen flex flex-col space-y-0 transition-colors animate-fade-in ${
-      isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-900'
-    }`}>
-      {/* Flush Command Deck Hero Header */}
-      <div className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative transition-colors ${
-        isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-white border-slate-200'
-      }`}>
-        <div className="w-full flex flex-col sm:flex-row sm:items-end justify-between gap-6 relative z-10">
-          <div className="space-y-3">
-            <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-bold shadow-xs ${
-              isDark
-                ? 'bg-emerald-950/60 border border-emerald-800/80 text-emerald-400'
-                : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
-            }`}>
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span>Campus Maintenance Portal</span>
-              <span className={isDark ? 'text-emerald-500' : 'text-emerald-400'}>·</span>
-              <span className={`font-mono text-[11px] ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Auto-Triage Active</span>
-            </div>
-            <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight ${
-              isDark ? 'text-zinc-100' : 'text-slate-900'
-            }`}>
-              Submit Maintenance Request
-            </h1>
-            <p className={`text-xs sm:text-sm max-w-2xl leading-relaxed ${
-              isDark ? 'text-zinc-400' : 'text-slate-600'
-            }`}>
-              Confirm the location and describe the issue—category, squad, and SLA priority are detected automatically.
-            </p>
+    <div className="w-full min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border bg-cyan-500/10 border-cyan-500/25 text-cyan-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              Service Dispatch Active
+            </span>
           </div>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+            Submit Maintenance Request
+          </h1>
+          <p className="text-xs text-slate-400">
+            Specify the campus location and problem description. NLP triage auto-routes to the responsible squad.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsMapModalOpen(true)}
-              className={`px-4 py-2.5 rounded-xl border font-bold text-xs shadow-2xs transition-all inline-flex items-center gap-2 cursor-pointer ${
-                isDark
-                  ? 'bg-[#0e1117] hover:bg-[#1c2128] border-zinc-700 text-emerald-400 hover:text-emerald-300'
-                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-emerald-800 hover:text-emerald-900'
-              }`}
-            >
-              <svg className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-              <span>Open Digital Twin Map</span>
-            </button>
-            <Link
-              to="/student"
-              className={`px-4 py-2.5 rounded-xl border font-bold text-xs shadow-2xs transition-all inline-flex items-center gap-2 cursor-pointer ${
-                isDark
-                  ? 'bg-[#0e1117] hover:bg-[#1c2128] border-zinc-700 text-zinc-200 hover:text-white'
-                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800 hover:text-slate-950'
-              }`}
-            >
-              My Requests →
-            </Link>
-          </div>
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsMapModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-cyan-400 hover:text-cyan-300 font-semibold text-xs transition cursor-pointer flex items-center gap-2"
+          >
+            <Compass size={15} />
+            <span>Digital Twin Map</span>
+          </button>
+          <Link
+            to="/student"
+            className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white font-semibold text-xs transition flex items-center gap-2"
+          >
+            <span>My Requests</span>
+            <ArrowRight size={14} />
+          </Link>
         </div>
       </div>
 
-      {/* Flush Workstation Layout */}
-      <div className={`w-full px-4 sm:px-8 lg:px-12 py-8 lg:py-10 transition-colors ${
-        isDark ? 'bg-[#0e1117]' : 'bg-white'
-      }`}>
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Request Form */}
-          <form
-            onSubmit={handleSubmit}
-            className={`lg:col-span-7 xl:col-span-8 p-6 sm:p-8 space-y-6 rounded-2xl relative border shadow-sm transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
-            }`}
-          >
-            {/* Top card accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
+      {/* Main Workstation Layout */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Main Request Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="lg:col-span-7 xl:col-span-8 p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md relative shadow-2xl"
+        >
+          {/* Top subtle glow line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
 
-            {error && (
-              <div className={`rounded-xl p-3.5 text-xs font-semibold shadow-xs border ${
-                isDark ? 'bg-rose-950/60 border-rose-900 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-700'
-              }`}>
-                {error}
+          {error && (
+            <div className="rounded-xl p-3.5 text-xs font-semibold border bg-rose-950/60 border-rose-800/80 text-rose-300 flex items-start gap-2">
+              <AlertTriangle size={15} className="text-rose-400 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {residenceSavedNotice && (
+            <div className="rounded-xl p-3 text-xs font-bold border bg-cyan-950/60 border-cyan-800 text-cyan-300 flex items-center gap-2">
+              <CheckCircle2 size={15} className="text-cyan-400" />
+              <span>{residenceSavedNotice}</span>
+            </div>
+          )}
+
+          {/* STEP 1: Streamlined 3-Mode Location Selector */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="w-7 h-7 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                  1
+                </span>
+                <span className="text-sm font-black tracking-tight text-white">
+                  Location Selector
+                </span>
               </div>
-            )}
 
-            {residenceSavedNotice && (
-              <div className={`rounded-xl p-3 text-xs font-bold shadow-xs border ${
-                isDark ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              }`}>
-                ✓ {residenceSavedNotice}
+              {/* 3-Mode Segmented Pill Bar */}
+              <div className="inline-flex items-center p-1.5 rounded-2xl border border-white/[0.08] bg-[#0b0f19] gap-1 shadow-inner">
+                <button
+                  type="button"
+                  onClick={handleUseMySavedRoom}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                    locationMode === 'MY_ROOM'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <HomeIcon size={13} />
+                  <span>My Room</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationMode('SEARCH')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                    locationMode === 'SEARCH'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <Search size={13} />
+                  <span>Quick Search</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationMode('BROWSE')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                    locationMode === 'BROWSE'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <Layers size={13} />
+                  <span>Browse / Map</span>
+                </button>
               </div>
-            )}
+            </div>
 
-            {/* STEP 1: Streamlined 3-Mode Location Selector */}
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className={`w-7 h-7 rounded-xl bg-emerald-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-xs ring-4 ${
-                    isDark ? 'ring-emerald-950/80' : 'ring-emerald-100'
-                  }`}>
-                    1
-                  </span>
-                  <span className={`text-sm font-black tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                    Location
-                  </span>
+            {/* MODE A: 1-Tap My Saved Room Card */}
+            {locationMode === 'MY_ROOM' && (
+              <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0b0f19] hover:border-white/[0.14] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shadow-inner">
+                    <HomeIcon size={22} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md font-bold border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+                        Default Residence
+                      </span>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/[0.08] bg-white/[0.04] text-slate-300">
+                        {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
+                      </span>
+                    </div>
+                    <div className="text-base font-black mt-1 text-white">
+                      {activeBuildingObj?.name || savedHostel}
+                    </div>
+                    <div className="text-xs font-mono font-bold mt-0.5 flex items-center gap-1.5 text-cyan-400">
+                      <MapPin size={12} />
+                      <span>{resolvedRoomLabel}</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* 3-Mode Segmented Pill Bar */}
-                <div className={`inline-flex items-center p-1.5 rounded-2xl border gap-1.5 shadow-inner transition-colors ${
-                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#cbd5e1]/80 border-slate-300'
-                }`}>
-                  <button
-                    type="button"
-                    onClick={handleUseMySavedRoom}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                      locationMode === 'MY_ROOM'
-                        ? 'bg-emerald-600 text-white shadow-xs border border-emerald-600'
-                        : isDark
-                          ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-400 hover:text-zinc-100 border border-zinc-800'
-                          : 'text-slate-700 hover:text-slate-900 hover:bg-slate-300/80 border border-transparent'
-                    }`}
-                  >
-                    <span>🏠 My Room</span>
-                  </button>
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
                   <button
                     type="button"
                     onClick={() => setLocationMode('SEARCH')}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                      locationMode === 'SEARCH'
-                        ? 'bg-emerald-600 text-white shadow-xs border border-emerald-600'
-                        : isDark
-                          ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-400 hover:text-zinc-100 border border-zinc-800'
-                          : 'text-slate-700 hover:text-slate-900 hover:bg-slate-300/80 border border-transparent'
-                    }`}
+                    className="px-3 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-semibold transition cursor-pointer"
                   >
-                    <span>🔍 Quick Search</span>
+                    Search Other Spot
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setLocationMode('BROWSE')}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                      locationMode === 'BROWSE'
-                        ? 'bg-emerald-600 text-white shadow-xs border border-emerald-600'
-                        : isDark
-                          ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-400 hover:text-zinc-100 border border-zinc-800'
-                          : 'text-slate-700 hover:text-slate-900 hover:bg-slate-300/80 border border-transparent'
-                    }`}
-                  >
-                    <span>🗺️ Browse / Map</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* MODE A: 1-Tap My Saved Room Card */}
-              {locationMode === 'MY_ROOM' && (
-                <div className={`p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                  isDark
-                    ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700'
-                    : 'bg-[#e2e8f0] border-slate-300 hover:border-slate-400 shadow-2xs'
-                }`}>
-                  <div className="flex items-start sm:items-center gap-3.5">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
-                      isDark
-                        ? 'bg-emerald-950/60 border-emerald-800/80 text-emerald-400'
-                        : 'bg-emerald-100/80 border-emerald-200 text-emerald-700'
-                    }`}>
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-lg font-bold border ${
-                          isDark
-                            ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/80'
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        }`}>
-                          Saved Residence
-                        </span>
-                        <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
-                          isDark
-                            ? 'bg-[#161b22] text-zinc-300 border-zinc-700'
-                            : 'bg-white text-slate-700 border-slate-300 shadow-2xs'
-                        }`}>
-                          {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
-                        </span>
-                      </div>
-                      <div className={`text-base font-black mt-1 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                        {activeBuildingObj?.name || savedHostel}
-                      </div>
-                      <div className={`text-xs font-mono font-bold mt-0.5 flex items-center gap-1 ${
-                        isDark ? 'text-emerald-400' : 'text-emerald-600'
-                      }`}>
-                        <span>📍</span>
-                        <span>{resolvedRoomLabel}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setLocationMode('SEARCH')}
-                      className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
-                        isDark
-                          ? 'bg-[#161b22] hover:bg-[#1c2128] border-zinc-700 text-zinc-300'
-                          : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 shadow-2xs'
-                      }`}
-                    >
-                      Search Other Spot
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsMapModalOpen(true)}
-                      className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                        isDark
-                          ? 'bg-[#161b22] hover:bg-[#1c2128] border-emerald-800 text-emerald-400'
-                          : 'bg-white hover:bg-emerald-50 border-emerald-300 text-emerald-700 shadow-2xs'
-                      }`}
-                    >
-                      <span>🗺️</span>
-                      <span>Pick on Map</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* MODE B: Inline Omni-Search */}
-              {locationMode === 'SEARCH' && (
-                <div className={`space-y-3 p-4 rounded-xl border transition-colors ${
-                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
-                }`}>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={spotQuery}
-                      onChange={(e) => setSpotQuery(e.target.value)}
-                      placeholder="Search room number, lab, or block (e.g. '303', '131C', 'VLSI', 'Canteen', 'Room 204')..."
-                      className={`w-full px-4 py-2.5 pl-9 rounded-xl border text-xs sm:text-sm font-sans focus:outline-none transition-all ${
-                        isDark
-                          ? 'bg-[#161b22] border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
-                          : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-2xs'
-                      }`}
-                    />
-                    <svg className={`w-4 h-4 absolute left-3 top-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    {spotQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setSpotQuery('')}
-                        className={`absolute right-3 top-2.5 text-xs font-bold cursor-pointer ${
-                          isDark ? 'text-zinc-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'
-                        }`}
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                    <span className={`text-[10px] font-mono uppercase tracking-wider shrink-0 font-bold ${
-                      isDark ? 'text-zinc-500' : 'text-slate-500'
-                    }`}>
-                      Popular:
-                    </span>
-                    {QUICK_SPOT_CHIPS.map((chip) => (
-                      <button
-                        key={chip.query}
-                        type="button"
-                        onClick={() => {
-                          const matches = queryCampusSearchIndex(chip.query, searchIndex, 1);
-                          if (matches.length > 0) handlePickSpotResult(matches[0]);
-                        }}
-                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold shrink-0 cursor-pointer transition-all shadow-2xs ${
-                          isDark
-                            ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-300 hover:text-white border-zinc-700 hover:border-emerald-500/60'
-                            : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-300 hover:border-emerald-500'
-                        }`}
-                      >
-                        {chip.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {spotQuery.trim().length > 0 && (
-                    <div className={`rounded-xl border divide-y max-h-60 overflow-y-auto shadow-xl ${
-                      isDark
-                        ? 'bg-[#161b22] border-zinc-700 divide-zinc-800'
-                        : 'bg-white border-slate-300 divide-slate-200'
-                    }`}>
-                      {spotResults.length === 0 ? (
-                        <div className={`p-4 text-center text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                          No matching room or building found. Use Browse mode for custom spots.
-                        </div>
-                      ) : (
-                        spotResults.map((item, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handlePickSpotResult(item)}
-                            className={`w-full text-left px-3.5 py-2.5 transition-colors flex items-center justify-between gap-3 cursor-pointer ${
-                              isDark ? 'hover:bg-zinc-800/60' : 'hover:bg-slate-50'
-                            }`}
-                          >
-                            <div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
-                                  isDark
-                                    ? 'bg-[#0e1117] text-emerald-400 border-zinc-700'
-                                    : 'bg-[#e2e8f0] text-emerald-800 border-slate-300'
-                                }`}>
-                                  {item.badge}
-                                </span>
-                                <span className={`text-xs font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                                  {item.title}
-                                </span>
-                              </div>
-                              <p className={`text-[11px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>{item.subtitle}</p>
-                            </div>
-                            <span className={`text-[11px] font-mono font-bold shrink-0 ${
-                              isDark ? 'text-emerald-400' : 'text-emerald-600'
-                            }`}>
-                              Select →
-                            </span>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  )}
-
-                  <div className={`p-3 rounded-xl border flex items-center justify-between gap-2 text-xs shadow-2xs ${
-                    isDark
-                      ? 'bg-[#161b22] border-emerald-800/80'
-                      : 'bg-white border-emerald-400'
-                  }`}>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] uppercase border ${
-                        isDark
-                          ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      }`}>
-                        Selected
-                      </span>
-                      <span className={`font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                        {activeBuildingObj?.shortName || building}
-                      </span>
-                      <span className={isDark ? 'text-zinc-600' : 'text-slate-400'}>·</span>
-                      <span className={`font-mono font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                        {resolvedRoomLabel}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsMapModalOpen(true)}
-                      className={`text-[11px] font-bold hover:underline shrink-0 cursor-pointer ${
-                        isDark ? 'text-emerald-400' : 'text-emerald-600'
-                      }`}
-                    >
-                      View on Map →
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* MODE C: Browse Building, Floor & Room */}
-              {locationMode === 'BROWSE' && (
-                <div className={`space-y-3.5 p-4 rounded-xl border transition-colors ${
-                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
-                }`}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label htmlFor="building" className={`block text-xs font-bold ${
-                          isDark ? 'text-zinc-300' : 'text-slate-700'
-                        }`}>
-                          Hostel or Campus Building
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setIsMapModalOpen(true)}
-                          className={`text-[11px] font-bold cursor-pointer ${
-                            isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'
-                          }`}
-                        >
-                          Pick visually on Digital Twin →
-                        </button>
-                      </div>
-                      <select
-                        id="building"
-                        value={activeBuildingObj?.name || ''}
-                        onChange={(e) => handleSelectBuilding(e.target.value)}
-                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm focus:outline-none ${
-                          isDark
-                            ? 'bg-[#161b22] border-zinc-700 text-zinc-100 focus:border-emerald-500'
-                            : 'bg-white border-slate-300 text-slate-900 focus:border-emerald-600 shadow-2xs'
-                        }`}
-                      >
-                        <optgroup label="Hostels" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                          {hostelsList.map((h) => (
-                            <option key={h.id} value={h.name} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                              {h.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="Academic, Labs & Campus" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                          {nonHostelsList.map((b) => (
-                            <option key={b.id} value={b.name} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                              {b.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="floorSelect" className={`block text-xs font-bold mb-1.5 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}>
-                        Floor
-                      </label>
-                      <select
-                        id="floorSelect"
-                        value={selectedFloor}
-                        onChange={(e) => {
-                          const newFloor = e.target.value;
-                          setSelectedFloor(newFloor);
-                          const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, null, allBuildings);
-                          if (nextRooms.length > 0) {
-                            setSpecificLocation(nextRooms[0]);
-                            setCustomRoomOverride('');
-                          }
-                        }}
-                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm focus:outline-none ${
-                          isDark
-                            ? 'bg-[#161b22] border-zinc-700 text-zinc-100 focus:border-emerald-500'
-                            : 'bg-white border-slate-300 text-slate-900 focus:border-emerald-600 shadow-2xs'
-                        }`}
-                      >
-                        {availableFloors.length > 0 ? (
-                          availableFloors.map((f) => (
-                            <option key={f.id} value={f.id} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                              {f.label}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="None" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                            None
-                          </option>
-                        )}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className={`block text-xs font-bold mb-1.5 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}>
-                        Campus Zone / Coordinates
-                      </label>
-                      <div className={`w-full px-3.5 py-2.5 rounded-xl border font-mono text-xs flex items-center justify-between ${
-                        isDark ? 'bg-[#161b22] border-zinc-700 text-zinc-300' : 'bg-white border-slate-300 text-slate-700 shadow-2xs'
-                      }`}>
-                        <span className={`font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
-                        <span className={`text-[11px] truncate max-w-[180px] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>{activeBuildingObj?.gps || 'Institutional Twin'}</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="specificLocation" className={`block text-xs font-bold mb-1.5 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}>
-                        Room / Lab / Utility
-                      </label>
-                      <select
-                        id="specificLocation"
-                        value={specificLocation}
-                        onChange={(e) => {
-                          setSpecificLocation(e.target.value);
-                          setCustomRoomOverride('');
-                        }}
-                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm focus:outline-none ${
-                          isDark
-                            ? 'bg-[#161b22] border-zinc-700 text-zinc-100 focus:border-emerald-500'
-                            : 'bg-white border-slate-300 text-slate-900 focus:border-emerald-600 shadow-2xs'
-                        }`}
-                      >
-                        {availableRooms.length > 0 ? (
-                          availableRooms.map((rm) => (
-                            <option key={rm} value={rm} className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                              {rm}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="None" className={isDark ? 'bg-[#161b22] text-zinc-100' : 'bg-white text-slate-900'}>
-                            None
-                          </option>
-                        )}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="customRoomOverride" className={`block text-xs font-bold mb-1.5 ${
-                        isDark ? 'text-zinc-300' : 'text-slate-700'
-                      }`}>
-                        Specific Spot (Optional)
-                      </label>
-                      <input
-                        id="customRoomOverride"
-                        type="text"
-                        placeholder="e.g. Near Balcony, Tap #2"
-                        value={customRoomOverride}
-                        onChange={(e) => setCustomRoomOverride(e.target.value)}
-                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm focus:outline-none ${
-                          isDark
-                            ? 'bg-[#161b22] border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500'
-                            : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600 shadow-2xs'
-                        }`}
-                      />
-                    </div>
-                  </div>
-
-                  {isHostelBuilding && (
-                    <div className="flex justify-end pt-1">
-                      <button
-                        type="button"
-                        onClick={handleSaveCurrentAsMyRoom}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border shadow-2xs transition-colors cursor-pointer ${
-                          isDark
-                            ? 'bg-emerald-950/60 hover:bg-emerald-950 border-emerald-800 text-emerald-400 hover:text-emerald-300'
-                            : 'bg-white hover:bg-slate-50 border-emerald-300 text-emerald-700'
-                        }`}
-                      >
-                        Set as My Default Room
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className={`border-t ${isDark ? 'border-zinc-800' : 'border-slate-200'}`} />
-
-            {/* STEP 2: Issue Title & Details */}
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <span className={`w-7 h-7 rounded-xl bg-emerald-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-xs ring-4 ${
-                    isDark ? 'ring-emerald-950/80' : 'ring-emerald-100'
-                  }`}>
-                    2
-                  </span>
-                  <span className={`text-sm font-black tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                    Issue Description
-                  </span>
-                </div>
-                <span className={`inline-flex items-center gap-1.5 text-[11px] font-mono border px-2.5 py-0.5 rounded-lg font-bold shadow-xs ${
-                  isDark
-                    ? 'bg-emerald-950/80 border-emerald-800/80 text-emerald-400'
-                    : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                }`}>
-                  <span>✨ Auto-detects category &amp; SLA</span>
-                </span>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="title" className={`block text-xs font-bold ${
-                    isDark ? 'text-zinc-300' : 'text-slate-700'
-                  }`}>
-                    Issue Summary
-                  </label>
-                  <span className={`text-[11px] font-mono font-medium ${
-                    isDark ? 'text-zinc-500' : 'text-slate-500'
-                  }`}>
-                    {title.trim().length}/150
-                  </span>
-                </div>
-                <input
-                  id="title"
-                  type="text"
-                  required
-                  minLength={5}
-                  maxLength={150}
-                  placeholder="e.g. Ceiling fan regulator broken, or LAN port dead"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  disabled={submitting}
-                  className={`w-full px-4 py-3 rounded-xl border text-sm transition-all shadow-2xs ${
-                    isDark
-                      ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-                      : 'bg-[#e2e8f0] hover:bg-slate-200/90 focus:bg-white border-slate-300 hover:border-slate-400 focus:border-emerald-600 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-600'
-                  }`}
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="description" className={`block text-xs font-bold ${
-                    isDark ? 'text-zinc-300' : 'text-slate-700'
-                  }`}>
-                    Details &amp; Observations
-                  </label>
-                  <span className={`text-[11px] font-mono font-bold ${
-                    isDark ? 'text-emerald-400' : 'text-emerald-600'
-                  }`}>
-                    {description.trim().length >= 10 ? '✓ Auto-triage active' : 'Min 10 chars'}
-                  </span>
-                </div>
-                <textarea
-                  id="description"
-                  required
-                  minLength={10}
-                  rows={4}
-                  placeholder="Describe what needs repair so the assigned maintenance squad can bring the right tools..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={submitting}
-                  className={`w-full px-4 py-3 rounded-xl border text-sm resize-none leading-relaxed transition-all shadow-2xs ${
-                    isDark
-                      ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-                      : 'bg-[#e2e8f0] hover:bg-slate-200/90 focus:bg-white border-slate-300 hover:border-slate-400 focus:border-emerald-600 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-600'
-                  }`}
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-sm shadow-xs border border-emerald-600 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting
-                ? 'Submitting Request...'
-                : `Submit Request · ${activeBuildingObj?.shortName || building} (${resolvedRoomLabel})`}
-            </button>
-          </form>
-
-          {/* Right Sticky Triage & Target Summary Column */}
-          <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-20 space-y-4">
-            <LiveTriageCard title={title} description={description} />
-
-            {/* Dispatch Target Card */}
-            <div className={`p-5 sm:p-6 space-y-3.5 border shadow-sm rounded-2xl relative overflow-hidden transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
-            }`}>
-              <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
-              <div className="flex items-center justify-between">
-                <span className={`text-[11px] font-mono uppercase tracking-wider font-bold ${
-                  isDark ? 'text-zinc-400' : 'text-slate-500'
-                }`}>
-                  Dispatch Target
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className={`font-mono text-[10px] px-2.5 py-0.5 rounded-lg border font-bold shadow-2xs ${
-                    isDark
-                      ? 'bg-[#0e1117] text-emerald-400 border-zinc-700'
-                      : 'bg-[#e2e8f0] text-slate-800 border-slate-300'
-                  }`}>
-                    {activeBuildingObj?.mapPin?.badge || 'BLDG'}
-                  </span>
                   <button
                     type="button"
                     onClick={() => setIsMapModalOpen(true)}
-                    className={`text-[11px] font-bold hover:underline cursor-pointer ${
-                      isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'
-                    }`}
+                    className="px-3 py-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
                   >
-                    Change on Map →
+                    <Compass size={13} />
+                    <span>Pick on Map</span>
                   </button>
                 </div>
               </div>
-              <div className={`font-black text-sm ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                {activeBuildingObj?.name || building}
+            )}
+
+            {/* MODE B: Inline Omni-Search */}
+            {locationMode === 'SEARCH' && (
+              <div className="space-y-3 p-4 rounded-2xl border border-white/[0.08] bg-[#0b0f19]">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={spotQuery}
+                    onChange={(e) => setSpotQuery(e.target.value)}
+                    placeholder="Search room number, lab, or block (e.g. '303', '131C', 'VLSI', 'Canteen', 'Room 204')..."
+                    className="w-full px-4 py-2.5 pl-9 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white placeholder-slate-500 text-xs sm:text-sm font-sans focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                  />
+                  <Search size={15} className="absolute left-3 top-3 text-cyan-400" />
+                  {spotQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSpotQuery('')}
+                      className="absolute right-3 top-2.5 text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider shrink-0 font-bold text-slate-500">
+                    Popular:
+                  </span>
+                  {QUICK_SPOT_CHIPS.map((chip) => (
+                    <button
+                      key={chip.query}
+                      type="button"
+                      onClick={() => {
+                        const matches = queryCampusSearchIndex(chip.query, searchIndex, 1);
+                        if (matches.length > 0) handlePickSpotResult(matches[0]);
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:border-cyan-500/40 text-slate-300 hover:text-white text-xs font-medium shrink-0 cursor-pointer transition"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+
+                {spotQuery.trim().length > 0 && (
+                  <div className="rounded-xl border border-white/[0.08] bg-[#0e131f] divide-y divide-white/[0.04] max-h-60 overflow-y-auto shadow-2xl">
+                    {spotResults.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-slate-400">
+                        No matching room or building found. Use Browse mode for custom spots.
+                      </div>
+                    ) : (
+                      spotResults.map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handlePickSpotResult(item)}
+                          className="w-full text-left px-3.5 py-2.5 hover:bg-white/[0.04] transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                        >
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+                                {item.badge}
+                              </span>
+                              <span className="text-xs font-bold text-white">
+                                {item.title}
+                              </span>
+                            </div>
+                            <p className="text-[11px] mt-0.5 text-slate-400">{item.subtitle}</p>
+                          </div>
+                          <span className="text-[11px] font-mono font-bold shrink-0 text-cyan-400">
+                            Select →
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                <div className="p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/5 flex items-center justify-between gap-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] uppercase border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+                      Locked In
+                    </span>
+                    <span className="font-bold text-white">
+                      {activeBuildingObj?.shortName || building}
+                    </span>
+                    <span className="text-slate-600">·</span>
+                    <span className="font-mono font-bold text-cyan-400">
+                      {resolvedRoomLabel}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsMapModalOpen(true)}
+                    className="text-[11px] font-bold text-cyan-400 hover:underline shrink-0 cursor-pointer"
+                  >
+                    View on Map →
+                  </button>
+                </div>
               </div>
-              <div className={`font-mono text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between border shadow-2xs ${
-                isDark
-                  ? 'bg-[#0e1117] border-zinc-800 text-zinc-200'
-                  : 'bg-[#e2e8f0] border-slate-300 text-slate-900'
-              }`}>
-                <span className="flex items-center gap-1.5">
-                  <span className={isDark ? 'text-emerald-400' : 'text-emerald-600'}>📍</span>
-                  <span>{resolvedRoomLabel}</span>
+            )}
+
+            {/* MODE C: Browse Building, Floor & Room */}
+            {locationMode === 'BROWSE' && (
+              <div className="space-y-3.5 p-4 rounded-2xl border border-white/[0.08] bg-[#0b0f19]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="sm:col-span-2">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label htmlFor="building" className="block text-xs font-semibold text-slate-300">
+                        Hostel or Campus Building
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setIsMapModalOpen(true)}
+                        className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 cursor-pointer flex items-center gap-1"
+                      >
+                        <Compass size={12} />
+                        <span>Pick visually on Map →</span>
+                      </button>
+                    </div>
+                    <select
+                      id="building"
+                      value={activeBuildingObj?.name || ''}
+                      onChange={(e) => handleSelectBuilding(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-500/60"
+                    >
+                      <optgroup label="Hostels" className="bg-[#0e131f] text-white">
+                        {hostelsList.map((h) => (
+                          <option key={h.id} value={h.name} className="bg-[#0e131f] text-white">
+                            {h.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Academic, Labs & Campus" className="bg-[#0e131f] text-white">
+                        {nonHostelsList.map((b) => (
+                          <option key={b.id} value={b.name} className="bg-[#0e131f] text-white">
+                            {b.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="floorSelect" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Floor
+                    </label>
+                    <select
+                      id="floorSelect"
+                      value={selectedFloor}
+                      onChange={(e) => {
+                        const newFloor = e.target.value;
+                        setSelectedFloor(newFloor);
+                        const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, null, allBuildings);
+                        if (nextRooms.length > 0) {
+                          setSpecificLocation(nextRooms[0]);
+                          setCustomRoomOverride('');
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-500/60"
+                    >
+                      {availableFloors.length > 0 ? (
+                        availableFloors.map((f) => (
+                          <option key={f.id} value={f.id} className="bg-[#0e131f] text-white">
+                            {f.label}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="None" className="bg-[#0e131f] text-white">
+                          None
+                        </option>
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Campus Zone / Coordinates
+                    </label>
+                    <div className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] font-mono text-xs flex items-center justify-between text-slate-300">
+                      <span className="font-bold text-cyan-400">{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
+                      <span className="text-[11px] truncate max-w-[180px] text-slate-500">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="specificLocation" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Room / Lab / Utility
+                    </label>
+                    <select
+                      id="specificLocation"
+                      value={specificLocation}
+                      onChange={(e) => {
+                        setSpecificLocation(e.target.value);
+                        setCustomRoomOverride('');
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-500/60"
+                    >
+                      {availableRooms.length > 0 ? (
+                        availableRooms.map((rm) => (
+                          <option key={rm} value={rm} className="bg-[#0e131f] text-white">
+                            {rm}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="None" className="bg-[#0e131f] text-white">
+                          None
+                        </option>
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="customRoomOverride" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Specific Spot (Optional)
+                    </label>
+                    <input
+                      id="customRoomOverride"
+                      type="text"
+                      placeholder="e.g. Near Balcony, Tap #2"
+                      value={customRoomOverride}
+                      onChange={(e) => setCustomRoomOverride(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-cyan-500/60"
+                    />
+                  </div>
+                </div>
+
+                {isHostelBuilding && (
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={handleSaveCurrentAsMyRoom}
+                      className="text-xs font-bold px-3 py-1.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 transition-colors cursor-pointer"
+                    >
+                      Set as My Default Room
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-white/[0.08]" />
+
+          {/* STEP 2: Issue Title & Details */}
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="w-7 h-7 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                  2
                 </span>
-                <span className={`text-[10px] font-sans font-bold px-2 py-0.5 rounded-md border ${
-                  isDark
-                    ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
-                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                }`}>
-                  Verified ✓
+                <span className="text-sm font-black tracking-tight text-white">
+                  Issue Description
                 </span>
               </div>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 px-2.5 py-0.5 rounded-lg font-bold">
+                <Sparkles size={11} />
+                <span>AI Auto-Triage Active</span>
+              </span>
             </div>
 
-            {/* SLA Resolution Windows Matrix */}
-            <div className={`p-5 sm:p-6 space-y-3.5 border shadow-sm rounded-2xl transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
-            }`}>
-              <div className="flex items-center justify-between">
-                <span className={`font-bold uppercase tracking-wider font-mono text-[10px] block ${
-                  isDark ? 'text-zinc-300' : 'text-slate-700'
-                }`}>
-                  SLA Resolution Windows
-                </span>
-                <span className={`text-[10px] font-mono font-bold ${
-                  isDark ? 'text-zinc-400' : 'text-slate-500'
-                }`}>
-                  Response Matrix
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="title" className="block text-xs font-semibold text-slate-300">
+                  Issue Summary
+                </label>
+                <span className="text-[11px] font-mono text-slate-500">
+                  {title.trim().length}/150
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2.5 text-[11px]">
-                <div className={`p-3 rounded-xl border flex items-center justify-between shadow-2xs transition-all ${
-                  isDark
-                    ? 'bg-[#0e1117] border-rose-900/60 hover:border-rose-700 text-rose-300'
-                    : 'bg-[#e2e8f0] border-rose-300 hover:border-rose-400 text-rose-900'
+              <input
+                id="title"
+                type="text"
+                required
+                minLength={5}
+                maxLength={150}
+                placeholder="e.g. Ceiling fan regulator broken, or LAN port dead"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                disabled={submitting}
+                className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 text-sm focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="description" className="block text-xs font-semibold text-slate-300">
+                  Details &amp; Observations
+                </label>
+                <span className={`text-[11px] font-mono font-bold ${
+                  description.trim().length >= 10 ? 'text-cyan-400' : 'text-slate-500'
                 }`}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                    <span className="font-bold">CRITICAL</span>
-                  </div>
-                  <span className={`font-mono font-bold px-2 py-0.5 rounded-lg border shadow-2xs ${
-                    isDark
-                      ? 'bg-rose-950/80 border-rose-800 text-rose-300'
-                      : 'bg-white border-rose-200 text-rose-800'
-                  }`}>2h</span>
+                  {description.trim().length >= 10 ? '✓ Ready for Auto-Triage' : 'Min 10 chars'}
+                </span>
+              </div>
+              <textarea
+                id="description"
+                required
+                minLength={10}
+                rows={4}
+                placeholder="Describe what needs repair so the assigned maintenance squad can bring the right tools..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={submitting}
+                className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 text-sm resize-none leading-relaxed focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting
+              ? 'Submitting to Dispatch...'
+              : `Submit Request · ${activeBuildingObj?.shortName || building} (${resolvedRoomLabel})`}
+          </button>
+        </form>
+
+        {/* Right Sticky Triage & Target Summary Column */}
+        <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8 space-y-4">
+          <LiveTriageCard title={title} description={description} />
+
+          {/* Dispatch Target Card */}
+          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl relative overflow-hidden shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
+                Dispatch Target
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 font-bold">
+                  {activeBuildingObj?.mapPin?.badge || 'BLDG'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsMapModalOpen(true)}
+                  className="text-[11px] font-bold text-cyan-400 hover:underline cursor-pointer"
+                >
+                  Change on Map →
+                </button>
+              </div>
+            </div>
+            <div className="font-black text-sm text-white">
+              {activeBuildingObj?.name || building}
+            </div>
+            <div className="font-mono text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between border border-white/[0.06] bg-[#0b0f19] text-slate-200">
+              <span className="flex items-center gap-1.5">
+                <MapPin size={13} className="text-cyan-400" />
+                <span>{resolvedRoomLabel}</span>
+              </span>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 uppercase">
+                Verified ✓
+              </span>
+            </div>
+          </div>
+
+          {/* SLA Resolution Windows Matrix */}
+          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="font-bold uppercase tracking-wider font-mono text-[10px] block text-slate-400">
+                SLA Resolution Windows
+              </span>
+              <span className="text-[10px] font-mono font-bold text-slate-500">
+                Response Matrix
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5 text-[11px]">
+              <div className="p-3 rounded-xl border border-rose-500/25 bg-rose-500/10 flex items-center justify-between text-rose-300">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+                  <span className="font-bold">CRITICAL</span>
                 </div>
-                <div className={`p-3 rounded-xl border flex items-center justify-between shadow-2xs transition-all ${
-                  isDark
-                    ? 'bg-[#0e1117] border-amber-900/60 hover:border-amber-700 text-amber-300'
-                    : 'bg-[#e2e8f0] border-amber-300 hover:border-amber-400 text-amber-900'
-                }`}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                    <span className="font-bold">HIGH</span>
-                  </div>
-                  <span className={`font-mono font-bold px-2 py-0.5 rounded-lg border shadow-2xs ${
-                    isDark
-                      ? 'bg-amber-950/80 border-amber-800 text-amber-300'
-                      : 'bg-white border-amber-200 text-amber-800'
-                  }`}>8h</span>
+                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-rose-500/30 bg-rose-950/80 text-rose-300">
+                  2h
+                </span>
+              </div>
+              <div className="p-3 rounded-xl border border-amber-500/25 bg-amber-500/10 flex items-center justify-between text-amber-300">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="font-bold">HIGH</span>
                 </div>
-                <div className={`p-3 rounded-xl border flex items-center justify-between shadow-2xs transition-all ${
-                  isDark
-                    ? 'bg-[#0e1117] border-sky-900/60 hover:border-sky-700 text-sky-300'
-                    : 'bg-[#e2e8f0] border-sky-300 hover:border-sky-400 text-sky-900'
-                }`}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
-                    <span className="font-bold">MEDIUM</span>
-                  </div>
-                  <span className={`font-mono font-bold px-2 py-0.5 rounded-lg border shadow-2xs ${
-                    isDark
-                      ? 'bg-sky-950/80 border-sky-800 text-sky-300'
-                      : 'bg-white border-sky-200 text-sky-800'
-                  }`}>24h</span>
+                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 bg-amber-950/80 text-amber-300">
+                  8h
+                </span>
+              </div>
+              <div className="p-3 rounded-xl border border-cyan-500/25 bg-cyan-500/10 flex items-center justify-between text-cyan-300">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                  <span className="font-bold">MEDIUM</span>
                 </div>
-                <div className={`p-3 rounded-xl border flex items-center justify-between shadow-2xs transition-all ${
-                  isDark
-                    ? 'bg-[#0e1117] border-emerald-900/60 hover:border-emerald-700 text-emerald-300'
-                    : 'bg-[#e2e8f0] border-emerald-300 hover:border-emerald-400 text-emerald-900'
-                }`}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    <span className="font-bold">LOW</span>
-                  </div>
-                  <span className={`font-mono font-bold px-2 py-0.5 rounded-lg border shadow-2xs ${
-                    isDark
-                      ? 'bg-emerald-950/80 border-emerald-800 text-emerald-300'
-                      : 'bg-white border-emerald-200 text-emerald-800'
-                  }`}>72h</span>
+                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-950/80 text-cyan-300">
+                  24h
+                </span>
+              </div>
+              <div className="p-3 rounded-xl border border-white/[0.08] bg-white/[0.03] flex items-center justify-between text-slate-300">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-slate-400" />
+                  <span className="font-bold">LOW</span>
                 </div>
+                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.05] text-slate-300">
+                  72h
+                </span>
               </div>
             </div>
           </div>
@@ -986,23 +783,20 @@ export default function SubmitComplaint() {
       {/* Interactive Map Picker Modal */}
       {isMapModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/60 backdrop-blur-xs animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/80 backdrop-blur-md animate-fade-in"
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsMapModalOpen(false);
           }}
         >
-          <div className={`border rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden transition-colors ${
-            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
-            <div className={`px-5 py-3.5 border-b flex items-center justify-between gap-3 shrink-0 ${
-              isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-slate-100 border-slate-200'
-            }`}>
+          <div className="border border-white/[0.12] rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden bg-[#0c1017]/95 text-slate-100">
+            <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between gap-3 shrink-0 bg-[#0e131f]">
               <div>
-                <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                  Campus Digital Twin — Location Picker
+                <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                  <Compass size={16} className="text-cyan-400" />
+                  <span>Campus Digital Twin — Location Picker</span>
                 </h2>
-                <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  Click any building, floor, or room to lock in your complaint location
+                <p className="text-[11px] font-mono text-slate-400">
+                  Select building, floor, or room to lock in your maintenance dispatch target
                 </p>
               </div>
 
@@ -1010,26 +804,22 @@ export default function SubmitComplaint() {
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
                   Confirm Selection
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className={`w-8 h-8 rounded-lg border flex items-center justify-center text-xs cursor-pointer transition-colors ${
-                    isDark
-                      ? 'bg-[#161b22] hover:bg-[#1c2128] text-zinc-400 hover:text-white border-zinc-700'
-                      : 'bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-800 border-slate-300 shadow-2xs'
-                  }`}
+                  className="w-8 h-8 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-xs text-slate-400 hover:text-white cursor-pointer transition-colors"
                   title="Close Map (Esc)"
                 >
-                  ✕
+                  <X size={15} />
                 </button>
               </div>
             </div>
 
-            <div className={`p-2 sm:p-3 overflow-y-auto flex-1 ${isDark ? 'bg-[#0e1117]' : 'bg-slate-100'}`}>
+            <div className="p-2 sm:p-3 overflow-y-auto flex-1 bg-[#090d14]">
               <CampusMapSelector
                 flush={true}
                 selectedBuilding={activeBuildingObj?.name}

@@ -1,10 +1,14 @@
 /**
  * SmartComplaintHandler - Ticket Submission Success Modal
- * High-Contrast Institutional Command Twin Theme with Dynamic SLA Telemetry
+ * High-Density Obsidian Command Desk Standard:
+ *  - Translucent glassmorphic dialog with cyan glow
+ *  - Prominent tracking code badge with 1-click clipboard copy
+ *  - Dynamic SLA and department metadata pods
+ *  - Direct live track navigation button
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
+import { CheckCircle2, Copy, Check, ArrowRight } from 'lucide-react';
 import PriorityBadge from './PriorityBadge';
 
 const SLA_MAP = {
@@ -16,7 +20,6 @@ const SLA_MAP = {
 
 export default function SubmissionSuccessModal({ isOpen, ticket, onClose }) {
   const navigate = useNavigate();
-  const { isDark } = useTheme();
   const [copied, setCopied] = useState(false);
 
   if (!isOpen || !ticket) return null;
@@ -42,76 +45,45 @@ export default function SubmissionSuccessModal({ isOpen, ticket, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fade-in">
-      <div
-        className={`rounded-2xl max-w-md w-full shadow-2xl border p-6 md:p-8 text-center space-y-6 relative overflow-hidden transition-colors ${
-          isDark
-            ? 'bg-[#161b22] border-zinc-800 text-zinc-100'
-            : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xl'
-        }`}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
+      <div className="rounded-3xl max-w-md w-full shadow-2xl border border-white/[0.12] bg-[#0c1017]/95 p-6 md:p-8 text-center space-y-6 relative overflow-hidden text-slate-100">
+        {/* Top Accent Line */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+
         {/* Success Icon */}
-        <div
-          className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center border shadow-xs ${
-            isDark
-              ? 'bg-zinc-800 border-zinc-700 text-emerald-400'
-              : 'bg-emerald-100 border-emerald-300 text-emerald-700'
-          }`}
-        >
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
+        <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shadow-inner">
+          <CheckCircle2 className="w-8 h-8" />
         </div>
 
         {/* Heading */}
-        <div className="space-y-1">
-          <h2 className={`text-xl font-black ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+        <div className="space-y-1.5">
+          <h2 className="text-xl font-black text-white">
             Complaint Registered Successfully
           </h2>
-          <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-            Your maintenance complaint has been logged, routed to the relevant campus team, and assigned a resolution timer.
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Your maintenance complaint has been logged, routed to the relevant campus squad, and assigned a resolution timer.
           </p>
         </div>
 
         {/* Official Tracking Code Box */}
-        <div
-          className={`p-4 rounded-xl border space-y-2 ${
-            isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300 shadow-2xs'
-          }`}
-        >
-          <span
-            className={`text-[11px] font-bold uppercase tracking-wider block ${
-              isDark ? 'text-zinc-400' : 'text-slate-600'
-            }`}
-          >
+        <div className="p-4 rounded-2xl border border-white/[0.08] bg-[#0b0f19] space-y-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider block text-slate-400 font-bold">
             Official Tracking Code
           </span>
           <div className="flex items-center justify-center space-x-2">
-            <span
-              className={`font-mono text-2xl font-black tracking-wider px-3.5 py-1.5 rounded-xl border ${
-                isDark
-                  ? 'bg-zinc-800 text-emerald-400 border-zinc-700'
-                  : 'bg-white text-emerald-700 border-slate-300 shadow-2xs'
-              }`}
-            >
+            <span className="font-mono text-2xl font-black tracking-wider px-3.5 py-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
               {trackingCode}
             </span>
             <button
               type="button"
               onClick={handleCopyCode}
-              className={`p-2 rounded-xl border transition-colors cursor-pointer ${
-                isDark
-                  ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border-zinc-700'
-                  : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-300 shadow-2xs'
-              }`}
+              className="p-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Copy tracking code"
             >
               {copied ? (
-                <span className="text-xs font-bold text-emerald-600 px-1">Copied!</span>
+                <span className="text-xs font-bold text-cyan-400 px-1">Copied!</span>
               ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
+                <Copy className="w-4 h-4" />
               )}
             </button>
           </div>
@@ -119,44 +91,20 @@ export default function SubmissionSuccessModal({ isOpen, ticket, onClose }) {
 
         {/* Triage & SLA Summary Pill Row */}
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div
-            className={`p-2.5 rounded-xl border text-left ${
-              isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
-            }`}
-          >
-            <span
-              className={`text-[10px] font-mono uppercase block font-bold ${
-                isDark ? 'text-zinc-500' : 'text-slate-500'
-              }`}
-            >
+          <div className="p-3 rounded-xl border border-white/[0.06] bg-[#0b0f19] text-left">
+            <span className="text-[10px] font-mono uppercase block font-bold text-slate-500">
               Department
             </span>
-            <span
-              className={`text-xs font-bold truncate block mt-0.5 ${
-                isDark ? 'text-zinc-200' : 'text-slate-900'
-              }`}
-            >
+            <span className="text-xs font-bold text-slate-200 truncate block mt-0.5">
               {ticket.department_name || 'Assigned Domain'}
             </span>
           </div>
 
-          <div
-            className={`p-2.5 rounded-xl border text-left ${
-              isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
-            }`}
-          >
-            <span
-              className={`text-[10px] font-mono uppercase block font-bold ${
-                isDark ? 'text-zinc-500' : 'text-slate-500'
-              }`}
-            >
-              Dynamic SLA Target
+          <div className="p-3 rounded-xl border border-white/[0.06] bg-[#0b0f19] text-left">
+            <span className="text-[10px] font-mono uppercase block font-bold text-slate-500">
+              SLA Commitment
             </span>
-            <span
-              className={`text-xs font-mono font-bold block mt-0.5 ${
-                isDark ? 'text-emerald-400' : 'text-emerald-700'
-              }`}
-            >
+            <span className="text-xs font-mono font-bold text-cyan-400 block mt-0.5">
               {slaTarget}
             </span>
           </div>
@@ -164,7 +112,7 @@ export default function SubmissionSuccessModal({ isOpen, ticket, onClose }) {
 
         {/* Priority Badge */}
         <div className="flex items-center justify-center gap-2 pt-1 text-xs">
-          <PriorityBadge priority={priorityKey} size="sm" showSlaTooltip={true} dark={isDark} />
+          <PriorityBadge priority={priorityKey} size="sm" showSlaTooltip={true} dark={true} />
         </div>
 
         {/* Action Buttons */}
@@ -172,21 +120,15 @@ export default function SubmissionSuccessModal({ isOpen, ticket, onClose }) {
           <button
             type="button"
             onClick={handleTrackDirectly}
-            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer border border-emerald-600"
+            className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center space-x-2 cursor-pointer"
           >
             <span>Track Live Status</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            <ArrowRight className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={onClose}
-            className={`w-full py-2.5 px-4 border font-semibold text-xs rounded-xl transition-colors cursor-pointer ${
-              isDark
-                ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white'
-                : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800'
-            }`}
+            className="w-full py-2.5 px-4 border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer"
           >
             Close &amp; Submit Another
           </button>

@@ -1,11 +1,19 @@
 /**
  * SmartComplaintHandler - Staff Directory & RBAC Access Management
- * Dedicated SuperAdmin portal for managing institutional Facility Admins, Squad Leads, and Field Technicians.
+ * High-Density Obsidian Command Desk Standard:
+ *  - Deep Space Obsidian canvas (#090d14)
+ *  - Directorate Staff & RBAC Governance Grid with multi-level role badges
+ *  - Instant search & role filter with staff count telemetry
+ *  - Glass Add Staff modal with institutional email validation
+ *  - Secure data purge drawer with double confirmation
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { fetchAdmins, createAdmin, deleteAdmin, purgeTickets } from '../api/auth';
+import {
+  Users, Shield, UserPlus, RefreshCw, Search, Trash2,
+  AlertTriangle, CheckCircle2, X, Phone, Mail, Building,
+} from 'lucide-react';
 
 const CAMPUS_DEPARTMENTS = [
   'Electrical',
@@ -18,7 +26,6 @@ const CAMPUS_DEPARTMENTS = [
 ];
 
 export default function StaffDirectoryPage() {
-  const { isDark } = useTheme();
   const { currentUser } = useAuth();
 
   const [admins, setAdmins] = useState([]);
@@ -26,11 +33,9 @@ export default function StaffDirectoryPage() {
   const [error, setError] = useState(null);
   const [toastMsg, setToastMsg] = useState(null);
 
-  // Search & Role Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
 
-  // Add Staff Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [staffName, setStaffName] = useState('');
   const [staffEmail, setStaffEmail] = useState('');
@@ -40,7 +45,6 @@ export default function StaffDirectoryPage() {
   const [submittingStaff, setSubmittingStaff] = useState(false);
   const [addError, setAddError] = useState(null);
 
-  // Purge Tickets Confirmation Modal
   const [isPurgeConfirmOpen, setIsPurgeConfirmOpen] = useState(false);
   const [purging, setPurging] = useState(false);
 
@@ -108,7 +112,7 @@ export default function StaffDirectoryPage() {
       showToast(`Staff credentials for ${name} revoked.`);
       loadStaff();
     } catch (err) {
-      showToast(err.response?.data?.detail || err.message || 'Failed to revoke staff credentials.', 'error');
+      showToast(err.response?.data?.detail || err.message || 'Failed to revoke staff credentials.');
     }
   };
 
@@ -119,7 +123,7 @@ export default function StaffDirectoryPage() {
       showToast(res.message || 'Database complaints purged successfully.');
       setIsPurgeConfirmOpen(false);
     } catch (err) {
-      showToast(err.response?.data?.detail || err.message || 'Purge failed.', 'error');
+      showToast(err.response?.data?.detail || err.message || 'Purge failed.');
     } finally {
       setPurging(false);
     }
@@ -140,259 +144,233 @@ export default function StaffDirectoryPage() {
   }, [admins, roleFilter, searchQuery]);
 
   return (
-    <div
-      className={`w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
-        isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
-      }`}
-    >
-      {/* Hero Header */}
-      <div
-        className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden transition-colors ${
-          isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xs'
-        }`}
-      >
+    <div className="w-full min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Header Bar */}
+      <div className="p-6 sm:p-7 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className={`text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border ${
-                isDark ? 'bg-zinc-800/80 border-zinc-700 text-emerald-400' : 'bg-white border-slate-300 text-emerald-800'
-              }`}>
+              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400">
                 Institutional Governance
               </span>
-              <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>•</span>
-              <span className={`text-xs font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+              <span className="text-slate-600">•</span>
+              <span className="text-xs font-mono text-slate-400">
                 {admins.length} Registered Staff Members
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white">
               Staff Directory &amp; RBAC Access Control
             </h1>
-            <p className={`text-xs mt-1 max-w-2xl ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
               Authorize facility supervisors, assign squad leads, manage technician credentials, and configure institutional access permissions across IIIT Naya Raipur.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer shadow-sm flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all cursor-pointer flex items-center gap-2"
             >
-              <span>+ Provision Staff Account</span>
+              <UserPlus size={14} />
+              <span>Provision Staff Account</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="w-full px-4 sm:px-8 lg:px-12 py-8 space-y-6">
-        {toastMsg && (
-          <div
-            className={`p-4 rounded-xl border text-xs font-bold flex items-center justify-between animate-fade-in shadow-xs ${
-              isDark ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-            }`}
-          >
-            <span>✓ {toastMsg}</span>
-            <button type="button" onClick={() => setToastMsg(null)} className="font-bold cursor-pointer hover:opacity-75">
-              ✕
-            </button>
+      {toastMsg && (
+        <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-bold text-emerald-300 flex items-center justify-between shadow-xl animate-fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={16} className="text-emerald-400" />
+            <span>{toastMsg}</span>
           </div>
-        )}
+          <button type="button" onClick={() => setToastMsg(null)} className="cursor-pointer text-slate-400 hover:text-white">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
-        {error && (
-          <div className={`p-4 rounded-xl border text-xs font-bold ${
-            isDark ? 'bg-rose-950/60 border-rose-800 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-800'
-          }`}>
-            ⚠️ {error}
-          </div>
-        )}
+      {error && (
+        <div className="p-4 rounded-xl border border-rose-800/80 bg-rose-950/60 text-xs font-semibold text-rose-300 flex items-center gap-2 shadow-xl">
+          <AlertTriangle size={16} className="text-rose-400 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
-        {/* Filter & Search Header */}
-        <div className={`p-4 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors ${
-          isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-[#f1f5f9] border-slate-300'
-        }`}>
-          <div className="flex items-center gap-2 flex-1 max-w-lg">
+      {/* Filter & Search Header */}
+      <div className="p-4 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-2 flex-1 max-w-lg">
+          <div className="relative w-full">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search staff by name, email, department, or phone..."
-              className={`w-full px-3.5 py-2 rounded-xl border text-xs font-semibold focus:outline-none ${
-                isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900 shadow-2xs'
-              }`}
+              className="w-full px-3.5 py-2 pl-9 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs font-medium placeholder-slate-500 focus:border-cyan-500/60 focus:outline-none transition-all"
             />
-            <button
-              type="button"
-              onClick={loadStaff}
-              disabled={loading}
-              className={`px-3 py-2 rounded-xl text-xs font-mono shrink-0 cursor-pointer border transition-colors ${
-                isDark ? 'bg-[#0e1117] hover:bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300 shadow-2xs'
-              }`}
-            >
-              🔄 Refresh
-            </button>
+            <Search size={14} className="absolute left-3 top-2.5 text-slate-500" />
           </div>
-
-          <div className="flex items-center gap-2">
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className={`px-3.5 py-2 rounded-xl border text-xs font-semibold focus:outline-none ${
-                isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900 shadow-2xs'
-              }`}
-            >
-              <option value="ALL">All Roles ({admins.length})</option>
-              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-              <option value="ADMIN">ADMIN (Facility Lead)</option>
-              <option value="TECHNICIAN">TECHNICIAN (Field Crew)</option>
-            </select>
-          </div>
+          <button
+            type="button"
+            onClick={loadStaff}
+            disabled={loading}
+            className="px-3.5 py-2 rounded-xl text-xs font-mono shrink-0 cursor-pointer border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin text-cyan-400' : ''} />
+            <span>Refresh</span>
+          </button>
         </div>
 
-        {/* Staff Table */}
-        <div className={`rounded-2xl border overflow-hidden ${
-          isDark ? 'bg-[#161b22] border-zinc-800' : 'bg-white border-slate-300 shadow-xs'
-        }`}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className={`border-b text-[11px] font-mono uppercase tracking-wider ${
-                  isDark ? 'bg-[#0e1117]/60 border-zinc-800 text-zinc-400' : 'bg-[#f1f5f9] border-slate-300 text-slate-600'
-                }`}>
-                  <th className="py-3.5 px-4 font-bold">Staff Member</th>
-                  <th className="py-3.5 px-4 font-bold">Role Hierarchy</th>
-                  <th className="py-3.5 px-4 font-bold">Assigned Department / Squad</th>
-                  <th className="py-3.5 px-4 font-bold">Official Email</th>
-                  <th className="py-3.5 px-4 font-bold">Contact Phone</th>
-                  <th className="py-3.5 px-4 font-bold text-right">Actions</th>
+        <div className="flex items-center gap-2">
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs font-medium focus:border-cyan-500/60 focus:outline-none"
+          >
+            <option value="ALL">All Roles ({admins.length})</option>
+            <option value="SUPER_ADMIN">SUPER_ADMIN (Directorate)</option>
+            <option value="ADMIN">ADMIN (Facility Lead)</option>
+            <option value="TECHNICIAN">TECHNICIAN (Field Crew)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Staff Table */}
+      <div className="rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md overflow-hidden shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-white/[0.08] bg-white/[0.02] text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                <th className="py-3.5 px-4 font-bold">Staff Member</th>
+                <th className="py-3.5 px-4 font-bold">Role Hierarchy</th>
+                <th className="py-3.5 px-4 font-bold">Assigned Department / Squad</th>
+                <th className="py-3.5 px-4 font-bold">Official Email</th>
+                <th className="py-3.5 px-4 font-bold">Contact Phone</th>
+                <th className="py-3.5 px-4 font-bold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.04] text-slate-200">
+              {filteredStaff.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-xs text-slate-500">
+                    No staff members match the selected search or role criteria.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className={`divide-y ${isDark ? 'divide-zinc-800/80 text-zinc-200' : 'divide-slate-200 text-slate-800'}`}>
-                {filteredStaff.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="py-12 text-center text-xs text-slate-500">
-                      No staff members match the selected search or role criteria.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredStaff.map((staff) => {
-                    const isSelf = staff.email?.toLowerCase() === currentUser?.email?.toLowerCase();
+              ) : (
+                filteredStaff.map((staff) => {
+                  const isSelf = staff.email?.toLowerCase() === currentUser?.email?.toLowerCase();
 
-                    return (
-                      <tr key={staff.id || staff.email} className={`transition-colors ${
-                        isDark ? 'hover:bg-zinc-800/30' : 'hover:bg-slate-50'
-                      }`}>
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border ${
-                              isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-200' : 'bg-slate-100 border-slate-300 text-slate-800'
-                            }`}>
-                              {(staff.name || 'S').charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className={`font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                                  {staff.name}
-                                </span>
-                                {isSelf && (
-                                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                    You
-                                  </span>
-                                )}
-                              </div>
-                              <span className={`text-[11px] block font-mono ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                                ID: #{staff.id}
-                              </span>
-                            </div>
+                  return (
+                    <tr key={staff.id || staff.email} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border border-white/[0.1] bg-[#0b0f19] text-cyan-400">
+                            {(staff.name || 'S').charAt(0).toUpperCase()}
                           </div>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                            staff.role === 'SUPER_ADMIN'
-                              ? isDark ? 'bg-purple-950/60 text-purple-300 border-purple-800' : 'bg-purple-100 text-purple-800 border-purple-300'
-                              : staff.role === 'ADMIN'
-                              ? isDark ? 'bg-blue-950/60 text-blue-300 border-blue-800' : 'bg-blue-100 text-blue-800 border-blue-300'
-                              : isDark ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                          }`}>
-                            {staff.role}
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <span className="font-medium">
-                            {staff.department_name || staff.department?.name || 'General Operations'}
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4 font-mono text-[11px]">
-                          {staff.email}
-                        </td>
-
-                        <td className="py-3.5 px-4 font-mono text-[11px]">
-                          {staff.phone || '—'}
-                        </td>
-
-                        <td className="py-3.5 px-4 text-right">
-                          {!isSelf && staff.role !== 'SUPER_ADMIN' ? (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteStaff(staff.id, staff.name)}
-                              className="text-[11px] font-bold px-2.5 py-1 rounded-lg text-rose-500 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer"
-                            >
-                              Revoke
-                            </button>
-                          ) : (
-                            <span className={`text-[11px] ${isDark ? 'text-zinc-600' : 'text-slate-400'}`}>
-                              Protected
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-white">
+                                {staff.name}
+                              </span>
+                              {isSelf && (
+                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] block font-mono text-slate-500">
+                              ID: #{staff.id}
                             </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border uppercase tracking-wider ${
+                          staff.role === 'SUPER_ADMIN'
+                            ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                            : staff.role === 'ADMIN'
+                            ? 'bg-blue-500/10 text-blue-300 border-blue-500/30'
+                            : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                        }`}>
+                          {staff.role}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span className="font-medium text-slate-200">
+                          {staff.department_name || staff.department?.name || 'General Operations'}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-300">
+                        {staff.email}
+                      </td>
+
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
+                        {staff.phone || '—'}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        {!isSelf && staff.role !== 'SUPER_ADMIN' ? (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteStaff(staff.id, staff.name)}
+                            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer"
+                          >
+                            Revoke
+                          </button>
+                        ) : (
+                          <span className="text-[11px] font-mono text-slate-600">
+                            Protected
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        {/* Danger Zone: Database Sanitize / Purge */}
-        <div className={`p-6 rounded-2xl border transition-colors ${
-          isDark ? 'bg-[#161b22] border-rose-900/40' : 'bg-rose-50/50 border-rose-200'
-        }`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-sm font-bold text-rose-500 flex items-center gap-2">
-                <span>⚠️</span>
-                <span>Directorate System Purge &amp; Data Hygiene</span>
-              </h3>
-              <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Sanitize test tickets and reset the campus complaints queue to zero while preserving departments, squads, and staff credentials.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsPurgeConfirmOpen(true)}
-              className="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-rose-600 hover:bg-rose-500 text-white cursor-pointer shadow-xs shrink-0"
-            >
-              Purge All Complaint Tickets
-            </button>
+      {/* Danger Zone: Database Sanitize / Purge */}
+      <div className="p-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 transition-colors shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-rose-400 flex items-center gap-2">
+              <AlertTriangle size={16} />
+              <span>Directorate System Purge &amp; Data Hygiene</span>
+            </h3>
+            <p className="text-xs mt-1 text-slate-400">
+              Sanitize test tickets and reset the campus complaints queue to zero while preserving departments, squads, and staff credentials.
+            </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setIsPurgeConfirmOpen(true)}
+            className="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-rose-600 hover:bg-rose-500 text-white cursor-pointer shadow-lg shadow-rose-600/20 shrink-0"
+          >
+            Purge All Complaint Tickets
+          </button>
         </div>
       </div>
 
       {/* Add Staff Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in">
-          <div className={`w-full max-w-md p-6 rounded-2xl border shadow-2xl space-y-5 animate-scale-up ${
-            isDark ? 'bg-[#161b22] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-          }`}>
-            <div className="flex items-center justify-between pb-3 border-b border-inherit">
-              <h3 className="text-base font-bold">Provision New Staff Account</h3>
-              <button type="button" onClick={() => setIsAddModalOpen(false)} className="cursor-pointer text-slate-400 hover:text-slate-200">
-                ✕
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md p-6 rounded-3xl border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 shadow-2xl space-y-5 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <h3 className="text-base font-bold text-white">Provision New Staff Account</h3>
+              <button type="button" onClick={() => setIsAddModalOpen(false)} className="cursor-pointer text-slate-400 hover:text-white">
+                <X size={15} />
               </button>
             </div>
 
@@ -404,42 +382,36 @@ export default function StaffDirectoryPage() {
 
             <form onSubmit={handleCreateStaff} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold mb-1">Full Name</label>
+                <label className="block font-semibold mb-1 text-slate-300">Full Name</label>
                 <input
                   type="text"
                   required
                   value={staffName}
                   onChange={(e) => setStaffName(e.target.value)}
                   placeholder="e.g. Er. Manoj Verma"
-                  className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none ${
-                    isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs focus:border-cyan-500/60 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-bold mb-1">Institutional Email (@iiitnr.edu.in)</label>
+                <label className="block font-semibold mb-1 text-slate-300">Institutional Email (@iiitnr.edu.in)</label>
                 <input
                   type="email"
                   required
                   value={staffEmail}
                   onChange={(e) => setStaffEmail(e.target.value)}
                   placeholder="name@iiitnr.edu.in"
-                  className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none ${
-                    isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs font-mono focus:border-cyan-500/60 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold mb-1">Role</label>
+                  <label className="block font-semibold mb-1 text-slate-300">Role</label>
                   <select
                     value={staffRole}
                     onChange={(e) => setStaffRole(e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none ${
-                      isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-                    }`}
+                    className="w-full px-3 py-2 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs focus:border-cyan-500/60 focus:outline-none"
                   >
                     <option value="ADMIN">ADMIN</option>
                     <option value="TECHNICIAN">TECHNICIAN</option>
@@ -448,13 +420,11 @@ export default function StaffDirectoryPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold mb-1">Department</label>
+                  <label className="block font-semibold mb-1 text-slate-300">Department</label>
                   <select
                     value={staffDept}
                     onChange={(e) => setStaffDept(e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none ${
-                      isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-                    }`}
+                    className="w-full px-3 py-2 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs focus:border-cyan-500/60 focus:outline-none"
                   >
                     {CAMPUS_DEPARTMENTS.map((dept) => (
                       <option key={dept} value={dept}>
@@ -466,32 +436,28 @@ export default function StaffDirectoryPage() {
               </div>
 
               <div>
-                <label className="block font-bold mb-1">Phone Number (Optional)</label>
+                <label className="block font-semibold mb-1 text-slate-300">Phone Number (Optional)</label>
                 <input
                   type="text"
                   value={staffPhone}
                   onChange={(e) => setStaffPhone(e.target.value)}
                   placeholder="+91-771-2474..."
-                  className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none ${
-                    isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs font-mono focus:border-cyan-500/60 focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-inherit">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold border cursor-pointer ${
-                    isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-slate-100 text-slate-700 border-slate-300'
-                  }`}
+                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingStaff}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer shadow-sm"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white cursor-pointer shadow-lg shadow-cyan-500/20 disabled:opacity-50"
                 >
                   {submittingStaff ? 'Provisioning...' : 'Confirm & Authorize'}
                 </button>
@@ -503,21 +469,18 @@ export default function StaffDirectoryPage() {
 
       {/* Purge Confirmation Modal */}
       {isPurgeConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-fade-in">
-          <div className={`w-full max-w-md p-6 rounded-2xl border shadow-2xl space-y-4 animate-scale-up ${
-            isDark ? 'bg-[#161b22] border-rose-800 text-zinc-100' : 'bg-white border-rose-300 text-slate-900'
-          }`}>
-            <h3 className="text-base font-bold text-rose-500">Confirm Database Ticket Purge</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md p-6 rounded-3xl border border-rose-800/80 bg-[#0c1017]/95 text-slate-100 shadow-2xl space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-rose-500 to-transparent" />
+            <h3 className="text-base font-bold text-rose-400">Confirm Database Ticket Purge</h3>
             <p className="text-xs leading-relaxed text-slate-400">
               Are you sure you want to sanitize the database and delete all complaint tickets? This will purge all active and resolved complaints. User accounts and department records will be preserved.
             </p>
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-inherit">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setIsPurgeConfirmOpen(false)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold border cursor-pointer ${
-                  isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-slate-100 text-slate-700 border-slate-300'
-                }`}
+                className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
               >
                 Cancel
               </button>
@@ -525,7 +488,7 @@ export default function StaffDirectoryPage() {
                 type="button"
                 disabled={purging}
                 onClick={handlePurgeTickets}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white cursor-pointer shadow-sm"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white cursor-pointer shadow-lg shadow-rose-600/20"
               >
                 {purging ? 'Purging...' : 'Yes, Purge All Complaints'}
               </button>

@@ -1,16 +1,25 @@
 /**
  * SmartComplaintHandler - Student Portal & Request History Workstation
- * Flush Edge-to-Edge Dark Command Twin Layout with Consistent Institutional Palette
+ * High-Density Obsidian Command Desk Standard:
+ *  - Deep Space Obsidian canvas (#090d14)
+ *  - Translucent glassmorphic KPI bento grid with active SLA meters
+ *  - High-density request rows with real-time countdown timers and tracking links
+ *  - Inline Campus Digital Twin drawer and Star Rating verification modal
+ *  - High-density residential hostel & room modifier dialog
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { fetchComplaints, submitFeedback } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import CampusMapSelector from '../components/CampusMapSelector';
 import SetPasswordModal from '../components/SetPasswordModal';
+import {
+  GraduationCap, Home, MapPin, KeyRound, Compass, Plus,
+  RefreshCw, Search, Star, AlertTriangle, CheckCircle2,
+  Clock, ArrowRight, X, Layers,
+} from 'lucide-react';
 import {
   IIITNR_MAP_UPDATED_EVENT,
   getCampusBuildings,
@@ -21,7 +30,6 @@ import {
 } from '../data/iiitnrCampusData';
 
 export default function StudentDashboard() {
-  const { isDark } = useTheme();
   const { currentUser, updateProfile } = useAuth();
   const activeUser = currentUser;
 
@@ -107,7 +115,6 @@ export default function StudentDashboard() {
     }
   };
 
-  // Keep selectedRoom aligned if filteredRooms changes
   useEffect(() => {
     if (filteredRooms.length > 0 && !filteredRooms.includes(selectedRoom) && !customRoomInput) {
       setSelectedRoom(filteredRooms[0]);
@@ -125,7 +132,6 @@ export default function StudentDashboard() {
       const data = await fetchComplaints({ student_email: studentEmail, limit: 100 });
       setTickets(Array.isArray(data) ? data : []);
     } catch (_) {
-      // handled gracefully
     } finally {
       setLoading(false);
     }
@@ -190,36 +196,19 @@ export default function StudentDashboard() {
   });
 
   const getStatusBadge = (status) => {
-    if (isDark) {
-      switch (status) {
-        case 'SUBMITTED':
-          return 'bg-sky-950/80 text-sky-400 border-sky-800/80';
-        case 'ASSIGNED':
-          return 'bg-amber-950/80 text-amber-400 border-amber-800/80';
-        case 'IN_PROGRESS':
-          return 'bg-indigo-950/80 text-indigo-400 border-indigo-800/80';
-        case 'ESCALATED':
-          return 'bg-rose-950/80 text-rose-400 border-rose-800/80 animate-pulse';
-        case 'RESOLVED':
-          return 'bg-emerald-950/80 text-emerald-400 border-emerald-800/80';
-        default:
-          return 'bg-zinc-800 text-zinc-400 border-zinc-700';
-      }
-    } else {
-      switch (status) {
-        case 'SUBMITTED':
-          return 'bg-sky-100 text-sky-800 border-sky-300 font-bold';
-        case 'ASSIGNED':
-          return 'bg-amber-100 text-amber-800 border-amber-300 font-bold';
-        case 'IN_PROGRESS':
-          return 'bg-indigo-100 text-indigo-800 border-indigo-300 font-bold';
-        case 'ESCALATED':
-          return 'bg-rose-100 text-rose-800 border-rose-300 font-bold animate-pulse';
-        case 'RESOLVED':
-          return 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold';
-        default:
-          return 'bg-slate-200 text-slate-700 border-slate-300 font-bold';
-      }
+    switch (status) {
+      case 'SUBMITTED':
+        return 'bg-sky-500/10 text-sky-400 border-sky-500/30';
+      case 'ASSIGNED':
+        return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
+      case 'IN_PROGRESS':
+        return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
+      case 'ESCALATED':
+        return 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse';
+      case 'RESOLVED':
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+      default:
+        return 'bg-white/[0.04] text-slate-400 border-white/[0.08]';
     }
   };
 
@@ -227,97 +216,58 @@ export default function StudentDashboard() {
   const currentRoomLabel = activeUser?.room_number || 'Room 204';
 
   return (
-    <div
-      className={`w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
-        isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
-      }`}
-    >
-      {/* Flush Command Deck Student Profile Header */}
-      <div
-        className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden transition-colors ${
-          isDark
-            ? 'bg-[#161b22] border-zinc-800 text-zinc-100'
-            : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xs'
-        }`}
-      >
-        {/* Ambient background glow auras */}
-        <div className={`absolute -right-24 -bottom-24 w-96 h-96 rounded-full blur-3xl pointer-events-none ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'}`} />
-        <div className={`absolute -left-24 -top-24 w-96 h-96 rounded-full blur-3xl pointer-events-none ${isDark ? 'bg-teal-500/10' : 'bg-slate-300/20'}`} />
+    <div className="w-full min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Header Profile Section */}
+      <div className="p-6 sm:p-7 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
 
         <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start sm:items-center space-x-4">
-            <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-sm border transition-colors ${
-                isDark
-                  ? 'bg-emerald-950/80 border-emerald-700/60 text-emerald-400'
-                  : 'bg-emerald-100 border-emerald-300 text-emerald-800'
-              }`}
-            >
-              {activeUser?.avatar || '🎓'}
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+              <GraduationCap size={28} />
             </div>
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className={`text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                   {activeUser?.name}
                 </h1>
-                <span
-                  className={`text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border ${
-                    isDark
-                      ? 'bg-emerald-950 text-emerald-400 border-emerald-800/80'
-                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  }`}
-                >
+                <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 tracking-wider">
                   {activeUser?.identifier}
                 </span>
-                <span className={isDark ? 'text-zinc-600' : 'text-slate-400'}>·</span>
-                <span className={`text-xs font-medium ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>{activeUser?.department}</span>
+                <span className="text-slate-600">·</span>
+                <span className="text-xs font-mono text-slate-400">{activeUser?.department}</span>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 pt-1.5">
-                <span
-                  className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl border text-xs font-semibold ${
-                    isDark
-                      ? 'bg-[#0e1117] border-zinc-800 text-zinc-200'
-                      : 'bg-[#e2e8f0] border-slate-300 text-slate-800'
-                  }`}
-                >
-                  <span>🏠 {currentHostelLabel.split(' (')[0]}</span>
-                  <span className={isDark ? 'text-zinc-600' : 'text-slate-400'}>·</span>
-                  <span className={`font-mono font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>{currentRoomLabel}</span>
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-xs font-semibold text-slate-300">
+                  <Home size={13} className="text-cyan-400" />
+                  <span>{currentHostelLabel.split(' (')[0]}</span>
+                  <span className="text-slate-600">·</span>
+                  <span className="font-mono font-bold text-cyan-400">{currentRoomLabel}</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsResidenceModalOpen(true)}
-                  className={`px-3 py-1 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
-                    isDark
-                      ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-800 text-zinc-200 hover:text-white'
-                      : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800 hover:text-slate-950 shadow-2xs'
-                  }`}
+                  className="px-3 py-1 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-semibold transition cursor-pointer"
                 >
-                  ✏️ Change Room
+                  Change Room
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCampusMap((prev) => !prev)}
-                  className={`px-3 py-1 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
-                    isDark
-                      ? 'bg-[#0e1117] hover:bg-zinc-800 border-emerald-800/80 text-emerald-400'
-                      : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-emerald-300 text-emerald-800 shadow-2xs'
-                  }`}
+                  className="px-3 py-1 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
                 >
-                  🗺️ {showCampusMap ? 'Hide Map' : 'Campus Map'}
+                  <Compass size={13} />
+                  <span>{showCampusMap ? 'Hide Map' : 'Campus Map'}</span>
                 </button>
                 {(!activeUser?.has_password || activeUser?.auth_provider === 'google') && (
                   <button
                     type="button"
                     onClick={() => setIsPasswordModalOpen(true)}
-                    className={`px-3 py-1 rounded-xl border text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
-                      isDark
-                        ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/40 text-amber-300'
-                        : 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 shadow-2xs'
-                    }`}
+                    className="px-3 py-1 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    <span>🔑 Set Password (Dual Login)</span>
+                    <KeyRound size={13} />
+                    <span>Set Password</span>
                   </button>
                 )}
               </div>
@@ -327,20 +277,17 @@ export default function StudentDashboard() {
           <div className="flex items-center space-x-2.5 shrink-0">
             <Link
               to="/submit"
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all inline-flex items-center gap-2 cursor-pointer"
             >
-              + Submit Issue
+              <Plus size={14} />
+              <span>Submit Issue</span>
             </Link>
             <button
               onClick={loadStudentTickets}
-              className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-xs ${
-                isDark
-                  ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white'
-                  : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-950'
-              }`}
-              title="Refresh"
+              className="p-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-all cursor-pointer shadow-xs"
+              title="Refresh telemetry"
             >
-              ↻
+              <RefreshCw size={14} />
             </button>
           </div>
         </div>
@@ -348,7 +295,7 @@ export default function StudentDashboard() {
 
       {/* Expandable Digital Twin Campus Map Drawer */}
       {showCampusMap && (
-        <div className={`w-full border-b ${isDark ? 'border-zinc-800 bg-[#0e1117]' : 'border-slate-300 bg-white'}`}>
+        <div className="w-full rounded-2xl border border-white/[0.08] overflow-hidden bg-[#090d14] shadow-2xl">
           <CampusMapSelector
             flush={true}
             selectedBuilding={currentHostelLabel}
@@ -363,308 +310,214 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div className={`w-full px-4 sm:px-8 lg:px-12 py-10 space-y-8 ${isDark ? 'bg-[#0e1117]' : 'bg-white'}`}>
-        {/* Bento KPI Row with Multi-Layer Depth */}
-        <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div
-            className={`p-5 sm:p-6 border rounded-2xl relative overflow-hidden flex items-center justify-between transition-colors ${
-              isDark
-                ? 'bg-[#161b22] border-zinc-800 shadow-xl text-white'
-                : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
-            }`}
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
-            <div>
-              <span className={`text-[11px] font-bold uppercase tracking-wider block font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Active Issues
-              </span>
-              <div className={`text-3xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeTickets.length}</div>
-            </div>
-            <div
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-lg font-bold shadow-xs ${
-                isDark
-                  ? 'bg-amber-950/80 border-amber-800/80 text-amber-400'
-                  : 'bg-amber-100 border-amber-300 text-amber-800'
-              }`}
-            >
-              ⚡
-            </div>
+      {/* Bento KPI Row */}
+      <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="p-5 sm:p-6 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl relative overflow-hidden flex items-center justify-between shadow-xl">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-slate-400">
+              Active Issues
+            </span>
+            <div className="text-3xl font-black mt-1 text-amber-400 font-mono">{activeTickets.length}</div>
           </div>
-
-          <div
-            className={`p-5 sm:p-6 border rounded-2xl relative overflow-hidden flex items-center justify-between transition-colors ${
-              isDark
-                ? 'bg-[#161b22] border-zinc-800 shadow-xl text-white'
-                : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
-            }`}
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
-            <div>
-              <span className={`text-[11px] font-bold uppercase tracking-wider block font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Resolved
-              </span>
-              <div className={`text-3xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{resolvedTickets.length}</div>
-            </div>
-            <div
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-lg font-bold shadow-xs ${
-                isDark
-                  ? 'bg-emerald-950/80 border-emerald-800/80 text-emerald-400'
-                  : 'bg-emerald-100 border-emerald-300 text-emerald-800'
-              }`}
-            >
-              ✓
-            </div>
-          </div>
-
-          <div
-            className={`p-5 sm:p-6 border rounded-2xl relative overflow-hidden flex items-center justify-between transition-colors ${
-              isDark
-                ? 'bg-[#161b22] border-zinc-800 shadow-xl text-white'
-                : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
-            }`}
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-sky-500" />
-            <div>
-              <span className={`text-[11px] font-bold uppercase tracking-wider block font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Avg Satisfaction
-              </span>
-              <div className={`text-3xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {avgSatisfaction ? `${avgSatisfaction} / 5` : '—'}
-              </div>
-            </div>
-            <div
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-lg font-bold shadow-xs ${
-                isDark
-                  ? 'bg-sky-950/80 border-sky-800/80 text-sky-400'
-                  : 'bg-sky-100 border-sky-300 text-sky-800'
-              }`}
-            >
-              ★
-            </div>
+          <div className="w-12 h-12 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg font-bold shadow-xs">
+            <Clock size={20} />
           </div>
         </div>
 
-        {/* Issues List Card */}
-        <div
-          className={`border rounded-2xl overflow-hidden relative transition-colors ${
-            isDark
-              ? 'bg-[#161b22] border-zinc-800 shadow-2xl text-white'
-              : 'bg-[#f1f5f9] border-slate-300 shadow-sm text-slate-900'
-          }`}
-        >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
+        <div className="p-5 sm:p-6 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl relative overflow-hidden flex items-center justify-between shadow-xl">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-slate-400">
+              Resolved Cases
+            </span>
+            <div className="text-3xl font-black mt-1 text-emerald-400 font-mono">{resolvedTickets.length}</div>
+          </div>
+          <div className="w-12 h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg font-bold shadow-xs">
+            <CheckCircle2 size={20} />
+          </div>
+        </div>
 
-          <div
-            className={`p-5 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-              isDark ? 'border-zinc-800 bg-[#161b22]' : 'border-slate-300 bg-[#f1f5f9]'
-            }`}
-          >
-            <h2 className={`text-base font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              My Maintenance Requests
-            </h2>
+        <div className="p-5 sm:p-6 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl relative overflow-hidden flex items-center justify-between shadow-xl">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-slate-400">
+              Satisfaction Index
+            </span>
+            <div className="text-3xl font-black mt-1 text-cyan-400 font-mono">
+              {avgSatisfaction ? `${avgSatisfaction} / 5` : '—'}
+            </div>
+          </div>
+          <div className="w-12 h-12 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-lg font-bold shadow-xs">
+            <Star size={20} />
+          </div>
+        </div>
+      </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
+      {/* Issues List Card */}
+      <div className="border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl overflow-hidden relative shadow-2xl">
+        <div className="p-5 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-base font-black tracking-tight text-white">
+            My Maintenance Requests
+          </h2>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search code, room, title..."
-                className={`w-full sm:w-60 px-3.5 py-2 rounded-xl text-xs transition-all border ${
-                  isDark
-                    ? 'bg-[#0e1117] border-zinc-800 text-zinc-100 placeholder-zinc-500 focus:bg-[#161b22] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
-                    : 'bg-[#e2e8f0] border-slate-300 text-slate-900 placeholder-slate-500 hover:border-slate-400 focus:bg-white focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
-                }`}
+                className="w-full sm:w-60 px-3.5 py-2 pl-9 rounded-xl text-xs border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 focus:border-cyan-500/60 focus:outline-none transition-all"
               />
+              <Search size={14} className="absolute left-3 top-2.5 text-slate-500" />
+            </div>
 
-              <div
-                className={`inline-flex items-center p-1 rounded-xl gap-1 border ${
-                  isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#cbd5e1]/80 border-slate-300'
+            <div className="inline-flex items-center p-1 rounded-xl gap-1 border border-white/[0.08] bg-[#0b0f19]">
+              <button
+                onClick={() => setActiveTab('ALL')}
+                className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
+                  activeTab === 'ALL'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-xs'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <button
-                  onClick={() => setActiveTab('ALL')}
-                  className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
-                    activeTab === 'ALL'
-                      ? 'bg-emerald-600 text-white font-bold shadow-xs'
-                      : isDark
-                      ? 'text-zinc-400 hover:text-white font-medium hover:bg-zinc-800/60'
-                      : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-slate-300/80'
-                  }`}
-                >
-                  All ({tickets.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('ACTIVE')}
-                  className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
-                    activeTab === 'ACTIVE'
-                      ? 'bg-emerald-600 text-white font-bold shadow-xs'
-                      : isDark
-                      ? 'text-zinc-400 hover:text-white font-medium hover:bg-zinc-800/60'
-                      : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-slate-300/80'
-                  }`}
-                >
-                  Active ({activeTickets.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('RESOLVED')}
-                  className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
-                    activeTab === 'RESOLVED'
-                      ? 'bg-emerald-600 text-white font-bold shadow-xs'
-                      : isDark
-                      ? 'text-zinc-400 hover:text-white font-medium hover:bg-zinc-800/60'
-                      : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-slate-300/80'
-                  }`}
-                >
-                  Resolved ({resolvedTickets.length})
-                </button>
-              </div>
+                All ({tickets.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('ACTIVE')}
+                className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
+                  activeTab === 'ACTIVE'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-xs'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Active ({activeTickets.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('RESOLVED')}
+                className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
+                  activeTab === 'RESOLVED'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-xs'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Resolved ({resolvedTickets.length})
+              </button>
             </div>
           </div>
+        </div>
 
-          {loading ? (
-            <div className={`py-20 text-center text-xs font-mono ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Loading requests...
+        {loading ? (
+          <div className="py-20 text-center text-xs font-mono text-slate-400">
+            Loading requests...
+          </div>
+        ) : displayedTickets.length === 0 ? (
+          <div className="py-20 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl border border-white/[0.08] bg-[#0b0f19] flex items-center justify-center mx-auto text-xl text-slate-500">
+              📂
             </div>
-          ) : displayedTickets.length === 0 ? (
-            <div className="py-20 text-center space-y-4">
-              <div
-                className={`w-12 h-12 rounded-2xl border flex items-center justify-center mx-auto text-xl ${
-                  isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-400' : 'bg-[#e2e8f0] border-slate-300 text-slate-600'
-                }`}
-              >
-                📂
-              </div>
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>No maintenance requests found.</p>
-              <Link
-                to="/submit"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors"
-              >
-                + Submit Issue
-              </Link>
-            </div>
-          ) : (
-            <div className={isDark ? 'divide-y divide-zinc-800' : 'divide-y divide-slate-300'}>
-              {displayedTickets.map((ticket) => {
-                const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
-                const hasRating = ticket.feedback_rating != null;
+            <p className="text-xs text-slate-400">No maintenance requests found.</p>
+            <Link
+              to="/submit"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-xs transition-colors"
+            >
+              + Submit Issue
+            </Link>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.04]">
+            {displayedTickets.map((ticket) => {
+              const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+              const hasRating = ticket.feedback_rating != null;
 
-                return (
-                  <div
-                    key={ticket.id || ticket.tracking_code}
-                    className={`p-5 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4 group ${
-                      isDark ? 'hover:bg-zinc-800/30' : 'hover:bg-slate-200/50'
-                    }`}
-                  >
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <Link
-                          to={`/track?code=${ticket.tracking_code}`}
-                          className={`font-mono font-bold px-2.5 py-0.5 rounded-lg border transition-colors ${
-                            isDark
-                              ? 'text-emerald-400 bg-[#0e1117] border-zinc-800 hover:border-emerald-500'
-                              : 'text-emerald-800 bg-[#e2e8f0] border-slate-300 hover:border-emerald-600'
-                          }`}
-                        >
-                          {ticket.tracking_code}
-                        </Link>
-                        <PriorityBadge priority={ticket.priority} size="sm" dark={isDark} />
-                        <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-mono font-bold ${getStatusBadge(ticket.status)}`}>
-                          {ticket.status}
-                        </span>
-                        {ticket.department_name && (
-                          <span
-                            className={`text-[11px] font-semibold border px-2 py-0.5 rounded ${
-                              isDark
-                                ? 'text-zinc-300 bg-[#0e1117] border-zinc-800'
-                                : 'text-slate-700 bg-[#e2e8f0] border-slate-300'
-                            }`}
-                          >
-                            {ticket.department_name}
-                          </span>
-                        )}
-                      </div>
-
-                      <h3 className={`text-sm font-bold transition-colors ${
-                        isDark ? 'text-white group-hover:text-emerald-400' : 'text-slate-900 group-hover:text-emerald-700'
-                      }`}>
-                        {ticket.title}
-                      </h3>
-                      <div className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                        📍 {ticket.location} · {new Date(ticket.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2.5 shrink-0">
-                      {!isResolved ? (
-                        <SLACountdownTimer
-                          slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
-                          priority={ticket.priority}
-                          status={ticket.status}
-                          resolvedAt={ticket.resolved_at}
-                          dark={isDark}
-                        />
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedTicketForFeedback(ticket);
-                            setRatingScore(ticket.feedback_rating || 5);
-                            setFeedbackComments(ticket.feedback_comments || '');
-                          }}
-                          className={`px-3 py-1.5 text-xs font-bold rounded-xl border cursor-pointer transition-colors ${
-                            isDark
-                              ? 'bg-amber-950/80 hover:bg-amber-900/80 border-amber-800 text-amber-300'
-                              : 'bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900'
-                          }`}
-                        >
-                          ★ {hasRating ? `${ticket.feedback_rating}/5` : 'Rate'}
-                        </button>
-                      )}
-
+              return (
+                <div
+                  key={ticket.id || ticket.tracking_code}
+                  className="p-5 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-white/[0.02]"
+                >
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-colors ${
-                          isDark
-                            ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-800 text-zinc-200 hover:text-white'
-                            : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-800 hover:text-slate-950'
-                        }`}
+                        className="font-mono font-bold px-2.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 transition-colors"
                       >
-                        Details →
+                        {ticket.tracking_code}
                       </Link>
+                      <PriorityBadge priority={ticket.priority} size="sm" dark={true} />
+                      <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-mono font-bold ${getStatusBadge(ticket.status)}`}>
+                        {ticket.status}
+                      </span>
+                      {ticket.department_name && (
+                        <span className="text-[11px] font-mono border border-white/[0.08] bg-white/[0.03] text-slate-300 px-2 py-0.5 rounded">
+                          {ticket.department_name}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-sm font-bold text-white hover:text-cyan-400 transition-colors">
+                      {ticket.title}
+                    </h3>
+                    <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
+                      <MapPin size={12} className="text-cyan-400" />
+                      <span>{ticket.location}</span>
+                      <span className="text-slate-600">·</span>
+                      <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+
+                  <div className="flex items-center space-x-2.5 shrink-0">
+                    {!isResolved ? (
+                      <SLACountdownTimer
+                        slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
+                        priority={ticket.priority}
+                        status={ticket.status}
+                        resolvedAt={ticket.resolved_at}
+                        dark={true}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedTicketForFeedback(ticket);
+                          setRatingScore(ticket.feedback_rating || 5);
+                          setFeedbackComments(ticket.feedback_comments || '');
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 cursor-pointer transition-colors"
+                      >
+                        ★ {hasRating ? `${ticket.feedback_rating}/5` : 'Rate'}
+                      </button>
+                    )}
+
+                    <Link
+                      to={`/track?code=${ticket.tracking_code}`}
+                      className="px-3 py-1.5 text-xs font-bold rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors"
+                    >
+                      Details →
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Hostel & Room Modal */}
       {isResidenceModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
           onClick={() => setIsResidenceModalOpen(false)}
         >
           <div
-            className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 border relative overflow-hidden transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-white' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
-            }`}
+            className="w-full max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
 
-            <div className={`flex items-center justify-between border-b pb-3 ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
-              <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Select Your Hostel &amp; Room</h3>
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+              <h3 className="text-base font-black text-white">Select Your Hostel &amp; Room</h3>
               <button
                 type="button"
                 onClick={() => setIsResidenceModalOpen(false)}
-                className={`w-7 h-7 rounded-lg font-bold text-xs cursor-pointer flex items-center justify-center transition-colors border ${
-                  isDark
-                    ? 'bg-[#0e1117] hover:bg-zinc-800 text-zinc-400 hover:text-white border-zinc-800'
-                    : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-700 hover:text-slate-900 border-slate-300'
-                }`}
+                className="w-7 h-7 rounded-xl font-bold text-xs cursor-pointer flex items-center justify-center transition-colors border border-white/[0.1] bg-white/[0.04] text-slate-400 hover:text-white"
               >
                 ✕
               </button>
@@ -681,18 +534,14 @@ export default function StudentDashboard() {
                       onClick={() => handleSelectHostel(h.name)}
                       className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         active
-                          ? isDark
-                            ? 'border-emerald-500 bg-emerald-950/60 shadow-xs'
-                            : 'border-emerald-500 bg-emerald-100 shadow-xs'
-                          : isDark
-                          ? 'border-zinc-800 bg-[#0e1117] hover:border-zinc-700'
-                          : 'border-slate-300 bg-[#e2e8f0] hover:border-slate-400'
+                          ? 'border-cyan-500/50 bg-cyan-500/10 shadow-xs'
+                          : 'border-white/[0.08] bg-[#0b0f19] hover:border-white/[0.16]'
                       }`}
                     >
-                      <div className={`text-xs font-bold ${active ? (isDark ? 'text-emerald-400' : 'text-emerald-900') : (isDark ? 'text-white' : 'text-slate-900')}`}>
+                      <div className={`text-xs font-bold ${active ? 'text-cyan-400' : 'text-white'}`}>
                         {h.shortName}
                       </div>
-                      <div className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>{h.type}</div>
+                      <div className="text-[10px] text-slate-400">{h.type}</div>
                     </button>
                   );
                 })}
@@ -700,51 +549,43 @@ export default function StudentDashboard() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>Floor</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Floor</label>
                   <select
                     value={selectedFloor}
                     onChange={(e) => handleSelectFloor(e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl text-xs transition-all border ${
-                      isDark
-                        ? 'bg-[#0e1117] border-zinc-800 text-white focus:bg-[#161b22] focus:border-emerald-500'
-                        : 'bg-[#e2e8f0] border-slate-300 text-slate-900 focus:bg-white focus:border-emerald-600'
-                    }`}
+                    className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.08] bg-[#0b0f19] text-white focus:border-cyan-500/60"
                   >
                     {availableFloors.length > 0 ? (
                       availableFloors.map((f) => (
-                        <option key={f.id} value={f.id} className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                        <option key={f.id} value={f.id} className="bg-[#0b0f19] text-white">
                           {f.label}
                         </option>
                       ))
                     ) : (
-                      <option value="1" className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                      <option value="1" className="bg-[#0b0f19] text-white">
                         Floor 1
                       </option>
                     )}
                   </select>
                 </div>
                 <div>
-                  <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>Room Number</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Room Number</label>
                   <select
                     value={selectedRoom}
                     onChange={(e) => {
                       setSelectedRoom(e.target.value);
                       setCustomRoomInput('');
                     }}
-                    className={`w-full px-3 py-2 rounded-xl text-xs transition-all border ${
-                      isDark
-                        ? 'bg-[#0e1117] border-zinc-800 text-white focus:bg-[#161b22] focus:border-emerald-500'
-                        : 'bg-[#e2e8f0] border-slate-300 text-slate-900 focus:bg-white focus:border-emerald-600'
-                    }`}
+                    className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.08] bg-[#0b0f19] text-white focus:border-cyan-500/60"
                   >
                     {filteredRooms.length > 0 ? (
                       filteredRooms.map((r) => (
-                        <option key={r} value={r} className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                        <option key={r} value={r} className="bg-[#0b0f19] text-white">
                           {r}
                         </option>
                       ))
                     ) : (
-                      <option value="" className={isDark ? 'bg-zinc-900 text-white' : 'bg-white text-slate-900'}>
+                      <option value="" className="bg-[#0b0f19] text-white">
                         No rooms on this floor
                       </option>
                     )}
@@ -753,36 +594,28 @@ export default function StudentDashboard() {
               </div>
 
               <div>
-                <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>Or Custom Room / Spot</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Or Custom Room / Spot</label>
                 <input
                   type="text"
                   placeholder="e.g. Room 312 or Guest Suite"
                   value={customRoomInput}
                   onChange={(e) => setCustomRoomInput(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl text-xs transition-all border ${
-                    isDark
-                      ? 'bg-[#0e1117] border-zinc-800 text-white placeholder-zinc-500 focus:bg-[#161b22] focus:border-emerald-500'
-                      : 'bg-[#e2e8f0] border-slate-300 text-slate-900 placeholder-slate-500 focus:bg-white focus:border-emerald-600'
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 focus:border-cyan-500/60"
                 />
               </div>
 
-              <div className={`flex justify-end space-x-2 pt-2 border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
+              <div className="flex justify-end space-x-2 pt-2 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setIsResidenceModalOpen(false)}
-                  className={`px-4 py-2 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
-                    isDark
-                      ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white'
-                      : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-900'
-                  }`}
+                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingResidence}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {savingResidence ? 'Saving...' : 'Save Room'}
                 </button>
@@ -795,18 +628,16 @@ export default function StudentDashboard() {
       {/* Rating Modal */}
       {selectedTicketForFeedback && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
           onClick={() => setSelectedTicketForFeedback(null)}
         >
           <div
-            className={`w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4 border relative overflow-hidden transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-white' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
-            }`}
+            className="w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
 
-            <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <h3 className="text-base font-black text-white">
               Rate Repair ({selectedTicketForFeedback.tracking_code})
             </h3>
             <form onSubmit={handleSubmitRating} className="space-y-4">
@@ -820,7 +651,7 @@ export default function StudentDashboard() {
                     onMouseLeave={() => setRatingHover(0)}
                     className="text-3xl cursor-pointer"
                   >
-                    <span className={(ratingHover || ratingScore) >= star ? 'text-amber-400' : (isDark ? 'text-zinc-700' : 'text-slate-300')}>
+                    <span className={(ratingHover || ratingScore) >= star ? 'text-amber-400' : 'text-slate-700'}>
                       ★
                     </span>
                   </button>
@@ -831,28 +662,20 @@ export default function StudentDashboard() {
                 value={feedbackComments}
                 onChange={(e) => setFeedbackComments(e.target.value)}
                 placeholder="Optional comments regarding work order quality..."
-                className={`w-full p-3 rounded-xl text-xs resize-none transition-all border ${
-                  isDark
-                    ? 'bg-[#0e1117] border-zinc-800 text-white placeholder-zinc-500 focus:bg-[#161b22] focus:border-emerald-500'
-                    : 'bg-[#e2e8f0] border-slate-300 text-slate-900 placeholder-slate-500 focus:bg-white focus:border-emerald-600'
-                }`}
+                className="w-full p-3 rounded-xl text-xs resize-none transition-all border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 focus:border-cyan-500/60"
               />
-              <div className={`flex justify-end space-x-2 pt-2 border-t ${isDark ? 'border-zinc-800' : 'border-slate-300'}`}>
+              <div className="flex justify-end space-x-2 pt-2 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setSelectedTicketForFeedback(null)}
-                  className={`px-4 py-2 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
-                    isDark
-                      ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white'
-                      : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] border-slate-300 text-slate-700 hover:text-slate-900'
-                  }`}
+                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingFeedback}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   Submit Rating
                 </button>

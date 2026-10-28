@@ -1,18 +1,24 @@
 /**
  * SmartComplaintHandler - Field Technician Workstation
- * Dedicated boots-on-the-ground repair console strictly for Technicians.
- * Auto-detects assigned squad, provides live SLA countdowns, parts-needed hold gates,
- * and closed-loop resolution verification.
+ * High-Density Obsidian Command Desk Standard:
+ *  - Deep Space Obsidian canvas (#090d14)
+ *  - Boots-on-the-ground repair console with squad telemetry badge
+ *  - Real-time SLA Countdown Timers with parts-hold and complete-log gates
+ *  - Supervisory escalation drawer with structured institutional presets
+ *  - High-density work order action cards
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { fetchComplaints } from '../api/complaints';
 import { updateTicketStatus, escalateTicket } from '../api/sla';
 import PriorityBadge from '../components/PriorityBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import ResolutionNotesModal from '../components/ResolutionNotesModal';
+import {
+  Wrench, ShieldAlert, CheckCircle2, Clock, AlertTriangle,
+  Play, Pause, ArrowRight, RefreshCw, MapPin, User, Mail, X, Sparkles,
+} from 'lucide-react';
 
 const CAMPUS_SQUADS = [
   { id: 1, name: 'Substation High-Voltage Team', dept: 'Electrical' },
@@ -65,10 +71,8 @@ const ESCALATION_PRESETS = [
 
 export default function TechnicianWorkstation() {
   const { currentUser } = useAuth();
-  const { isDark } = useTheme();
   const activeUser = currentUser;
 
-  // Auto-detect assigned squad based on employee profile
   const assignedSquad = useMemo(() => {
     if (activeUser?.teamId) {
       const match = CAMPUS_SQUADS.find((s) => s.id === Number(activeUser.teamId));
@@ -78,19 +82,19 @@ export default function TechnicianWorkstation() {
     const dept = (activeUser?.department_name || '').toLowerCase();
 
     if (dept.includes('it') || dept.includes('network')) {
-      return CAMPUS_SQUADS.find((s) => s.id === 5); // Network & Wi-Fi Squad
+      return CAMPUS_SQUADS.find((s) => s.id === 5);
     }
     if (dept.includes('elect') || dept.includes('power')) {
-      return CAMPUS_SQUADS.find((s) => s.id === 6); // Hostel Electrical Squad 1
+      return CAMPUS_SQUADS.find((s) => s.id === 6);
     }
     if (dept.includes('plumb')) {
-      return CAMPUS_SQUADS.find((s) => s.id === 7); // Hostel Plumbing Squad 2
+      return CAMPUS_SQUADS.find((s) => s.id === 7);
     }
     if (dept.includes('sanit')) {
-      return CAMPUS_SQUADS.find((s) => s.id === 3); // Sanitation Rapid Response
+      return CAMPUS_SQUADS.find((s) => s.id === 3);
     }
     if (dept.includes('carp')) {
-      return CAMPUS_SQUADS.find((s) => s.id === 4); // Structural Fixtures Crew
+      return CAMPUS_SQUADS.find((s) => s.id === 4);
     }
     return CAMPUS_SQUADS[0];
   }, [activeUser]);
@@ -98,24 +102,20 @@ export default function TechnicianWorkstation() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('ACTIVE'); // 'ACTIVE' | 'COMPLETED'
+  const [activeTab, setActiveTab] = useState('ACTIVE');
   const [actionSuccess, setActionSuccess] = useState(null);
 
-  // Resolution modal state
   const [resolvingTicket, setResolvingTicket] = useState(null);
 
-  // Hold / Parts Needed modal state
   const [holdingTicket, setHoldingTicket] = useState(null);
   const [holdReason, setHoldReason] = useState('Awaiting replacement spare parts from central institutional inventory.');
   const [submittingHold, setSubmittingHold] = useState(false);
 
-  // Supervisory Escalation modal state
   const [escalatingTicket, setEscalatingTicket] = useState(null);
   const [escalateReason, setEscalateReason] = useState('');
   const [suggestedTargetDept, setSuggestedTargetDept] = useState('');
   const [submittingEscalate, setSubmittingEscalate] = useState(false);
 
-  // Keyboard accessibility: dismiss modals on Escape
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -259,50 +259,34 @@ export default function TechnicianWorkstation() {
   const displayedOrders = activeTab === 'ACTIVE' ? activeWorkOrders : completedWorkOrders;
 
   return (
-    <div
-      className={`w-full min-h-screen flex flex-col space-y-0 animate-fade-in transition-colors duration-200 ${
-        isDark ? 'bg-[#0e1117] text-zinc-100' : 'bg-white text-slate-800'
-      }`}
-    >
-      {/* Flush Field Operations Hero Header */}
-      <div
-        className={`w-full border-b px-4 sm:px-8 lg:px-12 py-8 relative overflow-hidden transition-colors ${
-          isDark
-            ? 'bg-[#161b22] border-zinc-800 text-zinc-100'
-            : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-xs'
-        }`}
-      >
+    <div className="w-full min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Header Bar */}
+      <div className="p-6 sm:p-7 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center space-x-4">
-            <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border ${
-                isDark ? 'bg-zinc-800/80 border-zinc-700 text-emerald-400' : 'bg-slate-100 border-slate-300 text-emerald-700'
-              }`}
-            >
-              🛠️
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+              <Wrench size={26} />
             </div>
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
                   Field Technician Console
                 </span>
-                <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>•</span>
-                <span className={`text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                <span className="text-slate-600">•</span>
+                <span className="text-xs font-mono font-bold text-slate-300">
                   {activeUser?.name || 'Authorized Field Staff'}
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                 {assignedSquad.name}
               </h1>
               <div className="pt-1.5 flex flex-wrap items-center gap-2 text-xs">
-                <span className={`px-2.5 py-1 rounded-lg border font-mono font-bold text-xs ${
-                  isDark ? 'bg-zinc-800 border-zinc-700 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                }`}>
+                <span className="px-2.5 py-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-mono font-bold text-xs text-cyan-400">
                   Trade: {assignedSquad.dept}
                 </span>
-                <span className={`px-2.5 py-1 rounded-lg border font-mono text-[11px] ${
-                  isDark ? 'bg-zinc-800/60 border-zinc-700 text-zinc-300' : 'bg-white border-slate-300 text-slate-700'
-                }`}>
+                <span className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-white/[0.03] font-mono text-[11px] text-slate-400">
                   Shift: Active On-Duty Dispatch
                 </span>
               </div>
@@ -313,463 +297,351 @@ export default function TechnicianWorkstation() {
             <button
               type="button"
               onClick={loadWorkOrders}
-              className={`px-4 py-2.5 rounded-xl border font-bold text-xs shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer ${
-                isDark
-                  ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white'
-                  : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-800'
-              }`}
+              className="px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white font-bold text-xs shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
-              <svg className={`w-4 h-4 text-emerald-500 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <RefreshCw size={14} className={loading ? 'animate-spin text-cyan-400' : ''} />
               <span>Refresh Queue</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Full-Width Content */}
-      <div className={`w-full px-4 sm:px-8 lg:px-12 py-8 sm:py-10 space-y-8 ${isDark ? 'bg-[#0e1117]' : 'bg-white'}`}>
-        {actionSuccess && (
-          <div
-            className={`p-4 rounded-xl border text-xs font-bold flex items-center space-x-3 animate-fade-in shadow-xs ${
-              isDark
-                ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-            }`}
-          >
-            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
-              ✓
-            </span>
-            <span>{actionSuccess}</span>
-          </div>
-        )}
+      {actionSuccess && (
+        <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-bold text-emerald-300 flex items-center space-x-3 shadow-xl animate-fade-in">
+          <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+          <span>{actionSuccess}</span>
+        </div>
+      )}
 
-        {criticalOrders.length > 0 && (
-          <div
-            className={`p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-              isDark
-                ? 'bg-rose-950/60 border-rose-800 text-rose-300'
-                : 'bg-rose-50 border-rose-200 text-rose-900'
-            }`}
-          >
-            <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-xl shrink-0 font-black shadow-md shadow-rose-600/20">
-                ⚡
-              </div>
-              <div>
-                <h3 className={`text-sm font-black tracking-tight ${isDark ? 'text-rose-200' : 'text-rose-900'}`}>
-                  High-Urgency Complaints Queue ({criticalOrders.length} Critical / Expedited)
-                </h3>
-                <p className={`text-xs mt-0.5 ${isDark ? 'text-rose-300/80' : 'text-rose-700'}`}>
-                  Immediate attention required for high-priority facility complaints in your squad queue.
-                </p>
-              </div>
+      {criticalOrders.length > 0 && (
+        <div className="p-5 rounded-2xl border border-rose-500/30 bg-rose-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 font-black shadow-lg shadow-rose-600/30">
+              <AlertTriangle size={18} />
             </div>
+            <div>
+              <h3 className="text-sm font-black tracking-tight text-rose-200">
+                High-Urgency Complaints Queue ({criticalOrders.length} Critical / Expedited)
+              </h3>
+              <p className="text-xs text-rose-300/80 mt-0.5">
+                Immediate attention required for high-priority facility complaints in your squad queue.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('ACTIVE')}
+            className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-600/25 transition-all shrink-0 cursor-pointer"
+          >
+            View Urgent Complaints
+          </button>
+        </div>
+      )}
+
+      {/* Bento Telemetry Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md flex items-center justify-between shadow-xl">
+          <div>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-slate-400">
+              Assigned Queue
+            </span>
+            <div className="text-3xl font-black mt-1 text-amber-400 font-mono">
+              {activeWorkOrders.length}
+            </div>
+            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block truncate max-w-[200px]">
+              {assignedSquad.name}
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl font-bold">
+            <Clock size={20} />
+          </div>
+        </div>
+
+        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md flex items-center justify-between shadow-xl">
+          <div>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-rose-400">
+              Critical / Escalated
+            </span>
+            <div className="text-3xl font-black mt-1 text-rose-400 font-mono">
+              {criticalOrders.length}
+            </div>
+            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block">
+              2-hour SLA priority gate
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl font-bold">
+            <ShieldAlert size={20} />
+          </div>
+        </div>
+
+        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md flex items-center justify-between shadow-xl">
+          <div>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-emerald-400">
+              Completed Repairs
+            </span>
+            <div className="text-3xl font-black mt-1 text-emerald-400 font-mono">
+              {completedWorkOrders.length}
+            </div>
+            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block">
+              Verified with closure notes
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
+            <CheckCircle2 size={20} />
+          </div>
+        </div>
+      </div>
+
+      {/* Work Orders Roster */}
+      <div className="rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md overflow-hidden shadow-2xl">
+        <div className="p-5 sm:p-6 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base font-bold text-white">
+              Work Orders — {assignedSquad.name}
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Start physical triage, pause for parts, and document closure proof with replaced parts.
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-1 p-1 rounded-xl border border-white/[0.08] bg-[#0b0f19]">
             <button
               type="button"
               onClick={() => setActiveTab('ACTIVE')}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all shrink-0 cursor-pointer"
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                activeTab === 'ACTIVE'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
             >
-              View Urgent Complaints
+              Active Queue ({activeWorkOrders.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('COMPLETED')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                activeTab === 'COMPLETED'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Completed ({completedWorkOrders.length})
             </button>
           </div>
-        )}
-
-        {/* Bento Telemetry Strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div
-            className={`p-5 border-l-4 border-l-amber-500 flex items-center justify-between rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
-            }`}
-          >
-            <div>
-              <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                Assigned Queue
-              </span>
-              <div className={`text-3xl font-black mt-1 ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                {activeWorkOrders.length}
-              </div>
-              <span className={`text-[11px] mt-0.5 block ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                {assignedSquad.name}
-              </span>
-            </div>
-            <div
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-xl font-bold ${
-                isDark ? 'bg-amber-950/60 border-amber-800 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-700'
-              }`}
-            >
-              📋
-            </div>
-          </div>
-
-          <div
-            className={`p-5 border-l-4 border-l-rose-500 flex items-center justify-between rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
-            }`}
-          >
-            <div>
-              <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>
-                Critical / Escalated
-              </span>
-              <div className={`text-3xl font-black mt-1 ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>
-                {criticalOrders.length}
-              </div>
-              <span className={`text-[11px] mt-0.5 block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                2-hour SLA priority gate
-              </span>
-            </div>
-            <div
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-xl font-bold ${
-                isDark ? 'bg-rose-950/60 border-rose-800 text-rose-400' : 'bg-rose-50 border-rose-200 text-rose-700'
-              }`}
-            >
-              ⚡
-            </div>
-          </div>
-
-          <div
-            className={`p-5 border-l-4 border-l-emerald-500 flex items-center justify-between rounded-2xl border transition-colors ${
-              isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-sm' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-2xs'
-            }`}
-          >
-            <div>
-              <span className={`text-[11px] font-bold uppercase tracking-wider block ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                Completed Repairs
-              </span>
-              <div className={`text-3xl font-black mt-1 ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                {completedWorkOrders.length}
-              </div>
-              <span className={`text-[11px] mt-0.5 block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                Verified with closure notes
-              </span>
-            </div>
-            <div
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-xl font-bold ${
-                isDark ? 'bg-emerald-950/60 border-emerald-800 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              }`}
-            >
-              ✓
-            </div>
-          </div>
         </div>
 
-        {/* Work Orders Roster */}
-        <div
-          className={`rounded-2xl border overflow-hidden transition-colors ${
-            isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100 shadow-xl' : 'bg-[#f1f5f9] border-slate-300 text-slate-900 shadow-sm'
-          }`}
-        >
-          <div
-            className={`p-5 sm:p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-              isDark ? 'border-zinc-800 bg-[#161b22]' : 'border-slate-300 bg-[#e2e8f0]/60'
-            }`}
-          >
-            <div>
-              <h2 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                Work Orders — {assignedSquad.name}
-              </h2>
-              <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                Start physical triage, pause for parts, and document closure proof with replaced parts.
-              </p>
-            </div>
-
-            <div
-              className={`flex items-center space-x-1 p-1 rounded-xl border ${
-                isDark ? 'bg-[#0e1117] border-zinc-800' : 'bg-[#e2e8f0] border-slate-300'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => setActiveTab('ACTIVE')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  activeTab === 'ACTIVE'
-                    ? isDark
-                      ? 'bg-zinc-800 text-zinc-100 shadow-xs'
-                      : 'bg-white text-slate-900 shadow-2xs'
-                    : isDark
-                    ? 'text-zinc-400 hover:text-zinc-200'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Active Queue ({activeWorkOrders.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('COMPLETED')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  activeTab === 'COMPLETED'
-                    ? isDark
-                      ? 'bg-zinc-800 text-zinc-100 shadow-xs'
-                      : 'bg-white text-slate-900 shadow-2xs'
-                    : isDark
-                    ? 'text-zinc-400 hover:text-zinc-200'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Completed ({completedWorkOrders.length})
-              </button>
-            </div>
+        {loading ? (
+          <div className="py-20 text-center space-y-3">
+            <div className="w-8 h-8 mx-auto border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs font-mono text-slate-400">Loading squad work orders...</p>
           </div>
+        ) : error ? (
+          <div className="py-16 text-center space-y-3 px-4">
+            <p className="text-xs font-bold text-rose-400">{error}</p>
+            <button
+              type="button"
+              onClick={loadWorkOrders}
+              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs rounded-xl"
+            >
+              Retry
+            </button>
+          </div>
+        ) : displayedOrders.length === 0 ? (
+          <div className="py-20 text-center space-y-3 max-w-sm mx-auto px-4">
+            <div className="w-14 h-14 mx-auto rounded-2xl border border-white/[0.08] bg-[#0b0f19] flex items-center justify-center text-2xl text-slate-500">
+              <Wrench size={24} />
+            </div>
+            <h3 className="text-base font-bold text-white">Queue Clear</h3>
+            <p className="text-xs text-slate-400">
+              No work orders in this state for {assignedSquad.name}.
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.04]">
+            {displayedOrders.map((ticket) => {
+              const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+              const isClosed = ticket.status === 'CLOSED';
+              const isSubmitted = ticket.status === 'SUBMITTED' || ticket.status === 'ASSIGNED' || ticket.status === 'PENDING';
+              const isInProgress = ticket.status === 'IN_PROGRESS';
+              const isEscalated = ticket.status === 'ESCALATED';
+              const isOnHold = ticket.status === 'ON_HOLD';
 
-          {loading ? (
-            <div className="py-20 text-center space-y-3">
-              <div className="w-8 h-8 mx-auto border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>Loading squad work orders...</p>
-            </div>
-          ) : error ? (
-            <div className="py-16 text-center space-y-3 px-4">
-              <p className="text-xs font-bold text-rose-500">{error}</p>
-              <button
-                type="button"
-                onClick={loadWorkOrders}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl"
-              >
-                Retry
-              </button>
-            </div>
-          ) : displayedOrders.length === 0 ? (
-            <div className="py-20 text-center space-y-3 max-w-sm mx-auto px-4">
-              <div
-                className={`w-14 h-14 mx-auto rounded-2xl border flex items-center justify-center text-2xl ${
-                  isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-slate-100 border-slate-300'
-                }`}
-              >
-                🔧
-              </div>
-              <h3 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>Queue Clear</h3>
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                No work orders in this state for {assignedSquad.name}.
-              </p>
-            </div>
-          ) : (
-            <div className={`divide-y ${isDark ? 'divide-zinc-800/80' : 'divide-slate-200'}`}>
-              {displayedOrders.map((ticket) => {
-                const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
-                const isClosed = ticket.status === 'CLOSED';
-                const isSubmitted = ticket.status === 'SUBMITTED' || ticket.status === 'ASSIGNED' || ticket.status === 'PENDING';
-                const isInProgress = ticket.status === 'IN_PROGRESS';
-                const isEscalated = ticket.status === 'ESCALATED';
-                const isOnHold = ticket.status === 'ON_HOLD';
+              return (
+                <div
+                  key={ticket.id || ticket.tracking_code}
+                  className="p-5 sm:p-6 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-5 hover:bg-white/[0.02]"
+                >
+                  <div className="space-y-3 flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <Link
+                        to={`/track?code=${ticket.tracking_code}`}
+                        className="font-mono font-bold px-2.5 py-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      >
+                        {ticket.tracking_code}
+                      </Link>
+                      <PriorityBadge priority={ticket.priority} dark={true} />
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full border text-[10px] font-mono font-bold uppercase ${
+                          ticket.status === 'IN_PROGRESS'
+                            ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                            : ticket.status === 'ESCALATED'
+                            ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse'
+                            : ticket.status === 'ON_HOLD'
+                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                            : ticket.status === 'RESOLVED'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                            : 'bg-white/[0.04] text-slate-400 border-white/[0.08]'
+                        }`}
+                      >
+                        {ticket.status}
+                      </span>
+                    </div>
 
-                return (
-                  <div
-                    key={ticket.id || ticket.tracking_code}
-                    className={`p-5 sm:p-6 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-5 ${
-                      isDark ? 'hover:bg-zinc-800/40 text-zinc-200' : 'hover:bg-[#cbd5e1]/30 text-slate-800'
-                    }`}
-                  >
-                    <div className="space-y-3 flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <Link
-                          to={`/track?code=${ticket.tracking_code}`}
-                          className={`font-mono font-bold px-2.5 py-1 rounded-lg border transition-colors ${
-                            isDark
-                              ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800 hover:bg-emerald-900/90'
-                              : 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
-                          }`}
-                        >
-                          {ticket.tracking_code}
-                        </Link>
-                        <PriorityBadge priority={ticket.priority} dark={isDark} />
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${
-                            ticket.status === 'IN_PROGRESS'
-                              ? isDark
-                                ? 'bg-blue-950/80 text-blue-400 border-blue-800'
-                                : 'bg-blue-100 text-blue-800 border-blue-300'
-                              : ticket.status === 'ESCALATED'
-                              ? isDark
-                                ? 'bg-rose-950/80 text-rose-400 border-rose-800 animate-pulse'
-                                : 'bg-rose-100 text-rose-800 border-rose-300 animate-pulse'
-                              : ticket.status === 'ON_HOLD'
-                              ? isDark
-                                ? 'bg-amber-950/80 text-amber-400 border-amber-800'
-                                : 'bg-amber-100 text-amber-800 border-amber-300'
-                              : ticket.status === 'RESOLVED'
-                              ? isDark
-                                ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800'
-                                : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                              : isDark
-                              ? 'bg-zinc-800 text-zinc-300 border-zinc-700'
-                              : 'bg-slate-200 text-slate-700 border-slate-300'
-                          }`}
-                        >
-                          {ticket.status}
+                    <div>
+                      <h3 className="text-sm sm:text-base font-bold tracking-tight text-white">
+                        {ticket.title}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                        {ticket.description}
+                      </p>
+                    </div>
+
+                    {/* Location & Submitter info */}
+                    <div className="flex flex-wrap items-center gap-3 text-xs pt-1">
+                      <div className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-[#0b0f19] flex items-center gap-1.5 font-bold text-slate-200">
+                        <MapPin size={13} className="text-cyan-400" />
+                        <span>Location:</span>
+                        <span className="text-cyan-400 font-mono">{ticket.location}</span>
+                      </div>
+
+                      {ticket.student_name && (
+                        <div className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-[#0b0f19] flex items-center gap-1.5 text-[11px] text-slate-300">
+                          <User size={13} className="text-slate-400" />
+                          <span>Submitter:</span>
+                          <strong className="text-white">{ticket.student_name}</strong>
+                          {ticket.student_email && (
+                            <a
+                              href={`mailto:${ticket.student_email}?subject=Regarding Grievance ${ticket.tracking_code}`}
+                              className="ml-1 text-cyan-400 underline hover:text-cyan-300 font-mono"
+                              title="Click to email student"
+                            >
+                              {ticket.student_email}
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {ticket.resolution_notes && (
+                      <div className="mt-2 p-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-xs space-y-1">
+                        <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                          Audit Trail &amp; Repair Notes
+                        </div>
+                        <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed text-slate-300">
+                          {ticket.resolution_notes}
+                        </pre>
+                      </div>
+                    )}
+
+                    {isResolved && ticket.feedback_rating && (
+                      <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center gap-3 text-amber-300">
+                        <span className="text-base font-bold font-mono">★ {ticket.feedback_rating}/5</span>
+                        <span className="text-xs italic text-slate-300">
+                          "{ticket.feedback_comments || 'Student confirmed satisfaction with resolution.'}"
                         </span>
                       </div>
+                    )}
+                  </div>
 
-                      <div>
-                        <h3 className={`text-sm sm:text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-                          {ticket.title}
-                        </h3>
-                        <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-                          {ticket.description}
-                        </p>
+                  <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/[0.08]">
+                    {!isResolved ? (
+                      <div className="space-y-1 text-left sm:text-right">
+                        <span className="text-[10px] uppercase font-mono font-bold tracking-wider block text-slate-500">
+                          SLA Target Countdown
+                        </span>
+                        <SLACountdownTimer
+                          slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
+                          priority={ticket.priority}
+                          status={ticket.status}
+                          resolvedAt={ticket.resolved_at}
+                          dark={true}
+                        />
                       </div>
-
-                      {/* Prominent Physical Location & Contact Info */}
-                      <div className="flex flex-wrap items-center gap-3 text-xs pt-1">
-                        <div className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 font-bold ${
-                          isDark ? 'bg-zinc-800/80 border-zinc-700 text-zinc-200' : 'bg-white border-slate-300 text-slate-800'
-                        }`}>
-                          <span>📍 Location:</span>
-                          <span className="text-emerald-500">{ticket.location}</span>
-                        </div>
-
-                        {ticket.student_name && (
-                          <div className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 text-[11px] ${
-                            isDark ? 'bg-zinc-800/40 border-zinc-700 text-zinc-300' : 'bg-white border-slate-300 text-slate-700'
-                          }`}>
-                            <span>👤 Submitter:</span>
-                            <strong>{ticket.student_name}</strong>
-                            {ticket.student_email && (
-                              <a
-                                href={`mailto:${ticket.student_email}?subject=Regarding Grievance ${ticket.tracking_code}`}
-                                className="ml-1 text-emerald-500 underline hover:text-emerald-400 font-mono"
-                                title="Click to email student"
-                              >
-                                {ticket.student_email}
-                              </a>
-                            )}
-                          </div>
-                        )}
+                    ) : (
+                      <div className="space-y-1 text-left sm:text-right">
+                        <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-emerald-400 flex items-center sm:justify-end space-x-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span>Closed &amp; Verified</span>
+                        </span>
                       </div>
+                    )}
 
-                      {ticket.resolution_notes && (
-                        <div
-                          className={`mt-2 p-3 rounded-xl border text-xs space-y-1 ${
-                            isDark ? 'bg-[#0e1117] border-zinc-800 text-zinc-300' : 'bg-[#e2e8f0] border-slate-300 text-slate-800 shadow-2xs'
-                          }`}
+                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                      {(isSubmitted || isOnHold) && (
+                        <button
+                          type="button"
+                          onClick={() => handleStartWork(ticket)}
+                          className="px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition-all cursor-pointer flex items-center gap-1.5"
                         >
-                          <div className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                            Audit Trail &amp; Repair Notes
-                          </div>
-                          <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed">
-                            {ticket.resolution_notes}
-                          </pre>
-                        </div>
+                          <Play size={12} fill="currentColor" />
+                          <span>{isOnHold ? 'Resume Repair' : 'Commence Work'}</span>
+                        </button>
                       )}
 
-                      {/* Closed Loop Student Feedback Display */}
-                      {isResolved && ticket.feedback_rating && (
-                        <div className={`p-3 rounded-xl border flex items-center gap-3 ${
-                          isDark ? 'bg-amber-950/20 border-amber-800/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800'
-                        }`}>
-                          <span className="text-base font-bold">★ {ticket.feedback_rating}/5</span>
-                          <span className="text-xs italic">
-                            "{ticket.feedback_comments || 'Student confirmed satisfaction with resolution.'}"
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div
-                      className={`flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 ${
-                        isDark ? 'border-zinc-800' : 'border-slate-300'
-                      }`}
-                    >
-                      {!isResolved ? (
-                        <div className="space-y-1 text-left sm:text-right">
-                          <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                            SLA Target Countdown
-                          </span>
-                          <SLACountdownTimer
-                            slaDeadline={ticket.sla_deadline || ticket.target_resolution_date}
-                            priority={ticket.priority}
-                            status={ticket.status}
-                            resolvedAt={ticket.resolved_at}
-                            dark={isDark}
-                          />
-                        </div>
-                      ) : (
-                        <div className="space-y-1 text-left sm:text-right">
-                          <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500 flex items-center sm:justify-end space-x-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span>Closed &amp; Verified</span>
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                        {(isSubmitted || isOnHold) && (
+                      {isInProgress && (
+                        <>
                           <button
                             type="button"
-                            onClick={() => handleStartWork(ticket)}
-                            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                            onClick={() => setHoldingTicket(ticket)}
+                            className="px-3 py-2 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
                           >
-                            ▶ {isOnHold ? 'Resume Repair' : 'Commence Work'}
+                            <Pause size={12} fill="currentColor" />
+                            <span>Hold (Parts)</span>
                           </button>
-                        )}
 
-                        {isInProgress && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => setHoldingTicket(ticket)}
-                              className="px-3 py-2 bg-amber-700/80 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
-                            >
-                              ⏳ Hold (Parts)
-                            </button>
+                          <button
+                            type="button"
+                            onClick={() => setResolvingTicket(ticket)}
+                            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/20 transition-all cursor-pointer flex items-center gap-1.5"
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>Complete &amp; Log</span>
+                          </button>
+                        </>
+                      )}
 
-                            <button
-                              type="button"
-                              onClick={() => setResolvingTicket(ticket)}
-                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
-                            >
-                              ✓ Complete &amp; Log
-                            </button>
-                          </>
-                        )}
+                      {!isResolved && !isClosed && (
+                        isEscalated ? (
+                          <span className="px-3 py-2 text-xs font-mono font-bold rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping inline-block" />
+                            <span>Escalated to Supervisor</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEscalate(ticket)}
+                            className="px-3 py-2 text-xs font-semibold rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-all cursor-pointer flex items-center gap-1.5"
+                            title="Escalate to Supervisor for review or manual squad reassignment"
+                          >
+                            <ShieldAlert size={13} />
+                            <span>Escalate</span>
+                          </button>
+                        )
+                      )}
 
-                        {/* Escalate to Supervisor Button */}
-                        {!isResolved && !isClosed && (
-                          isEscalated ? (
-                            <span
-                              className={`px-3 py-2 text-xs font-bold rounded-xl border flex items-center gap-1.5 ${
-                                isDark
-                                  ? 'bg-rose-950/60 border-rose-800 text-rose-300'
-                                  : 'bg-rose-50 border-rose-300 text-rose-800'
-                              }`}
-                              title="Under supervisory review for manual reassignment"
-                            >
-                              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
-                              ⚠️ Escalated to Supervisor
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEscalate(ticket)}
-                              className={`px-3 py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
-                                isDark
-                                  ? 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-800/80 hover:border-rose-700'
-                                  : 'bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-300 shadow-2xs'
-                              }`}
-                              title="Escalate to Supervisor for review or manual squad reassignment"
-                            >
-                              <span>⚠️ Escalate to Supervisor</span>
-                            </button>
-                          )
-                        )}
-
-                        <Link
-                          to={`/track?code=${ticket.tracking_code}`}
-                          className={`px-3 py-2 text-xs font-bold rounded-xl border transition-colors text-center ${
-                            isDark
-                              ? 'bg-[#0e1117] hover:bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white'
-                              : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-800'
-                          }`}
-                        >
-                          Details
-                        </Link>
-                      </div>
+                      <Link
+                        to={`/track?code=${ticket.tracking_code}`}
+                        className="px-3 py-2 text-xs font-semibold rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors"
+                      >
+                        Details
+                      </Link>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Hold Reason Modal */}
@@ -777,40 +649,34 @@ export default function TechnicianWorkstation() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="hold-modal-title"
           onClick={(e) => {
             if (e.target === e.currentTarget) setHoldingTicket(null);
           }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
         >
-          <div className={`w-full max-w-md p-6 rounded-2xl border shadow-2xl space-y-4 animate-scale-up ${
-            isDark ? 'bg-[#161b22] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-          }`}>
-            <h3 id="hold-modal-title" className="text-base font-bold">Pause Work Order (Parts / Delay Gate)</h3>
+          <div className="w-full max-w-md p-6 rounded-3xl border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 shadow-2xl space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+            <h3 className="text-base font-bold text-white">Pause Work Order (Parts / Delay Gate)</h3>
             <p className="text-xs text-slate-400">
-              Provide the justification for pausing work order <strong>{holdingTicket.tracking_code}</strong> (e.g. required replacement parts or awaiting specialized tools).
+              Provide justification for pausing work order <strong>{holdingTicket.tracking_code}</strong>.
             </p>
             <form onSubmit={handleConfirmHold} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold mb-1">Reason / Required Inventory</label>
+                <label className="block font-semibold mb-1 text-slate-300">Reason / Required Inventory</label>
                 <textarea
                   rows={3}
                   required
                   value={holdReason}
                   onChange={(e) => setHoldReason(e.target.value)}
                   placeholder="e.g. Awaiting 3/4 inch brass gate valve from central store..."
-                  className={`w-full p-3 rounded-xl border text-xs focus:outline-none ${
-                    isDark ? 'bg-[#0e1117] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-                  }`}
+                  className="w-full p-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white focus:border-cyan-500/60 focus:outline-none"
                 />
               </div>
-              <div className="flex items-center justify-end gap-3 pt-2 border-t border-inherit">
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setHoldingTicket(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold border cursor-pointer ${
-                    isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-slate-100 text-slate-700 border-slate-300'
-                  }`}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -832,154 +698,100 @@ export default function TechnicianWorkstation() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="escalate-modal-title"
           onClick={(e) => {
             if (e.target === e.currentTarget) setEscalatingTicket(null);
           }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
         >
-          <div
-            className={`w-full max-w-lg p-6 sm:p-7 rounded-2xl border shadow-2xl space-y-4 animate-scale-up ${
-              isDark ? 'bg-[#161b22] border-zinc-700 text-zinc-100' : 'bg-white border-slate-300 text-slate-900'
-            }`}
-          >
+          <div className="w-full max-w-lg p-6 sm:p-7 rounded-3xl border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 shadow-2xl space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-rose-500 to-transparent" />
+
             <div className="flex items-start justify-between gap-4">
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border bg-rose-500/20 text-rose-400 border-rose-500/30">
+                <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400">
                   Supervisory Escalation Gate
                 </span>
-                <h3 id="escalate-modal-title" className="text-base font-black mt-1">
-                  Escalate Work Order to Supervisor
+                <h3 className="text-base font-black text-white mt-1">
+                  Escalate Work Order ({escalatingTicket.tracking_code})
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setEscalatingTicket(null)}
-                className={`p-1.5 rounded-lg transition-colors cursor-pointer text-xs ${
-                  isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
-                }`}
+                className="p-1 rounded-lg border border-white/[0.1] bg-white/[0.04] text-slate-400 hover:text-white cursor-pointer"
               >
-                ✕
+                <X size={15} />
               </button>
             </div>
 
-            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
-              Flag this ticket for immediate supervisory intervention. The Facility Admin can review your reason, override trade assignment, and manually reassign the ticket to the correct maintenance squad.
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Select an escalation scenario below to request manual reassignment or supervisor intervention:
             </p>
 
-            <div className={`p-3 rounded-xl border text-xs space-y-1 ${
-              isDark ? 'bg-zinc-800/40 border-zinc-700 text-zinc-300' : 'bg-slate-50 border-slate-200 text-slate-700'
-            }`}>
-              <div className="flex items-center justify-between">
-                <span className="font-mono font-bold text-emerald-400">{escalatingTicket.tracking_code}</span>
-                <span className="font-semibold text-[11px] opacity-75">{assignedSquad.name} ({assignedSquad.dept})</span>
-              </div>
-              <div className="font-bold truncate">{escalatingTicket.title}</div>
-              <div className="text-[11px] opacity-80">📍 {escalatingTicket.location || 'Campus'}</div>
+            {/* Escalation Presets */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              {ESCALATION_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => {
+                    setEscalateReason(preset.getText(escalatingTicket, assignedSquad));
+                    setSuggestedTargetDept(preset.defaultTarget);
+                  }}
+                  className="p-2.5 rounded-xl border border-white/[0.08] bg-[#0b0f19] hover:border-cyan-500/40 text-left transition-colors cursor-pointer"
+                >
+                  <div className="font-bold flex items-center gap-1.5 text-white">
+                    <span>{preset.icon}</span>
+                    <span>{preset.label}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-1 line-clamp-2">
+                    {preset.hint}
+                  </div>
+                </button>
+              ))}
             </div>
 
-            {/* Quick Reason Presets */}
-            <div className="space-y-1.5">
-              <label className={`block text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                Quick Select Escalation Reason
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                {ESCALATION_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => {
-                      setEscalateReason(preset.getText(escalatingTicket, assignedSquad));
-                      if (preset.defaultTarget) setSuggestedTargetDept(preset.defaultTarget);
-                    }}
-                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                      isDark
-                        ? 'bg-zinc-800/50 hover:bg-zinc-800 border-zinc-700 text-zinc-200 hover:border-rose-500/50'
-                        : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800 hover:border-rose-400'
-                    }`}
-                  >
-                    <div className="font-bold flex items-center gap-1.5 text-xs text-rose-500">
-                      <span>{preset.icon}</span>
-                      <span>{preset.label}</span>
-                    </div>
-                    <div className={`text-[10px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                      {preset.hint}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <form onSubmit={handleConfirmEscalate} className="space-y-4 text-xs pt-1">
+            <form onSubmit={handleConfirmEscalate} className="space-y-3.5 pt-2">
               <div>
-                <label className={`block font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                  Escalation Justification (Required)
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Escalation Justification &amp; Notes
                 </label>
                 <textarea
                   rows={3}
                   required
                   value={escalateReason}
                   onChange={(e) => setEscalateReason(e.target.value)}
-                  placeholder="Detail why this ticket requires supervisory review (e.g. misrouted trade, structural hazard, or specialized equipment needed)..."
-                  className={`w-full p-3 rounded-xl border text-xs focus:outline-none transition-colors ${
-                    isDark
-                      ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 focus:border-rose-500'
-                      : 'bg-white border-slate-300 text-slate-900 focus:border-rose-500 shadow-2xs'
-                  }`}
+                  className="w-full p-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs focus:border-cyan-500/60 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className={`block font-bold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                  Recommended Squad Trade (Optional suggestion for Supervisor)
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Recommended Target Squad (Optional)
                 </label>
-                <select
+                <input
+                  type="text"
                   value={suggestedTargetDept}
                   onChange={(e) => setSuggestedTargetDept(e.target.value)}
-                  className={`w-full p-2.5 rounded-xl border text-xs focus:outline-none ${
-                    isDark
-                      ? 'bg-[#0e1117] border-zinc-700 text-zinc-100 focus:border-rose-500'
-                      : 'bg-white border-slate-300 text-slate-900 focus:border-rose-500'
-                  }`}
-                >
-                  <option value="">-- Let Supervisor Decide Target Squad --</option>
-                  <option value="Carpentry (Structural Fixtures Crew)">Carpentry (Structural Fixtures Crew - Sports / Nets / Wooden Fixtures)</option>
-                  <option value="General Administration (Facilities & Civil Squad)">General Administration (Facilities &amp; Civil Infrastructure)</option>
-                  <option value="Electrical (Hostel Electrical Squad 1)">Electrical (Hostel Electrical Squad 1 - Power / Lighting / Motors)</option>
-                  <option value="Plumbing (Hostel Plumbing Squad 2)">Plumbing (Hostel Plumbing Squad 2 - Water / Drainage)</option>
-                  <option value="Sanitation (Sanitation Rapid Response)">Sanitation (Sanitation Rapid Response - Waste / Cleaning)</option>
-                  <option value="IT Support (Network & Wi-Fi Squad)">IT Support (Network &amp; Wi-Fi Squad - LAN / Access Points)</option>
-                </select>
+                  placeholder="e.g. Carpentry (Structural Fixtures Crew)"
+                  className="w-full px-3 py-2 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs font-mono focus:border-cyan-500/60 focus:outline-none"
+                />
               </div>
 
-              {error && (
-                <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-semibold">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex items-center justify-end gap-3 pt-2 border-t border-inherit">
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setEscalatingTicket(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
-                    isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700' : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                  }`}
+                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingEscalate}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white cursor-pointer shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-all"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs font-bold shadow-lg shadow-rose-600/25 transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {submittingEscalate ? (
-                    <span>Escalating...</span>
-                  ) : (
-                    <>
-                      <span>⚠️ Confirm Escalation to Supervisor</span>
-                    </>
-                  )}
+                  {submittingEscalate ? 'Escalating...' : 'Submit Escalation to Directorate'}
                 </button>
               </div>
             </form>
@@ -987,12 +799,13 @@ export default function TechnicianWorkstation() {
         </div>
       )}
 
+      {/* Resolution Notes Modal */}
       {resolvingTicket && (
         <ResolutionNotesModal
-          isOpen={!!resolvingTicket}
+          isOpen={Boolean(resolvingTicket)}
           ticket={resolvingTicket}
           onClose={() => setResolvingTicket(null)}
-          onResolved={handleTicketResolved}
+          onSuccess={handleTicketResolved}
         />
       )}
     </div>
