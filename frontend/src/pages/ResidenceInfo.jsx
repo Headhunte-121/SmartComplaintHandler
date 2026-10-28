@@ -1,10 +1,6 @@
 /**
  * SmartComplaintHandler - Dedicated First-Time Residence Onboarding Page
- * High-Density Obsidian Command Desk Standard:
- *  - Deep Space Obsidian canvas (#090d14)
- *  - Translucent glassmorphic onboarding card with cyan telemetry accents
- *  - High-density hostel, floor, and room selector with quick-select pills
- *  - Verification badge for active B.Tech scholars
+ * Glossy Obsidian Command Desk Standard with Smoked Black Glass
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -158,45 +154,36 @@ export default function ResidenceInfo() {
         phone: phone.trim() || undefined,
       });
 
-      localStorage.setItem(`iiitnr_residence_completed_${cleanEmail}`, 'true');
+      try {
+        localStorage.setItem(`iiitnr_residence_completed_${cleanEmail}`, 'true');
+      } catch (_) {}
 
       setSavedSuccess(true);
       setTimeout(() => {
         navigate('/submit', { replace: true });
-      }, 900);
+      }, 1000);
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Failed to update residence details.');
+      setError(err.message || 'Failed to save residence info.');
+    } finally {
       setLoading(false);
     }
   };
 
   const handleSkipOrProceed = () => {
-    localStorage.setItem(`iiitnr_residence_completed_${cleanEmail}`, 'true');
     navigate('/submit', { replace: true });
   };
 
-  if (authInitializing || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#090d14] text-slate-400 text-sm">
-        <div className="flex items-center space-x-3">
-          <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-          <span className="font-mono text-xs uppercase tracking-wider text-cyan-400">Verifying student profile...</span>
-        </div>
-      </div>
-    );
-  }
+  if (!currentUser) return null;
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30">
-      {/* Ambient background glows */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 right-1/4 w-[450px] h-[450px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-35 pointer-events-none" />
+    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white">
+      {/* Subtle Specular Ambient */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
 
       <div className="relative z-10 w-full max-w-lg space-y-6">
-        {/* Header Branding */}
+        {/* Emblem & Institutional Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.1] shadow-2xl backdrop-blur-md">
+          <div className="relative inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.12] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_6px_20px_rgba(0,0,0,0.5)]">
             <img
               src="/iiitnr_logo.png"
               alt="IIIT Naya Raipur"
@@ -204,34 +191,34 @@ export default function ResidenceInfo() {
             />
           </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border bg-cyan-500/10 border-cyan-500/25 text-cyan-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               Mandatory Residence Setup
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
               Hostel &amp; Residence Details
             </h1>
-            <p className="text-xs font-mono text-slate-400 tracking-wide">
+            <p className="text-xs font-mono text-zinc-400 tracking-wide">
               One-time verification for IIIT-NR undergraduate B.Tech scholars
             </p>
           </div>
         </div>
 
-        {/* Bento Main Card */}
-        <div className="rounded-3xl border border-white/[0.08] bg-[#0e131f]/85 backdrop-blur-xl p-6 sm:p-8 space-y-5 relative overflow-hidden shadow-2xl shadow-black/80">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+        {/* Smoked Black Glass Main Card */}
+        <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-6 sm:p-8 space-y-5 relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+          <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
           {/* Already Completed Banner */}
           {alreadyCompleted && (
-            <div className="p-3.5 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-xs flex items-center justify-between text-cyan-300">
+            <div className="p-3.5 rounded-xl border border-white/20 bg-white/[0.05] text-xs flex items-center justify-between text-zinc-200">
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-cyan-400 shrink-0" />
+                <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
                 <span>Your residence info is already verified. You may update it below or proceed.</span>
               </div>
               <button
                 type="button"
                 onClick={handleSkipOrProceed}
-                className="px-2.5 py-1 text-[11px] font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg transition-colors cursor-pointer shrink-0"
+                className="px-2.5 py-1 text-[11px] font-bold bg-white text-black hover:bg-zinc-200 rounded-lg transition-colors cursor-pointer shrink-0"
               >
                 Proceed →
               </button>
@@ -239,26 +226,26 @@ export default function ResidenceInfo() {
           )}
 
           {error && (
-            <div className="p-3.5 rounded-xl border border-rose-800/80 bg-rose-950/60 text-xs font-semibold text-rose-300 flex items-center gap-2">
+            <div className="p-3.5 rounded-xl border border-rose-500/40 bg-rose-950/50 text-xs font-semibold text-rose-300 flex items-center gap-2">
               <AlertTriangle size={16} className="text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {savedSuccess && (
-            <div className="p-3.5 rounded-xl border border-emerald-800/80 bg-emerald-950/80 text-xs font-bold text-emerald-200 flex items-center gap-2 animate-fade-in">
+            <div className="p-3.5 rounded-xl border border-emerald-500/40 bg-emerald-950/60 text-xs font-bold text-emerald-200 flex items-center gap-2 animate-fade-in">
               <CheckCircle2 size={16} className="text-emerald-400" />
               <span>Residence verified successfully! Redirecting to Campus Portal...</span>
             </div>
           )}
 
           {/* Student Verified Roll Card */}
-          <div className="p-4 rounded-2xl border border-white/[0.08] bg-[#0b0f19] space-y-2">
+          <div className="p-4 rounded-xl border border-white/[0.08] bg-[#07080c] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
                 Student Account
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/20 bg-white/[0.06] text-white uppercase tracking-wider">
                 <GraduationCap size={12} />
                 <span>Undergrad Scholar</span>
               </span>
@@ -269,15 +256,15 @@ export default function ResidenceInfo() {
                 <div className="text-sm font-bold text-white">
                   {currentUser.name || studentMeta?.name || 'IIIT-NR Student'}
                 </div>
-                <div className="text-xs font-mono text-slate-400">
+                <div className="text-xs font-mono text-zinc-400">
                   {currentUser.email}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xs font-bold text-cyan-400 font-mono">
+                <div className="text-xs font-bold text-white font-mono">
                   {currentUser.department || studentMeta?.department_name || 'B.Tech Program'}
                 </div>
-                <div className="text-[11px] text-slate-500 font-mono">
+                <div className="text-[11px] text-zinc-500 font-mono">
                   Institutional Resident
                 </div>
               </div>
@@ -287,45 +274,45 @@ export default function ResidenceInfo() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Hostel Residence House <span className="text-cyan-400">*</span>
+              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                Hostel Residence House <span className="text-white">*</span>
               </label>
               <select
                 value={selectedHostel}
                 onChange={(e) => handleHostelChange(e.target.value)}
-                className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white px-3.5 py-2.5 text-xs sm:text-sm focus:border-cyan-500/60 focus:outline-none transition-all"
+                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white px-3.5 py-2.5 text-xs sm:text-sm focus:border-white/30 focus:outline-none transition-all"
               >
                 {hostels.map((h) => (
-                  <option key={h.id} value={h.name} className="bg-[#0e131f] text-white">
+                  <option key={h.id} value={h.name} className="bg-[#050608] text-white">
                     {h.name}
                   </option>
                 ))}
-                <option value="Day Scholar (Off-Campus)" className="bg-[#0e131f] text-white">
+                <option value="Day Scholar (Off-Campus)" className="bg-[#050608] text-white">
                   Day Scholar (Off-Campus Commuter)
                 </option>
               </select>
             </div>
 
             {selectedHostel !== 'Day Scholar (Off-Campus)' && (
-              <div className="p-3.5 rounded-2xl border border-white/[0.08] bg-[#0b0f19] space-y-3">
+              <div className="p-3.5 rounded-xl border border-white/[0.08] bg-[#07080c] space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                      Floor <span className="text-cyan-400">*</span>
+                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                      Floor <span className="text-white">*</span>
                     </label>
                     <select
                       value={selectedFloor}
                       onChange={(e) => handleFloorChange(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.08] bg-[#0e131f] text-white px-3 py-2 text-xs focus:border-cyan-500/60"
+                      className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white px-3 py-2 text-xs focus:border-white/30"
                     >
                       {availableFloors.length > 0 ? (
                         availableFloors.map((f) => (
-                          <option key={f.id} value={f.id} className="bg-[#0e131f] text-white">
+                          <option key={f.id} value={f.id} className="bg-[#050608] text-white">
                             {f.label}
                           </option>
                         ))
                       ) : (
-                        <option value="1" className="bg-[#0e131f] text-white">
+                        <option value="1" className="bg-[#050608] text-white">
                           Floor 1
                         </option>
                       )}
@@ -333,8 +320,8 @@ export default function ResidenceInfo() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                      Room Number <span className="text-cyan-400">*</span>
+                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                      Room Number <span className="text-white">*</span>
                     </label>
                     <input
                       type="text"
@@ -343,7 +330,7 @@ export default function ResidenceInfo() {
                       placeholder="e.g. Room 204"
                       value={selectedRoomNumber}
                       onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.08] bg-[#0e131f] text-white placeholder-slate-500 px-3 py-2 text-xs font-mono focus:border-cyan-500/60 focus:outline-none"
+                      className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3 py-2 text-xs font-mono focus:border-white/30 focus:outline-none"
                     />
                     <datalist id="res-room-options">
                       {filteredRooms.map((r) => (
@@ -355,7 +342,7 @@ export default function ResidenceInfo() {
 
                 {filteredRooms.length > 0 && (
                   <div className="pt-1">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider block mb-1.5 text-slate-500">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider block mb-1.5 text-zinc-500">
                       Quick Select ({availableFloors.find((f) => String(f.id) === String(selectedFloor))?.label || `Floor ${selectedFloor}`}):
                     </span>
                     <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
@@ -366,8 +353,8 @@ export default function ResidenceInfo() {
                           onClick={() => setSelectedRoomNumber(r)}
                           className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors cursor-pointer border ${
                             selectedRoomNumber === r
-                              ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-bold'
-                              : 'bg-white/[0.03] text-slate-300 border-white/[0.08] hover:border-cyan-500/40'
+                              ? 'bg-white text-black border-white font-bold'
+                              : 'bg-[#050608] text-zinc-300 border-white/[0.08] hover:border-white/20'
                           }`}
                         >
                           {r}
@@ -381,17 +368,17 @@ export default function ResidenceInfo() {
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-zinc-300">
                   Contact Phone Number
                 </label>
-                <span className="text-[10px] font-mono text-slate-500">Optional for SMS/Delivery</span>
+                <span className="text-[10px] font-mono text-zinc-500">Optional for SMS/Delivery</span>
               </div>
               <input
                 type="tel"
                 placeholder="+91 98765 43210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-2.5 text-xs font-mono focus:border-cyan-500/60 focus:outline-none"
+                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-2.5 text-xs font-mono focus:border-white/30 focus:outline-none"
               />
             </div>
 
@@ -399,13 +386,13 @@ export default function ResidenceInfo() {
               <button
                 type="submit"
                 disabled={loading || savedSuccess}
-                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2"
+                className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 <span>{loading ? 'Saving Residence...' : 'Save Residence & Enter Portal →'}</span>
               </button>
 
               <div className="text-center pt-2">
-                <p className="text-[11px] font-mono text-slate-500">
+                <p className="text-[11px] font-mono text-zinc-500">
                   This confirmation is requested only once. You can update your room later in Profile Settings.
                 </p>
               </div>
@@ -414,10 +401,10 @@ export default function ResidenceInfo() {
 
           {/* Footer Navigation */}
           <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-mono text-[11px]">Logged in as {currentUser.email}</span>
+            <span className="text-zinc-500 font-mono text-[11px]">Logged in as {currentUser.email}</span>
             <Link
               to="/submit"
-              className="transition-colors text-[11px] font-mono text-cyan-400 hover:text-cyan-300"
+              className="transition-colors text-[11px] font-mono text-zinc-300 hover:text-white underline"
             >
               Skip to Lodge Grievance →
             </Link>

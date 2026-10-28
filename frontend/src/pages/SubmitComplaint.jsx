@@ -1,11 +1,6 @@
 /**
  * SmartComplaintHandler - Submit Maintenance Request Workstation
- * High-Density Obsidian Command Desk Standard:
- *  - Seamless Deep Space Obsidian canvas (#090d14)
- *  - Translucent glassmorphic surfaces (bg-[#0e131f]/80 border-white/[0.08])
- *  - 3-Mode Location Segmented Selector (🏠 My Room, 🔍 Omni-Search, 🗺️ Browse / Map)
- *  - Real-time client-side NLP triage & dynamic SLA commitment panel
- *  - Integrated GIS Campus Digital Twin map picker dialog
+ * Glossy Obsidian Command Desk Standard with Smoked Black Glass
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -213,20 +208,23 @@ export default function SubmitComplaint() {
   const resolvedRoomLabel = customRoomOverride.trim() || specificLocation;
 
   return (
-    <div className="w-full min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="w-full min-h-screen bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
+      {/* Subtle Specular Ambient */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
+
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border bg-cyan-500/10 border-cyan-500/25 text-cyan-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               Service Dispatch Active
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
             Submit Maintenance Request
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-zinc-400">
             Specify the campus location and problem description. NLP triage auto-routes to the responsible squad.
           </p>
         </div>
@@ -235,14 +233,14 @@ export default function SubmitComplaint() {
           <button
             type="button"
             onClick={() => setIsMapModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-cyan-400 hover:text-cyan-300 font-semibold text-xs transition cursor-pointer flex items-center gap-2"
+            className="px-3.5 py-2 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/30 text-white font-semibold text-xs transition cursor-pointer flex items-center gap-2 shadow-xs"
           >
             <Compass size={15} />
             <span>Digital Twin Map</span>
           </button>
           <Link
             to="/student"
-            className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white font-semibold text-xs transition flex items-center gap-2"
+            className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-semibold text-xs transition flex items-center gap-2"
           >
             <span>My Requests</span>
             <ArrowRight size={14} />
@@ -251,25 +249,25 @@ export default function SubmitComplaint() {
       </div>
 
       {/* Main Workstation Layout */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="relative z-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Main Request Form */}
         <form
           onSubmit={handleSubmit}
-          className="lg:col-span-7 xl:col-span-8 p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md relative shadow-2xl"
+          className="lg:col-span-7 xl:col-span-8 p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl relative shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] overflow-hidden"
         >
-          {/* Top subtle glow line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+          {/* Specular Top Rim */}
+          <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
           {error && (
-            <div className="rounded-xl p-3.5 text-xs font-semibold border bg-rose-950/60 border-rose-800/80 text-rose-300 flex items-start gap-2">
+            <div className="rounded-xl p-3.5 text-xs font-semibold border bg-rose-950/50 border-rose-500/40 text-rose-300 flex items-start gap-2 shadow-inner">
               <AlertTriangle size={15} className="text-rose-400 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {residenceSavedNotice && (
-            <div className="rounded-xl p-3 text-xs font-bold border bg-cyan-950/60 border-cyan-800 text-cyan-300 flex items-center gap-2">
-              <CheckCircle2 size={15} className="text-cyan-400" />
+            <div className="rounded-xl p-3 text-xs font-bold border bg-emerald-950/40 border-emerald-500/40 text-emerald-300 flex items-center gap-2 shadow-inner">
+              <CheckCircle2 size={15} className="text-emerald-400" />
               <span>{residenceSavedNotice}</span>
             </div>
           )}
@@ -278,7 +276,7 @@ export default function SubmitComplaint() {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <span className="w-7 h-7 rounded-xl bg-white/[0.08] border border-white/20 text-white font-mono text-xs font-black flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                   1
                 </span>
                 <span className="text-sm font-black tracking-tight text-white">
@@ -287,14 +285,14 @@ export default function SubmitComplaint() {
               </div>
 
               {/* 3-Mode Segmented Pill Bar */}
-              <div className="inline-flex items-center p-1.5 rounded-2xl border border-white/[0.08] bg-[#0b0f19] gap-1 shadow-inner">
+              <div className="inline-flex items-center p-1.5 rounded-2xl border border-white/[0.1] bg-[#050608] gap-1 shadow-inner">
                 <button
                   type="button"
                   onClick={handleUseMySavedRoom}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'MY_ROOM'
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                      : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
                   <HomeIcon size={13} />
@@ -305,8 +303,8 @@ export default function SubmitComplaint() {
                   onClick={() => setLocationMode('SEARCH')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'SEARCH'
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                      : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
                   <Search size={13} />
@@ -317,8 +315,8 @@ export default function SubmitComplaint() {
                   onClick={() => setLocationMode('BROWSE')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'BROWSE'
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                      : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
                   <Layers size={13} />
@@ -329,25 +327,25 @@ export default function SubmitComplaint() {
 
             {/* MODE A: 1-Tap My Saved Room Card */}
             {locationMode === 'MY_ROOM' && (
-              <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0b0f19] hover:border-white/[0.14] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-5 rounded-2xl border border-white/[0.1] bg-[#07080c] hover:border-white/20 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
                 <div className="flex items-start sm:items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-white/20 bg-white/[0.05] text-white shadow-inner">
                     <HomeIcon size={22} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md font-bold border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md font-bold border border-white/20 bg-white/[0.06] text-white">
                         Default Residence
                       </span>
-                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/[0.08] bg-white/[0.04] text-slate-300">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/[0.08] bg-white/[0.04] text-zinc-300">
                         {activeBuildingObj?.mapPin?.badge || 'HOSTEL'}
                       </span>
                     </div>
                     <div className="text-base font-black mt-1 text-white">
                       {activeBuildingObj?.name || savedHostel}
                     </div>
-                    <div className="text-xs font-mono font-bold mt-0.5 flex items-center gap-1.5 text-cyan-400">
-                      <MapPin size={12} />
+                    <div className="text-xs font-mono font-bold mt-0.5 flex items-center gap-1.5 text-zinc-300">
+                      <MapPin size={12} className="text-white" />
                       <span>{resolvedRoomLabel}</span>
                     </div>
                   </div>
@@ -357,156 +355,139 @@ export default function SubmitComplaint() {
                   <button
                     type="button"
                     onClick={() => setLocationMode('SEARCH')}
-                    className="px-3 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-semibold transition cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
                   >
-                    Search Other Spot
+                    Change Room
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsMapModalOpen(true)}
-                    className="px-3 py-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl border border-white/[0.12] bg-white/[0.06] hover:bg-white/[0.1] text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Compass size={13} />
-                    <span>Pick on Map</span>
+                    <span>View Map</span>
                   </button>
                 </div>
               </div>
             )}
 
-            {/* MODE B: Inline Omni-Search */}
+            {/* MODE B: Live Instant Omni-Search */}
             {locationMode === 'SEARCH' && (
-              <div className="space-y-3 p-4 rounded-2xl border border-white/[0.08] bg-[#0b0f19]">
+              <div className="space-y-3 p-5 rounded-2xl border border-white/[0.1] bg-[#07080c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
                 <div className="relative">
+                  <Search size={16} className="absolute left-3.5 top-3 text-zinc-500" />
                   <input
                     type="text"
+                    autoFocus
+                    placeholder="Search any classroom, lab, auditorium, court, RO cooler (e.g. 303, AI Lab, Ground)..."
                     value={spotQuery}
                     onChange={(e) => setSpotQuery(e.target.value)}
-                    placeholder="Search room number, lab, or block (e.g. '303', '131C', 'VLSI', 'Canteen', 'Room 204')..."
-                    className="w-full px-4 py-2.5 pl-9 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white placeholder-slate-500 text-xs sm:text-sm font-sans focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 text-xs sm:text-sm font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
                   />
-                  <Search size={15} className="absolute left-3 top-3 text-cyan-400" />
                   {spotQuery && (
                     <button
                       type="button"
                       onClick={() => setSpotQuery('')}
-                      className="absolute right-3 top-2.5 text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
+                      className="absolute right-3 top-3 text-xs text-zinc-500 hover:text-white cursor-pointer"
                     >
-                      <X size={14} />
+                      Clear
                     </button>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider shrink-0 font-bold text-slate-500">
-                    Popular:
+                {/* Quick chip shortcuts */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">
+                    Quick Spots:
                   </span>
                   {QUICK_SPOT_CHIPS.map((chip) => (
                     <button
-                      key={chip.query}
+                      key={chip.label}
                       type="button"
-                      onClick={() => {
-                        const matches = queryCampusSearchIndex(chip.query, searchIndex, 1);
-                        if (matches.length > 0) handlePickSpotResult(matches[0]);
-                      }}
-                      className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:border-cyan-500/40 text-slate-300 hover:text-white text-xs font-medium shrink-0 cursor-pointer transition"
+                      onClick={() => setSpotQuery(chip.query)}
+                      className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-[11px] text-zinc-300 hover:text-white transition-colors cursor-pointer"
                     >
                       {chip.label}
                     </button>
                   ))}
                 </div>
 
-                {spotQuery.trim().length > 0 && (
-                  <div className="rounded-xl border border-white/[0.08] bg-[#0e131f] divide-y divide-white/[0.04] max-h-60 overflow-y-auto shadow-2xl">
+                {/* Search Results Drawer */}
+                {spotQuery.trim() && (
+                  <div className="space-y-1.5 max-h-56 overflow-y-auto pt-1">
                     {spotResults.length === 0 ? (
-                      <div className="p-4 text-center text-xs text-slate-400">
-                        No matching room or building found. Use Browse mode for custom spots.
+                      <div className="p-3 text-center text-xs text-zinc-500">
+                        No campus spot matches &quot;{spotQuery}&quot;. Try room numbers like 101, 204 or &apos;Lab&apos;.
                       </div>
                     ) : (
-                      spotResults.map((item, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
+                      spotResults.map((item) => (
+                        <div
+                          key={`${item.buildingId}-${item.title}`}
                           onClick={() => handlePickSpotResult(item)}
-                          className="w-full text-left px-3.5 py-2.5 hover:bg-white/[0.04] transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                          className="p-2.5 rounded-xl border border-white/[0.06] bg-[#050608] hover:bg-white/[0.05] hover:border-white/20 transition-all cursor-pointer flex items-center justify-between gap-3 text-xs"
                         >
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-                                {item.badge}
-                              </span>
-                              <span className="text-xs font-bold text-white">
-                                {item.title}
-                              </span>
-                            </div>
-                            <p className="text-[11px] mt-0.5 text-slate-400">{item.subtitle}</p>
+                          <div className="min-w-0">
+                            <span className="font-bold text-white block truncate">
+                              {item.title}
+                            </span>
+                            <span className="text-[11px] text-zinc-400 block truncate">
+                              {item.buildingName} {item.floorLabel ? `· ${item.floorLabel}` : ''}
+                            </span>
                           </div>
-                          <span className="text-[11px] font-mono font-bold shrink-0 text-cyan-400">
-                            Select →
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono border border-white/20 bg-white/[0.05] text-white shrink-0">
+                            Select
                           </span>
-                        </button>
+                        </div>
                       ))
                     )}
                   </div>
                 )}
 
-                <div className="p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/5 flex items-center justify-between gap-2 text-xs">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] uppercase border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-                      Locked In
-                    </span>
-                    <span className="font-bold text-white">
-                      {activeBuildingObj?.shortName || building}
-                    </span>
-                    <span className="text-slate-600">·</span>
-                    <span className="font-mono font-bold text-cyan-400">
-                      {resolvedRoomLabel}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsMapModalOpen(true)}
-                    className="text-[11px] font-bold text-cyan-400 hover:underline shrink-0 cursor-pointer"
-                  >
-                    View on Map →
-                  </button>
+                {/* Selected Result Lock */}
+                <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs">
+                  <span className="text-zinc-400">Locked In:</span>
+                  <span className="font-mono font-bold text-white flex items-center gap-1.5">
+                    <MapPin size={12} className="text-emerald-400" />
+                    <span>{activeBuildingObj?.shortName || building} · {resolvedRoomLabel}</span>
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* MODE C: Browse Building, Floor & Room */}
+            {/* MODE C: Hierarchical Dropdown Cascade & Map Modal */}
             {locationMode === 'BROWSE' && (
-              <div className="space-y-3.5 p-4 rounded-2xl border border-white/[0.08] bg-[#0b0f19]">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="space-y-4 p-5 rounded-2xl border border-white/[0.1] bg-[#07080c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                   <div className="sm:col-span-2">
                     <div className="flex items-center justify-between mb-1.5">
-                      <label htmlFor="building" className="block text-xs font-semibold text-slate-300">
-                        Hostel or Campus Building
+                      <label htmlFor="buildingSelect" className="block text-xs font-semibold text-zinc-300">
+                        Campus Facility / Building
                       </label>
                       <button
                         type="button"
                         onClick={() => setIsMapModalOpen(true)}
-                        className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 cursor-pointer flex items-center gap-1"
+                        className="text-xs font-semibold text-white hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <Compass size={12} />
-                        <span>Pick visually on Map →</span>
+                        <span>Pick on Map</span>
                       </button>
                     </div>
                     <select
-                      id="building"
-                      value={activeBuildingObj?.name || ''}
+                      id="buildingSelect"
+                      value={building}
                       onChange={(e) => handleSelectBuilding(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-500/60"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
                     >
-                      <optgroup label="Hostels" className="bg-[#0e131f] text-white">
+                      <optgroup label="Hostels" className="bg-[#050608] text-white">
                         {hostelsList.map((h) => (
-                          <option key={h.id} value={h.name} className="bg-[#0e131f] text-white">
+                          <option key={h.id} value={h.name} className="bg-[#050608] text-white">
                             {h.name}
                           </option>
                         ))}
                       </optgroup>
-                      <optgroup label="Academic, Labs & Campus" className="bg-[#0e131f] text-white">
+                      <optgroup label="Academic, Labs & Campus" className="bg-[#050608] text-white">
                         {nonHostelsList.map((b) => (
-                          <option key={b.id} value={b.name} className="bg-[#0e131f] text-white">
+                          <option key={b.id} value={b.name} className="bg-[#050608] text-white">
                             {b.name}
                           </option>
                         ))}
@@ -515,7 +496,7 @@ export default function SubmitComplaint() {
                   </div>
 
                   <div>
-                    <label htmlFor="floorSelect" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    <label htmlFor="floorSelect" className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       Floor
                     </label>
                     <select
@@ -530,16 +511,16 @@ export default function SubmitComplaint() {
                           setCustomRoomOverride('');
                         }
                       }}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-500/60"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
                     >
                       {availableFloors.length > 0 ? (
                         availableFloors.map((f) => (
-                          <option key={f.id} value={f.id} className="bg-[#0e131f] text-white">
+                          <option key={f.id} value={f.id} className="bg-[#050608] text-white">
                             {f.label}
                           </option>
                         ))
                       ) : (
-                        <option value="None" className="bg-[#0e131f] text-white">
+                        <option value="None" className="bg-[#050608] text-white">
                           None
                         </option>
                       )}
@@ -547,17 +528,17 @@ export default function SubmitComplaint() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       Campus Zone / Coordinates
                     </label>
-                    <div className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] font-mono text-xs flex items-center justify-between text-slate-300">
-                      <span className="font-bold text-cyan-400">{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
-                      <span className="text-[11px] truncate max-w-[180px] text-slate-500">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
+                    <div className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#050608] font-mono text-xs flex items-center justify-between text-zinc-300">
+                      <span className="font-bold text-white">{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
+                      <span className="text-[11px] truncate max-w-[180px] text-zinc-500">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
                     </div>
                   </div>
 
                   <div>
-                    <label htmlFor="specificLocation" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    <label htmlFor="specificLocation" className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       Room / Lab / Utility
                     </label>
                     <select
@@ -567,16 +548,16 @@ export default function SubmitComplaint() {
                         setSpecificLocation(e.target.value);
                         setCustomRoomOverride('');
                       }}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-500/60"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
                     >
                       {availableRooms.length > 0 ? (
                         availableRooms.map((rm) => (
-                          <option key={rm} value={rm} className="bg-[#0e131f] text-white">
+                          <option key={rm} value={rm} className="bg-[#050608] text-white">
                             {rm}
                           </option>
                         ))
                       ) : (
-                        <option value="None" className="bg-[#0e131f] text-white">
+                        <option value="None" className="bg-[#050608] text-white">
                           None
                         </option>
                       )}
@@ -584,7 +565,7 @@ export default function SubmitComplaint() {
                   </div>
 
                   <div>
-                    <label htmlFor="customRoomOverride" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    <label htmlFor="customRoomOverride" className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       Specific Spot (Optional)
                     </label>
                     <input
@@ -593,7 +574,7 @@ export default function SubmitComplaint() {
                       placeholder="e.g. Near Balcony, Tap #2"
                       value={customRoomOverride}
                       onChange={(e) => setCustomRoomOverride(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0e131f] text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-cyan-500/60"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 text-xs sm:text-sm focus:outline-none focus:border-white/30"
                     />
                   </div>
                 </div>
@@ -603,7 +584,7 @@ export default function SubmitComplaint() {
                     <button
                       type="button"
                       onClick={handleSaveCurrentAsMyRoom}
-                      className="text-xs font-bold px-3 py-1.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 transition-colors cursor-pointer"
+                      className="text-xs font-bold px-3 py-1.5 rounded-lg border border-white/20 bg-white/[0.05] hover:bg-white/[0.1] text-white transition-colors cursor-pointer"
                     >
                       Set as My Default Room
                     </button>
@@ -619,14 +600,14 @@ export default function SubmitComplaint() {
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-mono text-xs font-black flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <span className="w-7 h-7 rounded-xl bg-white/[0.08] border border-white/20 text-white font-mono text-xs font-black flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                   2
                 </span>
                 <span className="text-sm font-black tracking-tight text-white">
                   Issue Description
                 </span>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 px-2.5 py-0.5 rounded-lg font-bold">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono border border-white/20 bg-white/[0.05] text-zinc-200 px-2.5 py-0.5 rounded-lg font-bold">
                 <Sparkles size={11} />
                 <span>AI Auto-Triage Active</span>
               </span>
@@ -634,10 +615,10 @@ export default function SubmitComplaint() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="title" className="block text-xs font-semibold text-slate-300">
+                <label htmlFor="title" className="block text-xs font-semibold text-zinc-300">
                   Issue Summary
                 </label>
-                <span className="text-[11px] font-mono text-slate-500">
+                <span className="text-[11px] font-mono text-zinc-500">
                   {title.trim().length}/150
                 </span>
               </div>
@@ -651,17 +632,17 @@ export default function SubmitComplaint() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={submitting}
-                className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 text-sm focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 text-sm focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 transition-all"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="description" className="block text-xs font-semibold text-slate-300">
+                <label htmlFor="description" className="block text-xs font-semibold text-zinc-300">
                   Details &amp; Observations
                 </label>
                 <span className={`text-[11px] font-mono font-bold ${
-                  description.trim().length >= 10 ? 'text-cyan-400' : 'text-slate-500'
+                  description.trim().length >= 10 ? 'text-emerald-400' : 'text-zinc-500'
                 }`}>
                   {description.trim().length >= 10 ? '✓ Ready for Auto-Triage' : 'Min 10 chars'}
                 </span>
@@ -675,7 +656,7 @@ export default function SubmitComplaint() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={submitting}
-                className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 text-sm resize-none leading-relaxed focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 text-sm resize-none leading-relaxed focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 transition-all"
               />
             </div>
           </div>
@@ -683,7 +664,7 @@ export default function SubmitComplaint() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 px-6 rounded-xl bg-white hover:bg-zinc-200 text-black font-extrabold text-sm shadow-[0_2px_16px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting
               ? 'Submitting to Dispatch...'
@@ -696,19 +677,21 @@ export default function SubmitComplaint() {
           <LiveTriageCard title={title} description={description} />
 
           {/* Dispatch Target Card */}
-          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl relative overflow-hidden shadow-xl">
+          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+            <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
+              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-zinc-400">
                 Dispatch Target
               </span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 font-bold">
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg border border-white/20 bg-white/[0.05] text-zinc-200 font-bold">
                   {activeBuildingObj?.mapPin?.badge || 'BLDG'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(true)}
-                  className="text-[11px] font-bold text-cyan-400 hover:underline cursor-pointer"
+                  className="text-[11px] font-bold text-white hover:underline cursor-pointer"
                 >
                   Change on Map →
                 </button>
@@ -717,34 +700,36 @@ export default function SubmitComplaint() {
             <div className="font-black text-sm text-white">
               {activeBuildingObj?.name || building}
             </div>
-            <div className="font-mono text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between border border-white/[0.06] bg-[#0b0f19] text-slate-200">
+            <div className="font-mono text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between border border-white/[0.08] bg-[#07080c] text-zinc-200">
               <span className="flex items-center gap-1.5">
-                <MapPin size={13} className="text-cyan-400" />
+                <MapPin size={13} className="text-white" />
                 <span>{resolvedRoomLabel}</span>
               </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 uppercase">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/20 bg-white/[0.05] text-white uppercase">
                 Verified ✓
               </span>
             </div>
           </div>
 
           {/* SLA Resolution Windows Matrix */}
-          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl shadow-xl">
+          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden">
+            <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
             <div className="flex items-center justify-between">
-              <span className="font-bold uppercase tracking-wider font-mono text-[10px] block text-slate-400">
+              <span className="font-bold uppercase tracking-wider font-mono text-[10px] block text-zinc-400">
                 SLA Resolution Windows
               </span>
-              <span className="text-[10px] font-mono font-bold text-slate-500">
+              <span className="text-[10px] font-mono font-bold text-zinc-500">
                 Response Matrix
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2.5 text-[11px]">
               <div className="p-3 rounded-xl border border-rose-500/25 bg-rose-500/10 flex items-center justify-between text-rose-300">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-rose-400" />
                   <span className="font-bold">CRITICAL</span>
                 </div>
-                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-rose-500/30 bg-rose-950/80 text-rose-300">
+                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-rose-500/30 bg-black/40 text-rose-300">
                   2h
                 </span>
               </div>
@@ -753,25 +738,25 @@ export default function SubmitComplaint() {
                   <span className="w-2 h-2 rounded-full bg-amber-400" />
                   <span className="font-bold">HIGH</span>
                 </div>
-                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 bg-amber-950/80 text-amber-300">
+                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 bg-black/40 text-amber-300">
                   8h
                 </span>
               </div>
-              <div className="p-3 rounded-xl border border-cyan-500/25 bg-cyan-500/10 flex items-center justify-between text-cyan-300">
+              <div className="p-3 rounded-xl border border-white/20 bg-white/[0.05] flex items-center justify-between text-zinc-200">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                  <span className="w-2 h-2 rounded-full bg-zinc-300" />
                   <span className="font-bold">MEDIUM</span>
                 </div>
-                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-950/80 text-cyan-300">
+                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-white/20 bg-black/40 text-zinc-200">
                   24h
                 </span>
               </div>
-              <div className="p-3 rounded-xl border border-white/[0.08] bg-white/[0.03] flex items-center justify-between text-slate-300">
+              <div className="p-3 rounded-xl border border-white/[0.08] bg-white/[0.02] flex items-center justify-between text-zinc-400">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-slate-400" />
+                  <span className="w-2 h-2 rounded-full bg-zinc-500" />
                   <span className="font-bold">LOW</span>
                 </div>
-                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.05] text-slate-300">
+                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-white/[0.08] bg-black/40 text-zinc-400">
                   72h
                 </span>
               </div>
@@ -788,14 +773,14 @@ export default function SubmitComplaint() {
             if (e.target === e.currentTarget) setIsMapModalOpen(false);
           }}
         >
-          <div className="border border-white/[0.12] rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden bg-[#0c1017]/95 text-slate-100">
-            <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between gap-3 shrink-0 bg-[#0e131f]">
+          <div className="border border-white/[0.14] rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden bg-[#0c0d12]/95 text-zinc-100">
+            <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between gap-3 shrink-0 bg-[#07080c]">
               <div>
                 <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                  <Compass size={16} className="text-cyan-400" />
+                  <Compass size={16} className="text-white" />
                   <span>Campus Digital Twin — Location Picker</span>
                 </h2>
-                <p className="text-[11px] font-mono text-slate-400">
+                <p className="text-[11px] font-mono text-zinc-400">
                   Select building, floor, or room to lock in your maintenance dispatch target
                 </p>
               </div>
@@ -804,14 +789,14 @@ export default function SubmitComplaint() {
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
                   Confirm Selection
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="w-8 h-8 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-xs text-slate-400 hover:text-white cursor-pointer transition-colors"
+                  className="w-8 h-8 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-xs text-zinc-400 hover:text-white cursor-pointer transition-colors"
                   title="Close Map (Esc)"
                 >
                   <X size={15} />
@@ -819,7 +804,7 @@ export default function SubmitComplaint() {
               </div>
             </div>
 
-            <div className="p-2 sm:p-3 overflow-y-auto flex-1 bg-[#090d14]">
+            <div className="p-2 sm:p-3 overflow-y-auto flex-1 bg-[#050608]">
               <CampusMapSelector
                 flush={true}
                 selectedBuilding={activeBuildingObj?.name}

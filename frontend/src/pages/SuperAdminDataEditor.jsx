@@ -613,9 +613,9 @@ export default function SuperAdminDataEditor() {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col space-y-0 bg-[#090d14] text-white relative font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
-      {/* Ambient Lighting Gradients */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.08),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,0.05),transparent_40%)]" />
+    <div className="w-full min-h-screen flex flex-col space-y-0 bg-[#050608] text-white relative font-sans selection:bg-white/20 selection:text-white overflow-x-hidden">
+      {/* Ambient Lighting Specular Sheen */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
       <div className="fixed inset-0 pointer-events-none bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:3.5rem_3.5rem]" />
 
       {/* Floating Toast Notification */}
@@ -624,7 +624,7 @@ export default function SuperAdminDataEditor() {
           className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl border backdrop-blur-xl shadow-2xl text-xs font-semibold flex items-center gap-2.5 transition-all animate-fade-in ${
             notification.type === 'error'
               ? 'bg-rose-950/90 text-rose-200 border-rose-500/40 shadow-rose-950/50'
-              : 'bg-[#0e131f]/95 text-cyan-200 border-cyan-500/40 shadow-cyan-950/50'
+              : 'bg-[#0c0d12]/95 text-white border-white/20 shadow-black/80'
           }`}
         >
           <span>{notification.type === 'error' ? '⚠️' : '✓'}</span>
@@ -633,11 +633,12 @@ export default function SuperAdminDataEditor() {
       )}
 
       {/* Flush Obsidian Master Banner */}
-      <div className="w-full border-b border-white/[0.08] px-4 sm:px-8 lg:px-12 py-8 relative z-10 bg-[#0c1017]/80 backdrop-blur-xl">
+      <div className="w-full border-b border-white/[0.08] px-4 sm:px-8 lg:px-12 py-8 relative z-10 bg-[#0c0d12]/80 backdrop-blur-xl">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-medium bg-purple-500/10 border border-purple-500/30 text-purple-300">
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse shadow-xs shadow-purple-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-medium bg-white/[0.06] border border-white/[0.15] text-zinc-300">
+              <span className="w-2 h-2 rounded-full bg-white shadow-xs" />
               <span>SUPERADMIN DIRECTORY &amp; INFRASTRUCTURE STUDIO</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3">
@@ -651,20 +652,20 @@ export default function SuperAdminDataEditor() {
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <Link
               to="/superadmin"
-              className="px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] hover:border-cyan-500/30 text-zinc-300 hover:text-white font-bold text-xs shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-bold text-xs shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer"
             >
               <span>← Directorate Console</span>
             </Link>
             <Link
               to="/map"
-              className="px-4 py-2.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-200 font-bold text-xs shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-bold text-xs shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer"
             >
               <span>🗺️ Digital Twin Map</span>
             </Link>
             <button
               type="button"
               onClick={handleCopyJson}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all inline-flex items-center gap-1.5 cursor-pointer"
             >
               <span>{jsonCopyNotice ? '✓ Copied!' : '📋 Copy JSON'}</span>
             </button>
@@ -673,16 +674,16 @@ export default function SuperAdminDataEditor() {
 
         {/* Quick Metrics Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-white/[0.08]">
-          <div className="p-3 rounded-xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md shadow-lg">
+          <div className="p-3 rounded-xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-md shadow-lg">
             <span className="text-[10px] font-mono uppercase text-zinc-500 block">Total Buildings</span>
             <span className="text-lg font-bold font-mono text-white block mt-0.5">{buildings.length}</span>
-            <span className="text-[10px] text-cyan-400 block mt-0.5 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="text-[10px] text-zinc-300 block mt-0.5 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               Active on Twin
             </span>
           </div>
 
-          <div className="p-3 rounded-xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md shadow-lg">
+          <div className="p-3 rounded-xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-md shadow-lg">
             <span className="text-[10px] font-mono uppercase text-zinc-500 block">Current Building</span>
             <span className="text-sm font-bold truncate text-white block mt-0.5" title={currentBuilding?.name}>
               {currentBuilding?.shortName || currentBuilding?.name}
@@ -692,13 +693,13 @@ export default function SuperAdminDataEditor() {
             </span>
           </div>
 
-          <div className="p-3 rounded-xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md shadow-lg">
+          <div className="p-3 rounded-xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-md shadow-lg">
             <span className="text-[10px] font-mono uppercase text-zinc-500 block">Floor {roomActiveFloor} Rooms</span>
             <span className="text-lg font-bold font-mono text-white block mt-0.5">{currentFloorRooms.length}</span>
             <span className="text-[10px] text-zinc-400 block mt-0.5">Direct Rooms &amp; Labs</span>
           </div>
 
-          <div className="p-3 rounded-xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md shadow-lg">
+          <div className="p-3 rounded-xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-md shadow-lg">
             <span className="text-[10px] font-mono uppercase text-zinc-500 block">Grievance Tickets</span>
             <span className="text-lg font-bold font-mono text-white block mt-0.5">{tickets.length}</span>
             <span className="text-[10px] text-amber-400 block mt-0.5 font-mono">
@@ -717,12 +718,12 @@ export default function SuperAdminDataEditor() {
             onClick={() => setActiveTab('CAMPUS')}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === 'CAMPUS'
-                ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-500/10'
+                ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
                 : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
             }`}
           >
             <span>🏢 Campus Buildings &amp; Facilities</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#090d14] text-cyan-400 border border-white/[0.08]">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#050608] text-zinc-300 border border-white/[0.08]">
               {buildings.length}
             </span>
           </button>
@@ -732,12 +733,12 @@ export default function SuperAdminDataEditor() {
             onClick={() => setActiveTab('ROOMS')}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === 'ROOMS'
-                ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-500/10'
+                ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
                 : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
             }`}
           >
             <span>🚪 Floor &amp; Room Directory (No Wings)</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#090d14] text-cyan-400 border border-white/[0.08]">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#050608] text-zinc-300 border border-white/[0.08]">
               {currentFloorRooms.length}
             </span>
           </button>
@@ -747,12 +748,12 @@ export default function SuperAdminDataEditor() {
             onClick={() => setActiveTab('TICKETS')}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === 'TICKETS'
-                ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-500/10'
+                ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
                 : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
             }`}
           >
             <span>🎫 Tickets &amp; Grievance Manager</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#090d14] text-cyan-400 border border-white/[0.08]">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#050608] text-zinc-300 border border-white/[0.08]">
               {tickets.length}
             </span>
           </button>
@@ -762,7 +763,7 @@ export default function SuperAdminDataEditor() {
             onClick={() => setActiveTab('JSON')}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === 'JSON'
-                ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-500/10'
+                ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
                 : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
             }`}
           >
@@ -775,7 +776,7 @@ export default function SuperAdminDataEditor() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Column: Buildings Directory List */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="p-5 rounded-2xl bg-[#0e131f]/80 backdrop-blur-md border border-white/[0.08] space-y-3.5 shadow-xl">
+              <div className="p-5 rounded-3xl bg-[#0c0d12]/90 backdrop-blur-xl border border-white/[0.12] space-y-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <span>🏢</span> Campus Directory
@@ -783,7 +784,7 @@ export default function SuperAdminDataEditor() {
                   <button
                     type="button"
                     onClick={() => setIsNewBuildingModalOpen(true)}
-                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
                     <span>+ Add Building</span>
                   </button>
@@ -795,7 +796,7 @@ export default function SuperAdminDataEditor() {
                   value={buildingSearch}
                   onChange={(e) => setBuildingSearch(e.target.value)}
                   placeholder="Filter buildings by name, badge, ID..."
-                  className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
 
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
@@ -806,8 +807,8 @@ export default function SuperAdminDataEditor() {
                       onClick={() => setBuildingFilterCategory(cat.id)}
                       className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all shrink-0 cursor-pointer ${
                         buildingFilterCategory === cat.id
-                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-xs'
-                          : 'bg-[#0a0d14] text-zinc-400 hover:text-white border border-white/[0.06]'
+                          ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] font-bold'
+                          : 'bg-[#050608] text-zinc-400 hover:text-white border border-white/[0.08]'
                       }`}
                     >
                       {cat.label}
@@ -827,8 +828,8 @@ export default function SuperAdminDataEditor() {
                         onClick={() => setSelectedBuildingId(bldg.id)}
                         className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                           isSelected
-                            ? 'bg-[#121927] border-cyan-500/60 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/40'
-                            : 'bg-[#0a0d14]/70 border-white/[0.06] hover:bg-[#101622] hover:border-white/[0.12]'
+                            ? 'bg-white/[0.08] border-white/30 shadow-lg ring-1 ring-white/20'
+                            : 'bg-[#050608]/70 border-white/[0.06] hover:bg-white/[0.03] hover:border-white/[0.12]'
                         }`}
                       >
                         <div className="min-w-0 space-y-1">
@@ -842,7 +843,7 @@ export default function SuperAdminDataEditor() {
                             </span>
                           </div>
                           <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-400">
-                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.05] text-cyan-300 border border-white/[0.08]">
+                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.05] text-zinc-300 border border-white/[0.08]">
                               {badge}
                             </span>
                             <span>{bldg.category}</span>
@@ -852,7 +853,7 @@ export default function SuperAdminDataEditor() {
                         </div>
 
                         <div className="shrink-0 text-right">
-                          <span className="text-[11px] font-mono text-cyan-400">
+                          <span className="text-[11px] font-mono text-white">
                             {Array.isArray(bldg.floors) ? `${bldg.floors.length} Floors` : '4 Floors'}
                           </span>
                         </div>
@@ -866,14 +867,14 @@ export default function SuperAdminDataEditor() {
             {/* Right Column: Building Details & Attributes Editor */}
             <div className="lg:col-span-7">
               {currentBuilding ? (
-                <div className="p-6 rounded-2xl bg-[#0e131f]/80 backdrop-blur-md border border-white/[0.08] space-y-5 shadow-xl">
+                <div className="p-6 rounded-3xl bg-[#0c0d12]/90 backdrop-blur-xl border border-white/[0.12] space-y-5 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/[0.08]">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
                           Editing Building Entity
                         </span>
-                        <span className="px-2 py-0.5 rounded font-mono text-[10px] border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+                        <span className="px-2 py-0.5 rounded font-mono text-[10px] border border-white/20 bg-white/[0.06] text-white">
                           {currentBuilding.id}
                         </span>
                       </div>
@@ -889,14 +890,14 @@ export default function SuperAdminDataEditor() {
                           setSelectedBuildingId(currentBuilding.id);
                           setActiveTab('ROOMS');
                         }}
-                        className="px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-cyan-500/30 text-cyan-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-200 hover:text-white text-xs font-semibold transition-all cursor-pointer"
                       >
                         Edit Rooms &amp; Labs →
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDeleteBuilding(currentBuilding.id)}
-                        className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-colors cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-colors cursor-pointer"
                       >
                         Delete
                       </button>
@@ -913,7 +914,7 @@ export default function SuperAdminDataEditor() {
                         type="text"
                         value={currentBuilding.name || ''}
                         onChange={(e) => handleUpdateCurrentBuildingField('name', e.target.value)}
-                        className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                        className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                       />
                     </div>
 
@@ -925,7 +926,7 @@ export default function SuperAdminDataEditor() {
                         type="text"
                         value={currentBuilding.shortName || ''}
                         onChange={(e) => handleUpdateCurrentBuildingField('shortName', e.target.value)}
-                        className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                        className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                       />
                     </div>
 
@@ -936,7 +937,7 @@ export default function SuperAdminDataEditor() {
                       <select
                         value={currentBuilding.category || 'ACADEMIC'}
                         onChange={(e) => handleUpdateCurrentBuildingField('category', e.target.value)}
-                        className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                        className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                       >
                         <option value="HOSTEL">HOSTEL (Student Residence)</option>
                         <option value="ACADEMIC">ACADEMIC (Lecture Halls &amp; Labs)</option>
@@ -954,7 +955,7 @@ export default function SuperAdminDataEditor() {
                         type="text"
                         value={currentBuilding.trace?.badge || currentBuilding.mapPin?.badge || ''}
                         onChange={(e) => handleUpdateCurrentBuildingField('badge', e.target.value)}
-                        className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs font-mono uppercase text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                        className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs font-mono uppercase text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                       />
                     </div>
 
@@ -973,7 +974,7 @@ export default function SuperAdminDataEditor() {
                           type="text"
                           value={currentBuilding.trace?.color || currentBuilding.mapPin?.color || '#10b981'}
                           onChange={(e) => handleUpdateCurrentBuildingField('color', e.target.value)}
-                          className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                          className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                         />
                       </div>
                     </div>
@@ -986,7 +987,7 @@ export default function SuperAdminDataEditor() {
                         type="text"
                         value={currentBuilding.gps || ''}
                         onChange={(e) => handleUpdateCurrentBuildingField('gps', e.target.value)}
-                        className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                        className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                       />
                     </div>
 
@@ -998,14 +999,14 @@ export default function SuperAdminDataEditor() {
                         rows={3}
                         value={currentBuilding.description || ''}
                         onChange={(e) => handleUpdateCurrentBuildingField('description', e.target.value)}
-                        className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                        className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                       />
                     </div>
                   </div>
 
                   {/* Digital Twin SVG Coordinates Editor */}
-                  <div className="p-4 rounded-xl border border-white/[0.08] bg-[#0a0d14]/70 space-y-3">
-                    <span className="text-[11px] font-mono uppercase tracking-wider font-bold block text-cyan-400 flex items-center gap-1.5">
+                  <div className="p-4 rounded-xl border border-white/[0.08] bg-[#050608]/70 space-y-3">
+                    <span className="text-[11px] font-mono uppercase tracking-wider font-bold block text-zinc-300 flex items-center gap-1.5">
                       <span>📍</span> Digital Twin Vector Coordinates (Center X, Y, W, H, Angle)
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -1015,7 +1016,7 @@ export default function SuperAdminDataEditor() {
                           type="number"
                           value={currentBuilding.trace?.cx || 0}
                           onChange={(e) => handleUpdateCurrentBuildingField('trace.cx', e.target.value)}
-                          className="w-full bg-[#090d14] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                          className="w-full bg-[#050608] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white/30 transition-colors"
                         />
                       </div>
                       <div>
@@ -1024,7 +1025,7 @@ export default function SuperAdminDataEditor() {
                           type="number"
                           value={currentBuilding.trace?.cy || 0}
                           onChange={(e) => handleUpdateCurrentBuildingField('trace.cy', e.target.value)}
-                          className="w-full bg-[#090d14] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                          className="w-full bg-[#050608] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white/30 transition-colors"
                         />
                       </div>
                       <div>
@@ -1033,7 +1034,7 @@ export default function SuperAdminDataEditor() {
                           type="number"
                           value={currentBuilding.trace?.w || 0}
                           onChange={(e) => handleUpdateCurrentBuildingField('trace.w', e.target.value)}
-                          className="w-full bg-[#090d14] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                          className="w-full bg-[#050608] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white/30 transition-colors"
                         />
                       </div>
                       <div>
@@ -1042,7 +1043,7 @@ export default function SuperAdminDataEditor() {
                           type="number"
                           value={currentBuilding.trace?.h || 0}
                           onChange={(e) => handleUpdateCurrentBuildingField('trace.h', e.target.value)}
-                          className="w-full bg-[#090d14] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                          className="w-full bg-[#050608] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white/30 transition-colors"
                         />
                       </div>
                       <div>
@@ -1051,14 +1052,14 @@ export default function SuperAdminDataEditor() {
                           type="number"
                           value={currentBuilding.trace?.angle || 0}
                           onChange={(e) => handleUpdateCurrentBuildingField('trace.angle', e.target.value)}
-                          className="w-full bg-[#090d14] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                          className="w-full bg-[#050608] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white/30 transition-colors"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="p-12 text-center rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 text-zinc-400">
+                <div className="p-12 text-center rounded-3xl border border-white/[0.12] bg-[#0c0d12]/90 text-zinc-400">
                   Select a building to view and modify its properties.
                 </div>
               )}
@@ -1070,7 +1071,7 @@ export default function SuperAdminDataEditor() {
         {activeTab === 'ROOMS' && (
           <div className="space-y-6">
             {/* Header Toolbar: Building Selector & Floor Pills */}
-            <div className="p-5 rounded-2xl bg-[#0e131f]/80 backdrop-blur-md border border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+            <div className="p-5 rounded-3xl bg-[#0c0d12]/90 backdrop-blur-xl border border-white/[0.12] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="space-y-1">
                   <label className="block text-[10px] font-mono uppercase font-bold text-zinc-400">
@@ -1079,7 +1080,7 @@ export default function SuperAdminDataEditor() {
                   <select
                     value={currentBuilding?.id || ''}
                     onChange={(e) => setSelectedBuildingId(e.target.value)}
-                    className="bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs font-semibold text-white min-w-[240px] focus:outline-none focus:border-cyan-500/60 transition-colors"
+                    className="bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs font-semibold text-white min-w-[240px] focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                   >
                     {buildings.map((b) => (
                       <option key={b.id} value={b.id}>
@@ -1103,8 +1104,8 @@ export default function SuperAdminDataEditor() {
                           onClick={() => setRoomActiveFloor(fl.id)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                             isFlActive
-                              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20'
-                              : 'bg-[#0a0d14] text-zinc-400 hover:text-white border border-white/[0.06] hover:border-white/[0.12]'
+                              ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] font-bold'
+                              : 'bg-[#050608] text-zinc-400 hover:text-white border border-white/[0.08]'
                           }`}
                         >
                           {fl.label}
@@ -1119,7 +1120,7 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="button"
                   onClick={() => setIsBulkOpen(!isBulkOpen)}
-                  className="px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-cyan-500/30 text-cyan-300 hover:text-white text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-200 hover:text-white text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <span>⚡ Batch / Bulk Add Rooms</span>
                 </button>
@@ -1136,10 +1137,10 @@ export default function SuperAdminDataEditor() {
 
             {/* Bulk Add Drawer (Collapsible) */}
             {isBulkOpen && (
-              <div className="p-5 rounded-2xl bg-[#0e131f]/90 backdrop-blur-md border border-cyan-500/30 space-y-3 animate-fade-in shadow-2xl">
+              <div className="p-5 rounded-3xl bg-[#0c0d12]/95 backdrop-blur-md border border-white/[0.14] space-y-3 animate-fade-in shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider font-mono text-cyan-300">
+                    <h4 className="text-xs font-bold uppercase tracking-wider font-mono text-white">
                       ⚡ Batch Add Rooms to {currentBuilding?.shortName} (Floor {roomActiveFloor})
                     </h4>
                     <p className="text-[11px] text-zinc-400">
@@ -1160,7 +1161,7 @@ export default function SuperAdminDataEditor() {
                   value={bulkRoomText}
                   onChange={(e) => setBulkRoomText(e.target.value)}
                   placeholder={`Room ${roomActiveFloor}01\nRoom ${roomActiveFloor}02\n${roomActiveFloor === '1' ? 'AI Lab 1\nLanguage Lab' : 'Research Bay 2'}`}
-                  className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs font-mono leading-relaxed text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs font-mono leading-relaxed text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
 
                 <div className="flex justify-end gap-2">
@@ -1174,7 +1175,7 @@ export default function SuperAdminDataEditor() {
                   <button
                     type="button"
                     onClick={handleAddBulkRooms}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
                   >
                     Add All to Floor {roomActiveFloor}
                   </button>
@@ -1190,11 +1191,11 @@ export default function SuperAdminDataEditor() {
                   value={newSingleRoomName}
                   onChange={(e) => setNewSingleRoomName(e.target.value)}
                   placeholder={`Add room on Floor ${roomActiveFloor} (e.g. Room ${roomActiveFloor}05 or IDEA Lab)...`}
-                  className="bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/60 transition-colors flex-1"
+                  className="bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors flex-1"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer shrink-0"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer shrink-0"
                 >
                   + Add
                 </button>
@@ -1206,7 +1207,7 @@ export default function SuperAdminDataEditor() {
                   value={roomSearchQuery}
                   onChange={(e) => setRoomSearchQuery(e.target.value)}
                   placeholder="Filter rooms on this floor..."
-                  className="bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/60 transition-colors w-full sm:w-64"
+                  className="bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors w-full sm:w-64"
                 />
                 <span className="text-[11px] font-mono text-zinc-400 shrink-0">
                   {filteredRooms.length} rooms
@@ -1217,7 +1218,7 @@ export default function SuperAdminDataEditor() {
             {/* Room Cards Grid with Inline Click-to-Edit */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredRooms.length === 0 ? (
-                <div className="col-span-full p-8 text-center rounded-xl border border-white/[0.08] bg-[#0e131f]/80 text-zinc-400 text-xs">
+                <div className="col-span-full p-8 text-center rounded-2xl border border-white/[0.1] bg-[#0c0d12]/90 text-zinc-400 text-xs">
                   No rooms or labs mapped on Floor {roomActiveFloor} yet. Use the single add or batch add above.
                 </div>
               ) : (
@@ -1226,7 +1227,7 @@ export default function SuperAdminDataEditor() {
                   return (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl border border-white/[0.06] bg-[#0e131f]/80 hover:bg-[#121927] hover:border-cyan-500/40 transition-all flex items-center justify-between gap-3 group shadow-sm"
+                      className="p-3.5 rounded-xl border border-white/[0.08] bg-[#0c0d12]/90 hover:bg-[#12141c] hover:border-white/20 transition-all flex items-center justify-between gap-3 group shadow-sm"
                     >
                       <div className="min-w-0 flex-1">
                         {isEditing ? (
@@ -1240,12 +1241,12 @@ export default function SuperAdminDataEditor() {
                                 if (e.key === 'Enter') handleSaveInlineRoomEdit(idx);
                                 if (e.key === 'Escape') setEditingRoomIndex(null);
                               }}
-                              className="bg-[#090d14] border border-cyan-500/60 rounded-lg text-xs py-1 px-2 text-white focus:outline-none flex-1"
+                              className="bg-[#050608] border border-white/30 rounded-lg text-xs py-1 px-2 text-white focus:outline-none flex-1"
                             />
                             <button
                               type="button"
                               onClick={() => handleSaveInlineRoomEdit(idx)}
-                              className="p-1 rounded bg-cyan-600 text-white text-xs font-bold shrink-0 cursor-pointer"
+                              className="p-1 rounded bg-white text-black text-xs font-bold shrink-0 cursor-pointer"
                               title="Save Changes"
                             >
                               ✓
@@ -1268,7 +1269,7 @@ export default function SuperAdminDataEditor() {
                             className="cursor-pointer"
                             title="Click to edit room name inline"
                           >
-                            <span className="font-semibold text-xs text-zinc-200 group-hover:text-cyan-300 transition-colors block truncate">
+                            <span className="font-semibold text-xs text-zinc-200 group-hover:text-white transition-colors block truncate">
                               {roomName}
                             </span>
                             <span className="text-[10px] font-mono text-zinc-500 block">
@@ -1313,19 +1314,19 @@ export default function SuperAdminDataEditor() {
         {activeTab === 'TICKETS' && (
           <div className="space-y-4">
             {/* Filter and Action Header */}
-            <div className="p-4 rounded-2xl bg-[#0e131f]/80 backdrop-blur-md border border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xl">
+            <div className="p-4 rounded-3xl bg-[#0c0d12]/90 backdrop-blur-xl border border-white/[0.12] flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div className="flex items-center gap-2 flex-1 max-w-lg">
                 <input
                   type="text"
                   value={ticketSearch}
                   onChange={(e) => setTicketSearch(e.target.value)}
                   placeholder="Search tickets by tracking code, room, student..."
-                  className="w-full bg-[#0a0d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={loadTickets}
-                  className="px-3 py-2 rounded-xl text-xs font-mono shrink-0 cursor-pointer border border-white/[0.08] bg-[#0a0d14] hover:bg-white/[0.06] text-zinc-300 transition-colors"
+                  className="px-3 py-2 rounded-xl text-xs font-mono shrink-0 cursor-pointer border border-white/[0.1] bg-[#050608] hover:bg-white/[0.06] text-zinc-300 transition-colors"
                   title="Reload from backend"
                 >
                   🔄 Refresh
@@ -1341,8 +1342,8 @@ export default function SuperAdminDataEditor() {
                       onClick={() => setTicketStatusFilter(st)}
                       className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all shrink-0 cursor-pointer ${
                         ticketStatusFilter === st
-                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-xs'
-                          : 'bg-[#0a0d14] text-zinc-400 hover:text-white border border-white/[0.06]'
+                          ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] font-bold'
+                          : 'bg-[#050608] text-zinc-400 hover:text-white border border-white/[0.08]'
                       }`}
                     >
                       {st}
@@ -1353,7 +1354,7 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="button"
                   onClick={() => setIsNewTicketModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer shrink-0"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer shrink-0"
                 >
                   + Log Ticket
                 </button>
@@ -1361,10 +1362,10 @@ export default function SuperAdminDataEditor() {
             </div>
 
             {/* Tickets Table */}
-            <div className="rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md overflow-hidden shadow-xl">
+            <div className="rounded-3xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-white/[0.08] bg-[#0a0d14] text-zinc-400 font-mono uppercase text-[10px]">
+                  <thead className="border-b border-white/[0.08] bg-[#050608] text-zinc-400 font-mono uppercase text-[10px]">
                     <tr>
                       <th className="py-3 px-4">Ticket</th>
                       <th className="py-3 px-4">Issue Title &amp; Details</th>
@@ -1387,7 +1388,7 @@ export default function SuperAdminDataEditor() {
                           key={t.id || t.tracking_code}
                           className="hover:bg-white/[0.03] transition-colors text-zinc-200"
                         >
-                          <td className="py-3.5 px-4 font-mono font-bold text-cyan-400 whitespace-nowrap">
+                          <td className="py-3.5 px-4 font-mono font-bold text-white whitespace-nowrap">
                             {t.tracking_code || `#${t.id}`}
                           </td>
                           <td className="py-3.5 px-4 max-w-xs">
@@ -1424,7 +1425,7 @@ export default function SuperAdminDataEditor() {
                                   ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                                   : t.status === 'IN_PROGRESS'
                                   ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                                  : 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                                  : 'bg-white/[0.08] text-white border-white/20'
                               }`}
                             >
                               {t.status || 'PENDING'}
@@ -1434,7 +1435,7 @@ export default function SuperAdminDataEditor() {
                             <button
                               type="button"
                               onClick={() => handleOpenTicketModal(t)}
-                              className="px-2.5 py-1 rounded-lg font-medium text-xs transition-colors cursor-pointer border border-white/[0.08] bg-[#0a0d14] hover:bg-white/[0.08] text-zinc-200"
+                              className="px-2.5 py-1 rounded-lg font-medium text-xs transition-colors cursor-pointer border border-white/[0.1] bg-[#050608] hover:bg-white/[0.08] text-zinc-200"
                             >
                               ✏️ Edit
                             </button>
@@ -1452,7 +1453,7 @@ export default function SuperAdminDataEditor() {
         {/* TAB 4: JSON STUDIO & BACKUP */}
         {activeTab === 'JSON' && (
           <div className="space-y-4">
-            <div className="p-5 rounded-2xl bg-[#0e131f]/80 backdrop-blur-md border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+            <div className="p-5 rounded-3xl bg-[#0c0d12]/90 backdrop-blur-xl border border-white/[0.12] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div>
                 <h3 className="text-sm font-bold text-white">
                   Full Campus Dataset JSON
@@ -1466,21 +1467,21 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="button"
                   onClick={handleCopyJson}
-                  className="px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-cyan-500/30 text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
                 >
                   📋 Copy JSON
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadJson}
-                  className="px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-cyan-500/30 text-cyan-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-200 hover:text-white text-xs font-semibold transition-all cursor-pointer"
                 >
                   📥 Download JSON
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsImportModalOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
                 >
                   📤 Import Custom JSON
                 </button>
@@ -1495,8 +1496,8 @@ export default function SuperAdminDataEditor() {
             </div>
 
             {/* Read-Only Syntax Viewer */}
-            <div className="p-4 rounded-2xl border border-white/[0.08] bg-[#070a10] shadow-2xl overflow-hidden">
-              <pre className="text-[11px] font-mono text-cyan-400 overflow-x-auto max-h-[580px] p-2 leading-relaxed">
+            <div className="p-4 rounded-3xl border border-white/[0.12] bg-[#050608] shadow-2xl overflow-hidden">
+              <pre className="text-[11px] font-mono text-zinc-300 overflow-x-auto max-h-[580px] p-2 leading-relaxed">
                 {jsonText}
               </pre>
             </div>
@@ -1506,11 +1507,11 @@ export default function SuperAdminDataEditor() {
 
       {/* MODAL 1: ADD NEW BUILDING */}
       {isNewBuildingModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-white/[0.1] bg-[#0c1017]/95 text-white relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] border border-white/[0.14] bg-[#0c0d12]/95 text-white relative overflow-hidden">
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-cyan-300">
+              <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-white">
                 + Add New Campus Building / Facility
               </h3>
               <button
@@ -1533,7 +1534,7 @@ export default function SuperAdminDataEditor() {
                   placeholder="e.g. New Academic Research Tower"
                   value={newBldgName}
                   onChange={(e) => setNewBldgName(e.target.value)}
-                  className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
               </div>
 
@@ -1547,7 +1548,7 @@ export default function SuperAdminDataEditor() {
                     placeholder="e.g. Research Tower"
                     value={newBldgShortName}
                     onChange={(e) => setNewBldgShortName(e.target.value)}
-                    className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                    className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                   />
                 </div>
 
@@ -1558,7 +1559,7 @@ export default function SuperAdminDataEditor() {
                   <select
                     value={newBldgCategory}
                     onChange={(e) => setNewBldgCategory(e.target.value)}
-                    className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                    className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                   >
                     <option value="ACADEMIC">ACADEMIC</option>
                     <option value="HOSTEL">HOSTEL</option>
@@ -1579,7 +1580,7 @@ export default function SuperAdminDataEditor() {
                     placeholder="e.g. TOWER"
                     value={newBldgBadge}
                     onChange={(e) => setNewBldgBadge(e.target.value)}
-                    className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs font-mono uppercase text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                    className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs font-mono uppercase text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                   />
                 </div>
 
@@ -1598,7 +1599,7 @@ export default function SuperAdminDataEditor() {
                       type="text"
                       value={newBldgColor}
                       onChange={(e) => setNewBldgColor(e.target.value)}
-                      className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                      className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                     />
                   </div>
                 </div>
@@ -1613,7 +1614,7 @@ export default function SuperAdminDataEditor() {
                   placeholder="Facility specifications and purpose..."
                   value={newBldgDesc}
                   onChange={(e) => setNewBldgDesc(e.target.value)}
-                  className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
               </div>
 
@@ -1621,13 +1622,13 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="button"
                   onClick={() => setIsNewBuildingModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
                 >
                   Create Building
                 </button>
@@ -1639,12 +1640,12 @@ export default function SuperAdminDataEditor() {
 
       {/* MODAL 2: EDIT TICKET */}
       {isTicketEditModalOpen && selectedTicket && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-white/[0.1] bg-[#0c1017]/95 text-white relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] border border-white/[0.14] bg-[#0c0d12]/95 text-white relative overflow-hidden">
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div>
-                <span className="text-[10px] font-mono uppercase font-bold block text-cyan-400">
+                <span className="text-[10px] font-mono uppercase font-bold block text-zinc-400">
                   Incident Controller
                 </span>
                 <h3 className="text-sm font-bold text-white">
@@ -1665,7 +1666,7 @@ export default function SuperAdminDataEditor() {
                 <label className="block text-xs font-semibold mb-1 text-zinc-300">
                   Issue Summary
                 </label>
-                <div className="p-2.5 rounded-lg text-xs border border-white/[0.08] bg-[#090d14] text-zinc-200">
+                <div className="p-2.5 rounded-lg text-xs border border-white/[0.1] bg-[#050608] text-zinc-200">
                   {selectedTicket.title}
                 </div>
               </div>
@@ -1678,7 +1679,7 @@ export default function SuperAdminDataEditor() {
                   <select
                     value={ticketEditStatus}
                     onChange={(e) => setTicketEditStatus(e.target.value)}
-                    className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                    className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                   >
                     {STATUS_OPTIONS.map((st) => (
                       <option key={st} value={st}>
@@ -1695,7 +1696,7 @@ export default function SuperAdminDataEditor() {
                   <select
                     value={ticketEditPriority}
                     onChange={(e) => setTicketEditPriority(e.target.value)}
-                    className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                    className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                   >
                     {PRIORITY_OPTIONS.map((pr) => (
                       <option key={pr} value={pr}>
@@ -1714,7 +1715,7 @@ export default function SuperAdminDataEditor() {
                   <select
                     value={ticketEditDept}
                     onChange={(e) => setTicketEditDept(e.target.value)}
-                    className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                    className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                   >
                     {DEPARTMENTS.map((dept) => (
                       <option key={dept} value={dept}>
@@ -1732,7 +1733,7 @@ export default function SuperAdminDataEditor() {
                     type="text"
                     value={ticketEditLocation}
                     onChange={(e) => setTicketEditLocation(e.target.value)}
-                    className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                    className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                   />
                 </div>
               </div>
@@ -1746,7 +1747,7 @@ export default function SuperAdminDataEditor() {
                   placeholder="Details of repair, parts replaced, technician sign-off..."
                   value={ticketEditNotes}
                   onChange={(e) => setTicketEditNotes(e.target.value)}
-                  className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
               </div>
 
@@ -1754,14 +1755,14 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="button"
                   onClick={() => setIsTicketEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={ticketSaving}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
                 >
                   {ticketSaving ? 'Saving...' : 'Save Ticket Changes'}
                 </button>
@@ -1773,11 +1774,11 @@ export default function SuperAdminDataEditor() {
 
       {/* MODAL 3: LOG MANUAL TICKET */}
       {isNewTicketModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-white/[0.1] bg-[#0c1017]/95 text-white relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] border border-white/[0.14] bg-[#0c0d12]/95 text-white relative overflow-hidden">
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-cyan-300">
+              <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-white">
                 + Manually Log Institutional Grievance
               </h3>
               <button
@@ -1800,7 +1801,7 @@ export default function SuperAdminDataEditor() {
                   placeholder="e.g. Lab 301 projector lamp flickering"
                   value={newTicketTitle}
                   onChange={(e) => setNewTicketTitle(e.target.value)}
-                  className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
               </div>
 
@@ -1813,7 +1814,7 @@ export default function SuperAdminDataEditor() {
                   placeholder={`e.g. ${currentBuilding?.name}, Room 301`}
                   value={newTicketLocation}
                   onChange={(e) => setNewTicketLocation(e.target.value)}
-                  className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
               </div>
 
@@ -1827,7 +1828,7 @@ export default function SuperAdminDataEditor() {
                   placeholder="Describe the maintenance failure or repair needed..."
                   value={newTicketDesc}
                   onChange={(e) => setNewTicketDesc(e.target.value)}
-                  className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+                  className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
                 />
               </div>
 
@@ -1835,14 +1836,14 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="button"
                   onClick={() => setIsNewTicketModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={newTicketSubmitting}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
                 >
                   {newTicketSubmitting ? 'Submitting...' : 'Create Ticket'}
                 </button>
@@ -1854,11 +1855,11 @@ export default function SuperAdminDataEditor() {
 
       {/* MODAL 4: IMPORT JSON */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-white/[0.1] bg-[#0c1017]/95 text-white relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] border border-white/[0.14] bg-[#0c0d12]/95 text-white relative overflow-hidden">
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-cyan-300">
+              <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-white">
                 📥 Import Campus Infrastructure JSON
               </h3>
               <button
@@ -1885,21 +1886,21 @@ export default function SuperAdminDataEditor() {
               value={importJsonInput}
               onChange={(e) => setImportJsonInput(e.target.value)}
               placeholder='[ { "id": "academic_block", "name": "Main Academic & Administrative Building", ... } ]'
-              className="w-full bg-[#090d14] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs font-mono leading-relaxed text-white focus:outline-none focus:border-cyan-500/60 transition-colors"
+              className="w-full bg-[#050608] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs font-mono leading-relaxed text-white focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors"
             />
 
             <div className="flex justify-end gap-2 pt-2 border-t border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleApplyImportJson}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
               >
                 Validate &amp; Import
               </button>
@@ -1910,9 +1911,9 @@ export default function SuperAdminDataEditor() {
 
       {/* MODAL 5: RESET CONFIRMATION */}
       {isResetConfirmOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-rose-500/30 bg-[#0c1017]/95 text-white relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-rose-500 to-transparent" />
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="rounded-3xl max-w-md w-full p-6 space-y-4 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] border border-rose-500/30 bg-[#0c0d12]/95 text-white relative overflow-hidden">
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-rose-500/40 to-transparent pointer-events-none" />
             <div className="flex items-center gap-3 text-rose-400">
               <span className="text-2xl">⚠️</span>
               <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-white">
@@ -1928,7 +1929,7 @@ export default function SuperAdminDataEditor() {
               <button
                 type="button"
                 onClick={() => setIsResetConfirmOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
               >
                 Cancel
               </button>

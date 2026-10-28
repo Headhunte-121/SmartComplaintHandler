@@ -1,9 +1,9 @@
 /**
  * SmartComplaintHandler - Institutional Login Portal (IIIT Naya Raipur)
- * High-Density Obsidian Command Desk Standard:
- *  - Official circular IIIT-NR logo emblem with cyan pulse heartbeat
- *  - Ambient deep space obsidian background with technical mesh grid
- *  - Translucent glassmorphic card container with cyan telemetry accents
+ * Glossy Obsidian Glass Design:
+ *  - Official circular IIIT-NR logo emblem with subtle live status indicator
+ *  - Smoked black glass container with specular top highlight and deep shadow
+ *  - High-contrast glossy white primary action button
  *  - Auto-detected student/staff roll & department profile preview
  *  - Google Workspace SSO + Institutional credentials dual authentication
  */
@@ -11,7 +11,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchAuthConfig, resolveIiitnrProfileFromEmail, isUndergradHostelStudent } from '../api/auth';
-import { Shield, Sparkles, KeyRound, Mail, ArrowRight, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Shield, KeyRound, Mail, ArrowRight, ExternalLink, AlertTriangle } from 'lucide-react';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
@@ -161,303 +161,287 @@ export default function Login() {
             return;
           }
           try {
-            const googleProfile = await fetchGoogleUserProfile(tokenResponse.access_token);
-            const userEmail = googleProfile?.email || '';
-            const cleanUserEmail = userEmail.trim().toLowerCase();
-
-            if (!cleanUserEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
-              setError(`Restricted domain: Only @${ALLOWED_DOMAIN} accounts are authorized to sign in.`);
-              setGoogleLoading(false);
-              return;
+            const profile = await fetchGoogleUserProfile(tokenResponse.access_token);
+            if (!profile?.email) {
+              throw new Error('Google profile could not be verified.');
+            }
+            const normalizedGoogleEmail = profile.email.toLowerCase().trim();
+            if (!normalizedGoogleEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
+              throw new Error(`Only official @${ALLOWED_DOMAIN} accounts are authorized.`);
             }
 
-            const user = await loginGoogle({
-              access_token: tokenResponse.access_token,
-              email: cleanUserEmail,
-              name: googleProfile?.name || cleanUserEmail.split('@')[0],
-              picture: googleProfile?.picture,
+            const authedUser = await loginGoogle({
+              email: normalizedGoogleEmail,
+              name: profile.name || profile.given_name || normalizedGoogleEmail.split('@')[0],
+              google_id: profile.sub || profile.id,
+              picture: profile.picture,
+              hd: profile.hd || ALLOWED_DOMAIN,
             });
 
-            if (user) {
-              handleRoleRedirect(user);
-            }
+            handleRoleRedirect(authedUser);
           } catch (err) {
-            setError(err.response?.data?.detail || err.message || 'Google verification failed.');
+            setError(err.message || 'Google Workspace SSO failed.');
+          } finally {
             setGoogleLoading(false);
           }
         },
       });
+
       tokenClient.requestAccessToken({ prompt: 'select_account' });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to initialize Google Workspace login.');
       setGoogleLoading(false);
     }
   };
 
-  const handleContinueWithGoogle = async () => {
+  const handleContinueWithGoogle = () => {
     setError(null);
-    let activeClientId = (googleClientId || getInitialGoogleClientId()).trim();
-    if (!activeClientId) {
-      try {
-        setGoogleLoading(true);
-        const cfg = await fetchAuthConfig();
-        const remoteId = (cfg?.google_client_id || '').trim();
-        if (remoteId && GOOGLE_CLIENT_ID_PATTERN.test(remoteId)) {
-          activeClientId = remoteId;
-          setGoogleClientId(remoteId);
-        }
-      } catch (_) {
-      } finally {
-        setGoogleLoading(false);
+    if (!googleClientId) {
+      if (!IS_PROD_BUILD) {
+        setShowClientIdModal(true);
+      } else {
+        setError('Google Single Sign-On is not configured on this server.');
       }
-    }
-    if (!activeClientId) {
-      if (IS_PROD_BUILD) {
-        setError('Google SSO is not configured on this server. Please sign in with email and password.');
-        return;
-      }
-      setShowClientIdModal(true);
       return;
     }
-    await launchGoogleWorkspaceFlow(activeClientId);
+    launchGoogleWorkspaceFlow(googleClientId);
   };
 
   const handleSignIn = async (e) => {
     e.preventDefault();
     setError(null);
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail) {
-      setError('Please enter your institutional email.');
+    const cleanedEmail = email.trim().toLowerCase();
+
+    if (!cleanedEmail) {
+      setError('Please provide your official institutional email.');
       return;
     }
-    if (!cleanEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
-      setError(`Please use your @${ALLOWED_DOMAIN} email address.`);
+    if (!cleanedEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
+      setError(`Authentication restricted to official @${ALLOWED_DOMAIN} accounts.`);
       return;
     }
-    if (!password || password.length < 4) {
+    if (!password) {
       setError('Please enter your password.');
       return;
     }
-    setLoading(true);
+
     try {
-      const user = await login(cleanEmail, password, rememberMe);
+      setLoading(true);
+      const user = await login(cleanedEmail, password);
       handleRoleRedirect(user);
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Invalid email or password.');
+      const msg = err.message || '';
+      if (msg.includes('GOOGLE_AUTH_REQUIRED')) {
+        setError('This account was provisioned via Google Workspace. Sign in with Google below.');
+      } else if (msg.includes('INVALID_CREDENTIALS') || msg.includes('401')) {
+        setError('Invalid password. If you registered via Google SSO, use the Google button.');
+      } else if (msg.includes('USER_NOT_FOUND') || msg.includes('404')) {
+        setError('No account found for this email. Register first.');
+      } else {
+        setError(msg || 'Authentication failed. Please verify your credentials.');
+      }
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30">
-      {/* Ambient background glows & technical mesh grid */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 right-1/4 w-[450px] h-[450px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-35 pointer-events-none" />
+    <div className="min-h-screen bg-[#050608] text-zinc-100 flex flex-col justify-center items-center p-4 sm:p-6 relative font-sans selection:bg-white/20 selection:text-white overflow-hidden">
+      {/* Subtle Specular Sheen (No Glaring Neon) */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
 
-      <div className="relative z-10 w-full max-w-md space-y-6">
-        {/* Emblem & Institutional Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.1] shadow-2xl backdrop-blur-md">
+      {/* Main Glass Card */}
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-2xl p-6 sm:p-8 space-y-6 shadow-[0_20px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.12)]">
+        {/* Specular Top Rim */}
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
+
+        {/* Institutional Header */}
+        <div className="flex flex-col items-center text-center space-y-3">
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-white/[0.04] border border-white/[0.12] p-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_6px_20px_rgba(0,0,0,0.5)]">
             <img
               src="/iiitnr_logo.png"
-              alt="IIIT Naya Raipur"
-              className="h-12 w-auto object-contain drop-shadow"
+              alt="IIIT Naya Raipur Logo"
+              className="h-full w-full object-contain filter drop-shadow"
             />
           </div>
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border bg-cyan-500/10 border-cyan-500/25 text-cyan-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              Institutional Access Gate
+
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>IIIT NAYA RAIPUR · CAMPUS DESK</span>
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              IIIT Naya Raipur Portal
+              Institutional Sign In
             </h1>
-            <p className="text-xs font-mono text-slate-400 tracking-wide">
-              Campus Facilities &amp; Maintenance Command Desk
+            <p className="text-xs text-zinc-400 max-w-xs mx-auto">
+              Secure single sign-on portal for scholars, faculties, and maintenance engineering personnel.
             </p>
           </div>
         </div>
 
-        {/* Obsidian Glassmorphic Card Container */}
-        <div className="rounded-3xl border border-white/[0.08] bg-[#0e131f]/85 backdrop-blur-xl p-7 sm:p-8 space-y-5 relative overflow-hidden shadow-2xl shadow-black/80">
-          {/* Top Cyan Glowing Accent Line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
-
-          {/* Error Banner */}
-          {error && (
-            <div
-              className={`p-3.5 rounded-xl border text-xs font-semibold space-y-2.5 ${
-                error.toLowerCase().includes('google sign-in')
-                  ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
-                  : 'bg-rose-950/60 border-rose-800/80 text-rose-300'
-              }`}
-            >
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
-                <span className="leading-relaxed">{error}</span>
+        {/* Error Alert Pod */}
+        {error && (
+          <div className="p-3.5 rounded-xl text-xs space-y-2 border border-rose-500/30 bg-rose-950/40 text-rose-200 animate-fade-in shadow-inner">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span className="font-semibold">{error}</span>
+            </div>
+            {error.toLowerCase().includes('google sign-in') ? (
+              <div className="pt-2 border-t border-rose-500/20 flex flex-col sm:flex-row items-center justify-between gap-2">
+                <span className="text-[11px] text-zinc-300">
+                  Authenticate via Google Workspace:
+                </span>
+                <button
+                  type="button"
+                  onClick={handleContinueWithGoogle}
+                  disabled={googleLoading}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-colors shadow-xs cursor-pointer"
+                >
+                  Sign In With Google →
+                </button>
               </div>
-              {error.toLowerCase().includes('google sign-in') ? (
-                <div className="pt-2 border-t border-amber-900/60 flex flex-col sm:flex-row items-center justify-between gap-2">
-                  <span className="text-[11px] font-normal text-amber-300/90">
-                    Click below to authenticate via Google:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleContinueWithGoogle}
-                    disabled={googleLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors border bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-xs"
-                  >
-                    <span>Sign In With Google</span>
-                    <span>→</span>
-                  </button>
+            ) : (error.toLowerCase().includes('not found') || error.toLowerCase().includes('register')) && (
+              <div className="pt-2 border-t border-rose-500/20 flex items-center justify-between">
+                <span className="text-[11px] text-zinc-400">Unregistered institutional account?</span>
+                <Link
+                  to="/register"
+                  className="font-bold underline text-white hover:text-zinc-200 cursor-pointer"
+                >
+                  Register Here →
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Google SSO Button */}
+        <button
+          type="button"
+          onClick={handleContinueWithGoogle}
+          disabled={googleLoading || loading}
+          className="w-full py-3 px-4 font-bold text-xs rounded-xl border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/30 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+        >
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z" />
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+          </svg>
+          <span>{googleLoading ? 'Connecting to Google SSO...' : 'Sign in with Google (@iiitnr.edu.in)'}</span>
+        </button>
+
+        {/* Divider */}
+        <div className="relative flex py-1 items-center">
+          <div className="grow border-t border-white/[0.08]" />
+          <span className="shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+            or institutional credentials
+          </span>
+          <div className="grow border-t border-white/[0.08]" />
+        </div>
+
+        {/* Institutional Form */}
+        <form onSubmit={handleSignIn} className="space-y-4">
+          <div>
+            <label htmlFor="login-email" className="block text-xs font-semibold text-zinc-300 mb-1.5">
+              Institutional Email
+            </label>
+            <input
+              id="login-email"
+              type="email"
+              required
+              autoFocus
+              placeholder="name@iiitnr.edu.in"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setError(null);
+              }}
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm font-mono focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 hover:border-white/[0.18] transition"
+            />
+          </div>
+
+          {/* Auto-detected Profile Chip */}
+          {detectedProfile && (
+            <div className="p-3.5 rounded-xl border border-white/[0.12] bg-[#07080c] text-zinc-100 flex items-center justify-between text-xs animate-fade-in shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+              <div className="min-w-0 pr-2">
+                <div className="font-bold text-white truncate">{detectedProfile.name}</div>
+                <div className="text-[11px] text-zinc-400 font-mono truncate">
+                  {detectedProfile.department_name}
                 </div>
-              ) : (error.toLowerCase().includes('not found') || error.toLowerCase().includes('register')) && (
-                <div className="pt-2 border-t border-rose-900/60 flex items-center justify-between">
-                  <span className="text-[11px] text-rose-300/80">Unregistered institutional account?</span>
-                  <Link
-                    to="/register"
-                    className="inline-flex items-center gap-1 font-bold underline cursor-pointer text-cyan-400 hover:text-cyan-300"
-                  >
-                    <span>Register Here</span>
-                    <span>→</span>
-                  </Link>
-                </div>
-              )}
+              </div>
+              <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20 bg-white/[0.06] text-zinc-200 shrink-0 uppercase tracking-wider">
+                {detectedProfile.role}
+              </span>
             </div>
           )}
 
-          {/* Google SSO Button */}
-          <button
-            type="button"
-            onClick={handleContinueWithGoogle}
-            disabled={googleLoading || loading}
-            className="w-full py-3 px-4 font-bold text-xs rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] hover:border-cyan-500/40 text-slate-200 hover:text-white shadow-xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
-          >
-            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
-              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z" />
-              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
-              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
-            </svg>
-            <span>{googleLoading ? 'Connecting to Google SSO...' : 'Sign in with Google (@iiitnr.edu.in)'}</span>
-          </button>
-
-          {/* Divider */}
-          <div className="relative flex py-1 items-center">
-            <div className="grow border-t border-white/[0.08]" />
-            <span className="shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-slate-500">
-              or institutional credentials
-            </span>
-            <div className="grow border-t border-white/[0.08]" />
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="login-password" className="text-xs font-semibold text-zinc-300">
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-xs font-mono font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            <input
+              id="login-password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              placeholder="Enter account password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError(null);
+              }}
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm font-mono focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 hover:border-white/[0.18] transition"
+            />
           </div>
 
-          {/* Institutional Form */}
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div>
-              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Institutional Email
-              </label>
-              <div className="relative">
-                <input
-                  id="login-email"
-                  type="email"
-                  required
-                  autoFocus
-                  placeholder="name@iiitnr.edu.in"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setError(null);
-                  }}
-                  className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-3 text-xs sm:text-sm font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 hover:border-white/[0.14] transition"
-                />
-              </div>
-            </div>
-
-            {/* Auto-detected Profile Chip */}
-            {detectedProfile && (
-              <div className="p-3.5 rounded-xl border border-cyan-500/30 bg-[#0b0f19]/90 text-slate-100 flex items-center justify-between text-xs animate-fade-in shadow-inner">
-                <div className="min-w-0 pr-2">
-                  <div className="font-bold text-white truncate">{detectedProfile.name}</div>
-                  <div className="text-[11px] text-cyan-400 font-mono truncate">
-                    {detectedProfile.department_name}
-                  </div>
-                </div>
-                <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shrink-0 uppercase tracking-wider">
-                  {detectedProfile.role}
-                </span>
-              </div>
-            )}
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="login-password" className="text-xs font-semibold text-slate-300">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-xs font-mono font-medium text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer select-none text-zinc-400 hover:text-zinc-300">
               <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                required
-                placeholder="Enter account password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError(null);
-                }}
-                className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-3 text-xs sm:text-sm transition font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 hover:border-white/[0.14]"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-white/[0.2] bg-[#050608] text-white focus:ring-white/20 cursor-pointer"
               />
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center space-x-2 text-xs font-medium cursor-pointer select-none text-slate-400 hover:text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-white/[0.15] bg-[#0b0f19] text-cyan-500 focus:ring-cyan-500/30 cursor-pointer"
-                />
-                <span>Keep me signed in</span>
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition cursor-pointer disabled:opacity-50"
-            >
-              {loading ? 'Authenticating...' : 'Sign In to Campus Desk'}
-            </button>
-          </form>
-
-          {/* Footer Register Link */}
-          <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs">
-            <span className="text-slate-400">New scholar or faculty member?</span>
-            <Link
-              to="/register"
-              className="font-bold text-cyan-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
-            >
-              <span>Create account</span>
-              <span>→</span>
-            </Link>
+              <span>Keep me signed in</span>
+            </label>
           </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {loading ? 'Authenticating...' : 'Sign In to Campus Desk'}
+          </button>
+        </form>
+
+        {/* Footer Register Link */}
+        <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs">
+          <span className="text-zinc-400">New scholar or faculty member?</span>
+          <Link
+            to="/register"
+            className="font-bold text-white hover:text-zinc-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
+          >
+            <span>Create account</span>
+            <span>→</span>
+          </Link>
         </div>
       </div>
 
       {/* Dev Mode Google Client ID Setup Dialog */}
       {!IS_PROD_BUILD && showClientIdModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-          <div className="rounded-3xl max-w-md w-full p-6 space-y-4 border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 shadow-2xl">
+          <div className="rounded-2xl max-w-md w-full p-6 space-y-4 border border-white/[0.14] bg-[#0c0d12]/95 text-zinc-100 shadow-2xl">
             <h3 className="text-base font-black text-white">Configure Google Client ID</h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               Provide your Google OAuth 2.0 Client ID for localhost testing.
             </p>
             <input
@@ -465,13 +449,13 @@ export default function Login() {
               placeholder="123456-abc.apps.googleusercontent.com"
               value={clientIdInput}
               onChange={(e) => setClientIdInput(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.1] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-2.5 text-xs font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-2.5 text-xs font-mono focus:border-white/40 focus:outline-none"
             />
             <div className="flex justify-end space-x-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowClientIdModal(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -486,7 +470,7 @@ export default function Login() {
                     launchGoogleWorkspaceFlow(cleaned);
                   }
                 }}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold shadow-xs cursor-pointer transition-colors"
               >
                 Save &amp; Continue
               </button>

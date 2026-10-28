@@ -143,26 +143,29 @@ export default function SquadsPage() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="w-full min-h-screen bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative">
+      {/* Subtle specular ambient sheen */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
+
       {/* Header Bar */}
-      <div className="p-6 sm:p-7 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+      <div className="p-6 sm:p-7 rounded-3xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-white/[0.15] bg-white/[0.05] text-zinc-300">
                 Dynamic Capacity Dispatch
               </span>
-              <span className="text-slate-600">•</span>
-              <span className="text-xs font-mono text-slate-400">
+              <span className="text-zinc-600">•</span>
+              <span className="text-xs font-mono text-zinc-400">
                 {sortedSquads.length} Active Field Squads
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white">
               Maintenance Squads &amp; Dispatch Balancer
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+            <p className="text-xs text-zinc-400 mt-1 max-w-2xl">
               Ranked dynamically by severity stress. Inspect backlog bottlenecks, monitor overdue SLA items, and rebalance dispatch queues across campus trades.
             </p>
           </div>
@@ -172,9 +175,9 @@ export default function SquadsPage() {
               type="button"
               onClick={loadData}
               disabled={loading}
-              className="px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
             >
-              <RefreshCw size={14} className={loading ? 'animate-spin text-cyan-400' : ''} />
+              <RefreshCw size={14} className={loading ? 'animate-spin text-white' : ''} />
               <span>{loading ? 'Refreshing...' : 'Refresh Queues'}</span>
             </button>
           </div>
@@ -187,7 +190,7 @@ export default function SquadsPage() {
             <CheckCircle2 size={16} className="text-emerald-400" />
             <span>{toastMsg}</span>
           </div>
-          <button type="button" onClick={() => setToastMsg(null)} className="cursor-pointer text-slate-400 hover:text-white">
+          <button type="button" onClick={() => setToastMsg(null)} className="cursor-pointer text-zinc-400 hover:text-white">
             <X size={14} />
           </button>
         </div>
@@ -201,10 +204,10 @@ export default function SquadsPage() {
       )}
 
       {/* Legend / Ranking Banner */}
-      <div className="p-4 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-lg">
+      <div className="p-4 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
         <div className="flex items-center gap-2">
-          <span className="text-cyan-400 font-mono font-bold">SORT ORDER:</span>
-          <span className="text-slate-300">
+          <span className="text-white font-mono font-bold">SORT ORDER:</span>
+          <span className="text-zinc-300">
             Squads with active SLA breaches and heavy work queues appear at the top.
           </span>
         </div>
@@ -217,8 +220,8 @@ export default function SquadsPage() {
             <span className="w-2 h-2 rounded-full bg-amber-400" />
             <span>On Hold (Parts)</span>
           </span>
-          <span className="flex items-center gap-1.5 text-cyan-400">
-            <span className="w-2 h-2 rounded-full bg-cyan-400" />
+          <span className="flex items-center gap-1.5 text-zinc-300">
+            <span className="w-2 h-2 rounded-full bg-zinc-300" />
             <span>In Work</span>
           </span>
         </div>
@@ -233,7 +236,7 @@ export default function SquadsPage() {
           return (
             <div
               key={squad.team_id}
-              className="rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md hover:border-white/[0.14] transition-all overflow-hidden shadow-xl"
+              className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl hover:border-white/[0.2] transition-all overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]"
             >
               {/* Squad Line Row Header */}
               <div
@@ -241,7 +244,7 @@ export default function SquadsPage() {
                 onClick={() => setExpandedTeamId(isExpanded ? null : squad.team_id)}
               >
                 <div className="flex items-center gap-4 min-w-[260px]">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 border border-white/[0.08] bg-[#0b0f19]">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 border border-white/[0.08] bg-[#050608]">
                     {CAMPUS_DEPT_ICONS[squad.department_name] || '🛠️'}
                   </div>
                   <div>
@@ -254,13 +257,13 @@ export default function SquadsPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-zinc-400">
                         {squad.department_name}
                       </span>
                       <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
                         index === 0
                           ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 font-bold'
-                          : 'bg-white/[0.04] border-white/[0.08] text-slate-400'
+                          : 'bg-white/[0.04] border-white/[0.08] text-zinc-400'
                       }`}>
                         {rankLabel}
                       </span>
@@ -274,7 +277,7 @@ export default function SquadsPage() {
                   <div className={`px-3 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1.5 ${
                     squad.overdueCount > 0
                       ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 font-bold'
-                      : 'bg-white/[0.03] border-white/[0.06] text-slate-500'
+                      : 'bg-white/[0.03] border-white/[0.06] text-zinc-500'
                   }`}>
                     <span>⚠️ Overdue:</span>
                     <span className="font-bold">{squad.overdueCount}</span>
@@ -284,7 +287,7 @@ export default function SquadsPage() {
                   <div className={`px-3 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1.5 ${
                     squad.onHoldCount > 0
                       ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 font-bold'
-                      : 'bg-white/[0.03] border-white/[0.06] text-slate-500'
+                      : 'bg-white/[0.03] border-white/[0.06] text-zinc-500'
                   }`}>
                     <span>⏳ On Hold:</span>
                     <span className="font-bold">{squad.onHoldCount}</span>
@@ -293,25 +296,25 @@ export default function SquadsPage() {
                   {/* In Progress Badge */}
                   <div className={`px-3 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1.5 ${
                     squad.inProgressCount > 0
-                      ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-bold'
-                      : 'bg-white/[0.03] border-white/[0.06] text-slate-500'
+                      ? 'bg-white/[0.08] border-white/20 text-white font-bold'
+                      : 'bg-white/[0.03] border-white/[0.06] text-zinc-500'
                   }`}>
                     <span>🔧 In Work:</span>
                     <span className="font-bold">{squad.inProgressCount}</span>
                   </div>
 
                   {/* Total Active Queue Depth */}
-                  <div className="px-3.5 py-1.5 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-xs font-mono font-bold flex items-center gap-2 text-white">
-                    <span className="text-slate-400">Active Queue:</span>
-                    <span className="text-sm font-black text-cyan-400">{squad.totalActive}</span>
+                  <div className="px-3.5 py-1.5 rounded-xl border border-white/[0.08] bg-[#050608] text-xs font-mono font-bold flex items-center gap-2 text-white">
+                    <span className="text-zinc-400">Active Queue:</span>
+                    <span className="text-sm font-black text-white">{squad.totalActive}</span>
                   </div>
 
                   <button
                     type="button"
-                    className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors flex items-center gap-1 shrink-0 ${
+                    className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1 shrink-0 ${
                       isExpanded
-                        ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
-                        : 'border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white'
+                        ? 'bg-white/[0.12] text-white border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                        : 'border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white'
                     }`}
                   >
                     <span>{isExpanded ? 'Hide Queue' : 'Inspect Queue'}</span>
@@ -322,18 +325,18 @@ export default function SquadsPage() {
 
               {/* Expanded Tickets Drawer */}
               {isExpanded && (
-                <div className="p-5 border-t border-white/[0.08] space-y-4 bg-[#090d14] animate-fade-in">
+                <div className="p-5 border-t border-white/[0.08] space-y-4 bg-[#050608] animate-fade-in">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+                    <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
                       Active Work Orders Assigned to {squad.team_name} ({squad.activeTickets.length})
                     </h4>
-                    <span className="text-[11px] font-mono text-slate-500">
+                    <span className="text-[11px] font-mono text-zinc-500">
                       Click "Reassign Squad" to transfer an incident
                     </span>
                   </div>
 
                   {squad.activeTickets.length === 0 ? (
-                    <div className="text-center py-8 rounded-xl border border-white/[0.06] bg-[#0b0f19] text-xs text-slate-400">
+                    <div className="text-center py-8 rounded-xl border border-white/[0.06] bg-[#0c0d12] text-xs text-zinc-400">
                       🎉 No active bottlenecks or pending work orders assigned to this squad.
                     </div>
                   ) : (
@@ -349,12 +352,12 @@ export default function SquadsPage() {
                             className={`p-4 rounded-xl border flex flex-col justify-between gap-3 transition-colors ${
                               isOverdue
                                 ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                                : 'bg-[#0b0f19] border-white/[0.08] text-slate-200'
+                                : 'bg-[#0c0d12] border-white/[0.1] text-zinc-200'
                             }`}
                           >
                             <div className="space-y-1.5">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="font-mono text-xs font-bold text-cyan-400">
+                                <span className="font-mono text-xs font-bold text-white">
                                   {t.tracking_code || `#${t.id}`}
                                 </span>
                                 <div className="flex items-center gap-1.5">
@@ -363,8 +366,8 @@ export default function SquadsPage() {
                                     t.status === 'ON_HOLD'
                                       ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                                       : t.status === 'IN_PROGRESS'
-                                      ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
-                                      : 'bg-white/[0.04] text-slate-400 border-white/[0.08]'
+                                      ? 'bg-white/[0.08] text-white border-white/20'
+                                      : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
                                   }`}>
                                     {t.status}
                                   </span>
@@ -375,12 +378,12 @@ export default function SquadsPage() {
                                 {t.title}
                               </h5>
 
-                              <p className="text-[11px] text-slate-400 line-clamp-2">
+                              <p className="text-[11px] text-zinc-400 line-clamp-2">
                                 {t.description}
                               </p>
 
-                              <div className="flex items-center gap-1 text-[11px] pt-1 text-slate-400 font-mono">
-                                <MapPin size={12} className="text-cyan-400" />
+                              <div className="flex items-center gap-1 text-[11px] pt-1 text-zinc-400 font-mono">
+                                <MapPin size={12} className="text-zinc-400" />
                                 <span className="truncate">{t.location}</span>
                               </div>
                             </div>
@@ -395,7 +398,7 @@ export default function SquadsPage() {
                                     dark={true}
                                   />
                                 ) : (
-                                  <span className="text-[10px] font-mono text-slate-500">
+                                  <span className="text-[10px] font-mono text-zinc-500">
                                     SLA: Standard
                                   </span>
                                 )}
@@ -404,7 +407,7 @@ export default function SquadsPage() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenReassign(t)}
-                                className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                                className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
                               >
                                 <ArrowRightLeft size={12} />
                                 <span>Reassign Squad</span>

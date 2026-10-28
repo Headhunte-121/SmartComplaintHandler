@@ -1,7 +1,7 @@
 /**
  * SmartComplaintHandler - Set / Change Account Password Modal
  * High-Density Obsidian Command Desk Standard:
- *  - Translucent obsidian glassmorphic dialog with cyan glow
+ *  - Translucent obsidian glassmorphic dialog with specular sheen
  *  - 4-Bar segmented password telemetry gauge
  *  - Supports dual Google SSO / Email-Password authentication
  */
@@ -19,8 +19,8 @@ function evaluatePasswordStrength(pw) {
 
   const map = {
     1: { label: 'Fair', color: 'bg-amber-500' },
-    2: { label: 'Good', color: 'bg-sky-500' },
-    3: { label: 'Strong', color: 'bg-cyan-400' },
+    2: { label: 'Good', color: 'bg-zinc-400' },
+    3: { label: 'Strong', color: 'bg-white' },
     4: { label: 'Institutional Grade', color: 'bg-emerald-400' },
   };
   return { score, ...(map[score] || map[1]) };
@@ -90,22 +90,22 @@ export default function SetPasswordModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-      <div className="rounded-3xl max-w-md w-full p-6 sm:p-7 space-y-5 border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 shadow-2xl relative overflow-hidden">
-        {/* Top Accent line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+      <div className="rounded-3xl max-w-md w-full p-6 sm:p-7 space-y-5 border border-white/[0.14] bg-[#0c0d12]/95 text-zinc-100 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] relative overflow-hidden">
+        {/* Top Specular Rim */}
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
         {/* Modal Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-white/[0.15] bg-white/[0.05] text-zinc-300">
                 {isGoogleOnly ? 'Dual Sign-In Setup' : 'Security Settings'}
               </span>
             </div>
             <h2 className="text-lg font-black tracking-tight text-white">
               {isGoogleOnly ? 'Set Account Password' : 'Change Account Password'}
             </h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed">
               {isGoogleOnly
                 ? 'Create a password to enable direct Email & Password sign-in alongside your Google SSO.'
                 : 'Update your current password for direct institutional access.'}
@@ -115,7 +115,7 @@ export default function SetPasswordModal({ isOpen, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="p-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] text-zinc-400 hover:text-white transition-colors cursor-pointer"
           >
             <X size={15} />
           </button>
@@ -141,7 +141,7 @@ export default function SetPasswordModal({ isOpen, onClose }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isGoogleOnly && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                 Current Password
               </label>
               <input
@@ -153,20 +153,20 @@ export default function SetPasswordModal({ isOpen, onClose }) {
                   setError(null);
                 }}
                 placeholder="Enter current password"
-                className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-3.5 py-2.5 text-xs font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3.5 py-2.5 text-xs font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
               />
             </div>
           )}
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-semibold text-zinc-300">
                 {isGoogleOnly ? 'Create Password' : 'New Password'}
               </label>
               <button
                 type="button"
                 onClick={() => setShowPasswords(!showPasswords)}
-                className="text-[11px] font-mono font-medium text-slate-400 hover:text-cyan-400 cursor-pointer transition-colors"
+                className="text-[11px] font-mono font-medium text-zinc-400 hover:text-white cursor-pointer transition-colors"
               >
                 {showPasswords ? 'Hide' : 'Show'}
               </button>
@@ -181,7 +181,7 @@ export default function SetPasswordModal({ isOpen, onClose }) {
                 setError(null);
               }}
               placeholder="Minimum 6 characters"
-              className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-3.5 py-2.5 text-xs font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3.5 py-2.5 text-xs font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
             />
 
             {/* Strength meter */}
@@ -198,15 +198,15 @@ export default function SetPasswordModal({ isOpen, onClose }) {
                   ))}
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-slate-500 font-mono">Password Security</span>
-                  <span className="font-bold text-slate-300 font-mono">{pwStrength.label}</span>
+                  <span className="text-zinc-500 font-mono">Password Security</span>
+                  <span className="font-bold text-zinc-300 font-mono">{pwStrength.label}</span>
                 </div>
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Confirm Password
             </label>
             <input
@@ -219,7 +219,7 @@ export default function SetPasswordModal({ isOpen, onClose }) {
                 setError(null);
               }}
               placeholder="Repeat password"
-              className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-3.5 py-2.5 text-xs font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3.5 py-2.5 text-xs font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
             />
           </div>
 
@@ -227,14 +227,14 @@ export default function SetPasswordModal({ isOpen, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white rounded-xl transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white rounded-xl transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || success}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 cursor-pointer transition-colors disabled:opacity-50"
+              className="px-5 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 cursor-pointer transition-all disabled:opacity-50"
             >
               {loading ? 'Saving...' : isGoogleOnly ? 'Create Password' : 'Save Changes'}
             </button>

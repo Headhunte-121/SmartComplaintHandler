@@ -10,7 +10,7 @@ import PriorityBadge from './PriorityBadge';
 const PRIORITY_OPTIONS = [
   { value: 'CRITICAL', label: 'CRITICAL', sla: '2-Hour SLA', desc: 'Severe facility failure or urgent campus safety hazard', color: 'border-rose-500/40 bg-rose-500/10 text-rose-300' },
   { value: 'HIGH', label: 'HIGH', sla: '8-Hour SLA', desc: 'Major room, classroom, or lab disruption', color: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
-  { value: 'MEDIUM', label: 'MEDIUM', sla: '24-Hour SLA', desc: 'Standard operational routine maintenance', color: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300' },
+  { value: 'MEDIUM', label: 'MEDIUM', sla: '24-Hour SLA', desc: 'Standard operational routine maintenance', color: 'border-white/20 bg-white/[0.08] text-white' },
   { value: 'LOW', label: 'LOW', sla: '72-Hour SLA', desc: 'Minor cosmetic defect or scheduled upgrade', color: 'border-slate-500/40 bg-slate-500/10 text-slate-300' },
 ];
 
@@ -83,12 +83,12 @@ export default function PriorityOverrideModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-w-lg rounded-2xl border border-white/[0.1] bg-[#0d121c] p-6 shadow-2xl text-slate-100 transform transition-all">
+      <div className="w-full max-w-lg rounded-3xl border border-white/[0.14] bg-[#0c0d12]/95 backdrop-blur-2xl p-6 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] text-zinc-100 relative overflow-hidden transform transition-all">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300">
+              <span className="rounded-md border border-white/20 bg-white/[0.08] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-300">
                 Administrative Override
               </span>
               <span className="font-mono text-xs text-slate-400">
@@ -116,7 +116,7 @@ export default function PriorityOverrideModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           {/* Current Level Pill */}
-          <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#070a10] px-3.5 py-2.5">
+          <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#050608] px-3.5 py-2.5">
             <span className="text-xs text-slate-400">Current Assigned Priority:</span>
             <PriorityBadge priority={ticket.priority} size="sm" dark />
           </div>
@@ -136,7 +136,7 @@ export default function PriorityOverrideModal({
                     onClick={() => setNewPriority(opt.value)}
                     className={`rounded-xl border p-2.5 text-left transition cursor-pointer relative ${
                       isSelected
-                        ? `${opt.color} shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-400/50`
+                        ? `${opt.color} shadow-[0_0_15px_rgba(255,255,255,0.1)] ring-1 ring-white/30`
                         : 'border-white/[0.07] bg-white/[0.02] text-slate-400 hover:border-white/[0.15] hover:bg-white/[0.04]'
                     }`}
                   >
@@ -174,7 +174,7 @@ export default function PriorityOverrideModal({
               onChange={(e) => setOverrideReason(e.target.value)}
               disabled={submitting}
               placeholder="State institutional reason (e.g. verified secondary leak, lab exam rescheduled, severe safety hazard)..."
-              className="w-full rounded-xl border border-white/[0.1] bg-[#070a10] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/10 resize-none transition"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 resize-none transition"
             />
             <p className="mt-1 text-[10px] text-slate-500">
               Audit log permanently attaches your administrative signature to this action.
@@ -202,7 +202,7 @@ export default function PriorityOverrideModal({
             <button
               type="submit"
               disabled={!canSubmit}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)] transition hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2 text-xs font-bold text-black shadow-[0_2px_12px_rgba(255,255,255,0.15)] hover:bg-zinc-200 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               {submitting ? 'Applying Override…' : 'Save Priority Override'}
             </button>

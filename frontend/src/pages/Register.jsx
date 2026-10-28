@@ -1,18 +1,17 @@
 /**
  * SmartComplaintHandler - Institutional Registration Portal (IIIT Naya Raipur)
- * High-Density Obsidian Command Desk Standard:
- *  - Official circular IIIT-NR logo emblem with cyan pulse heartbeat
- *  - Ambient deep space obsidian background with technical mesh grid
- *  - Translucent glassmorphic card container with cyan telemetry accents
+ * Glossy Obsidian Glass Design:
+ *  - Official circular IIIT-NR logo emblem with subtle live status indicator
+ *  - Smoked black glass container with specular top highlight and deep shadow
  *  - 2-Step progressive onboarding (Email Verification -> Password & Security)
  *  - Auto-detected scholar department/roll badge
- *  - 4-Bar segmented password telemetry gauge
+ *  - High-contrast glossy white primary action buttons
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchAuthConfig, isUndergradHostelStudent } from '../api/auth';
-import { Shield, Sparkles, KeyRound, Mail, ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Shield, KeyRound, Mail, ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
@@ -69,9 +68,9 @@ function evaluatePasswordStrength(pw) {
   if (/\d/.test(pw) || /[^A-Za-z0-9]/.test(pw)) score += 1;
 
   const map = {
-    1: { label: 'Fair', color: 'bg-amber-500' },
-    2: { label: 'Good', color: 'bg-sky-500' },
-    3: { label: 'Strong', color: 'bg-cyan-400' },
+    1: { label: 'Fair', color: 'bg-rose-500' },
+    2: { label: 'Good', color: 'bg-amber-400' },
+    3: { label: 'Strong', color: 'bg-emerald-400' },
     4: { label: 'Institutional Grade', color: 'bg-emerald-400' },
   };
   return { score, ...(map[score] || map[1]) };
@@ -312,16 +311,14 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30">
-      {/* Ambient background glows & technical mesh grid */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 right-1/4 w-[450px] h-[450px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-35 pointer-events-none" />
+    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white">
+      {/* Subtle Specular Ambient (No Glaring Neon) */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
 
       <div className="relative z-10 w-full max-w-md space-y-6">
         {/* Emblem & Institutional Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.1] shadow-2xl backdrop-blur-md">
+          <div className="relative inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.12] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_6px_20px_rgba(0,0,0,0.5)]">
             <img
               src="/iiitnr_logo.png"
               alt="IIIT Naya Raipur"
@@ -329,23 +326,23 @@ export default function Register() {
             />
           </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border bg-cyan-500/10 border-cyan-500/25 text-cyan-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               Institutional Onboarding
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
               Create IIIT-NR Account
             </h1>
-            <p className="text-xs font-mono text-slate-400 tracking-wide">
+            <p className="text-xs font-mono text-zinc-400 tracking-wide">
               Step {step === 'password' ? '2' : '1'} of 2 · Student &amp; Staff Registration
             </p>
           </div>
         </div>
 
-        {/* Obsidian Glassmorphic Card Container */}
-        <div className="rounded-3xl border border-white/[0.08] bg-[#0e131f]/85 backdrop-blur-xl p-7 sm:p-8 space-y-5 relative overflow-hidden shadow-2xl shadow-black/80">
-          {/* Top Cyan Glowing Accent Line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+        {/* Smoked Black Glass Container */}
+        <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-2xl p-7 sm:p-8 space-y-5 relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.12)]">
+          {/* Specular Top Rim */}
+          <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
 
           {/* Error Banner */}
           {error && (
@@ -353,7 +350,7 @@ export default function Register() {
               className={`p-3.5 rounded-xl border text-xs font-semibold space-y-2.5 ${
                 error.toLowerCase().includes('google sign-in')
                   ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
-                  : 'bg-rose-950/60 border-rose-800/80 text-rose-300'
+                  : 'bg-rose-950/50 border-rose-500/40 text-rose-300'
               }`}
             >
               <div className="flex items-start gap-2">
@@ -369,10 +366,9 @@ export default function Register() {
                     type="button"
                     onClick={handleContinueWithGoogle}
                     disabled={googleLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors border bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-xs"
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-colors shadow-xs cursor-pointer"
                   >
-                    <span>Sign in with Google</span>
-                    <span>→</span>
+                    Sign in with Google →
                   </button>
                 </div>
               )}
@@ -386,7 +382,7 @@ export default function Register() {
                 type="button"
                 onClick={handleContinueWithGoogle}
                 disabled={googleLoading || loading}
-                className="w-full py-3 px-4 font-bold text-xs rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] hover:border-cyan-500/40 text-slate-200 hover:text-white shadow-xs transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+                className="w-full py-3 px-4 font-bold text-xs rounded-xl border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/30 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
@@ -399,7 +395,7 @@ export default function Register() {
 
               <div className="relative flex py-1 items-center">
                 <div className="grow border-t border-white/[0.08]" />
-                <span className="shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                <span className="shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
                   or institutional email
                 </span>
                 <div className="grow border-t border-white/[0.08]" />
@@ -407,7 +403,7 @@ export default function Register() {
 
               <form onSubmit={handleContinueWithEmail} className="space-y-4">
                 <div>
-                  <label htmlFor="register-email" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label htmlFor="register-email" className="block text-xs font-semibold text-zinc-300 mb-1.5">
                     Institutional Email Address
                   </label>
                   <input
@@ -421,19 +417,19 @@ export default function Register() {
                       setEmail(e.target.value);
                       setError(null);
                     }}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-3 text-xs sm:text-sm font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 hover:border-white/[0.14] transition"
+                    className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm font-mono focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 hover:border-white/[0.18] transition"
                   />
                 </div>
 
                 {livePreview && (
-                  <div className="p-3.5 rounded-xl border border-cyan-500/30 bg-[#0b0f19]/90 text-slate-100 flex items-center justify-between text-xs animate-fade-in shadow-inner">
+                  <div className="p-3.5 rounded-xl border border-white/[0.12] bg-[#07080c] text-zinc-100 flex items-center justify-between text-xs animate-fade-in shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                     <div className="min-w-0 pr-2">
                       <div className="font-bold text-white truncate">{livePreview.fullName}</div>
-                      <div className="text-[11px] text-cyan-400 font-mono truncate">
+                      <div className="text-[11px] text-zinc-400 font-mono truncate">
                         {livePreview.department}
                       </div>
                     </div>
-                    <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shrink-0 uppercase tracking-wider">
+                    <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20 bg-white/[0.06] text-zinc-200 shrink-0 uppercase tracking-wider">
                       {livePreview.deptCode}
                     </span>
                   </div>
@@ -441,7 +437,7 @@ export default function Register() {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition cursor-pointer"
+                  className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
                 >
                   Continue to Security Setup →
                 </button>
@@ -449,19 +445,19 @@ export default function Register() {
             </div>
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
-              <div className="flex items-center justify-between p-3.5 rounded-2xl border border-white/[0.08] bg-[#0b0f19] text-slate-200">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl border border-white/[0.1] bg-[#050608] text-zinc-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
                 <div className="min-w-0 pr-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider block text-slate-500">
+                  <span className="text-[10px] font-mono uppercase tracking-wider block text-zinc-500">
                     Target Institutional Account
                   </span>
-                  <span className="text-xs font-bold truncate block font-mono text-cyan-400">
+                  <span className="text-xs font-bold truncate block font-mono text-zinc-200">
                     {email}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setStep('email')}
-                  className="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg transition-colors cursor-pointer text-slate-400 hover:text-white hover:bg-white/[0.05]"
+                  className="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg transition-colors cursor-pointer text-zinc-400 hover:text-white hover:bg-white/[0.08]"
                 >
                   Change
                 </button>
@@ -470,11 +466,11 @@ export default function Register() {
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-slate-300">Set Account Password</label>
+                    <label className="text-xs font-semibold text-zinc-300">Set Account Password</label>
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-xs font-mono font-medium text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
+                      className="text-xs font-mono font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer"
                     >
                       {showPassword ? 'Hide' : 'Show'}
                     </button>
@@ -485,7 +481,7 @@ export default function Register() {
                     placeholder="Minimum 6 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-3 text-xs sm:text-sm transition font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 hover:border-white/[0.14]"
+                    className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm transition font-mono focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 hover:border-white/[0.18]"
                   />
                   <div className="mt-2 grid grid-cols-4 gap-1.5 h-1">
                     {[1, 2, 3, 4].map((bar) => (
@@ -500,7 +496,7 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">
                     Confirm Password
                   </label>
                   <input
@@ -509,7 +505,7 @@ export default function Register() {
                     placeholder="Re-enter password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 px-4 py-3 text-xs sm:text-sm transition font-mono focus:border-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 hover:border-white/[0.14]"
+                    className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm transition font-mono focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 hover:border-white/[0.18]"
                   />
                 </div>
               </div>
@@ -517,7 +513,7 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer disabled:opacity-50"
               >
                 {loading ? 'Creating Account...' : 'Complete Institutional Registration'}
               </button>
@@ -526,10 +522,10 @@ export default function Register() {
 
           {/* Footer Login Link */}
           <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs">
-            <span className="text-slate-400">Already registered?</span>
+            <span className="text-zinc-400">Already registered?</span>
             <Link
               to="/login"
-              className="font-bold text-cyan-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
+              className="font-bold text-white hover:text-zinc-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Sign in</span>
               <span>→</span>

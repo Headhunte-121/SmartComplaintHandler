@@ -259,23 +259,26 @@ export default function TechnicianWorkstation() {
   const displayedOrders = activeTab === 'ACTIVE' ? activeWorkOrders : completedWorkOrders;
 
   return (
-    <div className="w-full min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="w-full min-h-screen bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative">
+      {/* Subtle specular ambient sheen */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
+
       {/* Header Bar */}
-      <div className="p-6 sm:p-7 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+      <div className="p-6 sm:p-7 rounded-3xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border border-white/[0.14] bg-white/[0.04] text-white">
               <Wrench size={26} />
             </div>
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+                <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-white/[0.15] bg-white/[0.05] text-zinc-300">
                   Field Technician Console
                 </span>
-                <span className="text-slate-600">•</span>
-                <span className="text-xs font-mono font-bold text-slate-300">
+                <span className="text-zinc-600">•</span>
+                <span className="text-xs font-mono font-bold text-zinc-300">
                   {activeUser?.name || 'Authorized Field Staff'}
                 </span>
               </div>
@@ -283,10 +286,10 @@ export default function TechnicianWorkstation() {
                 {assignedSquad.name}
               </h1>
               <div className="pt-1.5 flex flex-wrap items-center gap-2 text-xs">
-                <span className="px-2.5 py-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-mono font-bold text-xs text-cyan-400">
+                <span className="px-2.5 py-1 rounded-lg border border-white/[0.12] bg-white/[0.05] font-mono font-bold text-xs text-white">
                   Trade: {assignedSquad.dept}
                 </span>
-                <span className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-white/[0.03] font-mono text-[11px] text-slate-400">
+                <span className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-white/[0.02] font-mono text-[11px] text-zinc-400">
                   Shift: Active On-Duty Dispatch
                 </span>
               </div>
@@ -297,9 +300,9 @@ export default function TechnicianWorkstation() {
             <button
               type="button"
               onClick={loadWorkOrders}
-              className="px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white font-bold text-xs shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-bold text-xs shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
-              <RefreshCw size={14} className={loading ? 'animate-spin text-cyan-400' : ''} />
+              <RefreshCw size={14} className={loading ? 'animate-spin text-white' : ''} />
               <span>Refresh Queue</span>
             </button>
           </div>
@@ -340,24 +343,24 @@ export default function TechnicianWorkstation() {
 
       {/* Bento Telemetry Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md flex items-center justify-between shadow-xl">
+        <div className="p-5 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-slate-400">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-zinc-400">
               Assigned Queue
             </span>
             <div className="text-3xl font-black mt-1 text-amber-400 font-mono">
               {activeWorkOrders.length}
             </div>
-            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block truncate max-w-[200px]">
+            <span className="text-[11px] font-mono text-zinc-500 mt-0.5 block truncate max-w-[200px]">
               {assignedSquad.name}
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl font-bold">
+          <div className="w-12 h-12 rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl font-bold">
             <Clock size={20} />
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md flex items-center justify-between shadow-xl">
+        <div className="p-5 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
           <div>
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-rose-400">
               Critical / Escalated
@@ -365,16 +368,16 @@ export default function TechnicianWorkstation() {
             <div className="text-3xl font-black mt-1 text-rose-400 font-mono">
               {criticalOrders.length}
             </div>
-            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block">
+            <span className="text-[11px] font-mono text-zinc-500 mt-0.5 block">
               2-hour SLA priority gate
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl font-bold">
+          <div className="w-12 h-12 rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl font-bold">
             <ShieldAlert size={20} />
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md flex items-center justify-between shadow-xl">
+        <div className="p-5 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
           <div>
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-emerald-400">
               Completed Repairs
@@ -382,36 +385,37 @@ export default function TechnicianWorkstation() {
             <div className="text-3xl font-black mt-1 text-emerald-400 font-mono">
               {completedWorkOrders.length}
             </div>
-            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block">
+            <span className="text-[11px] font-mono text-zinc-500 mt-0.5 block">
               Verified with closure notes
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
+          <div className="w-12 h-12 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
             <CheckCircle2 size={20} />
           </div>
         </div>
       </div>
 
       {/* Work Orders Roster */}
-      <div className="rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md overflow-hidden shadow-2xl">
+      <div className="rounded-3xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
         <div className="p-5 sm:p-6 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-white">
               Work Orders — {assignedSquad.name}
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-zinc-400 mt-0.5">
               Start physical triage, pause for parts, and document closure proof with replaced parts.
             </p>
           </div>
 
-          <div className="flex items-center space-x-1 p-1 rounded-xl border border-white/[0.08] bg-[#0b0f19]">
+          <div className="flex items-center space-x-1 p-1 rounded-xl border border-white/[0.08] bg-[#050608]">
             <button
               type="button"
               onClick={() => setActiveTab('ACTIVE')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 activeTab === 'ACTIVE'
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               Active Queue ({activeWorkOrders.length})
@@ -421,8 +425,8 @@ export default function TechnicianWorkstation() {
               onClick={() => setActiveTab('COMPLETED')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 activeTab === 'COMPLETED'
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               Completed ({completedWorkOrders.length})
@@ -432,8 +436,8 @@ export default function TechnicianWorkstation() {
 
         {loading ? (
           <div className="py-20 text-center space-y-3">
-            <div className="w-8 h-8 mx-auto border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-mono text-slate-400">Loading squad work orders...</p>
+            <div className="w-8 h-8 mx-auto border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <p className="text-xs font-mono text-zinc-400">Loading squad work orders...</p>
           </div>
         ) : error ? (
           <div className="py-16 text-center space-y-3 px-4">
@@ -441,18 +445,18 @@ export default function TechnicianWorkstation() {
             <button
               type="button"
               onClick={loadWorkOrders}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs rounded-xl"
+              className="px-4 py-2 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
             >
               Retry
             </button>
           </div>
         ) : displayedOrders.length === 0 ? (
           <div className="py-20 text-center space-y-3 max-w-sm mx-auto px-4">
-            <div className="w-14 h-14 mx-auto rounded-2xl border border-white/[0.08] bg-[#0b0f19] flex items-center justify-center text-2xl text-slate-500">
+            <div className="w-14 h-14 mx-auto rounded-2xl border border-white/[0.08] bg-[#050608] flex items-center justify-center text-2xl text-zinc-500">
               <Wrench size={24} />
             </div>
             <h3 className="text-base font-bold text-white">Queue Clear</h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               No work orders in this state for {assignedSquad.name}.
             </p>
           </div>
@@ -475,7 +479,7 @@ export default function TechnicianWorkstation() {
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="font-mono font-bold px-2.5 py-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 transition-colors"
+                        className="font-mono font-bold px-2.5 py-1 rounded-lg border border-white/[0.12] bg-white/[0.05] text-zinc-200 hover:text-white transition-colors"
                       >
                         {ticket.tracking_code}
                       </Link>
@@ -483,14 +487,14 @@ export default function TechnicianWorkstation() {
                       <span
                         className={`px-2.5 py-0.5 rounded-full border text-[10px] font-mono font-bold uppercase ${
                           ticket.status === 'IN_PROGRESS'
-                            ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                            ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
                             : ticket.status === 'ESCALATED'
                             ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse'
                             : ticket.status === 'ON_HOLD'
                             ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                             : ticket.status === 'RESOLVED'
                             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                            : 'bg-white/[0.04] text-slate-400 border-white/[0.08]'
+                            : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
                         }`}
                       >
                         {ticket.status}
@@ -501,28 +505,28 @@ export default function TechnicianWorkstation() {
                       <h3 className="text-sm sm:text-base font-bold tracking-tight text-white">
                         {ticket.title}
                       </h3>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
                         {ticket.description}
                       </p>
                     </div>
 
                     {/* Location & Submitter info */}
                     <div className="flex flex-wrap items-center gap-3 text-xs pt-1">
-                      <div className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-[#0b0f19] flex items-center gap-1.5 font-bold text-slate-200">
-                        <MapPin size={13} className="text-cyan-400" />
+                      <div className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-[#050608] flex items-center gap-1.5 font-bold text-zinc-200">
+                        <MapPin size={13} className="text-zinc-400" />
                         <span>Location:</span>
-                        <span className="text-cyan-400 font-mono">{ticket.location}</span>
+                        <span className="text-white font-mono">{ticket.location}</span>
                       </div>
 
                       {ticket.student_name && (
-                        <div className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-[#0b0f19] flex items-center gap-1.5 text-[11px] text-slate-300">
-                          <User size={13} className="text-slate-400" />
+                        <div className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-[#050608] flex items-center gap-1.5 text-[11px] text-zinc-300">
+                          <User size={13} className="text-zinc-400" />
                           <span>Submitter:</span>
                           <strong className="text-white">{ticket.student_name}</strong>
                           {ticket.student_email && (
                             <a
                               href={`mailto:${ticket.student_email}?subject=Regarding Grievance ${ticket.tracking_code}`}
-                              className="ml-1 text-cyan-400 underline hover:text-cyan-300 font-mono"
+                              className="ml-1 text-zinc-300 hover:text-white underline font-mono"
                               title="Click to email student"
                             >
                               {ticket.student_email}
@@ -533,11 +537,11 @@ export default function TechnicianWorkstation() {
                     </div>
 
                     {ticket.resolution_notes && (
-                      <div className="mt-2 p-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-xs space-y-1">
-                        <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                      <div className="mt-2 p-3 rounded-xl border border-white/[0.08] bg-[#050608] text-xs space-y-1">
+                        <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-500">
                           Audit Trail &amp; Repair Notes
                         </div>
-                        <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed text-slate-300">
+                        <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed text-zinc-300">
                           {ticket.resolution_notes}
                         </pre>
                       </div>
@@ -546,7 +550,7 @@ export default function TechnicianWorkstation() {
                     {isResolved && ticket.feedback_rating && (
                       <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center gap-3 text-amber-300">
                         <span className="text-base font-bold font-mono">★ {ticket.feedback_rating}/5</span>
-                        <span className="text-xs italic text-slate-300">
+                        <span className="text-xs italic text-zinc-300">
                           "{ticket.feedback_comments || 'Student confirmed satisfaction with resolution.'}"
                         </span>
                       </div>
@@ -556,7 +560,7 @@ export default function TechnicianWorkstation() {
                   <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/[0.08]">
                     {!isResolved ? (
                       <div className="space-y-1 text-left sm:text-right">
-                        <span className="text-[10px] uppercase font-mono font-bold tracking-wider block text-slate-500">
+                        <span className="text-[10px] uppercase font-mono font-bold tracking-wider block text-zinc-500">
                           SLA Target Countdown
                         </span>
                         <SLACountdownTimer
@@ -581,7 +585,7 @@ export default function TechnicianWorkstation() {
                         <button
                           type="button"
                           onClick={() => handleStartWork(ticket)}
-                          className="px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+                          className="px-3.5 py-2 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer flex items-center gap-1.5"
                         >
                           <Play size={12} fill="currentColor" />
                           <span>{isOnHold ? 'Resume Repair' : 'Commence Work'}</span>
@@ -631,7 +635,7 @@ export default function TechnicianWorkstation() {
 
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="px-3 py-2 text-xs font-semibold rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors"
+                        className="px-3 py-2 text-xs font-semibold rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white transition-colors"
                       >
                         Details
                       </Link>
@@ -654,29 +658,29 @@ export default function TechnicianWorkstation() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
         >
-          <div className="w-full max-w-md p-6 rounded-3xl border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 shadow-2xl space-y-4 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+          <div className="w-full max-w-md p-6 rounded-3xl border border-white/[0.14] bg-[#0c0d12]/95 text-zinc-100 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-amber-500/40 to-transparent pointer-events-none" />
             <h3 className="text-base font-bold text-white">Pause Work Order (Parts / Delay Gate)</h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               Provide justification for pausing work order <strong>{holdingTicket.tracking_code}</strong>.
             </p>
             <form onSubmit={handleConfirmHold} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold mb-1 text-slate-300">Reason / Required Inventory</label>
+                <label className="block font-semibold mb-1 text-zinc-300">Reason / Required Inventory</label>
                 <textarea
                   rows={3}
                   required
                   value={holdReason}
                   onChange={(e) => setHoldReason(e.target.value)}
                   placeholder="e.g. Awaiting 3/4 inch brass gate valve from central store..."
-                  className="w-full p-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white focus:border-cyan-500/60 focus:outline-none"
+                  className="w-full p-3 rounded-xl border border-white/[0.1] bg-[#050608] text-white focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
                 />
               </div>
               <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setHoldingTicket(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -703,8 +707,8 @@ export default function TechnicianWorkstation() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
         >
-          <div className="w-full max-w-lg p-6 sm:p-7 rounded-3xl border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 shadow-2xl space-y-4 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-rose-500 to-transparent" />
+          <div className="w-full max-w-lg p-6 sm:p-7 rounded-3xl border border-white/[0.14] bg-[#0c0d12]/95 text-zinc-100 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-rose-500/40 to-transparent pointer-events-none" />
 
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -718,13 +722,13 @@ export default function TechnicianWorkstation() {
               <button
                 type="button"
                 onClick={() => setEscalatingTicket(null)}
-                className="p-1 rounded-lg border border-white/[0.1] bg-white/[0.04] text-slate-400 hover:text-white cursor-pointer"
+                className="p-1 rounded-lg border border-white/[0.1] bg-white/[0.04] text-zinc-400 hover:text-white cursor-pointer"
               >
                 <X size={15} />
               </button>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed">
               Select an escalation scenario below to request manual reassignment or supervisor intervention:
             </p>
 
@@ -738,13 +742,13 @@ export default function TechnicianWorkstation() {
                     setEscalateReason(preset.getText(escalatingTicket, assignedSquad));
                     setSuggestedTargetDept(preset.defaultTarget);
                   }}
-                  className="p-2.5 rounded-xl border border-white/[0.08] bg-[#0b0f19] hover:border-cyan-500/40 text-left transition-colors cursor-pointer"
+                  className="p-2.5 rounded-xl border border-white/[0.08] bg-[#050608] hover:border-white/30 hover:bg-white/[0.03] text-left transition-colors cursor-pointer"
                 >
                   <div className="font-bold flex items-center gap-1.5 text-white">
                     <span>{preset.icon}</span>
                     <span>{preset.label}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 mt-1 line-clamp-2">
+                  <div className="text-[10px] text-zinc-400 mt-1 line-clamp-2">
                     {preset.hint}
                   </div>
                 </button>
@@ -753,7 +757,7 @@ export default function TechnicianWorkstation() {
 
             <form onSubmit={handleConfirmEscalate} className="space-y-3.5 pt-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">
                   Escalation Justification &amp; Notes
                 </label>
                 <textarea
@@ -761,12 +765,12 @@ export default function TechnicianWorkstation() {
                   required
                   value={escalateReason}
                   onChange={(e) => setEscalateReason(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs focus:border-cyan-500/60 focus:outline-none"
+                  className="w-full p-3 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">
                   Recommended Target Squad (Optional)
                 </label>
                 <input
@@ -774,7 +778,7 @@ export default function TechnicianWorkstation() {
                   value={suggestedTargetDept}
                   onChange={(e) => setSuggestedTargetDept(e.target.value)}
                   placeholder="e.g. Carpentry (Structural Fixtures Crew)"
-                  className="w-full px-3 py-2 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-white text-xs font-mono focus:border-cyan-500/60 focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
                 />
               </div>
 
@@ -782,7 +786,7 @@ export default function TechnicianWorkstation() {
                 <button
                   type="button"
                   onClick={() => setEscalatingTicket(null)}
-                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/[0.1] bg-white/[0.04] text-zinc-400 hover:text-white text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>

@@ -1,11 +1,6 @@
 /**
  * SmartComplaintHandler - Student Portal & Request History Workstation
- * High-Density Obsidian Command Desk Standard:
- *  - Deep Space Obsidian canvas (#090d14)
- *  - Translucent glassmorphic KPI bento grid with active SLA meters
- *  - High-density request rows with real-time countdown timers and tracking links
- *  - Inline Campus Digital Twin drawer and Star Rating verification modal
- *  - High-density residential hostel & room modifier dialog
+ * Glossy Obsidian Command Desk Standard with Smoked Black Glass
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
@@ -198,17 +193,17 @@ export default function StudentDashboard() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'SUBMITTED':
-        return 'bg-sky-500/10 text-sky-400 border-sky-500/30';
+        return 'bg-white/10 text-white border-white/20';
       case 'ASSIGNED':
         return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
       case 'IN_PROGRESS':
-        return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
+        return 'bg-white/10 text-white border-white/20';
       case 'ESCALATED':
-        return 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse';
+        return 'bg-rose-500/10 text-rose-400 border-rose-500/30';
       case 'RESOLVED':
         return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
       default:
-        return 'bg-white/[0.04] text-slate-400 border-white/[0.08]';
+        return 'bg-white/[0.04] text-zinc-400 border-white/[0.08]';
     }
   };
 
@@ -216,14 +211,17 @@ export default function StudentDashboard() {
   const currentRoomLabel = activeUser?.room_number || 'Room 204';
 
   return (
-    <div className="w-full min-h-screen bg-[#090d14] text-slate-100 font-sans antialiased selection:bg-cyan-500/30 p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="w-full min-h-screen bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
+      {/* Subtle Specular Ambient */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
+
       {/* Header Profile Section */}
-      <div className="p-6 sm:p-7 rounded-2xl border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+      <div className="relative z-10 p-6 sm:p-7 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] overflow-hidden">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
         <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start sm:items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border border-white/20 bg-white/[0.05] text-white">
               <GraduationCap size={28} />
             </div>
             <div className="space-y-1">
@@ -231,31 +229,31 @@ export default function StudentDashboard() {
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                   {activeUser?.name}
                 </h1>
-                <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 tracking-wider">
+                <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-white/20 bg-white/[0.06] text-white tracking-wider">
                   {activeUser?.identifier}
                 </span>
-                <span className="text-slate-600">·</span>
-                <span className="text-xs font-mono text-slate-400">{activeUser?.department}</span>
+                <span className="text-zinc-600">·</span>
+                <span className="text-xs font-mono text-zinc-400">{activeUser?.department}</span>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 pt-1.5">
-                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl border border-white/[0.08] bg-[#0b0f19] text-xs font-semibold text-slate-300">
-                  <Home size={13} className="text-cyan-400" />
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl border border-white/[0.08] bg-[#07080c] text-xs font-semibold text-zinc-300">
+                  <Home size={13} className="text-white" />
                   <span>{currentHostelLabel.split(' (')[0]}</span>
-                  <span className="text-slate-600">·</span>
-                  <span className="font-mono font-bold text-cyan-400">{currentRoomLabel}</span>
+                  <span className="text-zinc-600">·</span>
+                  <span className="font-mono font-bold text-white">{currentRoomLabel}</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsResidenceModalOpen(true)}
-                  className="px-3 py-1 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-semibold transition cursor-pointer"
+                  className="px-3 py-1 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
                 >
                   Change Room
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCampusMap((prev) => !prev)}
-                  className="px-3 py-1 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-1 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
                 >
                   <Compass size={13} />
                   <span>{showCampusMap ? 'Hide Map' : 'Campus Map'}</span>
@@ -264,7 +262,7 @@ export default function StudentDashboard() {
                   <button
                     type="button"
                     onClick={() => setIsPasswordModalOpen(true)}
-                    className="px-3 py-1 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition cursor-pointer inline-flex items-center gap-1.5"
+                    className="px-3 py-1 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-semibold transition cursor-pointer inline-flex items-center gap-1.5"
                   >
                     <KeyRound size={13} />
                     <span>Set Password</span>
@@ -277,14 +275,14 @@ export default function StudentDashboard() {
           <div className="flex items-center space-x-2.5 shrink-0">
             <Link
               to="/submit"
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all inline-flex items-center gap-2 cursor-pointer"
             >
               <Plus size={14} />
               <span>Submit Issue</span>
             </Link>
             <button
               onClick={loadStudentTickets}
-              className="p-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-all cursor-pointer shadow-xs"
+              className="p-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white transition-all cursor-pointer shadow-xs"
               title="Refresh telemetry"
             >
               <RefreshCw size={14} />
@@ -295,7 +293,7 @@ export default function StudentDashboard() {
 
       {/* Expandable Digital Twin Campus Map Drawer */}
       {showCampusMap && (
-        <div className="w-full rounded-2xl border border-white/[0.08] overflow-hidden bg-[#090d14] shadow-2xl">
+        <div className="relative z-10 w-full rounded-2xl border border-white/[0.1] overflow-hidden bg-[#050608] shadow-2xl">
           <CampusMapSelector
             flush={true}
             selectedBuilding={currentHostelLabel}
@@ -311,10 +309,10 @@ export default function StudentDashboard() {
       )}
 
       {/* Bento KPI Row */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="p-5 sm:p-6 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl relative overflow-hidden flex items-center justify-between shadow-xl">
+      <div className="relative z-10 w-full grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="p-5 sm:p-6 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-slate-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-500">
               Active Issues
             </span>
             <div className="text-3xl font-black mt-1 text-amber-400 font-mono">{activeTickets.length}</div>
@@ -324,9 +322,9 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl relative overflow-hidden flex items-center justify-between shadow-xl">
+        <div className="p-5 sm:p-6 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-slate-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-500">
               Resolved Cases
             </span>
             <div className="text-3xl font-black mt-1 text-emerald-400 font-mono">{resolvedTickets.length}</div>
@@ -336,23 +334,23 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl relative overflow-hidden flex items-center justify-between shadow-xl">
+        <div className="p-5 sm:p-6 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-slate-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-500">
               Satisfaction Index
             </span>
-            <div className="text-3xl font-black mt-1 text-cyan-400 font-mono">
+            <div className="text-3xl font-black mt-1 text-white font-mono">
               {avgSatisfaction ? `${avgSatisfaction} / 5` : '—'}
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-lg font-bold shadow-xs">
+          <div className="w-12 h-12 rounded-2xl border border-white/20 bg-white/[0.05] text-white flex items-center justify-center text-lg font-bold shadow-xs">
             <Star size={20} />
           </div>
         </div>
       </div>
 
       {/* Issues List Card */}
-      <div className="border border-white/[0.08] bg-[#0e131f]/80 backdrop-blur-md rounded-2xl overflow-hidden relative shadow-2xl">
+      <div className="relative z-10 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
         <div className="p-5 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-base font-black tracking-tight text-white">
             My Maintenance Requests
@@ -365,18 +363,18 @@ export default function StudentDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search code, room, title..."
-                className="w-full sm:w-60 px-3.5 py-2 pl-9 rounded-xl text-xs border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 focus:border-cyan-500/60 focus:outline-none transition-all"
+                className="w-full sm:w-60 px-3.5 py-2 pl-9 rounded-xl text-xs border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 focus:border-white/30 focus:outline-none transition-all"
               />
-              <Search size={14} className="absolute left-3 top-2.5 text-slate-500" />
+              <Search size={14} className="absolute left-3 top-2.5 text-zinc-500" />
             </div>
 
-            <div className="inline-flex items-center p-1 rounded-xl gap-1 border border-white/[0.08] bg-[#0b0f19]">
+            <div className="inline-flex items-center p-1 rounded-xl gap-1 border border-white/[0.1] bg-[#050608]">
               <button
                 onClick={() => setActiveTab('ALL')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'ALL'
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-xs'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-black font-bold shadow-xs'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 All ({tickets.length})
@@ -385,8 +383,8 @@ export default function StudentDashboard() {
                 onClick={() => setActiveTab('ACTIVE')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'ACTIVE'
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-xs'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-black font-bold shadow-xs'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Active ({activeTickets.length})
@@ -395,8 +393,8 @@ export default function StudentDashboard() {
                 onClick={() => setActiveTab('RESOLVED')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'RESOLVED'
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-xs'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-black font-bold shadow-xs'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Resolved ({resolvedTickets.length})
@@ -406,18 +404,18 @@ export default function StudentDashboard() {
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-xs font-mono text-slate-400">
+          <div className="py-20 text-center text-xs font-mono text-zinc-500">
             Loading requests...
           </div>
         ) : displayedTickets.length === 0 ? (
           <div className="py-20 text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl border border-white/[0.08] bg-[#0b0f19] flex items-center justify-center mx-auto text-xl text-slate-500">
+            <div className="w-12 h-12 rounded-2xl border border-white/[0.08] bg-[#050608] flex items-center justify-center mx-auto text-xl text-zinc-500">
               📂
             </div>
-            <p className="text-xs text-slate-400">No maintenance requests found.</p>
+            <p className="text-xs text-zinc-400">No maintenance requests found.</p>
             <Link
               to="/submit"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-xs transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-xs transition-colors"
             >
               + Submit Issue
             </Link>
@@ -437,7 +435,7 @@ export default function StudentDashboard() {
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="font-mono font-bold px-2.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 transition-colors"
+                        className="font-mono font-bold px-2.5 py-0.5 rounded-lg border border-white/20 bg-white/[0.06] text-white hover:text-zinc-300 transition-colors"
                       >
                         {ticket.tracking_code}
                       </Link>
@@ -446,19 +444,19 @@ export default function StudentDashboard() {
                         {ticket.status}
                       </span>
                       {ticket.department_name && (
-                        <span className="text-[11px] font-mono border border-white/[0.08] bg-white/[0.03] text-slate-300 px-2 py-0.5 rounded">
+                        <span className="text-[11px] font-mono border border-white/[0.08] bg-white/[0.03] text-zinc-300 px-2 py-0.5 rounded">
                           {ticket.department_name}
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-sm font-bold text-white hover:text-cyan-400 transition-colors">
+                    <h3 className="text-sm font-bold text-white hover:underline transition-colors">
                       {ticket.title}
                     </h3>
-                    <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
-                      <MapPin size={12} className="text-cyan-400" />
+                    <div className="text-[11px] font-mono text-zinc-400 flex items-center gap-1.5">
+                      <MapPin size={12} className="text-zinc-300" />
                       <span>{ticket.location}</span>
-                      <span className="text-slate-600">·</span>
+                      <span className="text-zinc-600">·</span>
                       <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
@@ -488,7 +486,7 @@ export default function StudentDashboard() {
 
                     <Link
                       to={`/track?code=${ticket.tracking_code}`}
-                      className="px-3 py-1.5 text-xs font-bold rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors"
+                      className="px-3 py-1.5 text-xs font-bold rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white transition-colors"
                     >
                       Details →
                     </Link>
@@ -507,17 +505,17 @@ export default function StudentDashboard() {
           onClick={() => setIsResidenceModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 relative overflow-hidden"
+            className="w-full max-w-lg rounded-2xl p-6 sm:p-7 shadow-2xl space-y-4 border border-white/[0.14] bg-[#0c0d12]/95 text-zinc-100 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <h3 className="text-base font-black text-white">Select Your Hostel &amp; Room</h3>
               <button
                 type="button"
                 onClick={() => setIsResidenceModalOpen(false)}
-                className="w-7 h-7 rounded-xl font-bold text-xs cursor-pointer flex items-center justify-center transition-colors border border-white/[0.1] bg-white/[0.04] text-slate-400 hover:text-white"
+                className="w-7 h-7 rounded-xl font-bold text-xs cursor-pointer flex items-center justify-center transition-colors border border-white/[0.1] bg-white/[0.04] text-zinc-400 hover:text-white"
               >
                 ✕
               </button>
@@ -534,14 +532,14 @@ export default function StudentDashboard() {
                       onClick={() => handleSelectHostel(h.name)}
                       className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         active
-                          ? 'border-cyan-500/50 bg-cyan-500/10 shadow-xs'
-                          : 'border-white/[0.08] bg-[#0b0f19] hover:border-white/[0.16]'
+                          ? 'border-white/40 bg-white/[0.1] shadow-xs'
+                          : 'border-white/[0.08] bg-[#07080c] hover:border-white/20'
                       }`}
                     >
-                      <div className={`text-xs font-bold ${active ? 'text-cyan-400' : 'text-white'}`}>
+                      <div className="text-xs font-bold text-white">
                         {h.shortName}
                       </div>
-                      <div className="text-[10px] text-slate-400">{h.type}</div>
+                      <div className="text-[10px] text-zinc-400">{h.type}</div>
                     </button>
                   );
                 })}
@@ -549,43 +547,43 @@ export default function StudentDashboard() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Floor</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Floor</label>
                   <select
                     value={selectedFloor}
                     onChange={(e) => handleSelectFloor(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.08] bg-[#0b0f19] text-white focus:border-cyan-500/60"
+                    className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.1] bg-[#050608] text-white focus:border-white/30"
                   >
                     {availableFloors.length > 0 ? (
                       availableFloors.map((f) => (
-                        <option key={f.id} value={f.id} className="bg-[#0b0f19] text-white">
+                        <option key={f.id} value={f.id} className="bg-[#050608] text-white">
                           {f.label}
                         </option>
                       ))
                     ) : (
-                      <option value="1" className="bg-[#0b0f19] text-white">
+                      <option value="1" className="bg-[#050608] text-white">
                         Floor 1
                       </option>
                     )}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Room Number</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Room Number</label>
                   <select
                     value={selectedRoom}
                     onChange={(e) => {
                       setSelectedRoom(e.target.value);
                       setCustomRoomInput('');
                     }}
-                    className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.08] bg-[#0b0f19] text-white focus:border-cyan-500/60"
+                    className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.1] bg-[#050608] text-white focus:border-white/30"
                   >
                     {filteredRooms.length > 0 ? (
                       filteredRooms.map((r) => (
-                        <option key={r} value={r} className="bg-[#0b0f19] text-white">
+                        <option key={r} value={r} className="bg-[#050608] text-white">
                           {r}
                         </option>
                       ))
                     ) : (
-                      <option value="" className="bg-[#0b0f19] text-white">
+                      <option value="" className="bg-[#050608] text-white">
                         No rooms on this floor
                       </option>
                     )}
@@ -594,13 +592,13 @@ export default function StudentDashboard() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Or Custom Room / Spot</label>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">Or Custom Room / Spot</label>
                 <input
                   type="text"
                   placeholder="e.g. Room 312 or Guest Suite"
                   value={customRoomInput}
                   onChange={(e) => setCustomRoomInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 focus:border-cyan-500/60"
+                  className="w-full px-3 py-2 rounded-xl text-xs transition-all border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 focus:border-white/30"
                 />
               </div>
 
@@ -608,14 +606,14 @@ export default function StudentDashboard() {
                 <button
                   type="button"
                   onClick={() => setIsResidenceModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingResidence}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
                 >
                   {savingResidence ? 'Saving...' : 'Save Room'}
                 </button>
@@ -632,10 +630,10 @@ export default function StudentDashboard() {
           onClick={() => setSelectedTicketForFeedback(null)}
         >
           <div
-            className="w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 border border-white/[0.12] bg-[#0c1017]/95 text-slate-100 relative overflow-hidden"
+            className="w-full max-w-md rounded-2xl p-6 sm:p-7 shadow-2xl space-y-4 border border-white/[0.14] bg-[#0c0d12]/95 text-zinc-100 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
             <h3 className="text-base font-black text-white">
               Rate Repair ({selectedTicketForFeedback.tracking_code})
@@ -651,7 +649,7 @@ export default function StudentDashboard() {
                     onMouseLeave={() => setRatingHover(0)}
                     className="text-3xl cursor-pointer"
                   >
-                    <span className={(ratingHover || ratingScore) >= star ? 'text-amber-400' : 'text-slate-700'}>
+                    <span className={(ratingHover || ratingScore) >= star ? 'text-amber-400' : 'text-zinc-700'}>
                       ★
                     </span>
                   </button>
@@ -662,20 +660,20 @@ export default function StudentDashboard() {
                 value={feedbackComments}
                 onChange={(e) => setFeedbackComments(e.target.value)}
                 placeholder="Optional comments regarding work order quality..."
-                className="w-full p-3 rounded-xl text-xs resize-none transition-all border border-white/[0.08] bg-[#0b0f19] text-white placeholder-slate-500 focus:border-cyan-500/60"
+                className="w-full p-3 rounded-xl text-xs resize-none transition-all border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 focus:border-white/30"
               />
               <div className="flex justify-end space-x-2 pt-2 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setSelectedTicketForFeedback(null)}
-                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingFeedback}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
                 >
                   Submit Rating
                 </button>

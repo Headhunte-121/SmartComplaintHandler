@@ -90,14 +90,14 @@ export default function ResolutionNotesModal({
       }}
     >
       <div
-        className="w-full max-w-lg rounded-2xl border border-white/[0.1] bg-[#0d121c] p-6 shadow-2xl text-slate-100 transform transition-all"
+        className="w-full max-w-lg rounded-3xl border border-white/[0.14] bg-[#0c0d12]/95 backdrop-blur-2xl p-6 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] text-zinc-100 relative overflow-hidden transform transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-300">
+              <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-400">
                 Ticket Closure Gate
               </span>
               <span className="font-mono text-xs text-slate-400">
@@ -153,7 +153,7 @@ export default function ResolutionNotesModal({
                 if (!touched) setTouched(true);
               }}
               placeholder="Detail the physical diagnosis completed, repairs executed, or verified operation..."
-              className="w-full rounded-xl border border-white/[0.1] bg-[#070a10] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-500/10 resize-none transition"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-500/10 resize-none transition"
             />
             {showValidationError && (
               <p className="mt-1 text-[11px] text-rose-400">
@@ -174,7 +174,7 @@ export default function ResolutionNotesModal({
               value={partsReplaced}
               onChange={(e) => setPartsReplaced(e.target.value)}
               placeholder="e.g. 2x PVC Elbow 1-inch, 1x 16A MCB Breaker, Cat6 patch cable"
-              className="w-full rounded-xl border border-white/[0.1] bg-[#070a10] px-3.5 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-cyan-400/60 transition"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] px-3.5 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-white/40 transition"
             />
           </div>
 
@@ -190,7 +190,7 @@ export default function ResolutionNotesModal({
               value={technicianName}
               onChange={(e) => setTechnicianName(e.target.value)}
               placeholder="e.g. Dave Miller (Electrical Squad Lead)"
-              className="w-full rounded-xl border border-white/[0.1] bg-[#070a10] px-3.5 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-cyan-400/60 transition"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] px-3.5 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-white/40 transition"
             />
           </div>
 
@@ -207,7 +207,7 @@ export default function ResolutionNotesModal({
             <button
               type="submit"
               disabled={!isNotesValid || isSubmitting}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 px-5 py-2 text-xs font-bold transition shadow-[0_2px_12px_rgba(16,185,129,0.15)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <span>Resolving Incident…</span>

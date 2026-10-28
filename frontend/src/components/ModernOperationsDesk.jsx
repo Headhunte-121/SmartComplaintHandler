@@ -360,12 +360,12 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
     <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-7 space-y-4 max-w-[1720px] mx-auto animate-fade-in">
           {/* Notifications */}
           {toastMsg && (
-            <div className="flex items-center justify-between gap-4 rounded-xl border border-cyan-400/30 bg-cyan-400/[0.08] px-4 py-3 text-xs font-medium text-cyan-200 animate-fade-in">
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-white/20 bg-white/[0.08] px-4 py-3 text-xs font-medium text-white animate-fade-in">
               <span className="flex items-center gap-2">
                 <CheckCircle2 size={16} />
                 {toastMsg}
               </span>
-              <button onClick={() => setToastMsg(null)} className="text-cyan-300/70 hover:text-white cursor-pointer">×</button>
+              <button onClick={() => setToastMsg(null)} className="text-zinc-400 hover:text-white cursor-pointer">×</button>
             </div>
           )}
 
@@ -381,9 +381,9 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           {/* ========================================================================= */}
           <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
             {/* Card 1: Now Serving */}
-            <article className="rounded-2xl border border-white/[0.08] bg-[#121721] p-4 relative overflow-hidden shadow-sm">
+            <article className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                <Users size={16} className="text-cyan-400" />
+                <Users size={16} className="text-white" />
                 <span className="text-2xl font-extrabold tracking-tight text-white">{metrics.active}</span>
               </div>
               <p className="mt-2 text-xs font-bold text-slate-200">Now Serving</p>
@@ -394,8 +394,8 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             <article
               className={`rounded-2xl border p-4 relative overflow-hidden transition shadow-sm ${
                 metrics.critical > 0
-                  ? 'border-rose-500/40 bg-rose-500/[0.05]'
-                  : 'border-white/[0.08] bg-[#121721]'
+                  ? 'border-rose-500/40 bg-rose-500/[0.08] backdrop-blur-xl'
+                  : 'border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl'
               }`}
             >
               <div className="flex items-center gap-2 text-xs font-medium">
@@ -411,7 +411,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             </article>
 
             {/* Card 3: Sensors & Active Squads */}
-            <article className="rounded-2xl border border-white/[0.08] bg-[#121721] p-4 relative overflow-hidden shadow-sm">
+            <article className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
                 <Radio size={16} className="text-indigo-400" />
                 <span className="text-2xl font-extrabold tracking-tight text-white">{squads.length || 6}</span>
@@ -423,7 +423,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             </article>
 
             {/* Card 4: Open Incidents & SLA Escalations */}
-            <article className="rounded-2xl border border-white/[0.08] bg-[#121721] p-4 relative overflow-hidden shadow-sm">
+            <article className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
                 <ClipboardList size={16} className="text-purple-400" />
                 <span className="text-2xl font-extrabold tracking-tight text-white">{metrics.escalated}</span>
@@ -442,22 +442,22 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             {/* LEFT COLUMN (lg:col-span-5) */}
             <div className="space-y-4 lg:col-span-5">
               {/* Mini Campus Map Widget: Architectural Dark Masterplan */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#121721] p-3.5 relative overflow-hidden shadow-sm">
+              <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-3.5 relative overflow-hidden shadow-sm">
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-2">
-                    <Compass size={16} className="text-cyan-400" />
+                    <Compass size={16} className="text-white" />
                     <span className="text-xs font-bold text-white tracking-tight">Campus Digital Twin</span>
                   </div>
                   <Link
                     to="/map"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-300 hover:text-white transition"
                   >
                     Full Twin <ArrowUpRight size={12} />
                   </Link>
                 </div>
 
                 {/* Map Graphic Preview with Real Masterplan Background & Apple Maps-Style Pins */}
-                <div className="relative h-52 w-full rounded-xl overflow-hidden border border-white/[0.08] bg-[#070a10]">
+                <div className="relative h-52 w-full rounded-xl overflow-hidden border border-white/[0.08] bg-[#050608]">
                   {/* Real Dark Architectural Masterplan Imagery */}
                   <div
                     className="absolute inset-0 bg-cover bg-center transition-all duration-300"
@@ -508,8 +508,8 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               b.criticalTickets > 0
                                 ? 'bg-rose-500 text-white ring-4 ring-rose-500/30 animate-pulse'
                                 : b.activeTickets > 0
-                                ? 'bg-sky-400 text-slate-950 ring-4 ring-sky-400/30 shadow-[0_0_12px_rgba(56,189,248,0.6)]'
-                                : 'bg-slate-700/90 text-slate-200 border border-white/[0.2]'
+                                ? 'bg-white text-black ring-4 ring-white/20 shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                : 'bg-zinc-800 text-zinc-300 border border-white/[0.15]'
                             }`}
                           >
                             {b.activeTickets > 0 ? (
@@ -576,7 +576,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   </div>
 
                   {selectedBuildingId && (
-                    <div className="absolute top-2.5 left-2.5 rounded-lg bg-cyan-950/90 border border-cyan-400/40 px-2 py-1 text-[10px] font-semibold text-cyan-200 flex items-center gap-1 shadow-md">
+                    <div className="absolute top-2.5 left-2.5 rounded-lg bg-[#050608]/90 border border-white/20 px-2 py-1 text-[10px] font-semibold text-white flex items-center gap-1 shadow-md">
                       <span>Filtered: {buildings.find((x) => x.id === selectedBuildingId)?.shortName || 'Zone'}</span>
                       <button onClick={() => setSelectedBuildingId(null)} className="ml-1 font-bold hover:text-white cursor-pointer">✕</button>
                     </div>
@@ -585,7 +585,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
               </div>
 
               {/* Stacked Traffic Volume Chart (Pixel-Perfect Match to Reference UI) */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#121721] p-4 shadow-sm">
+              <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <h3 className="text-xs font-bold text-white tracking-tight">Request Volume</h3>
@@ -638,13 +638,13 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                 <div style={{ flexGrow: d.plumbing }} className="w-full bg-[#f97316] min-h-[3px] transition-all" />
                                 {/* Segment 2: Sanitation (Emerald Green) */}
                                 <div style={{ flexGrow: d.sanitation }} className="w-full bg-[#10b981] min-h-[3px] transition-all" />
-                                {/* Segment 1 (Bottom): IT Support (Cyan / Blue) */}
-                                <div style={{ flexGrow: d.it }} className="w-full bg-[#06b6d4] min-h-[3px] transition-all" />
+                                {/* Segment 1 (Bottom): IT Support */}
+                                <div style={{ flexGrow: d.it }} className="w-full bg-zinc-400 min-h-[3px] transition-all" />
                               </div>
 
                               {/* Hover Tooltip */}
                               <div className="absolute -top-11 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none">
-                                <span className="rounded bg-slate-900 border border-white/[0.12] px-2 py-0.5 text-[9px] font-mono text-cyan-300 shadow-xl whitespace-nowrap">
+                                <span className="rounded bg-slate-900 border border-white/[0.12] px-2 py-0.5 text-[9px] font-mono text-white shadow-xl whitespace-nowrap">
                                   {d.total} Req
                                 </span>
                               </div>
@@ -667,7 +667,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   {/* Chart Legend (Matching Reference Palette) */}
                   <div className="mt-3 flex flex-wrap items-center justify-center gap-3.5 text-[10px] text-slate-400 border-t border-white/[0.05] pt-2.5">
                     <span className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-xs bg-[#06b6d4]" /> IT
+                      <span className="h-2 w-2 rounded-xs bg-zinc-400" /> IT
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-xs bg-[#10b981]" /> Sanitation
@@ -689,12 +689,12 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             {/* RIGHT COLUMN (lg:col-span-7) */}
             <div className="space-y-4 lg:col-span-7">
               {/* Overview & Circular Donut Gauge Card */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#121721] p-5 shadow-sm">
+              <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-5 shadow-sm">
                 <div className="grid gap-5 md:grid-cols-[1fr_210px]">
                   {/* Left: Overview details + 4 mini stat boxes */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-400">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
                         {isSuperAdminMode ? 'Directorate Overview' : 'Operations Overview'}
                       </span>
                       <button
@@ -717,7 +717,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     <div className="mt-4 grid grid-cols-2 gap-2.5">
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
                         <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
-                          <Users size={12} className="text-cyan-400" />
+                          <Users size={12} className="text-white" />
                           <span>Logged Today</span>
                         </div>
                         <p className="mt-1 text-sm font-bold text-white">{metrics.loggedToday}</p>
@@ -755,14 +755,14 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     <div className="relative h-28 w-28">
                       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
                         {/* Background track */}
-                        <circle cx="50" cy="50" r="38" fill="none" stroke="#18202f" strokeWidth="8" />
-                        {/* Segment 1: Cyan arc */}
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#1c1e27" strokeWidth="8" />
+                        {/* Segment 1: Progress arc */}
                         <circle
                           cx="50"
                           cy="50"
                           r="38"
                           fill="none"
-                          stroke="#22d3ee"
+                          stroke="#f1f5f9"
                           strokeWidth="8"
                           strokeDasharray="238.7"
                           strokeDashoffset={238.7 * (1 - metrics.resolutionRate / 100)}
@@ -775,7 +775,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                           cy="50"
                           r="38"
                           fill="none"
-                          stroke="#818cf8"
+                          stroke="#94a3b8"
                           strokeWidth="8"
                           strokeDasharray="4 8"
                           strokeOpacity="0.6"
@@ -794,7 +794,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
               </div>
 
               {/* Adoption / Resolution Status with Segmented Capsule Pills (Matching Reference) */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#121721] p-5 shadow-sm">
+              <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-5 shadow-sm">
                 <div className="grid gap-5 md:grid-cols-[180px_1fr]">
                   {/* Left: Resolution Rate */}
                   <div className="border-b border-white/[0.06] pb-4 md:border-b-0 md:border-r md:pr-5">
@@ -818,7 +818,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                         </span>
                         <div className="flex items-center gap-3 text-xs text-slate-300">
                           <span className="flex items-center gap-1.5">
-                            <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" /> Active: {metrics.active}
+                            <span className="h-2 w-2 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.6)]" /> Active: {metrics.active}
                           </span>
                           <span className="flex items-center gap-1.5">
                             <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" /> Pending: {metrics.progress}
@@ -842,7 +842,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
 
                         let pillClass = 'bg-[#18202f] border border-white/[0.04]'; // Remaining
                         if (ratio < resolvedRatio) {
-                          pillClass = 'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]';
+                          pillClass = 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]';
                         } else if (ratio < workingRatio) {
                           pillClass = 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]';
                         }
@@ -864,7 +864,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           {/* ========================================================================= */}
           {/* ROW 3: BOTTOM DATA TABLE (Structures Hotspots & Live Work Queue) */}
           {/* ========================================================================= */}
-          <section className="rounded-2xl border border-white/[0.08] bg-[#121721] p-5 shadow-sm">
+          <section className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-5 shadow-sm">
             {/* Table Control Header */}
             <div className="flex flex-col gap-4 border-b border-white/[0.08] pb-4 sm:flex-row sm:items-center sm:justify-between">
               {/* Tabs */}
@@ -873,7 +873,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   onClick={() => setActiveTableTab('structures')}
                   className={`rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
                     activeTableTab === 'structures'
-                      ? 'bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.12)]'
+                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
                       : 'text-slate-400 hover:bg-white/[0.05] hover:text-white'
                   }`}
                 >
@@ -885,7 +885,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   onClick={() => setActiveTableTab('queue')}
                   className={`rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
                     activeTableTab === 'queue'
-                      ? 'bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.12)]'
+                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
                       : 'text-slate-400 hover:bg-white/[0.05] hover:text-white'
                   }`}
                 >
@@ -928,7 +928,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     <select
                       value={selectedDept}
                       onChange={(e) => setSelectedDept(e.target.value)}
-                      className="rounded-lg border border-white/[0.09] bg-[#0a0f17] px-2.5 py-1.5 text-xs text-slate-300 outline-none"
+                      className="rounded-lg border border-white/[0.09] bg-[#050608] px-2.5 py-1.5 text-xs text-slate-300 outline-none"
                     >
                       <option value="">All Teams</option>
                       {DEPARTMENTS.map(([id, name]) => (
@@ -939,7 +939,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     <select
                       value={selectedPriority}
                       onChange={(e) => setSelectedPriority(e.target.value)}
-                      className="rounded-lg border border-white/[0.09] bg-[#0a0f17] px-2.5 py-1.5 text-xs text-slate-300 outline-none"
+                      className="rounded-lg border border-white/[0.09] bg-[#050608] px-2.5 py-1.5 text-xs text-slate-300 outline-none"
                     >
                       <option value="">Priority</option>
                       {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((p) => (
@@ -971,7 +971,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       <tr key={b.id} className="group hover:bg-white/[0.02] transition">
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-3">
-                            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.04] border border-white/[0.08] text-slate-300 group-hover:text-cyan-400 group-hover:border-cyan-400/30 transition">
+                            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.04] border border-white/[0.08] text-slate-300 group-hover:text-white group-hover:border-white/30 transition">
                               <Building2 size={16} />
                             </div>
                             <div className="min-w-0">
@@ -1005,7 +1005,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                     ? 'bg-rose-500'
                                     : b.utilization > 30
                                     ? 'bg-amber-400'
-                                    : 'bg-cyan-400'
+                                    : 'bg-white'
                                 }`}
                                 style={{ width: `${Math.max(4, b.utilization)}%` }}
                               />
@@ -1041,7 +1041,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               setSelectedBuildingId(b.id);
                               setActiveTableTab('queue');
                             }}
-                            className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1.5 text-slate-300 hover:border-cyan-400/40 hover:text-cyan-300 transition cursor-pointer"
+                            className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1.5 text-slate-300 hover:border-white/30 hover:text-white transition cursor-pointer"
                             title={`Filter queue for ${b.shortName || b.name}`}
                           >
                             <ArrowUpRight size={14} />
@@ -1065,7 +1065,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       onClick={() => setSelectedStatus(tab.id)}
                       className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                         selectedStatus === tab.id
-                          ? 'bg-cyan-500 text-slate-950 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                          ? 'bg-white text-black font-bold shadow-[0_2px_12px_rgba(255,255,255,0.15)]'
                           : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-100'
                       }`}
                     >
@@ -1076,7 +1076,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   {selectedBuildingId && (
                     <button
                       onClick={() => setSelectedBuildingId(null)}
-                      className="ml-auto text-xs text-cyan-400 underline hover:text-cyan-300 cursor-pointer"
+                      className="ml-auto text-xs text-zinc-400 underline hover:text-white cursor-pointer"
                     >
                       Clear building filter
                     </button>
@@ -1114,7 +1114,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                           <td className="py-3.5 px-3">
                             <Link
                               to={`/track?code=${ticket.tracking_code}`}
-                              className="font-mono text-xs font-bold text-cyan-400 hover:text-cyan-300"
+                              className="font-mono text-xs font-bold text-white hover:underline"
                             >
                               {ticket.tracking_code}
                             </Link>
@@ -1163,7 +1163,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               {(ticket.status === 'ASSIGNED' || ticket.status === 'SUBMITTED') && (
                                 <button
                                   onClick={() => handleStartWork(ticket)}
-                                  className="rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-bold text-slate-950 shadow-[0_0_12px_rgba(6,182,212,0.35)] hover:bg-cyan-300 transition cursor-pointer"
+                                  className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-black shadow-[0_2px_12px_rgba(255,255,255,0.15)] hover:bg-zinc-200 transition cursor-pointer"
                                 >
                                   Start
                                 </button>
@@ -1189,7 +1189,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                 <button
                                   onClick={() => setOverrideTicket(ticket)}
                                   title="Override priority"
-                                  className="rounded-lg border border-white/[0.1] bg-white/[0.025] p-1.5 text-slate-300 hover:border-cyan-400/50 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"
+                                  className="rounded-lg border border-white/[0.1] bg-white/[0.025] p-1.5 text-slate-300 hover:border-white/30 hover:bg-white/[0.08] hover:text-white transition cursor-pointer"
                                 >
                                   <Settings2 size={13} />
                                 </button>
@@ -1236,7 +1236,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     onClick={() => setCurrentPage(i + 1)}
                     className={`rounded-lg px-2.5 py-1 font-bold transition cursor-pointer ${
                       currentPage === i + 1
-                        ? 'bg-cyan-500 text-slate-950 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                        ? 'bg-white text-black font-bold shadow-[0_2px_12px_rgba(255,255,255,0.15)]'
                         : 'border border-white/[0.08] text-slate-400 hover:text-white'
                     }`}
                   >
@@ -1293,7 +1293,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-fade-in">
           <form
             onSubmit={handleConfirmEscalate}
-            className="w-full max-w-md rounded-2xl border border-white/[0.1] bg-[#0d121c] p-6 shadow-2xl text-slate-100"
+            className="w-full max-w-md rounded-3xl border border-white/[0.14] bg-[#0c0d12]/95 backdrop-blur-2xl p-6 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] text-zinc-100 relative overflow-hidden"
           >
             <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
               <div>
@@ -1328,7 +1328,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                 value={escalateReason}
                 onChange={(e) => setEscalateReason(e.target.value)}
                 placeholder="State reason for supervisor escalation..."
-                className="w-full rounded-xl border border-white/[0.1] bg-[#070a10] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-rose-400/60 focus:ring-2 focus:ring-rose-500/10 resize-none transition min-h-24"
+                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-rose-400/60 focus:ring-2 focus:ring-rose-500/10 resize-none transition min-h-24"
               />
             </div>
             <div className="mt-4 flex items-center justify-end gap-2.5 pt-3 border-t border-white/[0.08]">
