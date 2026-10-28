@@ -213,22 +213,22 @@ export default function StudentDashboard() {
   const currentRoomLabel = activeUser?.room_number || 'Room 204';
 
   return (
-    <div className="w-full min-h-screen bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
+    <div className="w-full min-h-screen bg-[#121317] text-zinc-100 font-sans antialiased selection:bg-[#ff5a36]/30 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
       {/* Subtle Specular Ambient */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_60%_0%,rgba(255,90,50,0.035),transparent_60%)]" />
 
       {/* Header Profile Section */}
-      <div className="relative z-10 p-6 sm:p-7 rounded-3xl border border-emerald-500/30 bg-[#0c0d12]/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(16,185,129,0.2)] overflow-hidden">
-        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent pointer-events-none" />
+      <div className="relative z-10 p-6 sm:p-7 rounded-3xl border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)] overflow-hidden">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/[0.12] to-transparent pointer-events-none" />
 
         <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start sm:items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border border-emerald-500/40 bg-emerald-500/10 text-emerald-400">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border border-white/[0.1] bg-white/[0.04] text-[#ff5a36]">
               <GraduationCap size={28} />
             </div>
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-emerald-500/40 bg-emerald-500/15 text-emerald-300">
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-white/[0.1] bg-white/[0.04] text-zinc-300">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                   <span>Student Residence Portal · Self-Service Grievance Desk</span>
                 </span>
@@ -242,7 +242,7 @@ export default function StudentDashboard() {
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                   {activeUser?.name}
                 </h1>
-                <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 tracking-wider">
+                <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-white/[0.1] bg-white/[0.04] text-zinc-200 tracking-wider">
                   {activeUser?.identifier}
                 </span>
                 <span className="text-zinc-600">·</span>
@@ -291,7 +291,7 @@ export default function StudentDashboard() {
           <div className="flex items-center space-x-2.5 shrink-0">
             <Link
               to="/submit"
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-[0_2px_14px_rgba(16,185,129,0.25)] border border-emerald-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-semibold text-xs shadow-[0_4px_16px_rgba(240,72,36,0.35)] border border-white/20 transition-all inline-flex items-center gap-2 cursor-pointer"
             >
               <Plus size={14} />
               <span>Submit Issue</span>
@@ -372,7 +372,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* Issues List Card */}
-      <div className="relative z-10 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+      <div className="relative z-10 border border-white/[0.08] bg-gradient-to-b from-[#181a21] to-[#14151a] backdrop-blur-xl rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
         <div className="p-5 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-base font-black tracking-tight text-white">
             My Maintenance Requests

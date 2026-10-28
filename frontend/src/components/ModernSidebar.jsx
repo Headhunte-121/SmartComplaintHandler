@@ -176,20 +176,10 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
           <div className="min-w-0">
             <div className="text-sm font-extrabold tracking-tight text-white flex items-center gap-1.5">
               <span>IIIT-NR</span>
-              <span className={`h-1.5 w-1.5 rounded-full ${
-                isSuperAdmin ? 'bg-purple-400' : isAdmin ? 'bg-blue-400' : isTechnician ? 'bg-amber-400' : 'bg-emerald-400'
-              }`} />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5a36] shadow-[0_0_8px_rgba(255,90,50,0.8)]" />
             </div>
             <div className="mt-0.5">
-              <span className={`inline-block text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                isSuperAdmin
-                  ? 'border-purple-500/40 bg-purple-500/15 text-purple-300'
-                  : isAdmin
-                  ? 'border-blue-500/40 bg-blue-500/15 text-blue-300'
-                  : isTechnician
-                  ? 'border-amber-500/40 bg-amber-500/15 text-amber-300'
-                  : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
-              }`}>
+              <span className="inline-block text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border border-white/[0.1] bg-white/[0.04] text-zinc-300">
                 {isSuperAdmin ? '🏛️ Directorate' : isAdmin ? '📡 Operations' : isTechnician ? '🛠️ Field Squad' : '🎓 Resident'}
               </span>
             </div>
@@ -217,7 +207,7 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
       </form>
 
       {/* 3. Dual Metric Pill Card */}
-      <div className="mb-4 rounded-xl border border-white/[0.08] bg-[#0b0c10]/80 backdrop-blur-md p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+      <div className="mb-4 rounded-xl border border-white/[0.08] bg-gradient-to-b from-[#181a21] to-[#131419] backdrop-blur-md p-3.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
         <div className="grid grid-cols-2 divide-x divide-white/[0.08]">
           <div className="pr-2">
             <span className="block text-[10px] font-medium text-zinc-400">
@@ -244,13 +234,13 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
+              className="h-full rounded-full bg-gradient-to-r from-[#ff5a36] to-[#ff8c42] transition-all duration-500 shadow-[0_0_8px_rgba(255,90,50,0.5)]"
               style={{ width: `${Math.max(4, metrics.resolutionRate)}%` }}
             />
           </div>
           <div className="mt-2 flex items-center justify-between text-[9px] text-zinc-400 font-mono">
             <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" /> Active: {metrics.active}
+              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5a36]" /> Active: {metrics.active}
             </span>
             <span className="flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400/90" /> Working: {metrics.progress}
@@ -269,21 +259,8 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
             const Icon = tile.icon;
             const isTileActive = tile.active;
 
-            const activeTileClass = isSuperAdmin
-              ? 'border-purple-500/40 bg-purple-500/15 text-purple-200 shadow-[inset_0_1px_0_0_rgba(168,85,247,0.2),0_4px_12px_rgba(168,85,247,0.15)] font-bold'
-              : isAdmin
-              ? 'border-blue-500/40 bg-blue-500/15 text-blue-200 shadow-[inset_0_1px_0_0_rgba(59,130,246,0.2),0_4px_12px_rgba(59,130,246,0.15)] font-bold'
-              : isTechnician
-              ? 'border-amber-500/40 bg-amber-500/15 text-amber-200 shadow-[inset_0_1px_0_0_rgba(245,158,11,0.2),0_4px_12px_rgba(245,158,11,0.15)] font-bold'
-              : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-200 shadow-[inset_0_1px_0_0_rgba(16,185,129,0.2),0_4px_12px_rgba(16,185,129,0.15)] font-bold';
-
-            const activeIconClass = isSuperAdmin
-              ? 'text-purple-400'
-              : isAdmin
-              ? 'text-blue-400'
-              : isTechnician
-              ? 'text-amber-400'
-              : 'text-emerald-400';
+            const activeTileClass = 'border-white/[0.14] bg-white/[0.08] text-white font-bold shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.3)]';
+            const activeIconClass = 'text-[#ff5a36]';
 
             return (
               <Link

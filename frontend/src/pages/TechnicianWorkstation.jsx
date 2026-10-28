@@ -261,22 +261,22 @@ export default function TechnicianWorkstation() {
   const displayedOrders = activeTab === 'ACTIVE' ? activeWorkOrders : completedWorkOrders;
 
   return (
-    <div className="w-full min-h-screen bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative">
+    <div className="w-full min-h-screen bg-[#121317] text-zinc-100 font-sans antialiased selection:bg-[#ff5a36]/30 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative">
       {/* Subtle specular ambient sheen */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_60%_0%,rgba(255,90,50,0.035),transparent_60%)]" />
 
       {/* Header Bar */}
-      <div className="p-6 sm:p-7 rounded-3xl border border-amber-500/30 bg-[#0c0d12]/95 backdrop-blur-xl relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(245,158,11,0.2)]">
-        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-amber-400/40 to-transparent pointer-events-none" />
+      <div className="p-6 sm:p-7 rounded-3xl border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/[0.12] to-transparent pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border border-amber-500/40 bg-amber-500/10 text-amber-400">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border border-white/[0.1] bg-white/[0.04] text-[#ff5a36]">
               <Wrench size={26} />
             </div>
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-amber-500/40 bg-amber-500/15 text-amber-300">
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-white/[0.1] bg-white/[0.04] text-zinc-300">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
                   <span>Field Technician Workstation · Active Repair Terminal</span>
                 </span>
@@ -292,10 +292,10 @@ export default function TechnicianWorkstation() {
                 Boots-on-the-ground repair console, spare parts procurement hold logs, and formal ticket closure verification.
               </p>
               <div className="pt-1 flex flex-wrap items-center gap-2 text-xs">
-                <span className="px-2.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 font-mono font-bold text-xs text-amber-300">
+                <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.1] bg-white/[0.04] font-mono font-bold text-xs text-zinc-200">
                   Trade: {assignedSquad.dept}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-lg border border-amber-500/20 bg-amber-500/5 font-mono text-[11px] text-amber-200/80">
+                <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.02] font-mono text-[11px] text-zinc-400">
                   Shift: Active On-Duty Dispatch
                 </span>
               </div>
@@ -405,7 +405,7 @@ export default function TechnicianWorkstation() {
       </div>
 
       {/* Work Orders Roster */}
-      <div className="rounded-3xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative">
+      <div className="rounded-3xl border border-white/[0.08] bg-gradient-to-b from-[#181a21] to-[#14151a] backdrop-blur-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] relative">
         <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
         <div className="p-5 sm:p-6 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

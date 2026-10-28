@@ -459,30 +459,18 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           {/* ROLE-DISTINGUISHED INSTITUTIONAL COMMAND HEADER */}
           {/* ========================================================================= */}
           <section
-            className={`p-5 sm:p-6 rounded-3xl border relative overflow-hidden backdrop-blur-xl transition-all shadow-[0_20px_50px_rgba(0,0,0,0.8)] ${
-              isSuperAdminMode
-                ? 'border-purple-500/30 bg-[#0c0d12]/95 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(168,85,247,0.2)]'
-                : 'border-blue-500/30 bg-[#0c0d12]/95 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(59,130,246,0.2)]'
-            }`}
+            className="p-5 sm:p-6 rounded-3xl border border-white/[0.08] bg-[#0c0e15]/95 relative overflow-hidden backdrop-blur-xl transition-all shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)]"
           >
             {/* Top specular glow rim matching theme */}
             <div
-              className={`absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent pointer-events-none ${
-                isSuperAdminMode
-                  ? 'via-purple-400/40 to-transparent'
-                  : 'via-blue-400/40 to-transparent'
-              }`}
+              className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/[0.12] to-transparent pointer-events-none"
             />
 
             <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
               {/* Left Identity Pod */}
               <div className="flex items-start sm:items-center gap-4">
                 <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-inner border transition-colors ${
-                    isSuperAdminMode
-                      ? 'border-purple-500/40 bg-purple-500/10 text-purple-300'
-                      : 'border-blue-500/40 bg-blue-500/10 text-blue-400'
-                  }`}
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-inner border border-white/[0.1] bg-white/[0.04] text-[#ff5a36]"
                 >
                   {isSuperAdminMode ? <ShieldCheck size={28} /> : <LayoutDashboard size={28} />}
                 </div>
@@ -490,17 +478,9 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border ${
-                        isSuperAdminMode
-                          ? 'border-purple-500/40 bg-purple-500/15 text-purple-300'
-                          : 'border-blue-500/40 bg-blue-500/15 text-blue-300'
-                      }`}
+                      className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-white/[0.1] bg-white/[0.04] text-zinc-300"
                     >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full animate-ping ${
-                          isSuperAdminMode ? 'bg-purple-400' : 'bg-blue-400'
-                        }`}
-                      />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#ff5a36] animate-ping" />
                       <span>
                         {isSuperAdminMode
                           ? 'Campus Facilities Directorate · Executive Oversight'
@@ -528,11 +508,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   {/* Scope badges */}
                   <div className="pt-1 flex flex-wrap items-center gap-2 text-xs">
                     <span
-                      className={`px-2.5 py-0.5 rounded-lg border font-mono font-bold text-[11px] ${
-                        isSuperAdminMode
-                          ? 'border-purple-500/30 bg-purple-500/10 text-purple-200'
-                          : 'border-blue-500/30 bg-blue-500/10 text-blue-200'
-                      }`}
+                      className="px-2.5 py-0.5 rounded-lg border border-white/[0.1] bg-white/[0.04] font-mono font-bold text-[11px] text-zinc-200"
                     >
                       Console: {isSuperAdminMode ? 'Super Administrator' : 'Operations Administrator'}
                     </span>
@@ -552,14 +528,14 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   <>
                     <Link
                       to="/superadmin/staff"
-                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_14px_rgba(168,85,247,0.25)] border border-purple-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-semibold text-xs shadow-[0_4px_16px_rgba(240,72,36,0.35)] border border-white/20 transition-all inline-flex items-center gap-2 cursor-pointer"
                     >
                       <UsersRound size={14} />
                       <span>Staff Directory & RBAC</span>
                     </Link>
                     <Link
                       to="/squads"
-                      className="px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-bold text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+                      className="px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-200 hover:text-white font-semibold text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
                     >
                       <Users size={14} />
                       <span>Squads Balancer</span>
@@ -596,7 +572,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
 
             {/* Directorate Exclusive: 6-Trade Active Health Strip */}
             {isSuperAdminMode && (
-              <div className="mt-4 pt-4 border-t border-purple-500/20 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div className="mt-4 pt-4 border-t border-white/[0.08] grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {[
                   { name: 'Electrical', icon: '⚡' },
                   { name: 'Plumbing', icon: '💧' },
@@ -621,7 +597,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       </span>
                       <span
                         className={`font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
-                          count > 0 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-zinc-500'
+                          count > 0 ? 'bg-[#ff5a36]/15 text-[#ff7a5c] border border-[#ff5a36]/25' : 'text-zinc-500'
                         }`}
                       >
                         {count} active
@@ -634,73 +610,85 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           </section>
 
           {/* ========================================================================= */}
-          {/* ROW 1: TOP 4 KPI CARDS (Matching Reference Header Strip) */}
+          {/* ROW 1: TOP 4 KPI CARDS (Unified Obsidian Surface, Tasteful Semantic Pods) */}
           {/* ========================================================================= */}
-          <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            {/* Card 1: Now Serving (Sapphire Blue Tint) */}
-            <article className="rounded-2xl border border-blue-500/30 bg-gradient-to-b from-blue-950/25 to-[#0c0d12]/95 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(59,130,246,0.18)]">
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-blue-400/40 to-transparent pointer-events-none" />
-              <div className="flex items-center gap-2 text-blue-400 text-xs font-medium">
-                <div className="p-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10">
-                  <Users size={15} className="text-blue-400" />
+          <section className="grid grid-cols-2 gap-3.5 xl:grid-cols-4">
+            {/* Card 1: Now Serving */}
+            <article className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] hover:border-white/[0.15] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
+              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-300">Now Serving</span>
+                <div className="p-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] text-white">
+                  <Users size={15} />
                 </div>
-                <span className="text-2xl font-extrabold tracking-tight text-white">{metrics.active}</span>
               </div>
-              <p className="mt-2 text-xs font-bold text-blue-200">Now Serving</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Across all campus buildings</p>
+              <div className="mt-2.5">
+                <span className="text-2xl font-black tracking-tight text-white">{metrics.active}</span>
+                <p className="text-[11px] text-zinc-400 mt-0.5">Across all campus buildings</p>
+              </div>
             </article>
 
-            {/* Card 2: Active Alerts (Coral Rose Tint) */}
-            <article
-              className={`rounded-2xl border p-4 relative overflow-hidden transition shadow-sm backdrop-blur-xl ${
-                metrics.critical > 0
-                  ? 'border-rose-500/45 bg-gradient-to-b from-rose-950/35 to-[#0c0d12]/95 shadow-[0_16px_40px_rgba(244,63,94,0.15),inset_0_1px_0_0_rgba(244,63,94,0.25)]'
-                  : 'border-rose-500/25 bg-gradient-to-b from-rose-950/15 to-[#0c0d12]/95 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(244,63,94,0.1)]'
-              }`}
-            >
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-rose-400/40 to-transparent pointer-events-none" />
-              <div className="flex items-center gap-2 text-xs font-medium">
-                <div className="p-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10">
-                  <AlertTriangle size={15} className={metrics.critical > 0 ? 'text-rose-400' : 'text-slate-400'} />
+            {/* Card 2: Active Alerts */}
+            <article className={`rounded-2xl border transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.05)] ${
+              metrics.critical > 0
+                ? 'border-rose-500/30 bg-rose-950/10 hover:border-rose-500/40'
+                : 'border-white/[0.08] bg-[#0c0e15]/90 hover:border-white/[0.14]'
+            }`}>
+              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <span className={`text-xs font-semibold ${metrics.critical > 0 ? 'text-rose-300 font-bold' : 'text-zinc-300'}`}>
+                  Active Alerts
+                </span>
+                <div className={`p-1.5 rounded-lg border ${
+                  metrics.critical > 0
+                    ? 'border-rose-500/30 bg-rose-500/15 text-rose-400'
+                    : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                }`}>
+                  {metrics.critical > 0 ? <AlertTriangle size={15} /> : <CheckCircle2 size={15} />}
                 </div>
-                <span className={`text-2xl font-extrabold tracking-tight ${metrics.critical > 0 ? 'text-rose-300' : 'text-white'}`}>
+              </div>
+              <div className="mt-2.5">
+                <span className={`text-2xl font-black tracking-tight ${metrics.critical > 0 ? 'text-rose-300' : 'text-white'}`}>
                   {metrics.critical}
                 </span>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  {metrics.critical > 0 ? `${metrics.critical} emergency hazards` : 'All clear · 0 emergencies'}
+                </p>
               </div>
-              <p className="mt-2 text-xs font-bold text-rose-200">Active Alerts</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                {metrics.critical ? `${metrics.critical} emergency hazards` : 'No critical emergencies'}
-              </p>
             </article>
 
-            {/* Card 3: Sensors & Active Squads (Royal Indigo Tint) */}
-            <article className="rounded-2xl border border-indigo-500/30 bg-gradient-to-b from-indigo-950/25 to-[#0c0d12]/95 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(99,102,241,0.18)]">
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent pointer-events-none" />
-              <div className="flex items-center gap-2 text-indigo-400 text-xs font-medium">
-                <div className="p-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10">
-                  <Radio size={15} className="text-indigo-400" />
+            {/* Card 3: Sensors & Active Squads */}
+            <article className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] hover:border-white/[0.15] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
+              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-300">Sensors &amp; Squads</span>
+                <div className="p-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] text-zinc-300">
+                  <Radio size={15} />
                 </div>
-                <span className="text-2xl font-extrabold tracking-tight text-white">{squads.length || 6}</span>
               </div>
-              <p className="mt-2 text-xs font-bold text-indigo-200">Sensors &amp; Squads</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                {squads.filter((s) => s.assigned_technicians > 0).length || squads.length || 6} active teams online
-              </p>
+              <div className="mt-2.5">
+                <span className="text-2xl font-black tracking-tight text-white">{squads.length || 6}</span>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  {squads.filter((s) => s.assigned_technicians > 0).length || squads.length || 6} active teams online
+                </p>
+              </div>
             </article>
 
-            {/* Card 4: Open Incidents & SLA Escalations (Sunset Amber / Violet Tint) */}
-            <article className="rounded-2xl border border-purple-500/30 bg-gradient-to-b from-purple-950/25 to-[#0c0d12]/95 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(168,85,247,0.18)]">
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-purple-400/40 to-transparent pointer-events-none" />
-              <div className="flex items-center gap-2 text-purple-400 text-xs font-medium">
-                <div className="p-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10">
-                  <ClipboardList size={15} className="text-purple-400" />
+            {/* Card 4: Open Incidents & Escalations */}
+            <article className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] hover:border-white/[0.15] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
+              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-300">Open Incidents</span>
+                <div className="p-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] text-zinc-300">
+                  <ClipboardList size={15} />
                 </div>
-                <span className="text-2xl font-extrabold tracking-tight text-white">{metrics.escalated}</span>
               </div>
-              <p className="mt-2 text-xs font-bold text-purple-200">Open Incidents</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                {metrics.escalated ? `${metrics.escalated} escalated for decision` : 'All requests within SLA'}
-              </p>
+              <div className="mt-2.5">
+                <span className="text-2xl font-black tracking-tight text-white">{metrics.escalated}</span>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  {metrics.escalated ? `${metrics.escalated} escalated for decision` : 'All requests within SLA'}
+                </p>
+              </div>
             </article>
           </section>
 
@@ -711,7 +699,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             {/* LEFT COLUMN (lg:col-span-5) */}
             <div className="space-y-4 lg:col-span-5">
               {/* Mini Campus Map Widget: Architectural Dark Masterplan */}
-              <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-3.5 relative overflow-hidden shadow-sm">
+              <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-4 relative overflow-hidden">
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-2">
                     <Compass size={16} className="text-indigo-400" />
@@ -854,7 +842,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
               </div>
 
               {/* Stacked Traffic Volume Chart - Real Daily Telemetry */}
-              <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-4 shadow-sm">
+              <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-5 relative overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <div>
                     <h3 className="text-xs font-bold text-white tracking-tight">Request Volume</h3>
@@ -934,9 +922,9 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                 {d.total > 0 ? (
                                   <>
                                     {/* Segment 5 (Top): General Admin */}
-                                    {d.general > 0 && <div style={{ flexGrow: d.general }} className="w-full bg-[#a855f7] min-h-[3px] transition-all" />}
+                                    {d.general > 0 && <div style={{ flexGrow: d.general }} className="w-full bg-[#64748b] min-h-[3px] transition-all" />}
                                     {/* Segment 4: Electrical */}
-                                    {d.electrical > 0 && <div style={{ flexGrow: d.electrical }} className="w-full bg-[#f43f5e] min-h-[3px] transition-all" />}
+                                    {d.electrical > 0 && <div style={{ flexGrow: d.electrical }} className="w-full bg-[#ff5a36] min-h-[3px] transition-all" />}
                                     {/* Segment 3: Plumbing */}
                                     {d.plumbing > 0 && <div style={{ flexGrow: d.plumbing }} className="w-full bg-[#f97316] min-h-[3px] transition-all" />}
                                     {/* Segment 2: Sanitation */}
@@ -983,10 +971,10 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       <span className="h-2 w-2 rounded-xs bg-[#f97316]" /> Plumbing
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-xs bg-[#f43f5e]" /> Electrical
+                      <span className="h-2 w-2 rounded-xs bg-[#ff5a36]" /> Electrical
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-xs bg-[#a855f7]" /> General
+                      <span className="h-2 w-2 rounded-xs bg-[#64748b]" /> General
                     </span>
                   </div>
                 </div>
@@ -996,12 +984,12 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             {/* RIGHT COLUMN (lg:col-span-7) */}
             <div className="space-y-4 lg:col-span-7">
               {/* Overview & Circular Donut Gauge Card */}
-              <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-5 shadow-sm">
+              <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-5 relative overflow-hidden">
                 <div className="grid gap-5 md:grid-cols-[1fr_210px]">
                   {/* Left: Overview details + 4 mini stat boxes */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-400">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ff5a36]">
                         {isSuperAdminMode ? 'Directorate Overview' : 'Operations Overview'}
                       </span>
                       <button
@@ -1069,7 +1057,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                           cy="50"
                           r="38"
                           fill="none"
-                          stroke="#3b82f6"
+                          stroke="#ff5a36"
                           strokeWidth="8"
                           strokeDasharray="238.7"
                           strokeDashoffset={238.7 * (1 - metrics.resolutionRate / 100)}
@@ -1082,7 +1070,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                           cy="50"
                           r="38"
                           fill="none"
-                          stroke="#8b5cf6"
+                          stroke="rgba(255, 90, 54, 0.4)"
                           strokeWidth="8"
                           strokeDasharray="4 8"
                           strokeOpacity="0.6"
@@ -1101,7 +1089,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
               </div>
 
               {/* Adoption / Resolution Status with Segmented Capsule Pills (Matching Reference) */}
-              <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-5 shadow-sm">
+              <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-5 relative overflow-hidden">
                 <div className="grid gap-5 md:grid-cols-[180px_1fr]">
                   {/* Left: Resolution Rate */}
                   <div className="border-b border-white/[0.06] pb-4 md:border-b-0 md:border-r md:pr-5">
@@ -1171,7 +1159,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           {/* ========================================================================= */}
           {/* ROW 3: BOTTOM DATA TABLE (Structures Hotspots & Live Work Queue) */}
           {/* ========================================================================= */}
-          <section className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-5 shadow-sm">
+          <section className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-5 relative overflow-hidden">
             {/* Table Control Header */}
             <div className="flex flex-col gap-4 border-b border-white/[0.08] pb-4 sm:flex-row sm:items-center sm:justify-between">
               {/* Tabs */}
@@ -1468,7 +1456,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               {(ticket.status === 'ASSIGNED' || ticket.status === 'SUBMITTED') && (
                                 <button
                                   onClick={() => handleStartWork(ticket)}
-                                  className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.3)] border border-blue-400/30 transition cursor-pointer"
+                                  className="rounded-lg bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-bold text-xs shadow-[0_2px_10px_rgba(240,72,36,0.3)] border border-white/20 px-3 py-1.5 transition cursor-pointer"
                                 >
                                   Start
                                 </button>

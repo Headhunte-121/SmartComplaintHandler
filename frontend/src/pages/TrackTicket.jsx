@@ -103,7 +103,7 @@ export default function TrackTicket() {
   const stepIndex = ticket ? getStepIndex(ticket.status) : 0;
 
   return (
-    <div className="w-full min-h-screen bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
+    <div className="w-full min-h-screen bg-[#121317] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
       {/* Subtle Specular Ambient */}
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
 
@@ -127,7 +127,7 @@ export default function TrackTicket() {
         <div className="flex items-center gap-2.5 shrink-0">
           <Link
             to="/submit"
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30"
           >
             <span>+ Lodge Request</span>
           </Link>
@@ -144,7 +144,7 @@ export default function TrackTicket() {
       {/* Main Track Viewport */}
       <div className="relative z-10 max-w-4xl mx-auto space-y-6 w-full">
         {/* Search Card */}
-        <div className="p-6 sm:p-7 space-y-5 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="p-6 sm:p-7 space-y-5 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
           <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
           <form
@@ -160,7 +160,7 @@ export default function TrackTicket() {
                 value={searchCode}
                 onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
                 placeholder="Enter Tracking Code (e.g. SCH-20261015-AB12CD)"
-                className="w-full px-4 py-3 pl-10 rounded-xl border border-white/[0.1] bg-[#050608] text-white font-mono uppercase text-xs sm:text-sm tracking-wider placeholder-zinc-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all"
+                className="w-full px-4 py-3 pl-10 rounded-xl border border-white/[0.1] bg-[#121317] text-white font-mono uppercase text-xs sm:text-sm tracking-wider placeholder-zinc-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all"
               />
               <Search size={16} className="absolute left-3.5 top-3.5 text-zinc-400" />
               {searchCode && (
@@ -176,7 +176,7 @@ export default function TrackTicket() {
             <button
               type="submit"
               disabled={loading || !searchCode.trim()}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-bold text-xs sm:text-sm shadow-[0_4px_16px_rgba(240,72,36,0.35)] border border-white/20 transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Searching...' : 'Track Ticket →'}
             </button>
@@ -214,7 +214,7 @@ export default function TrackTicket() {
 
         {/* Ticket Details Inspection Card */}
         {ticket && (
-          <div className="p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+          <div className="p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
             <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
             {/* Header Row */}
@@ -289,7 +289,7 @@ export default function TrackTicket() {
                     className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-colors ${
                       stepIndex >= 1
                         ? 'bg-indigo-600 text-white shadow-md ring-4 ring-indigo-900/40'
-                        : 'bg-[#050608] border-2 border-white/[0.1] text-zinc-500'
+                        : 'bg-[#121317] border-2 border-white/[0.1] text-zinc-500'
                     }`}
                   >
                     {stepIndex > 1 ? '✓' : '2'}
@@ -310,7 +310,7 @@ export default function TrackTicket() {
                     className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-colors ${
                       stepIndex === 2
                         ? 'bg-emerald-500 text-white shadow-md ring-4 ring-emerald-950/60'
-                        : 'bg-[#050608] border-2 border-white/[0.1] text-zinc-500'
+                        : 'bg-[#121317] border-2 border-white/[0.1] text-zinc-500'
                     }`}
                   >
                     {stepIndex === 2 ? '✓' : '3'}

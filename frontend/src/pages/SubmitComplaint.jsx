@@ -208,7 +208,7 @@ export default function SubmitComplaint() {
   const resolvedRoomLabel = customRoomOverride.trim() || specificLocation;
 
   return (
-    <div className="w-full min-h-screen bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
+    <div className="w-full min-h-screen bg-[#121317] text-zinc-100 font-sans antialiased selection:bg-[#ff5a36]/30 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
       {/* Subtle Specular Ambient */}
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
 
@@ -253,7 +253,7 @@ export default function SubmitComplaint() {
         {/* Main Request Form */}
         <form
           onSubmit={handleSubmit}
-          className="lg:col-span-7 xl:col-span-8 p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl relative shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] overflow-hidden"
+          className="lg:col-span-7 xl:col-span-8 p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl relative shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)] overflow-hidden"
         >
           {/* Specular Top Rim */}
           <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
@@ -276,7 +276,7 @@ export default function SubmitComplaint() {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-mono text-xs font-black flex items-center justify-center shadow-xs">
+                <span className="w-7 h-7 rounded-xl bg-[#ff5a36]/15 border border-[#ff5a36]/30 text-[#ff7a5c] font-mono text-xs font-black flex items-center justify-center shadow-xs">
                   1
                 </span>
                 <span className="text-sm font-black tracking-tight text-white">
@@ -285,7 +285,7 @@ export default function SubmitComplaint() {
               </div>
 
               {/* 3-Mode Segmented Pill Bar */}
-              <div className="inline-flex items-center p-1.5 rounded-2xl border border-white/[0.1] bg-[#050608] gap-1 shadow-inner">
+              <div className="inline-flex items-center p-1.5 rounded-2xl border border-white/[0.1] bg-[#121317] gap-1 shadow-inner">
                 <button
                   type="button"
                   onClick={handleUseMySavedRoom}
@@ -382,7 +382,7 @@ export default function SubmitComplaint() {
                     placeholder="Search any classroom, lab, auditorium, court, RO cooler (e.g. 303, AI Lab, Ground)..."
                     value={spotQuery}
                     onChange={(e) => setSpotQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 text-xs sm:text-sm font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white placeholder-zinc-500 text-xs sm:text-sm font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
                   />
                   {spotQuery && (
                     <button
@@ -424,7 +424,7 @@ export default function SubmitComplaint() {
                         <div
                           key={`${item.buildingId}-${item.title}`}
                           onClick={() => handlePickSpotResult(item)}
-                          className="p-2.5 rounded-xl border border-white/[0.06] bg-[#050608] hover:bg-white/[0.05] hover:border-white/20 transition-all cursor-pointer flex items-center justify-between gap-3 text-xs"
+                          className="p-2.5 rounded-xl border border-white/[0.06] bg-[#121317] hover:bg-white/[0.05] hover:border-white/20 transition-all cursor-pointer flex items-center justify-between gap-3 text-xs"
                         >
                           <div className="min-w-0">
                             <span className="font-bold text-white block truncate">
@@ -476,18 +476,18 @@ export default function SubmitComplaint() {
                       id="buildingSelect"
                       value={building}
                       onChange={(e) => handleSelectBuilding(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
                     >
-                      <optgroup label="Hostels" className="bg-[#050608] text-white">
+                      <optgroup label="Hostels" className="bg-[#121317] text-white">
                         {hostelsList.map((h) => (
-                          <option key={h.id} value={h.name} className="bg-[#050608] text-white">
+                          <option key={h.id} value={h.name} className="bg-[#121317] text-white">
                             {h.name}
                           </option>
                         ))}
                       </optgroup>
-                      <optgroup label="Academic, Labs & Campus" className="bg-[#050608] text-white">
+                      <optgroup label="Academic, Labs & Campus" className="bg-[#121317] text-white">
                         {nonHostelsList.map((b) => (
-                          <option key={b.id} value={b.name} className="bg-[#050608] text-white">
+                          <option key={b.id} value={b.name} className="bg-[#121317] text-white">
                             {b.name}
                           </option>
                         ))}
@@ -511,16 +511,16 @@ export default function SubmitComplaint() {
                           setCustomRoomOverride('');
                         }
                       }}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
                     >
                       {availableFloors.length > 0 ? (
                         availableFloors.map((f) => (
-                          <option key={f.id} value={f.id} className="bg-[#050608] text-white">
+                          <option key={f.id} value={f.id} className="bg-[#121317] text-white">
                             {f.label}
                           </option>
                         ))
                       ) : (
-                        <option value="None" className="bg-[#050608] text-white">
+                        <option value="None" className="bg-[#121317] text-white">
                           None
                         </option>
                       )}
@@ -531,7 +531,7 @@ export default function SubmitComplaint() {
                     <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       Campus Zone / Coordinates
                     </label>
-                    <div className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#050608] font-mono text-xs flex items-center justify-between text-zinc-300">
+                    <div className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#121317] font-mono text-xs flex items-center justify-between text-zinc-300">
                       <span className="font-bold text-white">{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
                       <span className="text-[11px] truncate max-w-[180px] text-zinc-500">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
                     </div>
@@ -548,16 +548,16 @@ export default function SubmitComplaint() {
                         setSpecificLocation(e.target.value);
                         setCustomRoomOverride('');
                       }}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
                     >
                       {availableRooms.length > 0 ? (
                         availableRooms.map((rm) => (
-                          <option key={rm} value={rm} className="bg-[#050608] text-white">
+                          <option key={rm} value={rm} className="bg-[#121317] text-white">
                             {rm}
                           </option>
                         ))
                       ) : (
-                        <option value="None" className="bg-[#050608] text-white">
+                        <option value="None" className="bg-[#121317] text-white">
                           None
                         </option>
                       )}
@@ -574,7 +574,7 @@ export default function SubmitComplaint() {
                       placeholder="e.g. Near Balcony, Tap #2"
                       value={customRoomOverride}
                       onChange={(e) => setCustomRoomOverride(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 text-xs sm:text-sm focus:outline-none focus:border-white/30"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white placeholder-zinc-500 text-xs sm:text-sm focus:outline-none focus:border-white/30"
                     />
                   </div>
                 </div>
@@ -600,7 +600,7 @@ export default function SubmitComplaint() {
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-blue-500/20 border border-blue-500/40 text-blue-300 font-mono text-xs font-black flex items-center justify-center shadow-xs">
+                <span className="w-7 h-7 rounded-xl bg-[#ff5a36]/15 border border-[#ff5a36]/30 text-[#ff7a5c] font-mono text-xs font-black flex items-center justify-center shadow-xs">
                   2
                 </span>
                 <span className="text-sm font-black tracking-tight text-white">
@@ -632,7 +632,7 @@ export default function SubmitComplaint() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={submitting}
-                className="w-full px-4 py-3 rounded-xl border border-white/[0.16] bg-[#08090f] text-white placeholder-zinc-500 text-sm shadow-inner focus:border-indigo-500/70 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-white/[0.09] bg-[#0e0f14] text-white placeholder-zinc-500 text-sm shadow-inner focus:border-[#ff5a36]/70 focus:outline-none focus:ring-2 focus:ring-[#ff5a36]/20 transition-all"
               />
             </div>
 
@@ -664,7 +664,7 @@ export default function SubmitComplaint() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm shadow-[0_2px_16px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-extrabold text-sm shadow-[0_4px_20px_rgba(240,72,36,0.35)] border border-white/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting
               ? 'Submitting to Dispatch...'
@@ -677,7 +677,7 @@ export default function SubmitComplaint() {
           <LiveTriageCard title={title} description={description} />
 
           {/* Dispatch Target Card */}
-          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl rounded-2xl relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
             <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
             <div className="flex items-center justify-between">
@@ -712,7 +712,7 @@ export default function SubmitComplaint() {
           </div>
 
           {/* SLA Resolution Windows Matrix */}
-          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden">
+          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] relative overflow-hidden">
             <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
             <div className="flex items-center justify-between">
@@ -789,7 +789,7 @@ export default function SubmitComplaint() {
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white text-xs font-bold transition-all shadow-[0_2px_12px_rgba(240,72,36,0.3)] border border-white/20 cursor-pointer"
                 >
                   Confirm Selection
                 </button>
@@ -804,7 +804,7 @@ export default function SubmitComplaint() {
               </div>
             </div>
 
-            <div className="p-2 sm:p-3 overflow-y-auto flex-1 bg-[#050608]">
+            <div className="p-2 sm:p-3 overflow-y-auto flex-1 bg-[#121317]">
               <CampusMapSelector
                 flush={true}
                 selectedBuilding={activeBuildingObj?.name}

@@ -311,14 +311,14 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white">
+    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#121317] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white">
       {/* Subtle Specular Ambient (No Glaring Neon) */}
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
 
       <div className="relative z-10 w-full max-w-md space-y-6">
         {/* Emblem & Institutional Header */}
         <div className="text-center space-y-3">
-          <div className="relative inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.12] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_6px_20px_rgba(0,0,0,0.5)]">
+          <div className="relative inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_6px_20px_rgba(0,0,0,0.5)]">
             <img
               src="/iiitnr_logo.png"
               alt="IIIT Naya Raipur"
@@ -340,7 +340,7 @@ export default function Register() {
         </div>
 
         {/* Smoked Black Glass Container */}
-        <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-2xl p-7 sm:p-8 space-y-5 relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.12)]">
+        <div className="rounded-2xl border border-white/[0.08] bg-[#0c0d12]/90 backdrop-blur-2xl p-7 sm:p-8 space-y-5 relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.12)]">
           {/* Specular Top Rim */}
           <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
 
@@ -382,7 +382,7 @@ export default function Register() {
                 type="button"
                 onClick={handleContinueWithGoogle}
                 disabled={googleLoading || loading}
-                className="w-full py-3 px-4 font-bold text-xs rounded-xl border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/30 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
+                className="w-full py-3 px-4 font-bold text-xs rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/30 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
@@ -437,7 +437,7 @@ export default function Register() {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
+                  className="w-full py-3 bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-bold text-xs rounded-xl shadow-[0_4px_16px_rgba(240,72,36,0.35)] border border-white/20 transition-all cursor-pointer"
                 >
                   Continue to Security Setup →
                 </button>
@@ -445,7 +445,7 @@ export default function Register() {
             </div>
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
-              <div className="flex items-center justify-between p-3.5 rounded-2xl border border-white/[0.1] bg-[#050608] text-zinc-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl border border-white/[0.1] bg-[#121317] text-zinc-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
                 <div className="min-w-0 pr-2">
                   <span className="text-[10px] font-mono uppercase tracking-wider block text-zinc-500">
                     Target Institutional Account
@@ -513,7 +513,7 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-bold text-xs rounded-xl shadow-[0_4px_16px_rgba(240,72,36,0.35)] border border-white/20 transition-all cursor-pointer disabled:opacity-50"
               >
                 {loading ? 'Creating Account...' : 'Complete Institutional Registration'}
               </button>
