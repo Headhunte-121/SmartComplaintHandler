@@ -88,7 +88,7 @@ export default function TrackTicket() {
       case 'CLOSED':
         return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
       case 'IN_PROGRESS':
-        return 'bg-white/10 text-white border-white/20';
+        return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
       case 'ESCALATED':
         return 'bg-rose-500/10 text-rose-400 border-rose-500/30';
       case 'ASSIGNED':
@@ -109,7 +109,7 @@ export default function TrackTicket() {
       <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08] max-w-5xl mx-auto">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               Live SLA &amp; Squad Telemetry
             </span>
@@ -125,13 +125,13 @@ export default function TrackTicket() {
         <div className="flex items-center gap-2.5 shrink-0">
           <Link
             to="/submit"
-            className="px-3.5 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30"
           >
             <span>+ Lodge Request</span>
           </Link>
           <Link
             to="/student"
-            className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-semibold text-xs transition flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition flex items-center gap-1.5"
           >
             <span>My Requests</span>
             <ArrowRight size={14} />
@@ -174,7 +174,7 @@ export default function TrackTicket() {
             <button
               type="submit"
               disabled={loading || !searchCode.trim()}
-              className="px-6 py-3 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs sm:text-sm shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Searching...' : 'Track Ticket →'}
             </button>
@@ -194,7 +194,7 @@ export default function TrackTicket() {
                     setSearchCode(item.tracking_code);
                     performLookup(item.tracking_code);
                   }}
-                  className="px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold border border-white/[0.08] bg-white/[0.03] hover:border-white/25 text-zinc-300 hover:text-white cursor-pointer transition shadow-xs"
+                  className="px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold border border-white/[0.08] bg-white/[0.03] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 cursor-pointer transition shadow-xs"
                 >
                   {item.tracking_code}
                 </button>
@@ -219,13 +219,13 @@ export default function TrackTicket() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/[0.08] pb-5">
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <span className="font-mono text-xl sm:text-2xl font-black text-white">
+                  <span className="font-mono text-xl sm:text-2xl font-black text-blue-400">
                     {ticket.tracking_code}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleCopyCode(ticket.tracking_code)}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white cursor-pointer transition-colors"
+                    className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 hover:text-white cursor-pointer transition-colors"
                   >
                     {copied ? '✓ Copied' : 'Copy'}
                   </button>
@@ -268,7 +268,7 @@ export default function TrackTicket() {
               <div className="relative flex items-center justify-between px-2 sm:px-8 py-3">
                 <div className="absolute top-8 left-10 right-10 h-1 bg-white/[0.08] -z-0" />
                 <div
-                  className="absolute top-8 left-10 h-1 bg-white/40 transition-all duration-500 -z-0"
+                  className="absolute top-8 left-10 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500 -z-0"
                   style={{
                     width: stepIndex === 2 ? 'calc(100% - 5rem)' : stepIndex === 1 ? '50%' : '0%',
                   }}
@@ -276,7 +276,7 @@ export default function TrackTicket() {
 
                 {/* Stage 1: Submitted */}
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs bg-white text-black shadow-md ring-4 ring-black/60">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs bg-blue-600 text-white shadow-md ring-4 ring-blue-900/40">
                     ✓
                   </div>
                   <span className="text-xs font-bold mt-2 text-white">Submitted</span>
@@ -290,7 +290,7 @@ export default function TrackTicket() {
                   <div
                     className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-colors ${
                       stepIndex >= 1
-                        ? 'bg-white text-black shadow-md ring-4 ring-black/60'
+                        ? 'bg-indigo-600 text-white shadow-md ring-4 ring-indigo-900/40'
                         : 'bg-[#050608] border-2 border-white/[0.1] text-zinc-500'
                     }`}
                   >
@@ -311,7 +311,7 @@ export default function TrackTicket() {
                   <div
                     className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-colors ${
                       stepIndex === 2
-                        ? 'bg-emerald-400 text-black shadow-md ring-4 ring-emerald-950/60'
+                        ? 'bg-emerald-500 text-white shadow-md ring-4 ring-emerald-950/60'
                         : 'bg-[#050608] border-2 border-white/[0.1] text-zinc-500'
                     }`}
                   >

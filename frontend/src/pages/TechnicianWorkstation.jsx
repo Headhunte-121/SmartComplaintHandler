@@ -269,12 +269,12 @@ export default function TechnicianWorkstation() {
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border border-white/[0.14] bg-white/[0.04] text-white">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
               <Wrench size={26} />
             </div>
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-white/[0.15] bg-white/[0.05] text-zinc-300">
+                <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
                   Field Technician Console
                 </span>
                 <span className="text-zinc-600">•</span>
@@ -286,7 +286,7 @@ export default function TechnicianWorkstation() {
                 {assignedSquad.name}
               </h1>
               <div className="pt-1.5 flex flex-wrap items-center gap-2 text-xs">
-                <span className="px-2.5 py-1 rounded-lg border border-white/[0.12] bg-white/[0.05] font-mono font-bold text-xs text-white">
+                <span className="px-2.5 py-1 rounded-lg border border-blue-500/30 bg-blue-500/10 font-mono font-bold text-xs text-blue-300">
                   Trade: {assignedSquad.dept}
                 </span>
                 <span className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-white/[0.02] font-mono text-[11px] text-zinc-400">
@@ -414,7 +414,7 @@ export default function TechnicianWorkstation() {
               onClick={() => setActiveTab('ACTIVE')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 activeTab === 'ACTIVE'
-                  ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                  ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -425,7 +425,7 @@ export default function TechnicianWorkstation() {
               onClick={() => setActiveTab('COMPLETED')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 activeTab === 'COMPLETED'
-                  ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                  ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 shadow-[inset_0_1px_0_0_rgba(52,211,153,0.2)]'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -445,7 +445,7 @@ export default function TechnicianWorkstation() {
             <button
               type="button"
               onClick={loadWorkOrders}
-              className="px-4 py-2 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30"
             >
               Retry
             </button>
@@ -479,7 +479,7 @@ export default function TechnicianWorkstation() {
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="font-mono font-bold px-2.5 py-1 rounded-lg border border-white/[0.12] bg-white/[0.05] text-zinc-200 hover:text-white transition-colors"
+                        className="font-mono font-bold px-2.5 py-1 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:text-blue-200 transition-colors"
                       >
                         {ticket.tracking_code}
                       </Link>
@@ -585,7 +585,7 @@ export default function TechnicianWorkstation() {
                         <button
                           type="button"
                           onClick={() => handleStartWork(ticket)}
-                          className="px-3.5 py-2 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer flex items-center gap-1.5"
+                          className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer flex items-center gap-1.5"
                         >
                           <Play size={12} fill="currentColor" />
                           <span>{isOnHold ? 'Resume Repair' : 'Commence Work'}</span>
@@ -606,7 +606,7 @@ export default function TechnicianWorkstation() {
                           <button
                             type="button"
                             onClick={() => setResolvingTicket(ticket)}
-                            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/20 transition-all cursor-pointer flex items-center gap-1.5"
+                            className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_12px_rgba(16,185,129,0.25)] border border-emerald-400/30 transition-all cursor-pointer flex items-center gap-1.5"
                           >
                             <CheckCircle2 size={13} />
                             <span>Complete &amp; Log</span>
@@ -635,7 +635,7 @@ export default function TechnicianWorkstation() {
 
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="px-3 py-2 text-xs font-semibold rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white transition-colors"
+                        className="px-3 py-2 text-xs font-semibold rounded-xl border border-white/[0.1] bg-white/[0.04] hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-300 text-zinc-300 transition-colors"
                       >
                         Details
                       </Link>

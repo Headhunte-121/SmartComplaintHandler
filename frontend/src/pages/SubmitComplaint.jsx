@@ -291,7 +291,7 @@ export default function SubmitComplaint() {
                   onClick={handleUseMySavedRoom}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'MY_ROOM'
-                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                       : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
@@ -303,7 +303,7 @@ export default function SubmitComplaint() {
                   onClick={() => setLocationMode('SEARCH')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'SEARCH'
-                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                       : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
@@ -315,7 +315,7 @@ export default function SubmitComplaint() {
                   onClick={() => setLocationMode('BROWSE')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     locationMode === 'BROWSE'
-                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                       : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
@@ -405,7 +405,7 @@ export default function SubmitComplaint() {
                       key={chip.label}
                       type="button"
                       onClick={() => setSpotQuery(chip.query)}
-                      className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-[11px] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                      className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-[11px] text-zinc-300 hover:text-indigo-200 transition-colors cursor-pointer"
                     >
                       {chip.label}
                     </button>
@@ -434,7 +434,7 @@ export default function SubmitComplaint() {
                               {item.buildingName} {item.floorLabel ? `· ${item.floorLabel}` : ''}
                             </span>
                           </div>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono border border-white/20 bg-white/[0.05] text-white shrink-0">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 font-bold shrink-0">
                             Select
                           </span>
                         </div>
@@ -447,7 +447,7 @@ export default function SubmitComplaint() {
                 <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs">
                   <span className="text-zinc-400">Locked In:</span>
                   <span className="font-mono font-bold text-white flex items-center gap-1.5">
-                    <MapPin size={12} className="text-emerald-400" />
+                    <MapPin size={12} className="text-blue-400" />
                     <span>{activeBuildingObj?.shortName || building} · {resolvedRoomLabel}</span>
                   </span>
                 </div>
@@ -466,7 +466,7 @@ export default function SubmitComplaint() {
                       <button
                         type="button"
                         onClick={() => setIsMapModalOpen(true)}
-                        className="text-xs font-semibold text-white hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <Compass size={12} />
                         <span>Pick on Map</span>
@@ -664,7 +664,7 @@ export default function SubmitComplaint() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 px-6 rounded-xl bg-white hover:bg-zinc-200 text-black font-extrabold text-sm shadow-[0_2px_16px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm shadow-[0_2px_16px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting
               ? 'Submitting to Dispatch...'
@@ -685,13 +685,13 @@ export default function SubmitComplaint() {
                 Dispatch Target
               </span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg border border-white/20 bg-white/[0.05] text-zinc-200 font-bold">
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 font-bold">
                   {activeBuildingObj?.mapPin?.badge || 'BLDG'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(true)}
-                  className="text-[11px] font-bold text-white hover:underline cursor-pointer"
+                  className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 hover:underline cursor-pointer"
                 >
                   Change on Map →
                 </button>
@@ -702,7 +702,7 @@ export default function SubmitComplaint() {
             </div>
             <div className="font-mono text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between border border-white/[0.08] bg-[#07080c] text-zinc-200">
               <span className="flex items-center gap-1.5">
-                <MapPin size={13} className="text-white" />
+                <MapPin size={13} className="text-blue-400" />
                 <span>{resolvedRoomLabel}</span>
               </span>
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/20 bg-white/[0.05] text-white uppercase">
@@ -789,7 +789,7 @@ export default function SubmitComplaint() {
                 <button
                   type="button"
                   onClick={() => setIsMapModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 cursor-pointer"
                 >
                   Confirm Selection
                 </button>

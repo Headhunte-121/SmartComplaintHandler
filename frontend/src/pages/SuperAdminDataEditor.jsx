@@ -665,7 +665,7 @@ export default function SuperAdminDataEditor() {
             <button
               type="button"
               onClick={handleCopyJson}
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all inline-flex items-center gap-1.5 cursor-pointer"
             >
               <span>{jsonCopyNotice ? '✓ Copied!' : '📋 Copy JSON'}</span>
             </button>
@@ -784,7 +784,7 @@ export default function SuperAdminDataEditor() {
                   <button
                     type="button"
                     onClick={() => setIsNewBuildingModalOpen(true)}
-                    className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
                     <span>+ Add Building</span>
                   </button>
@@ -1175,7 +1175,7 @@ export default function SuperAdminDataEditor() {
                   <button
                     type="button"
                     onClick={handleAddBulkRooms}
-                    className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
                   >
                     Add All to Floor {roomActiveFloor}
                   </button>
@@ -1195,7 +1195,7 @@ export default function SuperAdminDataEditor() {
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer shrink-0"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer shrink-0"
                 >
                   + Add
                 </button>
@@ -1354,7 +1354,7 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="button"
                   onClick={() => setIsNewTicketModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer shrink-0"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer shrink-0"
                 >
                   + Log Ticket
                 </button>
@@ -1481,7 +1481,7 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="button"
                   onClick={() => setIsImportModalOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
                 >
                   📤 Import Custom JSON
                 </button>
@@ -1628,7 +1628,7 @@ export default function SuperAdminDataEditor() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
                 >
                   Create Building
                 </button>
@@ -1762,7 +1762,7 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="submit"
                   disabled={ticketSaving}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
                 >
                   {ticketSaving ? 'Saving...' : 'Save Ticket Changes'}
                 </button>
@@ -1843,7 +1843,7 @@ export default function SuperAdminDataEditor() {
                 <button
                   type="submit"
                   disabled={newTicketSubmitting}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
                 >
                   {newTicketSubmitting ? 'Submitting...' : 'Create Ticket'}
                 </button>
@@ -1900,7 +1900,7 @@ export default function SuperAdminDataEditor() {
               <button
                 type="button"
                 onClick={handleApplyImportJson}
-                className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
               >
                 Validate &amp; Import
               </button>

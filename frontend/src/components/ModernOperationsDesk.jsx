@@ -460,7 +460,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             {/* Card 1: Now Serving */}
             <article className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                <Users size={16} className="text-white" />
+                <Users size={16} className="text-blue-400" />
                 <span className="text-2xl font-extrabold tracking-tight text-white">{metrics.active}</span>
               </div>
               <p className="mt-2 text-xs font-bold text-slate-200">Now Serving</p>
@@ -522,12 +522,12 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
               <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-3.5 relative overflow-hidden shadow-sm">
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-2">
-                    <Compass size={16} className="text-white" />
+                    <Compass size={16} className="text-indigo-400" />
                     <span className="text-xs font-bold text-white tracking-tight">Campus Digital Twin</span>
                   </div>
                   <Link
                     to="/map"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-300 hover:text-white transition"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
                   >
                     Full Twin <ArrowUpRight size={12} />
                   </Link>
@@ -585,7 +585,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               b.criticalTickets > 0
                                 ? 'bg-rose-500 text-white ring-4 ring-rose-500/30 animate-pulse'
                                 : b.activeTickets > 0
-                                ? 'bg-white text-black ring-4 ring-white/20 shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                ? 'bg-blue-500 text-white ring-4 ring-blue-500/25 shadow-[0_0_12px_rgba(59,130,246,0.6)]'
                                 : 'bg-zinc-800 text-zinc-300 border border-white/[0.15]'
                             }`}
                           >
@@ -750,7 +750,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                     {/* Segment 2: Sanitation */}
                                     {d.sanitation > 0 && <div style={{ flexGrow: d.sanitation }} className="w-full bg-[#10b981] min-h-[3px] transition-all" />}
                                     {/* Segment 1 (Bottom): IT Support */}
-                                    {d.it > 0 && <div style={{ flexGrow: d.it }} className="w-full bg-zinc-400 min-h-[3px] transition-all" />}
+                                    {d.it > 0 && <div style={{ flexGrow: d.it }} className="w-full bg-[#3b82f6] min-h-[3px] transition-all" />}
                                   </>
                                 ) : (
                                   <div className="w-full h-[2px] bg-white/[0.15]" />
@@ -782,7 +782,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   {/* Chart Legend */}
                   <div className="mt-3 flex flex-wrap items-center justify-center gap-3.5 text-[10px] text-zinc-400 border-t border-white/[0.05] pt-2.5">
                     <span className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-xs bg-zinc-400" /> IT
+                      <span className="h-2 w-2 rounded-xs bg-[#3b82f6]" /> IT
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-xs bg-[#10b981]" /> Sanitation
@@ -809,7 +809,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   {/* Left: Overview details + 4 mini stat boxes */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-400">
                         {isSuperAdminMode ? 'Directorate Overview' : 'Operations Overview'}
                       </span>
                       <button
@@ -832,7 +832,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     <div className="mt-4 grid grid-cols-2 gap-2.5">
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
                         <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
-                          <Users size={12} className="text-white" />
+                          <Users size={12} className="text-blue-400" />
                           <span>Logged Today</span>
                         </div>
                         <p className="mt-1 text-sm font-bold text-white">{metrics.loggedToday}</p>
@@ -877,7 +877,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                           cy="50"
                           r="38"
                           fill="none"
-                          stroke="#f1f5f9"
+                          stroke="#3b82f6"
                           strokeWidth="8"
                           strokeDasharray="238.7"
                           strokeDashoffset={238.7 * (1 - metrics.resolutionRate / 100)}
@@ -890,7 +890,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                           cy="50"
                           r="38"
                           fill="none"
-                          stroke="#94a3b8"
+                          stroke="#8b5cf6"
                           strokeWidth="8"
                           strokeDasharray="4 8"
                           strokeOpacity="0.6"
@@ -933,7 +933,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                         </span>
                         <div className="flex items-center gap-3 text-xs text-slate-300">
                           <span className="flex items-center gap-1.5">
-                            <span className="h-2 w-2 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.6)]" /> Active: {metrics.active}
+                            <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]" /> Active: {metrics.active}
                           </span>
                           <span className="flex items-center gap-1.5">
                             <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" /> Pending: {metrics.progress}
@@ -957,7 +957,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
 
                         let pillClass = 'bg-[#18202f] border border-white/[0.04]'; // Remaining
                         if (ratio < resolvedRatio) {
-                          pillClass = 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]';
+                          pillClass = 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]';
                         } else if (ratio < workingRatio) {
                           pillClass = 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]';
                         }
@@ -988,7 +988,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   onClick={() => setActiveTableTab('structures')}
                   className={`rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
                     activeTableTab === 'structures'
-                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/35 shadow-[0_0_15px_rgba(99,102,241,0.15)]'
                       : 'text-slate-400 hover:bg-white/[0.05] hover:text-white'
                   }`}
                 >
@@ -1000,7 +1000,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   onClick={() => setActiveTableTab('queue')}
                   className={`rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
                     activeTableTab === 'queue'
-                      ? 'bg-white/[0.12] text-white border border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/35 shadow-[0_0_15px_rgba(99,102,241,0.15)]'
                       : 'text-slate-400 hover:bg-white/[0.05] hover:text-white'
                   }`}
                 >
@@ -1156,7 +1156,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               setSelectedBuildingId(b.id);
                               setActiveTableTab('queue');
                             }}
-                            className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1.5 text-slate-300 hover:border-white/30 hover:text-white transition cursor-pointer"
+                            className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1.5 text-slate-300 hover:border-indigo-400/40 hover:text-indigo-300 transition cursor-pointer"
                             title={`Filter queue for ${b.shortName || b.name}`}
                           >
                             <ArrowUpRight size={14} />
@@ -1180,7 +1180,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       onClick={() => setSelectedStatus(tab.id)}
                       className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                         selectedStatus === tab.id
-                          ? 'bg-white text-black font-bold shadow-[0_2px_12px_rgba(255,255,255,0.15)]'
+                          ? 'bg-indigo-600 text-white font-bold shadow-[0_2px_12px_rgba(99,102,241,0.3)]'
                           : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-100'
                       }`}
                     >
@@ -1229,7 +1229,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                           <td className="py-3.5 px-3">
                             <Link
                               to={`/track?code=${ticket.tracking_code}`}
-                              className="font-mono text-xs font-bold text-white hover:underline"
+                              className="font-mono text-xs font-bold text-blue-400 hover:text-blue-300 hover:underline"
                             >
                               {ticket.tracking_code}
                             </Link>
@@ -1278,7 +1278,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               {(ticket.status === 'ASSIGNED' || ticket.status === 'SUBMITTED') && (
                                 <button
                                   onClick={() => handleStartWork(ticket)}
-                                  className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-black shadow-[0_2px_12px_rgba(255,255,255,0.15)] hover:bg-zinc-200 transition cursor-pointer"
+                                  className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.3)] border border-blue-400/30 transition cursor-pointer"
                                 >
                                   Start
                                 </button>

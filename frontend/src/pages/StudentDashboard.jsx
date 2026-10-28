@@ -275,7 +275,7 @@ export default function StudentDashboard() {
           <div className="flex items-center space-x-2.5 shrink-0">
             <Link
               to="/submit"
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
             >
               <Plus size={14} />
               <span>Submit Issue</span>
@@ -373,7 +373,7 @@ export default function StudentDashboard() {
                 onClick={() => setActiveTab('ALL')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'ALL'
-                    ? 'bg-white text-black font-bold shadow-xs'
+                    ? 'bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
@@ -383,7 +383,7 @@ export default function StudentDashboard() {
                 onClick={() => setActiveTab('ACTIVE')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'ACTIVE'
-                    ? 'bg-white text-black font-bold shadow-xs'
+                    ? 'bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
@@ -393,7 +393,7 @@ export default function StudentDashboard() {
                 onClick={() => setActiveTab('RESOLVED')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'RESOLVED'
-                    ? 'bg-white text-black font-bold shadow-xs'
+                    ? 'bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
@@ -415,7 +415,7 @@ export default function StudentDashboard() {
             <p className="text-xs text-zinc-400">No maintenance requests found.</p>
             <Link
               to="/submit"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-xs transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all"
             >
               + Submit Issue
             </Link>
@@ -435,7 +435,7 @@ export default function StudentDashboard() {
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Link
                         to={`/track?code=${ticket.tracking_code}`}
-                        className="font-mono font-bold px-2.5 py-0.5 rounded-lg border border-white/20 bg-white/[0.06] text-white hover:text-zinc-300 transition-colors"
+                        className="font-mono font-bold px-2.5 py-0.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:text-blue-200 transition-colors"
                       >
                         {ticket.tracking_code}
                       </Link>
@@ -613,7 +613,7 @@ export default function StudentDashboard() {
                 <button
                   type="submit"
                   disabled={savingResidence}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {savingResidence ? 'Saving...' : 'Save Room'}
                 </button>
@@ -673,7 +673,7 @@ export default function StudentDashboard() {
                 <button
                   type="submit"
                   disabled={isSubmittingFeedback}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50"
                 >
                   Submit Rating
                 </button>

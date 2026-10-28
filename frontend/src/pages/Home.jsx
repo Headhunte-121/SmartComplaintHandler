@@ -85,7 +85,7 @@ export default function Home() {
       <div className="w-full px-4 sm:px-8 lg:px-12 py-7 relative z-10 border-b border-white/[0.08] bg-[#07080c]/90 backdrop-blur-xl">
         <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-white/[0.04] border border-white/[0.1] text-zinc-300">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-indigo-500/10 border border-indigo-500/30 text-indigo-300">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               <span>IIIT Naya Raipur · Sector 24, Atal Nagar</span>
             </div>
@@ -99,14 +99,14 @@ export default function Home() {
             <div className="flex flex-wrap items-center gap-2.5 pt-2">
               <Link
                 to={`/submit?building=${encodeURIComponent(selectedMapBuilding)}`}
-                className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all inline-flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
               >
                 <span>+ Report Issue ({selectedMapBuilding.split(' (')[0]})</span>
               </Link>
               {isStudent && (
                 <Link
                   to="/student"
-                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-300 hover:text-white font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
                 >
                   My Issues →
                 </Link>
@@ -114,7 +114,7 @@ export default function Home() {
               {canAccessOperations && (
                 <Link
                   to="/operations"
-                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-300 hover:text-white font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
                 >
                   Operations Desk →
                 </Link>
@@ -122,7 +122,7 @@ export default function Home() {
               {isSuperAdmin && (
                 <Link
                   to="/superadmin"
-                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-300 hover:text-white font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
                 >
                   Directorate Console →
                 </Link>
@@ -130,7 +130,7 @@ export default function Home() {
               {isTechnician && (
                 <Link
                   to="/technician"
-                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-300 hover:text-white font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
                 >
                   Work Orders →
                 </Link>
@@ -151,7 +151,7 @@ export default function Home() {
             />
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer shrink-0"
             >
               Track →
             </button>

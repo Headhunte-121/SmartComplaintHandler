@@ -326,7 +326,7 @@ export default function Register() {
             />
           </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               Institutional Onboarding
             </div>
@@ -422,14 +422,14 @@ export default function Register() {
                 </div>
 
                 {livePreview && (
-                  <div className="p-3.5 rounded-xl border border-white/[0.12] bg-[#07080c] text-zinc-100 flex items-center justify-between text-xs animate-fade-in shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+                  <div className="p-3.5 rounded-xl border border-indigo-500/25 bg-indigo-950/20 text-zinc-100 flex items-center justify-between text-xs animate-fade-in shadow-[inset_0_1px_0_0_rgba(129,140,248,0.15)]">
                     <div className="min-w-0 pr-2">
                       <div className="font-bold text-white truncate">{livePreview.fullName}</div>
                       <div className="text-[11px] text-zinc-400 font-mono truncate">
                         {livePreview.department}
                       </div>
                     </div>
-                    <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20 bg-white/[0.06] text-zinc-200 shrink-0 uppercase tracking-wider">
+                    <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 shrink-0 uppercase tracking-wider">
                       {livePreview.deptCode}
                     </span>
                   </div>
@@ -437,7 +437,7 @@ export default function Register() {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer"
+                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
                 >
                   Continue to Security Setup →
                 </button>
@@ -513,7 +513,7 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50"
               >
                 {loading ? 'Creating Account...' : 'Complete Institutional Registration'}
               </button>
@@ -525,7 +525,7 @@ export default function Register() {
             <span className="text-zinc-400">Already registered?</span>
             <Link
               to="/login"
-              className="font-bold text-white hover:text-zinc-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
+              className="font-bold text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Sign in</span>
               <span>→</span>

@@ -154,7 +154,7 @@ export default function SquadsPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-white/[0.15] bg-white/[0.05] text-zinc-300">
+              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
                 Dynamic Capacity Dispatch
               </span>
               <span className="text-zinc-600">•</span>
@@ -313,8 +313,8 @@ export default function SquadsPage() {
                     type="button"
                     className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1 shrink-0 ${
                       isExpanded
-                        ? 'bg-white/[0.12] text-white border-white/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]'
-                        : 'border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white'
+                        ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
+                        : 'border-white/[0.1] bg-white/[0.04] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200'
                     }`}
                   >
                     <span>{isExpanded ? 'Hide Queue' : 'Inspect Queue'}</span>

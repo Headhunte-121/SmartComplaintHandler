@@ -191,7 +191,7 @@ export default function ResidenceInfo() {
             />
           </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               Mandatory Residence Setup
             </div>
@@ -218,7 +218,7 @@ export default function ResidenceInfo() {
               <button
                 type="button"
                 onClick={handleSkipOrProceed}
-                className="px-2.5 py-1 text-[11px] font-bold bg-white text-black hover:bg-zinc-200 rounded-lg transition-colors cursor-pointer shrink-0"
+                className="px-2.5 py-1 text-[11px] font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition-colors cursor-pointer shrink-0 shadow-xs"
               >
                 Proceed →
               </button>
@@ -245,7 +245,7 @@ export default function ResidenceInfo() {
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
                 Student Account
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/20 bg-white/[0.06] text-white uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 uppercase tracking-wider">
                 <GraduationCap size={12} />
                 <span>Undergrad Scholar</span>
               </span>
@@ -353,7 +353,7 @@ export default function ResidenceInfo() {
                           onClick={() => setSelectedRoomNumber(r)}
                           className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors cursor-pointer border ${
                             selectedRoomNumber === r
-                              ? 'bg-white text-black border-white font-bold'
+                              ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 font-bold shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                               : 'bg-[#050608] text-zinc-300 border-white/[0.08] hover:border-white/20'
                           }`}
                         >
@@ -386,7 +386,7 @@ export default function ResidenceInfo() {
               <button
                 type="submit"
                 disabled={loading || savedSuccess}
-                className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2"
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 <span>{loading ? 'Saving Residence...' : 'Save Residence & Enter Portal →'}</span>
               </button>

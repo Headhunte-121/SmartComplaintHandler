@@ -16,8 +16,8 @@ const DEPARTMENTS = [
 const SLA_TIERS = [
   { level: 'CRITICAL', time: '2h SLA', desc: 'Severe hazard / full outage', color: 'text-rose-400 border-rose-500/30 bg-rose-500/10' },
   { level: 'HIGH', time: '8h SLA', desc: 'Disruption or locked out', color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
-  { level: 'MEDIUM', time: '24h SLA', desc: 'Routine functional maintenance', color: 'text-zinc-200 border-white/20 bg-white/[0.05]' },
-  { level: 'LOW', time: '72h SLA', desc: 'Cosmetic / minor servicing', color: 'text-zinc-400 border-white/[0.08] bg-white/[0.02]' },
+  { level: 'MEDIUM', time: '24h SLA', desc: 'Routine functional maintenance', color: 'text-blue-400 border-blue-500/30 bg-blue-500/10' },
+  { level: 'LOW', time: '72h SLA', desc: 'Cosmetic / minor servicing', color: 'text-indigo-400 border-indigo-500/30 bg-indigo-500/10' },
 ];
 
 export default function LiveTriageCard({ title = '', description = '' }) {
@@ -51,7 +51,7 @@ export default function LiveTriageCard({ title = '', description = '' }) {
         <span
           className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border tracking-wider uppercase ${
             isReady
-              ? 'text-white bg-white/[0.08] border-white/25'
+              ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
               : 'text-zinc-400 bg-white/[0.03] border-white/[0.08]'
           }`}
         >

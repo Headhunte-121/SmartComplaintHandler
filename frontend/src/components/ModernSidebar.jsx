@@ -232,13 +232,13 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-zinc-400 to-white transition-all duration-500"
+              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
               style={{ width: `${Math.max(4, metrics.resolutionRate)}%` }}
             />
           </div>
           <div className="mt-2 flex items-center justify-between text-[9px] text-zinc-400 font-mono">
             <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" /> Active: {metrics.active}
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" /> Active: {metrics.active}
             </span>
             <span className="flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400/90" /> Working: {metrics.progress}
@@ -263,11 +263,11 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
                 onClick={() => setMobileOpen && setMobileOpen(false)}
                 className={`flex flex-col items-center justify-center rounded-xl border p-2.5 text-center transition cursor-pointer ${
                   isTileActive
-                    ? 'border-white/25 bg-white/[0.1] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] font-bold'
+                    ? 'border-indigo-500/35 bg-indigo-500/15 text-indigo-200 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2),0_4px_12px_rgba(99,102,241,0.15)] font-bold'
                     : 'border-white/[0.06] bg-white/[0.025] text-zinc-400 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white'
                 }`}
               >
-                <Icon size={18} className={isTileActive ? 'text-white' : 'text-zinc-400'} />
+                <Icon size={18} className={isTileActive ? 'text-indigo-400' : 'text-zinc-400'} />
                 <span className="mt-1.5 text-[11px] font-semibold tracking-tight">{tile.label}</span>
               </Link>
             );

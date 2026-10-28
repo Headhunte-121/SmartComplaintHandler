@@ -155,7 +155,7 @@ export default function StaffDirectoryPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-white/[0.15] bg-white/[0.05] text-zinc-300">
+              <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
                 Institutional Governance
               </span>
               <span className="text-zinc-600">•</span>
@@ -175,7 +175,7 @@ export default function StaffDirectoryPage() {
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 transition-all cursor-pointer flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer flex items-center gap-2"
             >
               <UserPlus size={14} />
               <span>Provision Staff Account</span>
@@ -460,7 +460,7 @@ export default function StaffDirectoryPage() {
                 <button
                   type="submit"
                   disabled={submittingStaff}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-white hover:bg-zinc-200 text-black cursor-pointer shadow-[0_2px_12px_rgba(255,255,255,0.12)] border border-white/30 disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white cursor-pointer shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 disabled:opacity-50"
                 >
                   {submittingStaff ? 'Provisioning...' : 'Confirm & Authorize'}
                 </button>
