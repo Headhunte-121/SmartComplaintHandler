@@ -201,7 +201,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
       overdue,
       resolutionRate,
       healthScore,
-      loggedToday: loggedToday || total,
+      loggedToday,
     };
   }, [tickets, breaches]);
 
@@ -285,45 +285,76 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
     return activeItems.slice(start, start + PAGE_SIZE);
   }, [activeItems, currentPage]);
 
-  // Dynamic stacked hourly volume calibrated to the 0-320 scale matching reference
+  // Pure real hourly volume strictly aggregated from actual database tickets
   const volumeData = useMemo(() => {
     const hours = ['10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM'];
-    const baseCurve = [240, 260, 230, 245, 270, 255, 280, 250, 275];
+
+    const relevantTickets = selectedBuildingId
+      ? tickets.filter((t) => {
+          const b = buildings.find((x) => x.id === selectedBuildingId);
+          if (!b) return true;
+          const loc = (t.location || '').toLowerCase();
+          return (
+            loc.includes(b.name.toLowerCase()) ||
+            loc.includes((b.shortName || '').toLowerCase()) ||
+            loc.includes(b.id.toLowerCase())
+          );
+        })
+      : tickets;
 
     return hours.map((hour, idx) => {
-      const targetHour = idx + 10; // 10 to 18
-      const realMatches = tickets.filter((t) => {
+      const targetHour = idx + 10; // 10:00 to 18:00
+      const realMatches = relevantTickets.filter((t) => {
         if (!t.created_at) return false;
         const d = new Date(t.created_at);
         return d.getHours() === targetHour;
       });
 
-      const itCount = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('it')).length;
-      const sanCount = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('sanit')).length;
-      const plumbCount = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('plumb')).length;
-      const elecCount = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('electr')).length;
-      const genCount = realMatches.length - (itCount + sanCount + plumbCount + elecCount);
-
-      const targetTotal = baseCurve[idx] || 250;
-      // Proportions matching reference stacked colors
-      const it = Math.round(targetTotal * 0.28) + itCount * 4;
-      const san = Math.round(targetTotal * 0.22) + sanCount * 4;
-      const plumb = Math.round(targetTotal * 0.18) + plumbCount * 4;
-      const elec = Math.round(targetTotal * 0.17) + elecCount * 4;
-      const gen = Math.round(targetTotal * 0.15) + Math.max(0, genCount) * 4;
-      const total = it + san + plumb + elec + gen;
+      const it = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('it')).length;
+      const sanitation = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('sanit')).length;
+      const plumbing = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('plumb')).length;
+      const electrical = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('electr')).length;
+      const general = Math.max(0, realMatches.length - (it + sanitation + plumbing + electrical));
+      const total = it + sanitation + plumbing + electrical + general;
 
       return {
         hour,
         it,
-        sanitation: san,
-        plumbing: plumb,
-        electrical: elec,
-        general: gen,
+        sanitation,
+        plumbing,
+        electrical,
+        general,
         total,
       };
     });
-  }, [tickets]);
+  }, [tickets, selectedBuildingId, buildings]);
+
+  const maxVolume = useMemo(() => {
+    return Math.max(...volumeData.map((d) => d.total), 0);
+  }, [volumeData]);
+
+  const yAxisTicks = useMemo(() => {
+    if (maxVolume === 0) {
+      return [4, 3, 2, 1, 0];
+    }
+    if (maxVolume <= 4) {
+      return [4, 3, 2, 1, 0];
+    }
+    if (maxVolume <= 8) {
+      return [8, 6, 4, 2, 0];
+    }
+    if (maxVolume <= 16) {
+      return [16, 12, 8, 4, 0];
+    }
+    if (maxVolume <= 40) {
+      const top = Math.ceil(maxVolume / 4) * 4;
+      return [top, Math.round(top * 0.75), Math.round(top * 0.5), Math.round(top * 0.25), 0];
+    }
+    const top = Math.ceil(maxVolume / 20) * 20;
+    return [top, Math.round(top * 0.75), Math.round(top * 0.5), Math.round(top * 0.25), 0];
+  }, [maxVolume]);
+
+  const yMax = yAxisTicks[0];
 
   // Geodetic GPS to mini-map percentage positioning
   const getPinPosition = useCallback((b, index) => {
@@ -591,8 +622,8 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     <h3 className="text-xs font-bold text-white tracking-tight">Request Volume</h3>
                     <p className="text-[11px] text-slate-400">Department distribution throughout peak hours</p>
                   </div>
-                  <span className="rounded-md bg-white/[0.05] px-2 py-0.5 text-[10px] font-mono text-slate-400">
-                    Live telemetry
+                  <span className="rounded-md bg-white/[0.05] border border-white/10 px-2 py-0.5 text-[10px] font-mono text-zinc-400">
+                    Live telemetry ({tickets.length} total)
                   </span>
                 </div>
 
@@ -600,13 +631,11 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                 <div className="relative pt-2">
                   {/* Grid Area with Left Y-Axis */}
                   <div className="flex">
-                    {/* Left Y-Axis Labels */}
-                    <div className="flex flex-col justify-between h-44 pr-2.5 text-right font-mono text-[9px] text-slate-400 select-none pb-5">
-                      <span>320</span>
-                      <span>240</span>
-                      <span>160</span>
-                      <span>80</span>
-                      <span>0</span>
+                    {/* Left Y-Axis Labels (Dynamic Real Scale) */}
+                    <div className="flex flex-col justify-between h-44 pr-2.5 text-right font-mono text-[9px] text-zinc-400 select-none pb-5">
+                      {yAxisTicks.map((tick, i) => (
+                        <span key={i}>{tick}</span>
+                      ))}
                     </div>
 
                     {/* Chart Canvas with Dashed Horizontal Gridlines */}
@@ -618,34 +647,42 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       <div className="absolute inset-x-0 top-3/4 border-b border-dashed border-white/[0.08]" />
                       <div className="absolute inset-x-0 bottom-5 border-b border-white/[0.12]" />
 
-                      {/* 9 Bold Stacked Bars */}
+                      {/* 9 Real Stacked Bars */}
                       <div className="absolute inset-0 bottom-5 flex items-end justify-between px-1 gap-2">
                         {volumeData.map((d) => {
-                          const barHeightPercent = Math.min(100, Math.max(20, (d.total / 320) * 100));
+                          const barHeightPercent = yMax > 0 && d.total > 0 ? (d.total / yMax) * 100 : 0;
 
                           return (
                             <div key={d.hour} className="flex-1 flex flex-col items-center h-full justify-end group relative">
                               {/* Stacked Bar Container */}
                               <div
                                 style={{ height: `${barHeightPercent}%` }}
-                                className="w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden shadow-md transition-transform duration-200 group-hover:scale-105"
+                                className={`w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden transition-all duration-300 ${
+                                  d.total > 0 ? 'shadow-md group-hover:scale-105' : 'opacity-40'
+                                }`}
                               >
-                                {/* Segment 5 (Top): General Admin (Purple) */}
-                                <div style={{ flexGrow: d.general }} className="w-full bg-[#a855f7] min-h-[3px] transition-all" />
-                                {/* Segment 4: Electrical (Rose / Red) */}
-                                <div style={{ flexGrow: d.electrical }} className="w-full bg-[#f43f5e] min-h-[3px] transition-all" />
-                                {/* Segment 3: Plumbing (Orange / Amber) */}
-                                <div style={{ flexGrow: d.plumbing }} className="w-full bg-[#f97316] min-h-[3px] transition-all" />
-                                {/* Segment 2: Sanitation (Emerald Green) */}
-                                <div style={{ flexGrow: d.sanitation }} className="w-full bg-[#10b981] min-h-[3px] transition-all" />
-                                {/* Segment 1 (Bottom): IT Support */}
-                                <div style={{ flexGrow: d.it }} className="w-full bg-zinc-400 min-h-[3px] transition-all" />
+                                {d.total > 0 ? (
+                                  <>
+                                    {/* Segment 5 (Top): General Admin */}
+                                    {d.general > 0 && <div style={{ flexGrow: d.general }} className="w-full bg-[#a855f7] min-h-[3px] transition-all" />}
+                                    {/* Segment 4: Electrical */}
+                                    {d.electrical > 0 && <div style={{ flexGrow: d.electrical }} className="w-full bg-[#f43f5e] min-h-[3px] transition-all" />}
+                                    {/* Segment 3: Plumbing */}
+                                    {d.plumbing > 0 && <div style={{ flexGrow: d.plumbing }} className="w-full bg-[#f97316] min-h-[3px] transition-all" />}
+                                    {/* Segment 2: Sanitation */}
+                                    {d.sanitation > 0 && <div style={{ flexGrow: d.sanitation }} className="w-full bg-[#10b981] min-h-[3px] transition-all" />}
+                                    {/* Segment 1 (Bottom): IT Support */}
+                                    {d.it > 0 && <div style={{ flexGrow: d.it }} className="w-full bg-zinc-400 min-h-[3px] transition-all" />}
+                                  </>
+                                ) : (
+                                  <div className="w-full h-[2px] bg-white/[0.15]" />
+                                )}
                               </div>
 
                               {/* Hover Tooltip */}
                               <div className="absolute -top-11 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none">
-                                <span className="rounded bg-slate-900 border border-white/[0.12] px-2 py-0.5 text-[9px] font-mono text-white shadow-xl whitespace-nowrap">
-                                  {d.total} Req
+                                <span className="rounded bg-black/95 border border-white/20 px-2 py-0.5 text-[9px] font-mono text-white shadow-xl whitespace-nowrap">
+                                  {d.total} {d.total === 1 ? 'Req' : 'Reqs'}
                                 </span>
                               </div>
                             </div>
