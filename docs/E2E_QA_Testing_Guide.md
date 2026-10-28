@@ -1,294 +1,178 @@
-# SmartComplaintHandler - Realistic End-to-End (E2E) QA Testing Guide
+# SmartComplaintHandler - End-to-End (E2E) QA User Stories & Testing Guide
 
-> **Focus**: Simulating the authentic, natural campus user lifecycle from the perspective of students, supervisors, field technicians, and executive leadership. Every step includes real-world scenarios and edge cases that users naturally encounter.
-
----
-
-## 1. Overview of the Closed-Loop Journey
-
-```mermaid
-flowchart TD
-    subgraph Act1 ["Act 1: Student Intake & Transparency"]
-        A1["1.1 Student Login / Google SSO<br/>(@iiitnr.edu.in)"] --> A2["1.2 Mandatory Residence Onboarding<br/>(Select Hostel & Room)"]
-        A2 --> A3["1.3 Grievance Filing: My Room<br/>(Electrical Sparking - Critical)"]
-        A3 --> A4["1.4 Grievance Filing: Public Area<br/>(Canteen Leaking - Medium)"]
-        A4 --> A5["1.5 Public SLA Tracking<br/>(Inspect Live Countdown & Locked Feedback)"]
-    end
-
-    subgraph Act2 ["Act 2: Operations Triage & Dispatch"]
-        B1["2.1 Facility Admin Sign-In<br/>(Operations Command Desk)"] --> B2["2.2 Review Incident Queue & Squad Loads<br/>(8 Maintenance Squads)"]
-        B2 --> B3["2.3 Operational Adjustments<br/>(Priority Override & Squad Reassignment)"]
-        B3 --> B4["2.4 Executive Incident Escalation<br/>(Critical Hazard Protocol)"]
-    end
-
-    subgraph Act3 ["Act 3: Field Technician Execution"]
-        C1["3.1 Technician Sign-In<br/>(Technician Workstation)"] --> C2["3.2 Start Diagnostics<br/>(Transition to IN_PROGRESS)"]
-        C2 --> C3["3.3 Parts Roadblock<br/>(Transition to ON_HOLD)"]
-        C3 --> C4["3.4 Commit Resolution<br/>(Closure Gate & Spare Parts Notes)"]
-    end
-
-    subgraph Act4 ["Act 4: Closed-Loop Student Feedback"]
-        D1["4.1 Student Inspects Resolution<br/>(Verify Technician Sign-Off)"] --> D2["4.2 Submit 5-Star Rating<br/>(Locks Closed Loop)"]
-    end
-
-    subgraph Act5 ["Act 5: Directorate Executive Governance"]
-        E1["5.1 SuperAdmin Nexus Telemetry<br/>(Verify 100% Data Alignment)"] --> E2["5.2 Staff & RBAC Matrix<br/>(Provision & Reset Credentials)"]
-    end
-
-    Act1 --> Act2 --> Act3 --> Act4 --> Act5
-```
+> **Testing Method**: Every test flow is a discrete, single-path **User Story** with interactive todo checkboxes (`- [ ]`). Follow each step in order without branching.
 
 ---
 
-## 2. Test Accounts & Baseline Credentials
+## Master Credentials Reference
 
-| Persona | Email | Password | Scope & Role |
+| Role | Email | Password | Primary Route |
 | :--- | :--- | :--- | :--- |
-| **Student** | Your Google Account or `aarav24100@iiitnr.edu.in` | `Student@1234` | Submits grievances, tracks SLA, provides post-repair feedback |
-| **Estate Admin** | `admin@iiitnr.edu.in` | `Admin@1234` | Central facilities operations, incident queue triage, squad rebalancing |
-| **Super Admin** | `superadmin@iiitnr.edu.in` | `SuperAdmin@2026` *(or `Admin@1234`)* | Directorate oversight, staff provisioning, master overrides |
-| **Field Technician** | `tech.ramesh@iiitnr.edu.in` | `Password@123` *(or `IIITNR@2026`)* | Electrical squad field workstation, work execution, ticket closure |
+| **Student (SSO)** | Your Google `@iiitnr.edu.in` Account | Google Auth | `/student` |
+| **Student (Manual)** | `aarav24100@iiitnr.edu.in` | `Student@1234` | `/student` |
+| **Estate Admin** | `admin@iiitnr.edu.in` | `Admin@1234` | `/operations` |
+| **Super Admin** | `superadmin@iiitnr.edu.in` | `SuperAdmin@2026` *(or `Admin@1234`)* | `/superadmin` |
+| **Field Technician** | `tech.ramesh@iiitnr.edu.in` | `Password@123` *(or `IIITNR@2026`)* | `/technician` |
 
 ---
 
-## Act 1: The Student Experience (Onboarding & Intake)
+## User Story 1: Student Google SSO Onboarding & In-Room Hazard Intake
+**Persona**: New Undergraduate Student using official Google Workspace  
+**Goal**: Verify Google SSO authentication, mandatory residence setup without cached phantom data, 1-tap room hazard filing, and live SLA countdown.
 
-### Step 1.1: Sign In or Register via Google SSO
-1. Navigate to `/login` (or `/register`).
-2. **Action A: Google Workspace SSO**:
-   * Click **"Sign in with Google (@iiitnr.edu.in)"**.
-   * Pick your institutional Google account.
-   * **Verification**: Verify authentication succeeds with **no 401 error**.
-3. **Action B: Institutional Email / Password Registration**:
-   * If registering manually, enter `aarav24100@iiitnr.edu.in` and password `Student@1234`.
-   * **Verification**: As you type, the preview card auto-detects your **Full Name**, **Batch ('2024)**, and **Department (DSAI / CSE / ECE)**.
-
----
-
-### Step 1.2: Mandatory One-Time Residence Onboarding (`/residence-info`)
-*Because this student profile is brand new and has no residence in the database, the system routes to `/residence-info`.*
-1. **Verification**:
-   - [ ] Verify there is **no phantom cached room** (no auto-filled `Room 331` from previous browser sessions).
-   - [ ] Student Account card shows your auto-detected Department and Roll number.
-2. Select your Hostel: `Raman House (Boys Hostel 1)`.
-3. Select Floor: `3`, and enter or select Room Number: `Room 331` (or your chosen room).
-4. Click **"Save & Continue"**.
-5. **Verification**:
-   - [ ] Profile updates in the database via `/api/v1/auth/profile`.
-   - [ ] Automatically redirects to the Student Portal (`/student`).
-
----
-
-### Step 1.3: File Grievance 1 — In-Room Defect (1-Tap "My Room")
-1. Navigate to **File Grievance** (`/submit`).
-2. **Location Selection**:
-   * Notice **"🏠 My Room"** mode is pre-selected.
-   * Verify your saved residence is shown: `Raman House (Boys Hostel 1) 📍 Room 331`.
-3. **Issue Description**:
-   * **Title**: `Ceiling fan regulator shorted and making popping noise`
-   * **Description**: `The ceiling fan regulator knob is loose and sparking whenever switched on. Burning plastic smell noticed in Room 331.`
-4. **Live AI Triage Verification**:
-   * [ ] **Category**: Evaluates to **Electrical**.
-   * [ ] **Priority**: Evaluates to **CRITICAL** (due to sparking/burning).
-   * [ ] **Target SLA**: Shows strict **2-Hour SLA**.
-5. Click **Submit Request**.
-6. **Save the generated Tracking Code**: (e.g. `TICK-1001`).
+- [ ] **Step 1.1**: Open an incognito browser window and navigate to `http://localhost:5173/login`.
+- [ ] **Step 1.2**: Click **"Sign in with Google (@iiitnr.edu.in)"** and complete authentication with your `@iiitnr.edu.in` Google account.
+- [ ] **Step 1.3**: Verify the application routes directly to `/residence-info` (Residence Onboarding) without any `401 Unauthorized` error.
+- [ ] **Step 1.4**: On `/residence-info`, verify the student badge displays your auto-detected Department and Name.
+- [ ] **Step 1.5**: Verify the form has **no phantom pre-fills** (Hostel and Room Number are not pre-locked to old cached values like `Room 331`).
+- [ ] **Step 1.6**: In the **Hostel Residence House** dropdown, select `Raman House (Boys Hostel 1)`.
+- [ ] **Step 1.7**: In the **Floor** dropdown, select `Floor 3`.
+- [ ] **Step 1.8**: In the **Room Number** field, select or type `Room 331`.
+- [ ] **Step 1.9**: Click **"Save & Continue"**, verify the green success notice appears, and verify automatic redirect to the Student Portal (`/student` or `/submit`).
+- [ ] **Step 1.10**: Navigate to **File Grievance** (`/submit`).
+- [ ] **Step 1.11**: Verify the **"🏠 My Room"** mode is active by default and displays: `Raman House (Boys Hostel 1) 📍 Room 331`.
+- [ ] **Step 1.12**: In the **Issue Summary** box, type: `Ceiling fan regulator shorted and making popping noise`.
+- [ ] **Step 1.13**: In the **Details & Observations** box, type: `The regulator knob sparked when turned on, emitting burning plastic odor in Room 331. Urgent fire safety hazard.`
+- [ ] **Step 1.14**: Verify the **Live AI Triage Card** evaluates:
+  - **Category**: `Electrical`
+  - **Priority**: `CRITICAL`
+  - **Target SLA**: `2 Hours`
+- [ ] **Step 1.15**: Click the orange **"Submit Request · Raman House (Room 331)"** button.
+- [ ] **Step 1.16**: In the confirmation dialog, copy and write down the generated **Tracking Code** (e.g. `TICK-1001`).
+- [ ] **Step 1.17**: Navigate to `/track`, enter your Tracking Code, and press Enter.
+- [ ] **Step 1.18**: Verify the **Live SLA Countdown Timer** is actively ticking down from `02h 00m`.
+- [ ] **Step 1.19**: Scroll to the bottom and verify the **Student Feedback** section is locked with notice: *"Feedback can be submitted once this ticket is resolved."*
 
 ---
 
-### Step 1.4: File Grievance 2 — Public Campus Area Defect (Quick Search / Map)
-*Simulates a student reporting a defect outside their room (e.g., in a classroom, lab, or canteen).*
-1. Navigate to `/submit`.
-2. **Location Selection**:
-   * Click **"🔍 Quick Search"** (or **"🗺️ Browse / Map"**).
-   * In the spot search input, type: `Canteen` (or click the Canteen building on the interactive campus map).
-   * Select `Canteen IIIT Naya Raipur (Circular Rotunda & Arcade)`.
-   * Set specific spot: `Ground Floor Dining Hall near water cooler`.
-3. **Issue Description**:
-   * **Title**: `Water cooler drain pipe cracked and flooding dining floor`
-   * **Description**: `Commercial RO water unit drain elbow is cracked, pooling water across the dining pathway during meal hours.`
-4. **Live AI Triage Verification**:
-   * [ ] **Category**: Evaluates to **Plumbing**.
-   * [ ] **Priority**: Evaluates to **MEDIUM** (or **HIGH**).
-   * [ ] **Target SLA**: Shows **24-Hour SLA**.
-5. Click **Submit Request**.
-6. **Save the generated Tracking Code**: (e.g. `TICK-1002`).
+## User Story 2: Student Manual Registration & Public Campus Outage
+**Persona**: Student registering manually with institutional email  
+**Goal**: Verify roll-based department detection, day-scholar onboarding, reporting a public facility defect via map/search, and multi-ticket dashboard tracking.
+
+- [ ] **Step 2.1**: Open an incognito browser window and navigate to `http://localhost:5173/register`.
+- [ ] **Step 2.2**: In the Institutional Email field, type: `aarav24100@iiitnr.edu.in`.
+- [ ] **Step 2.3**: Verify the live preview card appears and auto-detects:
+  - **Full Name**: `Aarav`
+  - **Department**: `Data Science & Artificial Intelligence` (`DSAI`)
+  - **Batch**: `'2024`
+- [ ] **Step 2.4**: Enter Password `Student@1234` and Confirm Password `Student@1234`.
+- [ ] **Step 2.5**: Click **"Create Account"** and verify navigation to `/residence-info`.
+- [ ] **Step 2.6**: In the **Hostel Residence House** dropdown, select `Day Scholar (Off-Campus Commuter)`.
+- [ ] **Step 2.7**: Verify floor and room fields automatically collapse for Day Scholars.
+- [ ] **Step 2.8**: Click **"Save & Continue"** and verify redirect to `/submit`.
+- [ ] **Step 2.9**: On `/submit`, verify the "My Room" button is hidden (since Day Scholars have no hostel room).
+- [ ] **Step 2.10**: Click the **"🔍 Quick Search"** tab.
+- [ ] **Step 2.11**: In the spot search input, type: `Canteen` and select `Canteen IIIT Naya Raipur (Circular Rotunda & Arcade)`.
+- [ ] **Step 2.12**: In the **Issue Summary** box, type: `Commercial water cooler drain pipe cracked and leaking`.
+- [ ] **Step 2.13**: In the **Details & Observations** box, type: `Water cooler drain pipe under the main filter unit is split, creating standing water pool on the canteen walkway during lunch.`
+- [ ] **Step 2.14**: Verify the **Live AI Triage Card** evaluates:
+  - **Category**: `Plumbing`
+  - **Priority**: `MEDIUM`
+  - **Target SLA**: `24 Hours`
+- [ ] **Step 2.15**: Click **Submit Request** and note down the generated Tracking Code (e.g. `TICK-1002`).
+- [ ] **Step 2.16**: In the sidebar, click **My Grievances** (`/student`).
+- [ ] **Step 2.17**: Verify both tickets (`TICK-1001` and `TICK-1002`) appear in the active grievances grid with status badges.
 
 ---
 
-### Step 1.5: Public Ticket Tracking & SLA Countdown (`/track`)
-1. Open an incognito tab or log out, then navigate to `/track`.
-2. Enter Tracking Code `TICK-1001` and press Enter.
-3. **Verification**:
-   - [ ] Ticket header shows priority tag (`CRITICAL`) in rose badge.
-   - [ ] **Live SLA Countdown Timer**: Real-time ticking timer (e.g. `01h 59m remaining`).
-   - [ ] Location displays `Raman House (Boys Hostel 1) - Room 331`.
-   - [ ] Status Timeline displays `SUBMITTED` marked with checkmark and active `ASSIGNED` stage.
-   - [ ] **Student Feedback Section**: Form is cleanly locked with notice: *"Feedback can be submitted once this ticket is resolved."*
+## User Story 3: Estate Operations Desk Triage & Real-World Overrides
+**Persona**: Facilities / Estate Administrator (`admin@iiitnr.edu.in`)  
+**Goal**: Verify access to Operations Desk without redirect loops, balance squad workload, upgrade priority due to slip hazard, and reassign squads.
+
+- [ ] **Step 3.1**: Log out of student session and navigate to `http://localhost:5173/login`.
+- [ ] **Step 3.2**: Sign in with Estate Admin credentials:
+  - **Email**: `admin@iiitnr.edu.in`
+  - **Password**: `Admin@1234`
+- [ ] **Step 3.3**: In the sidebar, click **Operations Desk** (`/operations`).
+- [ ] **Step 3.4**: Verify `/operations` loads directly **without bouncing** to `/student` or `/superadmin`.
+- [ ] **Step 3.5**: Inspect the **Maintenance Squad Capacities** panel (top) and verify active load numbers reflect filed tickets.
+- [ ] **Step 3.6**: In the **Campus Incident Queue** table, locate the Canteen Plumbing ticket (`TICK-1002`).
+- [ ] **Step 3.7**: Click the **Priority Override (Sliders)** button on `TICK-1002`'s row to open the modal.
+- [ ] **Step 3.8**: In the modal, change Target Priority from `MEDIUM` to `HIGH` (8-Hour SLA).
+- [ ] **Step 3.9**: In the Justification box, type: `Water leak creates severe slip hazard for students during ongoing lunch hour rush.`
+- [ ] **Step 3.10**: Click **"Save Priority Override"** and verify toast confirms update.
+- [ ] **Step 3.11**: Verify `TICK-1002` row updates to `HIGH` priority with updated SLA countdown.
+- [ ] **Step 3.12**: Locate the Critical Electrical ticket (`TICK-1001`) and click the **Reassign Squad (Users)** button.
+- [ ] **Step 3.13**: In the modal, select Target Squad: `Substation High-Voltage Team`.
+- [ ] **Step 3.14**: Enter Justification: `Electrical arcing requires specialized high-voltage circuit diagnostics toolkit.`
+- [ ] **Step 3.15**: Click **"Confirm Reassignment"** and verify squad column updates immediately.
+- [ ] **Step 3.16**: Click the **Escalate (Alert Triangle)** button on `TICK-1001`.
+- [ ] **Step 3.17**: Enter reason: `Breaker arcing requires supervisor sign-off and power cut authorization.`
+- [ ] **Step 3.18**: Click **"Confirm Escalation"** and verify ticket status badge updates to `ESCALATED`.
 
 ---
 
-## Act 2: Operations Command Desk & Triage Dispatch (`/operations`)
+## User Story 4: Field Technician Execution & Resolution Closure Gate
+**Persona**: Campus Field Technician (`tech.ramesh@iiitnr.edu.in`)  
+**Goal**: View assigned squad queue, commence field repair, log a hold for replacement parts, and commit physical resolution audit notes.
 
-### Step 2.1: Supervisor Sign-In
-1. Sign in as **Estate Admin** (`admin@iiitnr.edu.in` / `Admin@1234`) or **Super Admin** (`superadmin@iiitnr.edu.in` / `SuperAdmin@2026`).
-2. Navigate to **Operations Desk** (`/operations`).
-3. **Verification**:
-   - [ ] Page loads directly **without redirect loops**.
-   - [ ] **Squad Capacities Panel**: Shows the 8 maintenance squads (Electrical Squad 1, Plumbing Squad 2, etc.) with real-time active load counts.
-   - [ ] **Campus Incident Queue**: Both newly filed tickets (`TICK-1001` and `TICK-1002`) are present in the table.
-
----
-
-### Step 2.2: Test Operational Action Modals (Handling Real Roadblocks)
-
-#### Action 2.2A: Priority Override (Plumbing Ticket `TICK-1002`)
-*Real-world problem: A leak in a busy dining hall during meal rush poses an urgent slipping hazard and needs faster attention than routine 24h maintenance.*
-1. Locate `TICK-1002` in the incident queue.
-2. Click the **Priority Override (Sliders)** button.
-3. In the modal:
-   * Target Priority: Select **HIGH** (8-Hour SLA).
-   * Reason: *"Active slip hazard across main dining hall walkway during lunch hour."*
-   * Click **Save Priority Override**.
-4. **Verification**:
-   - [ ] Toast notification confirms update.
-   - [ ] Priority badge updates to `HIGH` and countdown adjusts to an 8-hour window.
-
-#### Action 2.2B: Squad Reassignment
-*Real-world problem: The ticket requires specialized high-voltage intervention or different crew equipment.*
-1. Locate `TICK-1001`.
-2. Click the **Reassign Squad (Users)** button.
-3. Select squad: `Substation High-Voltage Team` (or target squad).
-4. Enter reason: *"Primary panel arcing requires high-voltage technician toolkit."*
-5. Click **Confirm Reassignment**.
-6. **Verification**: Assigned squad updates in the table immediately.
-
-#### Action 2.2C: Directorate Escalation
-1. Click the **Escalate (Alert Triangle)** action on `TICK-1001`.
-2. Enter reason: *"Repeated arcing threatens floor distribution breaker."*
-3. Click **Confirm Escalation**.
-4. **Verification**: Status updates to `ESCALATED`.
+- [ ] **Step 4.1**: Log out and navigate to `http://localhost:5173/login`.
+- [ ] **Step 4.2**: Sign in with Field Technician credentials:
+  - **Email**: `tech.ramesh@iiitnr.edu.in`
+  - **Password**: `Password@123` *(or `IIITNR@2026`)*
+- [ ] **Step 4.3**: Verify direct landing on **Technician Workstation** (`/technician`).
+- [ ] **Step 4.4**: Locate ticket `TICK-1001` (`Raman House - Room 331`) in your active queue.
+- [ ] **Step 4.5**: Click **"Start Work"** and verify ticket status transitions to `IN_PROGRESS`.
+- [ ] **Step 4.6**: Click **"Put On Hold"** (Parts Roadblock Protocol).
+- [ ] **Step 4.7**: In the modal, type hold reason: `Awaiting replacement 32A DIN-rail breaker from central institutional inventory.`
+- [ ] **Step 4.8**: Click **"Confirm On Hold"** and verify card displays `ON_HOLD` status with hold reason.
+- [ ] **Step 4.9**: Click **"Resume Work"** to move status back to `IN_PROGRESS`.
+- [ ] **Step 4.10**: Click the green **"Resolve Ticket"** button to open the Ticket Closure Gate modal (`ResolutionNotesModal`).
+- [ ] **Step 4.11**: In the **Physical Work Completed** field, type:
+  `Replaced burned-out 32A breaker with new industrial ABB unit, tightened terminal lugs, and tested voltage across all phases.`
+- [ ] **Step 4.12**: In the **Parts Replaced** field, type: `1x 32A C-Curve Breaker, 2x 6mm copper terminal lugs`.
+- [ ] **Step 4.13**: In the **Technician Sign-Off** field, type: `Ramesh Kumar (Electrical Lead)`.
+- [ ] **Step 4.14**: Click **"Confirm Resolution & Close"**.
+- [ ] **Step 4.15**: Verify ticket disappears from the active queue and moves to the **Resolved** tab.
 
 ---
 
-## Act 3: Field Technician Execution (`/technician`)
+## User Story 5: Student Verification & 5-Star Closed-Loop Feedback
+**Persona**: Student (`aarav24100@iiitnr.edu.in` / Google Account)  
+**Goal**: Verify resolution notes, inspect technician audit sign-off, and submit 5-star rating to complete the closed loop.
 
-### Step 3.1: Technician Sign-In
-1. Sign in as Field Technician:
-   * **Email**: `tech.ramesh@iiitnr.edu.in`
-   * **Password**: `Password@123` *(or `IIITNR@2026`)*
-2. Navigate to `/technician` (Technician Workstation).
-3. **Verification**:
-   - [ ] Assigned squad work orders queue displays ticket `TICK-1001`.
-   - [ ] Displays location: `Raman House (Room 331)`.
-
----
-
-### Step 3.2: Begin Field Diagnostics (`IN_PROGRESS`)
-1. Click **"Start Work"**.
-2. **Verification**:
-   - [ ] Ticket status transitions to **IN_PROGRESS**.
-   - [ ] Student tracking page reflects that technician has arrived on-site and commenced repair.
+- [ ] **Step 5.1**: In an incognito tab, open `http://localhost:5173/track`.
+- [ ] **Step 5.2**: Enter Tracking Code `TICK-1001` and press Enter.
+- [ ] **Step 5.3**: Verify the top status banner displays **RESOLVED** in green.
+- [ ] **Step 5.4**: Verify the SLA badge displays **RESOLVED ON TIME**.
+- [ ] **Step 5.5**: In the Audit & Timeline section, verify technician notes are displayed:
+  - *"Replaced burned-out 32A breaker with new industrial ABB unit..."*
+  - Technician: `Ramesh Kumar (Electrical Lead)`.
+- [ ] **Step 5.6**: Verify the **Student Feedback** section is now **unlocked**.
+- [ ] **Step 5.7**: Click the **5th Star** (Rating: `5/5`).
+- [ ] **Step 5.8**: In the feedback comments box, type: `Technician arrived promptly, replaced the sparking regulator, and verified power safety. Excellent service!`
+- [ ] **Step 5.9**: Click **"Submit Feedback & Rating"**.
+- [ ] **Step 5.10**: Verify rating form permanently locks with green checkmark confirmation.
 
 ---
 
-### Step 3.3: Parts Roadblock Protocol (`ON_HOLD`)
-*Real-world scenario: The technician inspects the damage and realizes replacement 32A breaker parts must be fetched from central stores.*
-1. Click **"Put On Hold"** (or pause work action).
-2. Enter justification: *"Awaiting replacement 32A DIN-rail breaker from central institutional inventory."*
-3. Click **Confirm On Hold**.
-4. **Verification**:
-   - [ ] Status transitions to **ON_HOLD**.
-   - [ ] Queue card shows hold notice.
+## User Story 6: SuperAdmin Directorate Oversight & Staff Matrix
+**Persona**: Super Administrator / Director (`superadmin@iiitnr.edu.in`)  
+**Goal**: Verify dynamic dashboard telemetry alignment, provision new staff accounts, and test password overrides.
 
----
-
-### Step 3.4: Complete Physical Repair & Commit Resolution Notes (`RESOLVED`)
-1. Click **"Resolve Ticket"**.
-2. The **Ticket Closure Gate** modal opens (`ResolutionNotesModal`).
-3. Fill in mandatory resolution audit details:
-   * **Physical Work Completed**: `Replaced burned-out 32A breaker with new industrial unit, cleaned contacts, and verified voltage balance across phases.`
-   * **Parts Replaced**: `1x 32A C-Curve Breaker, 2x 6mm terminal lugs`
-   * **Technician Sign-Off**: `Ramesh Kumar (Electrical Lead)`
-4. Click **Confirm Resolution & Close**.
-5. **Verification**:
-   - [ ] Ticket transitions to **RESOLVED**.
-   - [ ] Moved to Resolved tab in technician workstation.
-
----
-
-## Act 4: Closed-Loop Student Verification & Feedback (`/track`)
-
-### Step 4.1: Inspect Completed Ticket
-1. Re-open `/track` and search `TICK-1001` (or view your complaint in `/student`).
-2. **Verification**:
-   - [ ] Status banner displays **RESOLVED** in green.
-   - [ ] SLA status displays **RESOLVED ON TIME**.
-   - [ ] Displays technician resolution notes: *"Replaced burned-out 32A breaker..."*
-   - [ ] Technician sign-off: `Ramesh Kumar (Electrical Lead)`.
-
----
-
-### Step 4.2: Submit 5-Star Satisfaction Rating
-1. Notice the rating section is now **unlocked**.
-2. Click the **5th Star** (Rating: `5/5`).
-3. Comments: *"Technician arrived promptly, fixed the sparking breaker, and tested all power outlets safely. Excellent work!"*
-4. Click **Submit Feedback & Rating**.
-5. **Verification**:
-   - [ ] Rating locks with green checkmark confirmation.
-   - [ ] Feedback is stored permanently in Supabase.
-
----
-
-## Act 5: Directorate Executive Governance (`/superadmin` & `/superadmin/staff`)
-
-### Step 5.1: Verify Directorate Telemetry
-1. Sign back in as SuperAdmin (`superadmin@iiitnr.edu.in`).
-2. Open `/superadmin` (Nexus Dashboard) and `/operations`.
-3. **Verification**:
-   - [ ] **Resolution Rate**: Incremented to reflect completed ticket.
-   - [ ] **Active Incidents**: Decremented.
-   - [ ] **Incident Queue**: `TICK-1001` now displays in Resolved state.
-
----
-
-### Step 5.2: Staff & RBAC Governance (`/superadmin/staff`)
-1. Click **Staff Directory** (`/superadmin/staff`).
-2. Click **Provision Staff Account**:
-   * **Full Name**: `Sunil Verma`
-   * **Email**: `tech.sunil@iiitnr.edu.in`
-   * **Role**: `TECHNICIAN`
-   * **Department**: `Plumbing`
-   * Click **Confirm & Authorize**.
-3. **Verification**:
-   - [ ] Sunil Verma appears in the directory with `TECHNICIAN` badge.
-4. **Test Password Override (`SetPasswordModal`)**:
-   * Click the Key icon on Sunil Verma's card.
-   * Enter new password: `NewPassword@2026`.
-   * Click **Save Password**.
-   * Verify toast confirms password update.
-5. **Test Role Filters**:
-   * Filter by `TECHNICIAN` -> shows only technicians.
-   * Filter by `ADMIN` -> shows only admins.
-   * Filter by `ALL` -> shows full staff directory.
-
----
-
-## 3. QA Testing Sign-Off Checklist
-
-| Test Phase | Persona | Target Route | Expected Outcome | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **1.1 Google SSO** | Student | `/login` / `/register` | Clean token exchange with no 401 error | [ ] |
-| **1.2 Residence Setup** | Student | `/residence-info` | Clean dropdowns without phantom cache; saves to DB | [ ] |
-| **1.3 In-Room Grievance** | Student | `/submit` | 1-Tap "My Room" pre-filled; Critical 2h SLA evaluated | [ ] |
-| **1.4 Public Area Grievance** | Student | `/submit` | Quick Search/Map selects Canteen; 24h SLA evaluated | [ ] |
-| **1.5 SLA Tracking** | Student | `/track` | Live countdown active; rating locked until resolved | [ ] |
-| **2.1 Operations Desk** | Admin | `/operations` | Direct access without bounce; 8 squads & incident queue visible | [ ] |
-| **2.2 Priority Override** | Admin | `/operations` | Modal upgrades Plumbing to High (8h SLA) with justification | [ ] |
-| **2.3 Squad Reassignment** | Admin | `/operations` | Reassigns ticket to target maintenance squad | [ ] |
-| **3.1 Start Work** | Technician | `/technician` | Transitions ticket to `IN_PROGRESS` | [ ] |
-| **3.2 Hold Protocol** | Technician | `/technician` | Transitions ticket to `ON_HOLD` with parts reason | [ ] |
-| **3.3 Resolution Gate** | Technician | `/technician` | Closure modal captures physical work and parts; sets `RESOLVED` | [ ] |
-| **4.1 Student Review** | Student | `/track` | Audit notes visible; 5-star rating submitted and locked | [ ] |
-| **5.1 Executive Telemetry**| SuperAdmin | `/superadmin` | Real-time counters reflect closed loop | [ ] |
-| **5.2 Staff Management** | SuperAdmin | `/superadmin/staff` | New technician provisioned; password override tested | [ ] |
+- [ ] **Step 6.1**: Navigate to `http://localhost:5173/login`.
+- [ ] **Step 6.2**: Sign in with SuperAdmin credentials:
+  - **Email**: `superadmin@iiitnr.edu.in`
+  - **Password**: `SuperAdmin@2026` *(or `Admin@1234`)*
+- [ ] **Step 6.3**: On the **SuperAdmin Nexus Dashboard** (`/superadmin`), verify telemetry:
+  - **Resolution Rate**: Has increased to reflect the resolved ticket.
+  - **Active Incidents**: Decremented by 1.
+- [ ] **Step 6.4**: In the sidebar, click **Operations Desk** (`/operations`) and verify `TICK-1001` displays as `RESOLVED`.
+- [ ] **Step 6.5**: In the sidebar, click **Staff Directory** (`/superadmin/staff`).
+- [ ] **Step 6.6**: Click the **"Provision Staff Account"** button.
+- [ ] **Step 6.7**: Fill in the modal fields:
+  - **Full Name**: `Sunil Verma`
+  - **Email**: `tech.sunil@iiitnr.edu.in`
+  - **Role**: `TECHNICIAN`
+  - **Department**: `Plumbing`
+  - **Phone**: `+91-771-2474188`
+- [ ] **Step 6.8**: Click **"Confirm & Authorize"**.
+- [ ] **Step 6.9**: Verify Sunil Verma appears in the staff grid with `TECHNICIAN` badge.
+- [ ] **Step 6.10**: On Sunil Verma's card, click the **Key (Set Password)** button to open `SetPasswordModal`.
+- [ ] **Step 6.11**: Enter New Password `SunilPass@2026` and Confirm Password `SunilPass@2026`.
+- [ ] **Step 6.12**: Click **"Update Password"** and verify toast confirms password was changed.
+- [ ] **Step 6.13**: Test the role filters:
+  - Click `Technicians` pill -> only technicians display.
+  - Click `Admins` pill -> only admins display.
+  - Click `All` pill -> full roster displays.
+- [ ] **Step 6.14**: Click **Sign Out** from the user badge menu and verify clean session termination.
