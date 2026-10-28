@@ -57,8 +57,9 @@ export default function SubmitComplaint() {
   const hostelsList = useMemo(() => getHostelBuildings(allBuildings), [allBuildings]);
   const nonHostelsList = useMemo(() => getNonHostelBuildings(allBuildings), [allBuildings]);
 
-  const savedHostel = activeUser?.hostel_name || hostelsList[0]?.name || allBuildings[0]?.name;
-  const savedRoom = activeUser?.room_number || 'Room 204';
+  const hasSavedResidence = Boolean(activeUser?.hostel_name && activeUser?.room_number);
+  const savedHostel = activeUser?.hostel_name || null;
+  const savedRoom = activeUser?.room_number || null;
 
   const initialBuildingFromUrl = searchParams.get('building');
   const initialModeFromUrl = searchParams.get('mode');
@@ -68,7 +69,9 @@ export default function SubmitComplaint() {
       ? 'SEARCH'
       : initialBuildingFromUrl
       ? 'BROWSE'
-      : 'MY_ROOM'
+      : hasSavedResidence
+      ? 'MY_ROOM'
+      : 'SEARCH'
   );
 
   const [building, setBuilding] = useState(

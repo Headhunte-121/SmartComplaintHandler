@@ -61,20 +61,8 @@ function enrichUser(userData) {
     userData.department_name ||
     'Computer Science & Engineering';
 
-  // Merge locally cached hostel/room fallback if backend record does not yet have one
-  const cleanEmail = (userData.email || '').trim().toLowerCase();
-  let cachedResidence = null;
-  if (cleanEmail && typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem(`iiitnr_residence_${cleanEmail}`);
-      if (raw) cachedResidence = JSON.parse(raw);
-    } catch (_) {
-      // Ignore storage parse error
-    }
-  }
-
-  const hostelName = userData.hostel_name || cachedResidence?.hostel_name || null;
-  const roomNumber = userData.room_number || cachedResidence?.room_number || null;
+  const hostelName = userData.hostel_name || null;
+  const roomNumber = userData.room_number || null;
   const authProvider = userData.auth_provider || 'password';
   const hasPassword = userData.has_password !== undefined ? Boolean(userData.has_password) : (authProvider !== 'google');
 
@@ -422,16 +410,6 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (registrationData) => {
-    const cleanEmail = (registrationData.email || '').trim().toLowerCase();
-    if (cleanEmail && (registrationData.hostel_name || registrationData.room_number)) {
-      localStorage.setItem(
-        `iiitnr_residence_${cleanEmail}`,
-        JSON.stringify({
-          hostel_name: registrationData.hostel_name || null,
-          room_number: registrationData.room_number || null,
-        })
-      );
-    }
     const data = await registerUser(registrationData);
     const enriched = enrichUser({
       ...data.user,
@@ -460,17 +438,6 @@ export function AuthProvider({ children }) {
   };
 
   const updateProfile = async (profileUpdates) => {
-    const activeEmail = (currentUser?.email || '').trim().toLowerCase();
-    if (activeEmail) {
-      localStorage.setItem(
-        `iiitnr_residence_${activeEmail}`,
-        JSON.stringify({
-          hostel_name: profileUpdates.hostel_name ?? currentUser?.hostel_name ?? null,
-          room_number: profileUpdates.room_number ?? currentUser?.room_number ?? null,
-        })
-      );
-    }
-
     try {
       const updatedUser = await updateUserProfile(profileUpdates);
       const enriched = enrichUser(updatedUser);

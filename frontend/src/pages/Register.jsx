@@ -98,11 +98,7 @@ export default function Register() {
   useEffect(() => {
     if (!authInitializing && currentUser) {
       if (isUndergradHostelStudent(currentUser.email)) {
-        let isCompleted = false;
-        try {
-          isCompleted = localStorage.getItem(`iiitnr_residence_completed_${(currentUser.email || '').toLowerCase()}`) === 'true';
-        } catch (_) {}
-        if (!isCompleted && (!currentUser.hostel_name || !currentUser.room_number)) {
+        if (!currentUser.hostel_name || !currentUser.room_number) {
           navigate('/residence-info', { replace: true });
           return;
         }
@@ -203,11 +199,7 @@ export default function Register() {
 
             if (user) {
               if (isUndergradHostelStudent(cleanUserEmail)) {
-                let isCompleted = false;
-                try {
-                  isCompleted = localStorage.getItem(`iiitnr_residence_completed_${cleanUserEmail}`) === 'true';
-                } catch (_) {}
-                if (!isCompleted && (!user.hostel_name || !user.room_number)) {
+        if (!user.hostel_name || !user.room_number) {
                   navigate('/residence-info', { replace: true });
                   return;
                 }

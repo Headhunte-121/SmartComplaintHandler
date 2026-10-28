@@ -64,34 +64,24 @@ export const IIITNR_ACADEMIC_BLOCKS = DEFAULT_IIITNR_BUILDINGS.filter((b) => b.c
 /**
  * Returns current campus buildings, checking localStorage cache first, then falling back to canonical defaults.
  */
+let inMemoryCampusBuildings = null;
+
 export function getCampusBuildings() {
-  if (typeof window === 'undefined') return DEFAULT_IIITNR_BUILDINGS;
-  try {
-    const raw = window.localStorage.getItem(IIITNR_CAMPUS_STORAGE_KEY);
-    if (!raw) return DEFAULT_IIITNR_BUILDINGS;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-  } catch (err) {
-    console.warn('Failed to parse cached campus map:', err);
-  }
-  return DEFAULT_IIITNR_BUILDINGS;
+  return inMemoryCampusBuildings || DEFAULT_IIITNR_BUILDINGS;
 }
 
 /**
- * Persist custom buildings to localStorage and notify all listeners.
+ * Persist custom buildings to memory and notify all listeners.
  */
 export function saveCustomCampusBuildings(buildings) {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(IIITNR_CAMPUS_STORAGE_KEY, JSON.stringify(buildings));
+  inMemoryCampusBuildings = buildings;
+  if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(IIITNR_MAP_UPDATED_EVENT, { detail: buildings }));
-  } catch (err) {
-    console.warn('Failed to save campus map cache:', err);
   }
 }
 
 /**
- * Asynchronously synchronizes campus catalog from the backend database into frontend cache.
+ * Asynchronously synchronizes campus catalog from the backend database into in-memory catalog.
  */
 export async function fetchAndCacheCampusBuildings() {
   try {
@@ -101,7 +91,7 @@ export async function fetchAndCacheCampusBuildings() {
       return remote;
     }
   } catch (err) {
-    console.warn('Could not fetch campus buildings from database, using cached/default:', err);
+    console.warn('Could not fetch campus buildings from database, using default:', err);
   }
   return getCampusBuildings();
 }
@@ -110,12 +100,9 @@ export async function fetchAndCacheCampusBuildings() {
  * Reset campus catalog to institutional defaults.
  */
 export function resetCampusBuildingsToDefault() {
-  if (typeof window === 'undefined') return DEFAULT_IIITNR_BUILDINGS;
-  try {
-    window.localStorage.removeItem(IIITNR_CAMPUS_STORAGE_KEY);
+  inMemoryCampusBuildings = null;
+  if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(IIITNR_MAP_UPDATED_EVENT, { detail: DEFAULT_IIITNR_BUILDINGS }));
-  } catch (err) {
-    console.warn('Failed to reset campus map:', err);
   }
   return DEFAULT_IIITNR_BUILDINGS;
 }

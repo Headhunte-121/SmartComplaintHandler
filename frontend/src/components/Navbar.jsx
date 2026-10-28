@@ -71,10 +71,10 @@ export default function Navbar() {
 
   const shortHostel = currentUser?.hostel_name
     ? currentUser.hostel_name.split(' ')[0]
-    : 'Ramanujan';
+    : null;
   const shortRoom = currentUser?.room_number
     ? currentUser.room_number.replace('Wing ', '').replace(', Room ', '-').replace('Room ', '')
-    : '204';
+    : null;
 
   return (
     <header
@@ -253,7 +253,7 @@ export default function Navbar() {
               </kbd>
             </button>
 
-            {currentUser?.hostel_name && (
+            {currentUser?.hostel_name && currentUser?.room_number && (
               <Link
                 to="/submit"
                 className={`hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${

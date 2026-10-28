@@ -53,8 +53,7 @@ export default function ResidenceInfo() {
 
   const alreadyCompleted = useMemo(() => {
     if (!cleanEmail) return false;
-    const flag = localStorage.getItem(`iiitnr_residence_completed_${cleanEmail}`);
-    return flag === 'true' && Boolean(currentUser?.hostel_name && currentUser?.room_number);
+    return Boolean(currentUser?.hostel_name && currentUser?.room_number);
   }, [cleanEmail, currentUser]);
 
   const studentMeta = useMemo(() => {
@@ -153,10 +152,6 @@ export default function ResidenceInfo() {
         room_number: finalRoom,
         phone: phone.trim() || undefined,
       });
-
-      try {
-        localStorage.setItem(`iiitnr_residence_completed_${cleanEmail}`, 'true');
-      } catch (_) {}
 
       setSavedSuccess(true);
       setTimeout(() => {

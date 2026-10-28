@@ -79,11 +79,9 @@ export default function Login() {
   const handleRoleRedirect = (user) => {
     if (!user) return;
     if (isUndergradHostelStudent(user?.email)) {
-      let isCompleted = false;
       try {
-        isCompleted = localStorage.getItem(`iiitnr_residence_completed_${(user.email || '').toLowerCase()}`) === 'true';
       } catch (_) {}
-      if (!isCompleted && (!user.hostel_name || !user.room_number)) {
+      if (!user.hostel_name || !user.room_number) {
         navigate('/residence-info', { replace: true });
         return;
       }
@@ -153,35 +151,22 @@ export default function Login() {
       const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: activeClientId,
         scope: 'openid email profile',
-        hint: cleanHint.endsWith(`@${ALLOWED_DOMAIN}`) ? cleanHint : undefined,
         callback: async (tokenResponse) => {
           if (tokenResponse.error) {
-            setError(`Google authorization failed: ${tokenResponse.error}`);
+            setError(tokenResponse.error_description || tokenResponse.error);
             setGoogleLoading(false);
             return;
           }
           try {
-            const profile = await fetchGoogleUserProfile(tokenResponse.access_token);
-            if (!profile?.email) {
-              throw new Error('Google profile could not be verified.');
-            }
-            const normalizedGoogleEmail = profile.email.toLowerCase().trim();
-            if (!normalizedGoogleEmail.endsWith(`@${ALLOWED_DOMAIN}`)) {
-              throw new Error(`Only official @${ALLOWED_DOMAIN} accounts are authorized.`);
-            }
-
             const authedUser = await loginGoogle({
-              email: normalizedGoogleEmail,
-              name: profile.name || profile.given_name || normalizedGoogleEmail.split('@')[0],
-              google_id: profile.sub || profile.id,
-              picture: profile.picture,
-              hd: profile.hd || ALLOWED_DOMAIN,
+              access_token: tokenResponse.access_token,
+              hd: ALLOWED_DOMAIN,
+              remember_me: rememberMe,
             });
-
+            setGoogleLoading(false);
             handleRoleRedirect(authedUser);
           } catch (err) {
-            setError(err.message || 'Google Workspace SSO failed.');
-          } finally {
+            setError(err.response?.data?.detail || err.message || 'Google Workspace SSO failed.');
             setGoogleLoading(false);
           }
         },
