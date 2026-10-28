@@ -216,31 +216,45 @@ export default function StudentDashboard() {
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
 
       {/* Header Profile Section */}
-      <div className="relative z-10 p-6 sm:p-7 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] overflow-hidden">
-        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+      <div className="relative z-10 p-6 sm:p-7 rounded-3xl border border-emerald-500/30 bg-[#0c0d12]/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(16,185,129,0.2)] overflow-hidden">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent pointer-events-none" />
 
         <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start sm:items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border border-white/20 bg-white/[0.05] text-white">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border border-emerald-500/40 bg-emerald-500/10 text-emerald-400">
               <GraduationCap size={28} />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-emerald-500/40 bg-emerald-500/15 text-emerald-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span>Student Residence Portal · Self-Service Grievance Desk</span>
+                </span>
+                <span className="text-zinc-600">•</span>
+                <span className="text-xs font-mono font-bold text-zinc-300">
+                  Scholar Clearance · Room Support
+                </span>
+              </div>
+
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                   {activeUser?.name}
                 </h1>
-                <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-white/20 bg-white/[0.06] text-white tracking-wider">
+                <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 tracking-wider">
                   {activeUser?.identifier}
                 </span>
                 <span className="text-zinc-600">·</span>
                 <span className="text-xs font-mono text-zinc-400">{activeUser?.department}</span>
               </div>
+              <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
+                Lodge and track repair requests for your hostel room, classrooms, labs, and campus amenities with real-time technician triage.
+              </p>
 
               <div className="flex flex-wrap items-center gap-2 pt-1.5">
-                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl border border-white/[0.08] bg-[#07080c] text-xs font-semibold text-zinc-300">
-                  <Home size={13} className="text-white" />
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-200">
+                  <Home size={13} className="text-emerald-400" />
                   <span>{currentHostelLabel.split(' (')[0]}</span>
-                  <span className="text-zinc-600">·</span>
+                  <span className="text-emerald-500/60">·</span>
                   <span className="font-mono font-bold text-white">{currentRoomLabel}</span>
                 </span>
                 <button
@@ -275,7 +289,7 @@ export default function StudentDashboard() {
           <div className="flex items-center space-x-2.5 shrink-0">
             <Link
               to="/submit"
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-[0_2px_14px_rgba(16,185,129,0.25)] border border-emerald-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
             >
               <Plus size={14} />
               <span>Submit Issue</span>
@@ -373,7 +387,7 @@ export default function StudentDashboard() {
                 onClick={() => setActiveTab('ALL')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'ALL'
-                    ? 'bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
+                    ? 'bg-emerald-600/20 text-emerald-300 font-bold border border-emerald-500/40 shadow-[inset_0_1px_0_0_rgba(52,211,153,0.2)]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
@@ -383,7 +397,7 @@ export default function StudentDashboard() {
                 onClick={() => setActiveTab('ACTIVE')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'ACTIVE'
-                    ? 'bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
+                    ? 'bg-emerald-600/20 text-emerald-300 font-bold border border-emerald-500/40 shadow-[inset_0_1px_0_0_rgba(52,211,153,0.2)]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
@@ -393,7 +407,7 @@ export default function StudentDashboard() {
                 onClick={() => setActiveTab('RESOLVED')}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${
                   activeTab === 'RESOLVED'
-                    ? 'bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
+                    ? 'bg-emerald-600/20 text-emerald-300 font-bold border border-emerald-500/40 shadow-[inset_0_1px_0_0_rgba(52,211,153,0.2)]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >

@@ -454,6 +454,184 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           )}
 
           {/* ========================================================================= */}
+          {/* ROLE-DISTINGUISHED INSTITUTIONAL COMMAND HEADER */}
+          {/* ========================================================================= */}
+          <section
+            className={`p-5 sm:p-6 rounded-3xl border relative overflow-hidden backdrop-blur-xl transition-all shadow-[0_20px_50px_rgba(0,0,0,0.8)] ${
+              isSuperAdminMode
+                ? 'border-purple-500/30 bg-[#0c0d12]/95 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(168,85,247,0.2)]'
+                : 'border-blue-500/30 bg-[#0c0d12]/95 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(59,130,246,0.2)]'
+            }`}
+          >
+            {/* Top specular glow rim matching theme */}
+            <div
+              className={`absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent pointer-events-none ${
+                isSuperAdminMode
+                  ? 'via-purple-400/40 to-transparent'
+                  : 'via-blue-400/40 to-transparent'
+              }`}
+            />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+              {/* Left Identity Pod */}
+              <div className="flex items-start sm:items-center gap-4">
+                <div
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-inner border transition-colors ${
+                    isSuperAdminMode
+                      ? 'border-purple-500/40 bg-purple-500/10 text-purple-300'
+                      : 'border-blue-500/40 bg-blue-500/10 text-blue-400'
+                  }`}
+                >
+                  {isSuperAdminMode ? <ShieldCheck size={28} /> : <LayoutDashboard size={28} />}
+                </div>
+
+                <div className="space-y-1.5 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border ${
+                        isSuperAdminMode
+                          ? 'border-purple-500/40 bg-purple-500/15 text-purple-300'
+                          : 'border-blue-500/40 bg-blue-500/15 text-blue-300'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full animate-ping ${
+                          isSuperAdminMode ? 'bg-purple-400' : 'bg-blue-400'
+                        }`}
+                      />
+                      <span>
+                        {isSuperAdminMode
+                          ? 'Campus Facilities Directorate · Executive Oversight'
+                          : 'Facilities Operations Desk · Dispatch & Triage'}
+                      </span>
+                    </span>
+                    <span className="text-zinc-600">•</span>
+                    <span className="text-xs font-mono font-bold text-zinc-300">
+                      {isSuperAdminMode ? 'Institutional Apex Clearance' : 'Active Duty Dispatch'}
+                    </span>
+                  </div>
+
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white">
+                    {isSuperAdminMode
+                      ? 'Directorate Command & Governance Matrix'
+                      : 'Campus Operations & Incident Dispatch'}
+                  </h1>
+
+                  <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
+                    {isSuperAdminMode
+                      ? 'Apex oversight across all 6 campus maintenance trades, institutional governance, user provisioning, and full-spectrum SLA compliance.'
+                      : 'Real-time operational triage, automated NLP work order dispatching, field squad workload rebalancing, and rapid response monitoring.'}
+                  </p>
+
+                  {/* Scope badges */}
+                  <div className="pt-1 flex flex-wrap items-center gap-2 text-xs">
+                    <span
+                      className={`px-2.5 py-0.5 rounded-lg border font-mono font-bold text-[11px] ${
+                        isSuperAdminMode
+                          ? 'border-purple-500/30 bg-purple-500/10 text-purple-200'
+                          : 'border-blue-500/30 bg-blue-500/10 text-blue-200'
+                      }`}
+                    >
+                      Console: {isSuperAdminMode ? 'Super Administrator' : 'Operations Administrator'}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.02] font-mono text-[11px] text-zinc-400">
+                      Domain: 17 Buildings · 6 Trades
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.02] font-mono text-[11px] text-zinc-400">
+                      Telemetry: Real-Time Sync
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Action Matrix */}
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                {isSuperAdminMode ? (
+                  <>
+                    <Link
+                      to="/superadmin/staff"
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_14px_rgba(168,85,247,0.25)] border border-purple-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <UsersRound size={14} />
+                      <span>Staff Directory & RBAC</span>
+                    </Link>
+                    <Link
+                      to="/squads"
+                      className="px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-bold text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <Users size={14} />
+                      <span>Squads Balancer</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/submit"
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      <span>+ Rapid Work Order</span>
+                    </Link>
+                    <Link
+                      to="/squads"
+                      className="px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white font-bold text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <Users size={14} />
+                      <span>Dispatch Balancer</span>
+                    </Link>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={loadData}
+                  className="p-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white transition-all cursor-pointer shadow-xs"
+                  title="Refresh Live Telemetry"
+                >
+                  <RefreshCw size={14} className={loading ? 'animate-spin text-white' : ''} />
+                </button>
+              </div>
+            </div>
+
+            {/* Directorate Exclusive: 6-Trade Active Health Strip */}
+            {isSuperAdminMode && (
+              <div className="mt-4 pt-4 border-t border-purple-500/20 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                {[
+                  { name: 'Electrical', icon: '⚡' },
+                  { name: 'Plumbing', icon: '💧' },
+                  { name: 'Sanitation', icon: '🧹' },
+                  { name: 'Carpentry', icon: '🪚' },
+                  { name: 'IT Support', icon: '📶' },
+                  { name: 'Administration', icon: '🏢' },
+                ].map((trade) => {
+                  const count = tickets.filter(
+                    (t) =>
+                      !['RESOLVED', 'CLOSED'].includes(t.status) &&
+                      (t.department_name || '').toLowerCase().includes(trade.name.toLowerCase().slice(0, 4))
+                  ).length;
+                  return (
+                    <div
+                      key={trade.name}
+                      className="p-2 rounded-xl border border-white/[0.06] bg-[#050608]/70 flex items-center justify-between text-xs"
+                    >
+                      <span className="flex items-center gap-1.5 text-zinc-300 truncate">
+                        <span>{trade.icon}</span>
+                        <span className="text-[11px] font-semibold truncate">{trade.name}</span>
+                      </span>
+                      <span
+                        className={`font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
+                          count > 0 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-zinc-500'
+                        }`}
+                      >
+                        {count} active
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* ========================================================================= */}
           {/* ROW 1: TOP 4 KPI CARDS (Matching Reference Header Strip) */}
           {/* ========================================================================= */}
           <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">

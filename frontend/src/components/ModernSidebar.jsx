@@ -176,10 +176,22 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
           <div className="min-w-0">
             <div className="text-sm font-extrabold tracking-tight text-white flex items-center gap-1.5">
               <span>IIIT-NR</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/90" />
+              <span className={`h-1.5 w-1.5 rounded-full ${
+                isSuperAdmin ? 'bg-purple-400' : isAdmin ? 'bg-blue-400' : isTechnician ? 'bg-amber-400' : 'bg-emerald-400'
+              }`} />
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400 group-hover:text-zinc-200 transition-colors truncate">
-              {roleTitle}
+            <div className="mt-0.5">
+              <span className={`inline-block text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                isSuperAdmin
+                  ? 'border-purple-500/40 bg-purple-500/15 text-purple-300'
+                  : isAdmin
+                  ? 'border-blue-500/40 bg-blue-500/15 text-blue-300'
+                  : isTechnician
+                  ? 'border-amber-500/40 bg-amber-500/15 text-amber-300'
+                  : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
+              }`}>
+                {isSuperAdmin ? '🏛️ Directorate' : isAdmin ? '📡 Operations' : isTechnician ? '🛠️ Field Squad' : '🎓 Resident'}
+              </span>
             </div>
           </div>
         </Link>
@@ -256,6 +268,23 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
           {navTiles.map((tile) => {
             const Icon = tile.icon;
             const isTileActive = tile.active;
+
+            const activeTileClass = isSuperAdmin
+              ? 'border-purple-500/40 bg-purple-500/15 text-purple-200 shadow-[inset_0_1px_0_0_rgba(168,85,247,0.2),0_4px_12px_rgba(168,85,247,0.15)] font-bold'
+              : isAdmin
+              ? 'border-blue-500/40 bg-blue-500/15 text-blue-200 shadow-[inset_0_1px_0_0_rgba(59,130,246,0.2),0_4px_12px_rgba(59,130,246,0.15)] font-bold'
+              : isTechnician
+              ? 'border-amber-500/40 bg-amber-500/15 text-amber-200 shadow-[inset_0_1px_0_0_rgba(245,158,11,0.2),0_4px_12px_rgba(245,158,11,0.15)] font-bold'
+              : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-200 shadow-[inset_0_1px_0_0_rgba(16,185,129,0.2),0_4px_12px_rgba(16,185,129,0.15)] font-bold';
+
+            const activeIconClass = isSuperAdmin
+              ? 'text-purple-400'
+              : isAdmin
+              ? 'text-blue-400'
+              : isTechnician
+              ? 'text-amber-400'
+              : 'text-emerald-400';
+
             return (
               <Link
                 key={tile.label}
@@ -263,11 +292,11 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
                 onClick={() => setMobileOpen && setMobileOpen(false)}
                 className={`flex flex-col items-center justify-center rounded-xl border p-2.5 text-center transition cursor-pointer ${
                   isTileActive
-                    ? 'border-indigo-500/35 bg-indigo-500/15 text-indigo-200 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2),0_4px_12px_rgba(99,102,241,0.15)] font-bold'
+                    ? activeTileClass
                     : 'border-white/[0.06] bg-white/[0.025] text-zinc-400 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white'
                 }`}
               >
-                <Icon size={18} className={isTileActive ? 'text-indigo-400' : 'text-zinc-400'} />
+                <Icon size={18} className={isTileActive ? activeIconClass : 'text-zinc-400'} />
                 <span className="mt-1.5 text-[11px] font-semibold tracking-tight">{tile.label}</span>
               </Link>
             );
