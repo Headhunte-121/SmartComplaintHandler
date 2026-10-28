@@ -178,7 +178,7 @@ export default function AppRouter() {
           <Route
             path="operations"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} fallbackRoute="/superadmin">
+              <ProtectedRoute allowedRoles={['ADMIN']} fallbackRoute="/superadmin">
                 <AdminDashboard />
               </ProtectedRoute>
             }

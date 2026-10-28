@@ -148,10 +148,10 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
       return [
         { to: '/superadmin', label: 'Directorate', icon: ShieldCheck, active: currentPath === '/superadmin' },
         { to: '/superadmin/staff', label: 'Staff & RBAC', icon: UsersRound, active: currentPath === '/superadmin/staff' },
-        { to: '/operations', label: 'Operations Desk', icon: LayoutDashboard, active: currentPath === '/operations' },
         { to: '/squads', label: 'Dispatch Squads', icon: Users, active: currentPath === '/squads' },
         { to: '/map', label: 'Campus Map', icon: MapIcon, active: currentPath === '/map' },
         { to: '/track', label: 'Ticket Audit', icon: Search, active: currentPath.startsWith('/track') },
+        { to: '/submit', label: 'Priority Intake', icon: PlusCircle, active: currentPath.startsWith('/submit') },
       ];
     }
 
@@ -161,8 +161,6 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
         { to: '/squads', label: 'Dispatch Squads', icon: Users, active: currentPath === '/squads' },
         { to: '/map', label: 'Campus Map', icon: MapIcon, active: currentPath === '/map' },
         { to: '/track', label: 'Ticket Audit', icon: Search, active: currentPath.startsWith('/track') },
-        { to: '/submit', label: 'Log Issue', icon: PlusCircle, active: currentPath.startsWith('/submit') },
-        { to: '/student', label: 'Resident View', icon: ClipboardList, active: currentPath === '/student' },
       ];
     }
 
