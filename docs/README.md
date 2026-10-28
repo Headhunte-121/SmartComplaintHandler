@@ -1,6 +1,6 @@
 # Smart Complaint Handler — Master Documentation Portal
 
-> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md)
+> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [🛡️ Supabase RLS Guide](SUPABASE_RLS_GUIDE.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md)
 
 Welcome to the central documentation portal for the **Automated Smart Complaint Routing & Workflow Automation Platform (`SmartComplaintHandler`)**. This repository contains the complete technical specifications, architectural blueprints, foundational engineering manuals, line-by-line codebase walkthroughs, and developer implementation guides.
 
@@ -127,6 +127,8 @@ The authoritative 34-manual engineering curriculum teaching every language, runt
   Deep dive into core design concepts: FastAPI dependency injection, SQLite WAL mode, SQLAlchemy ORM identity maps, and client-side routing.
 * ⚖️ [**`TECH_STACK_DECISION.md`**](TECH_STACK_DECISION.md)  
   Technical analysis and rationale behind choosing FastAPI, SQLite WAL, React Vite, and Tailwind CSS over alternative stacks.
+* 🛡️ [**`SUPABASE_RLS_GUIDE.md`**](SUPABASE_RLS_GUIDE.md)  
+  Row Level Security (RLS) configuration script, PostgREST lockdown, and defense-in-depth architecture for Supabase PostgreSQL.
 * 🚀 [**`VERSION_BLUEPRINT_ROADMAP.md`**](VERSION_BLUEPRINT_ROADMAP.md)  
   Evolution roadmap from V1.0 (Rule-Based Closed-Loop Automation) to V2.0 (AI/NLP Classification & Analytics) and V3.0 (Distributed IoT Integration).
 * 📜 [**Original Design Specification**](Automated%20Smart%20Complaint%20Routing%20System)  
@@ -137,4 +139,4 @@ The authoritative 34-manual engineering curriculum teaching every language, runt
 ## 🧭 Navigation Footer
 
 > **Quick Jump**:  
-> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)
+> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [🛡️ Supabase RLS Guide](SUPABASE_RLS_GUIDE.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)

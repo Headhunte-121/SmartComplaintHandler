@@ -57,7 +57,8 @@
 > • 👥 [**5-Student Complete File Ownership & Viva Matrix (`docs/TEAM_RESPONSIBILITY_MATRIX.md`)**](docs/TEAM_RESPONSIBILITY_MATRIX.md) — Exact mapping of all 97 codebase files across the 5 students, theoretical concepts, and personal viva defense answers.  
 > • 📚 [**Master Codebase Documentation Hub (`docs/codebase/README.md`)**](docs/codebase/README.md) — Central directory and links to all 97 file manuals.  
 > • 🏛 [**Full-Stack Architecture & Connection Guide (`docs/FULL_STACK_ARCHITECTURE.md`)**](docs/FULL_STACK_ARCHITECTURE.md) — Complete end-to-end breakdown of how frontend, backend, and database interact, request lifecycles, and viva defense answers.  
-> • 🗺️ [**Master Documentation Roadmap & Progress Tracker (`docs/DOCUMENTATION_ROADMAP.md`)**](docs/DOCUMENTATION_ROADMAP.md) — Phase-by-phase completion roadmap.
+> • 🗺️ [**Master Documentation Roadmap & Progress Tracker (`docs/DOCUMENTATION_ROADMAP.md`)**](docs/DOCUMENTATION_ROADMAP.md) — Phase-by-phase completion roadmap.  
+> • 🛡️ [**Supabase Row Level Security (RLS) Guide (`docs/SUPABASE_RLS_GUIDE.md`)**](docs/SUPABASE_RLS_GUIDE.md) — Supabase PostgreSQL RLS configuration, SQL script, and PostgREST security lockdown.
 
 ### Quick Navigation by Implementation Phase
 
@@ -346,6 +347,7 @@ npm run build
 * 👥 [**`docs/TEAM_RESPONSIBILITY_MATRIX.md`**](docs/TEAM_RESPONSIBILITY_MATRIX.md) — **5-Student Complete File Ownership & Viva Defense Matrix**: Detailed mapping of all 97 codebase files across the 5 students, theoretical concepts, and viva answers.
 * 📚 [**`docs/codebase/README.md`**](docs/codebase/README.md) — **Master Codebase Documentation Hub**: Index of all 97 file manuals with 4-iteration line-by-line breakdowns.
 * 🏛 [**`docs/FULL_STACK_ARCHITECTURE.md`**](docs/FULL_STACK_ARCHITECTURE.md) — **Full-Stack Architecture & System Connection Guide**: 3-tier decoupling, request lifecycle, and viva defense guide.
+* 🛡️ [**`docs/SUPABASE_RLS_GUIDE.md`**](docs/SUPABASE_RLS_GUIDE.md) — **Supabase Row Level Security (RLS) Guide**: PostgreSQL RLS configuration script and PostgREST lockdown.
 * 🗺️ [**`docs/DOCUMENTATION_ROADMAP.md`**](docs/DOCUMENTATION_ROADMAP.md) — **Master Documentation Roadmap & Progress Tracker**: 100% completion roadmap.
 * 📄 [**`docs/PRODUCT_DESIGN_REPORT_PDR.md`**](docs/PRODUCT_DESIGN_REPORT_PDR.md) — **Product Design Report (PDR / PRD)**: Executive summary, user personas, NFRs, system architecture, data dictionary, and 5-student ownership matrix.
 * 🧭 [**`docs/README.md`**](docs/README.md) — Master documentation portal.
