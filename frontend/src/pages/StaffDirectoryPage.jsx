@@ -9,6 +9,7 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import DepartmentBadge from '../components/DepartmentBadge';
 import { fetchAdmins, createAdmin, deleteAdmin, purgeTickets } from '../api/auth';
 import {
   Users, Shield, UserPlus, RefreshCw, Search, Trash2,
@@ -246,7 +247,7 @@ export default function StaffDirectoryPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-white/[0.08] bg-white/[0.02] text-[10px] font-mono uppercase tracking-wider text-zinc-400">
+              <tr className="border-b border-white/[0.12] bg-[#121520] text-[10px] font-bold uppercase tracking-wider text-zinc-300">
                 <th className="py-3.5 px-4 font-bold">Staff Member</th>
                 <th className="py-3.5 px-4 font-bold">Role Hierarchy</th>
                 <th className="py-3.5 px-4 font-bold">Assigned Department / Squad</th>
@@ -294,19 +295,17 @@ export default function StaffDirectoryPage() {
                       <td className="py-3.5 px-4">
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border uppercase tracking-wider ${
                           staff.role === 'SUPER_ADMIN'
-                            ? 'bg-white/[0.12] text-white border-white/30'
+                            ? 'bg-purple-500/15 text-purple-300 border-purple-500/40 shadow-xs'
                             : staff.role === 'ADMIN'
-                            ? 'bg-white/[0.06] text-zinc-200 border-white/20'
-                            : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                            ? 'bg-blue-500/15 text-blue-300 border-blue-500/40 shadow-xs'
+                            : 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-xs'
                         }`}>
                           {staff.role}
                         </span>
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="font-medium text-zinc-200">
-                          {staff.department_name || staff.department?.name || 'General Operations'}
-                        </span>
+                        <DepartmentBadge name={staff.department_name || staff.department?.name || 'General Operations'} size="sm" />
                       </td>
 
                       <td className="py-3.5 px-4 font-mono text-[11px] text-zinc-300">

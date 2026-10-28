@@ -7,6 +7,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchTicketByCode, fetchComplaints } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
+import StatusBadge from '../components/StatusBadge';
+import DepartmentBadge from '../components/DepartmentBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import {
   Search, Copy, Check, AlertTriangle, ArrowRight, CheckCircle2,
@@ -229,11 +231,7 @@ export default function TrackTicket() {
                   >
                     {copied ? '✓ Copied' : 'Copy'}
                   </button>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide border uppercase font-mono ${
-                    getStatusBadgeClass(ticket.status)
-                  }`}>
-                    {ticket.status}
-                  </span>
+                  <StatusBadge status={ticket.status} size="sm" />
                   <PriorityBadge priority={ticket.priority} size="md" dark={true} />
                 </div>
                 <h2 className="text-base sm:text-lg font-bold text-white">
@@ -332,10 +330,8 @@ export default function TrackTicket() {
             {/* 4-Box Telemetry Metadata Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border border-white/[0.08] bg-[#07080c] text-xs shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
               <div>
-                <span className="font-bold block text-[10px] uppercase font-mono text-zinc-500">Department</span>
-                <span className="font-bold mt-0.5 block text-white">
-                  {ticket.department_name || 'General Maintenance'}
-                </span>
+                <span className="font-bold block text-[10px] uppercase font-mono text-zinc-500 mb-1">Department</span>
+                <DepartmentBadge name={ticket.department_name} size="sm" />
               </div>
               <div>
                 <span className="font-bold block text-[10px] uppercase font-mono text-zinc-500">Assigned Squad</span>

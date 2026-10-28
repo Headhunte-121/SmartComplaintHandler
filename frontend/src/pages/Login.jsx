@@ -356,7 +356,7 @@ export default function Login() {
                 setEmail(e.target.value);
                 setError(null);
               }}
-              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm font-mono focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 hover:border-white/[0.18] transition"
+              className="w-full rounded-xl border border-white/[0.16] bg-[#08090f] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm font-mono shadow-inner focus:border-indigo-500/70 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 hover:border-white/[0.25] transition"
             />
           </div>
 
@@ -398,7 +398,7 @@ export default function Login() {
                 setPassword(e.target.value);
                 setError(null);
               }}
-              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm font-mono focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 hover:border-white/[0.18] transition"
+              className="w-full rounded-xl border border-white/[0.16] bg-[#08090f] text-white placeholder-zinc-500 px-4 py-3 text-xs sm:text-sm font-mono shadow-inner focus:border-indigo-500/70 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 hover:border-white/[0.25] transition"
             />
           </div>
 

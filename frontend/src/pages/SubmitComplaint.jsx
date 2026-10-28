@@ -276,7 +276,7 @@ export default function SubmitComplaint() {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-white/[0.08] border border-white/20 text-white font-mono text-xs font-black flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+                <span className="w-7 h-7 rounded-xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-mono text-xs font-black flex items-center justify-center shadow-xs">
                   1
                 </span>
                 <span className="text-sm font-black tracking-tight text-white">
@@ -600,14 +600,14 @@ export default function SubmitComplaint() {
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-white/[0.08] border border-white/20 text-white font-mono text-xs font-black flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+                <span className="w-7 h-7 rounded-xl bg-blue-500/20 border border-blue-500/40 text-blue-300 font-mono text-xs font-black flex items-center justify-center shadow-xs">
                   2
                 </span>
                 <span className="text-sm font-black tracking-tight text-white">
                   Issue Description
                 </span>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono border border-white/20 bg-white/[0.05] text-zinc-200 px-2.5 py-0.5 rounded-lg font-bold">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono border border-indigo-500/35 bg-indigo-500/10 text-indigo-300 px-2.5 py-0.5 rounded-lg font-bold shadow-xs">
                 <Sparkles size={11} />
                 <span>AI Auto-Triage Active</span>
               </span>
@@ -632,7 +632,7 @@ export default function SubmitComplaint() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={submitting}
-                className="w-full px-4 py-3 rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 text-sm focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-white/[0.16] bg-[#08090f] text-white placeholder-zinc-500 text-sm shadow-inner focus:border-indigo-500/70 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
               />
             </div>
 
@@ -656,7 +656,7 @@ export default function SubmitComplaint() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={submitting}
-                className="w-full px-4 py-3 rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 text-sm resize-none leading-relaxed focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-white/[0.16] bg-[#08090f] text-white placeholder-zinc-500 text-sm shadow-inner resize-none leading-relaxed focus:border-indigo-500/70 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
               />
             </div>
           </div>

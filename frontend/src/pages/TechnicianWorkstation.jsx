@@ -13,6 +13,8 @@ import { useAuth } from '../context/AuthContext';
 import { fetchComplaints } from '../api/complaints';
 import { updateTicketStatus, escalateTicket } from '../api/sla';
 import PriorityBadge from '../components/PriorityBadge';
+import StatusBadge from '../components/StatusBadge';
+import DepartmentBadge from '../components/DepartmentBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import ResolutionNotesModal from '../components/ResolutionNotesModal';
 import {
@@ -345,55 +347,58 @@ export default function TechnicianWorkstation() {
         </div>
       )}
 
-      {/* Bento Telemetry Strip */}
+      {/* Bento Telemetry Strip (Distinct Color-Tinted Glass Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="p-5 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="p-5 rounded-2xl border border-amber-500/35 bg-gradient-to-b from-amber-950/25 to-[#0c0d12]/95 backdrop-blur-xl relative overflow-hidden flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(245,158,11,0.15)]">
+          <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-amber-400/40 to-transparent pointer-events-none" />
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-zinc-400">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-amber-300">
               Assigned Queue
             </span>
             <div className="text-3xl font-black mt-1 text-amber-400 font-mono">
               {activeWorkOrders.length}
             </div>
-            <span className="text-[11px] font-mono text-zinc-500 mt-0.5 block truncate max-w-[200px]">
+            <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block truncate max-w-[200px]">
               {assignedSquad.name}
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl font-bold">
+          <div className="w-12 h-12 rounded-2xl border border-amber-500/40 bg-amber-500/15 text-amber-400 flex items-center justify-center text-xl font-bold shadow-xs">
             <Clock size={20} />
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="p-5 rounded-2xl border border-rose-500/35 bg-gradient-to-b from-rose-950/25 to-[#0c0d12]/95 backdrop-blur-xl relative overflow-hidden flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(244,63,94,0.15)]">
+          <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-rose-400/40 to-transparent pointer-events-none" />
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-rose-400">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-rose-300">
               Critical / Escalated
             </span>
             <div className="text-3xl font-black mt-1 text-rose-400 font-mono">
               {criticalOrders.length}
             </div>
-            <span className="text-[11px] font-mono text-zinc-500 mt-0.5 block">
+            <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">
               2-hour SLA priority gate
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl font-bold">
+          <div className="w-12 h-12 rounded-2xl border border-rose-500/40 bg-rose-500/15 text-rose-400 flex items-center justify-center text-xl font-bold shadow-xs">
             <ShieldAlert size={20} />
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="p-5 rounded-2xl border border-emerald-500/35 bg-gradient-to-b from-emerald-950/25 to-[#0c0d12]/95 backdrop-blur-xl relative overflow-hidden flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(16,185,129,0.15)]">
+          <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent pointer-events-none" />
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-emerald-400">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-emerald-300">
               Completed Repairs
             </span>
             <div className="text-3xl font-black mt-1 text-emerald-400 font-mono">
               {completedWorkOrders.length}
             </div>
-            <span className="text-[11px] font-mono text-zinc-500 mt-0.5 block">
+            <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">
               Verified with closure notes
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
+          <div className="w-12 h-12 rounded-2xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xl font-bold shadow-xs">
             <CheckCircle2 size={20} />
           </div>
         </div>
@@ -488,21 +493,7 @@ export default function TechnicianWorkstation() {
                         {ticket.tracking_code}
                       </Link>
                       <PriorityBadge priority={ticket.priority} dark={true} />
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full border text-[10px] font-mono font-bold uppercase ${
-                          ticket.status === 'IN_PROGRESS'
-                            ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
-                            : ticket.status === 'ESCALATED'
-                            ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse'
-                            : ticket.status === 'ON_HOLD'
-                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                            : ticket.status === 'RESOLVED'
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                            : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
-                        }`}
-                      >
-                        {ticket.status}
-                      </span>
+                      <StatusBadge status={ticket.status} size="sm" />
                     </div>
 
                     <div>
@@ -517,7 +508,7 @@ export default function TechnicianWorkstation() {
                     {/* Location & Submitter info */}
                     <div className="flex flex-wrap items-center gap-3 text-xs pt-1">
                       <div className="px-2.5 py-1 rounded-lg border border-white/[0.08] bg-[#050608] flex items-center gap-1.5 font-bold text-zinc-200">
-                        <MapPin size={13} className="text-zinc-400" />
+                        <MapPin size={13} className="text-blue-400" />
                         <span>Location:</span>
                         <span className="text-white font-mono">{ticket.location}</span>
                       </div>

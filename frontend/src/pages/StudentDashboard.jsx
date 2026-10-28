@@ -7,6 +7,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchComplaints, submitFeedback } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
+import StatusBadge from '../components/StatusBadge';
+import DepartmentBadge from '../components/DepartmentBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import CampusMapSelector from '../components/CampusMapSelector';
 import SetPasswordModal from '../components/SetPasswordModal';
@@ -322,42 +324,48 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Bento KPI Row */}
+      {/* Bento KPI Row (Distinct Color-Tinted Glass Cards) */}
       <div className="relative z-10 w-full grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="p-5 sm:p-6 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="p-5 sm:p-6 border border-amber-500/35 bg-gradient-to-b from-amber-950/25 to-[#0c0d12]/95 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(245,158,11,0.15)]">
+          <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-amber-400/40 to-transparent pointer-events-none" />
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-amber-300">
               Active Issues
             </span>
             <div className="text-3xl font-black mt-1 text-amber-400 font-mono">{activeTickets.length}</div>
+            <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">Under squad triage</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg font-bold shadow-xs">
+          <div className="w-12 h-12 rounded-2xl border border-amber-500/40 bg-amber-500/15 text-amber-400 flex items-center justify-center text-lg font-bold shadow-xs">
             <Clock size={20} />
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="p-5 sm:p-6 border border-emerald-500/35 bg-gradient-to-b from-emerald-950/25 to-[#0c0d12]/95 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(16,185,129,0.15)]">
+          <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent pointer-events-none" />
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-emerald-300">
               Resolved Cases
             </span>
             <div className="text-3xl font-black mt-1 text-emerald-400 font-mono">{resolvedTickets.length}</div>
+            <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">Completed & verified</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg font-bold shadow-xs">
+          <div className="w-12 h-12 rounded-2xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-lg font-bold shadow-xs">
             <CheckCircle2 size={20} />
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="p-5 sm:p-6 border border-indigo-500/35 bg-gradient-to-b from-indigo-950/25 to-[#0c0d12]/95 backdrop-blur-xl rounded-2xl relative overflow-hidden flex items-center justify-between shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(99,102,241,0.15)]">
+          <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent pointer-events-none" />
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-indigo-300">
               Satisfaction Index
             </span>
-            <div className="text-3xl font-black mt-1 text-white font-mono">
+            <div className="text-3xl font-black mt-1 text-indigo-200 font-mono">
               {avgSatisfaction ? `${avgSatisfaction} / 5` : '—'}
             </div>
+            <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">Verified ratings</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl border border-white/20 bg-white/[0.05] text-white flex items-center justify-center text-lg font-bold shadow-xs">
+          <div className="w-12 h-12 rounded-2xl border border-indigo-500/40 bg-indigo-500/15 text-indigo-300 flex items-center justify-center text-lg font-bold shadow-xs">
             <Star size={20} />
           </div>
         </div>
@@ -454,13 +462,9 @@ export default function StudentDashboard() {
                         {ticket.tracking_code}
                       </Link>
                       <PriorityBadge priority={ticket.priority} size="sm" dark={true} />
-                      <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-mono font-bold ${getStatusBadge(ticket.status)}`}>
-                        {ticket.status}
-                      </span>
+                      <StatusBadge status={ticket.status} size="sm" />
                       {ticket.department_name && (
-                        <span className="text-[11px] font-mono border border-white/[0.08] bg-white/[0.03] text-zinc-300 px-2 py-0.5 rounded">
-                          {ticket.department_name}
-                        </span>
+                        <DepartmentBadge name={ticket.department_name} size="sm" />
                       )}
                     </div>
 
@@ -468,7 +472,7 @@ export default function StudentDashboard() {
                       {ticket.title}
                     </h3>
                     <div className="text-[11px] font-mono text-zinc-400 flex items-center gap-1.5">
-                      <MapPin size={12} className="text-zinc-300" />
+                      <MapPin size={12} className="text-blue-400" />
                       <span>{ticket.location}</span>
                       <span className="text-zinc-600">·</span>
                       <span>{new Date(ticket.created_at).toLocaleDateString()}</span>

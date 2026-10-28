@@ -34,6 +34,16 @@ const QUICK_EXPLORE_CHIPS = [
   { id: 'bldg_1792074173914', label: '⚽ Sports & Grounds', filter: 'INFRASTRUCTURE' },
 ];
 
+const getCategoryStyle = (category) => {
+  const c = (category || '').toUpperCase();
+  if (c.includes('HOSTEL')) return { text: 'text-amber-400', badge: 'bg-amber-600' };
+  if (c.includes('ACADEMIC') || c.includes('LAB')) return { text: 'text-blue-400', badge: 'bg-blue-600' };
+  if (c.includes('AMENITY') || c.includes('DINING')) return { text: 'text-emerald-400', badge: 'bg-emerald-600' };
+  if (c.includes('UTILITY') || c.includes('ADMIN')) return { text: 'text-purple-400', badge: 'bg-purple-600' };
+  if (c.includes('SPORTS')) return { text: 'text-rose-400', badge: 'bg-rose-600' };
+  return { text: 'text-indigo-400', badge: 'bg-indigo-600' };
+};
+
 export default function CampusMapSelector({
   selectedBuilding,
   onSelectBuilding,
@@ -406,9 +416,9 @@ export default function CampusMapSelector({
                 }}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all shrink-0 cursor-pointer border ${
                   activeBuildingId === chip.id
-                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-400/30 shadow-[0_2px_10px_rgba(59,130,246,0.3)]'
                     : isDark
-                    ? 'bg-[#0e1117] text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:text-white'
+                    ? 'bg-[#0c0d12]/90 text-zinc-300 border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-200'
                     : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 shadow-2xs'
                 }`}
               >
@@ -648,9 +658,9 @@ export default function CampusMapSelector({
                           onClick={() => setInspectorFloor(fl.id)}
                           className={`px-2 py-1.5 rounded-xl text-xs font-semibold text-center transition-all cursor-pointer border ${
                             isActive
-                              ? 'bg-emerald-600 text-white border-emerald-500 shadow-2xs'
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-400/30 shadow-[0_2px_10px_rgba(59,130,246,0.3)]'
                               : isDark
-                              ? 'bg-[#0e1117] text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                              ? 'bg-[#0c0d12] text-zinc-300 border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-200'
                               : 'bg-[#eef2f6] text-slate-700 border-slate-300 hover:border-slate-400'
                           }`}
                         >
@@ -736,7 +746,7 @@ export default function CampusMapSelector({
                   if (onSelectRoom && activeRoom) onSelectRoom(activeRoom);
                   setShowPlaceCard(false);
                 }}
-                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30"
               >
                 <span>📍</span>
                 <span>Confirm Location</span>

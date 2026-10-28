@@ -6,7 +6,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext({
-  theme: 'light',
+  theme: 'dark',
   isDark: false,
   toggleTheme: () => {},
   setTheme: () => {},
@@ -17,9 +17,9 @@ export function ThemeProvider({ children }) {
     try {
       const stored = localStorage.getItem('ui-theme-v2');
       if (stored === 'light' || stored === 'dark') return stored;
-      return 'light';
+      return 'dark';
     } catch {
-      return 'light';
+      return 'dark';
     }
   });
 

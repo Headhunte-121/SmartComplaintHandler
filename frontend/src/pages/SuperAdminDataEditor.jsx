@@ -24,6 +24,9 @@ import { fetchComplaints, submitComplaint } from '../api/complaints';
 import { updateTicketStatus, resolveTicket } from '../api/sla';
 import { overrideTicketPriority } from '../api/triage';
 import { reassignSquad } from '../api/assignment';
+import PriorityBadge from '../components/PriorityBadge';
+import StatusBadge from '../components/StatusBadge';
+import DepartmentBadge from '../components/DepartmentBadge';
 
 const CAMPUS_CATEGORIES = [
   { id: 'ALL', label: 'All Buildings' },
@@ -1365,7 +1368,7 @@ export default function SuperAdminDataEditor() {
             <div className="rounded-3xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-white/[0.08] bg-[#050608] text-zinc-400 font-mono uppercase text-[10px]">
+                  <thead className="border-b border-white/[0.12] bg-[#121520] text-zinc-300 font-bold uppercase tracking-wider text-[10px]">
                     <tr>
                       <th className="py-3 px-4">Ticket</th>
                       <th className="py-3 px-4">Issue Title &amp; Details</th>
@@ -1388,7 +1391,7 @@ export default function SuperAdminDataEditor() {
                           key={t.id || t.tracking_code}
                           className="hover:bg-white/[0.03] transition-colors text-zinc-200"
                         >
-                          <td className="py-3.5 px-4 font-mono font-bold text-white whitespace-nowrap">
+                          <td className="py-3.5 px-4 font-mono font-bold text-blue-400 whitespace-nowrap">
                             {t.tracking_code || `#${t.id}`}
                           </td>
                           <td className="py-3.5 px-4 max-w-xs">
@@ -1403,39 +1406,19 @@ export default function SuperAdminDataEditor() {
                             <span className="block truncate font-medium">{t.location || 'Campus'}</span>
                           </td>
                           <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span className="block font-semibold text-white">
-                              {t.department_name || 'General'}
-                            </span>
-                            <span
-                              className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-bold mt-0.5 border ${
-                                t.priority === 'CRITICAL'
-                                  ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-                                  : t.priority === 'HIGH'
-                                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                                  : 'bg-white/[0.05] text-zinc-300 border-white/[0.08]'
-                              }`}
-                            >
-                              {t.priority || 'MEDIUM'}
-                            </span>
+                            <DepartmentBadge name={t.department_name || 'Facilities'} size="sm" />
+                            <div className="mt-1">
+                              <PriorityBadge priority={t.priority || 'MEDIUM'} size="sm" dark={true} />
+                            </div>
                           </td>
                           <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                                t.status === 'RESOLVED' || t.status === 'CLOSED'
-                                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                                  : t.status === 'IN_PROGRESS'
-                                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                                  : 'bg-white/[0.08] text-white border-white/20'
-                              }`}
-                            >
-                              {t.status || 'PENDING'}
-                            </span>
+                            <StatusBadge status={t.status || 'SUBMITTED'} size="sm" />
                           </td>
                           <td className="py-3.5 px-4 text-right whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => handleOpenTicketModal(t)}
-                              className="px-2.5 py-1 rounded-lg font-medium text-xs transition-colors cursor-pointer border border-white/[0.1] bg-[#050608] hover:bg-white/[0.08] text-zinc-200"
+                              className="px-2.5 py-1 rounded-lg font-bold text-xs transition-colors cursor-pointer border border-indigo-500/30 bg-indigo-500/10 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-indigo-300 shadow-xs"
                             >
                               ✏️ Edit
                             </button>

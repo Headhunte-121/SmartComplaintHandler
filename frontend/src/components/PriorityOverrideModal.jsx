@@ -10,8 +10,8 @@ import PriorityBadge from './PriorityBadge';
 const PRIORITY_OPTIONS = [
   { value: 'CRITICAL', label: 'CRITICAL', sla: '2-Hour SLA', desc: 'Severe facility failure or urgent campus safety hazard', color: 'border-rose-500/40 bg-rose-500/10 text-rose-300' },
   { value: 'HIGH', label: 'HIGH', sla: '8-Hour SLA', desc: 'Major room, classroom, or lab disruption', color: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
-  { value: 'MEDIUM', label: 'MEDIUM', sla: '24-Hour SLA', desc: 'Standard operational routine maintenance', color: 'border-white/20 bg-white/[0.08] text-white' },
-  { value: 'LOW', label: 'LOW', sla: '72-Hour SLA', desc: 'Minor cosmetic defect or scheduled upgrade', color: 'border-slate-500/40 bg-slate-500/10 text-slate-300' },
+  { value: 'MEDIUM', label: 'MEDIUM', sla: '24-Hour SLA', desc: 'Standard operational routine maintenance', color: 'border-blue-500/40 bg-blue-500/10 text-blue-300' },
+  { value: 'LOW', label: 'LOW', sla: '72-Hour SLA', desc: 'Minor cosmetic defect or scheduled upgrade', color: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300' },
 ];
 
 export default function PriorityOverrideModal({
@@ -88,7 +88,7 @@ export default function PriorityOverrideModal({
         <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-md border border-white/20 bg-white/[0.08] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-300">
+              <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-300">
                 Administrative Override
               </span>
               <span className="font-mono text-xs text-slate-400">

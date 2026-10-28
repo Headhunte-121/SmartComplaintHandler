@@ -28,6 +28,8 @@ import { fetchActiveBreaches, updateTicketStatus, escalateTicket } from '../api/
 import { fetchCampusBuildings } from '../api/campus';
 import { getCampusBuildings } from '../data/iiitnrCampusData';
 import PriorityBadge from './PriorityBadge';
+import StatusBadge from './StatusBadge';
+import DepartmentBadge from './DepartmentBadge';
 import PriorityOverrideModal from './PriorityOverrideModal';
 import ResolutionNotesModal from './ResolutionNotesModal';
 import ReassignTeamModal from './ReassignTeamModal';
@@ -635,55 +637,67 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           {/* ROW 1: TOP 4 KPI CARDS (Matching Reference Header Strip) */}
           {/* ========================================================================= */}
           <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            {/* Card 1: Now Serving */}
-            <article className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
-              <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                <Users size={16} className="text-blue-400" />
+            {/* Card 1: Now Serving (Sapphire Blue Tint) */}
+            <article className="rounded-2xl border border-blue-500/30 bg-gradient-to-b from-blue-950/25 to-[#0c0d12]/95 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(59,130,246,0.18)]">
+              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-blue-400/40 to-transparent pointer-events-none" />
+              <div className="flex items-center gap-2 text-blue-400 text-xs font-medium">
+                <div className="p-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10">
+                  <Users size={15} className="text-blue-400" />
+                </div>
                 <span className="text-2xl font-extrabold tracking-tight text-white">{metrics.active}</span>
               </div>
-              <p className="mt-2 text-xs font-bold text-slate-200">Now Serving</p>
+              <p className="mt-2 text-xs font-bold text-blue-200">Now Serving</p>
               <p className="text-[11px] text-slate-400 mt-0.5">Across all campus buildings</p>
             </article>
 
-            {/* Card 2: Active Alerts */}
+            {/* Card 2: Active Alerts (Coral Rose Tint) */}
             <article
-              className={`rounded-2xl border p-4 relative overflow-hidden transition shadow-sm ${
+              className={`rounded-2xl border p-4 relative overflow-hidden transition shadow-sm backdrop-blur-xl ${
                 metrics.critical > 0
-                  ? 'border-rose-500/40 bg-rose-500/[0.08] backdrop-blur-xl'
-                  : 'border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl'
+                  ? 'border-rose-500/45 bg-gradient-to-b from-rose-950/35 to-[#0c0d12]/95 shadow-[0_16px_40px_rgba(244,63,94,0.15),inset_0_1px_0_0_rgba(244,63,94,0.25)]'
+                  : 'border-rose-500/25 bg-gradient-to-b from-rose-950/15 to-[#0c0d12]/95 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(244,63,94,0.1)]'
               }`}
             >
+              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-rose-400/40 to-transparent pointer-events-none" />
               <div className="flex items-center gap-2 text-xs font-medium">
-                <AlertTriangle size={16} className={metrics.critical > 0 ? 'text-rose-400' : 'text-slate-400'} />
+                <div className="p-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10">
+                  <AlertTriangle size={15} className={metrics.critical > 0 ? 'text-rose-400' : 'text-slate-400'} />
+                </div>
                 <span className={`text-2xl font-extrabold tracking-tight ${metrics.critical > 0 ? 'text-rose-300' : 'text-white'}`}>
                   {metrics.critical}
                 </span>
               </div>
-              <p className="mt-2 text-xs font-bold text-slate-200">Active Alerts</p>
+              <p className="mt-2 text-xs font-bold text-rose-200">Active Alerts</p>
               <p className="text-[11px] text-slate-400 mt-0.5">
                 {metrics.critical ? `${metrics.critical} emergency hazards` : 'No critical emergencies'}
               </p>
             </article>
 
-            {/* Card 3: Sensors & Active Squads */}
-            <article className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
-              <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                <Radio size={16} className="text-indigo-400" />
+            {/* Card 3: Sensors & Active Squads (Royal Indigo Tint) */}
+            <article className="rounded-2xl border border-indigo-500/30 bg-gradient-to-b from-indigo-950/25 to-[#0c0d12]/95 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(99,102,241,0.18)]">
+              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent pointer-events-none" />
+              <div className="flex items-center gap-2 text-indigo-400 text-xs font-medium">
+                <div className="p-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10">
+                  <Radio size={15} className="text-indigo-400" />
+                </div>
                 <span className="text-2xl font-extrabold tracking-tight text-white">{squads.length || 6}</span>
               </div>
-              <p className="mt-2 text-xs font-bold text-slate-200">Sensors &amp; Squads</p>
+              <p className="mt-2 text-xs font-bold text-indigo-200">Sensors &amp; Squads</p>
               <p className="text-[11px] text-slate-400 mt-0.5">
                 {squads.filter((s) => s.assigned_technicians > 0).length || squads.length || 6} active teams online
               </p>
             </article>
 
-            {/* Card 4: Open Incidents & SLA Escalations */}
-            <article className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
-              <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                <ClipboardList size={16} className="text-purple-400" />
+            {/* Card 4: Open Incidents & SLA Escalations (Sunset Amber / Violet Tint) */}
+            <article className="rounded-2xl border border-purple-500/30 bg-gradient-to-b from-purple-950/25 to-[#0c0d12]/95 backdrop-blur-xl p-4 relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(168,85,247,0.18)]">
+              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-purple-400/40 to-transparent pointer-events-none" />
+              <div className="flex items-center gap-2 text-purple-400 text-xs font-medium">
+                <div className="p-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10">
+                  <ClipboardList size={15} className="text-purple-400" />
+                </div>
                 <span className="text-2xl font-extrabold tracking-tight text-white">{metrics.escalated}</span>
               </div>
-              <p className="mt-2 text-xs font-bold text-slate-200">Open Incidents</p>
+              <p className="mt-2 text-xs font-bold text-purple-200">Open Incidents</p>
               <p className="text-[11px] text-slate-400 mt-0.5">
                 {metrics.escalated ? `${metrics.escalated} escalated for decision` : 'All requests within SLA'}
               </p>
@@ -1248,7 +1262,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             {activeTableTab === 'structures' && (
               <div className="overflow-x-auto mt-2">
                 <table className="w-full min-w-[850px] text-left">
-                  <thead className="border-b border-white/[0.06] text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 !bg-transparent">
+                  <thead className="border-b border-white/[0.12] bg-[#121520] text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
                     <tr className="!bg-transparent">
                       <th className="py-3 px-3 !bg-transparent text-slate-400">Structure</th>
                       <th className="py-3 px-3 !bg-transparent text-slate-400">Status</th>
@@ -1377,7 +1391,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                 </div>
 
                 <table className="w-full min-w-[850px] text-left">
-                  <thead className="border-b border-white/[0.06] text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 !bg-transparent">
+                  <thead className="border-b border-white/[0.12] bg-[#121520] text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
                     <tr className="!bg-transparent">
                       <th className="py-3 px-3 !bg-transparent text-slate-400">Request</th>
                       <th className="py-3 px-3 !bg-transparent text-slate-400">Location</th>
@@ -1426,9 +1440,9 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                             <p className="text-xs font-medium text-slate-200">
                               {ticket.assigned_team_name || 'Unassigned'}
                             </p>
-                            <p className="text-[10px] text-slate-400">
-                              {ticket.department_name || 'Needs routing'}
-                            </p>
+                            <div className="mt-1">
+                              <DepartmentBadge name={ticket.department_name} size="sm" />
+                            </div>
                           </td>
 
                           <td className="py-3.5 px-3">
@@ -1446,9 +1460,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                           </td>
 
                           <td className="py-3.5 px-3">
-                            <span className="inline-flex rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold">
-                              {(ticket.status || 'SUBMITTED').replace('_', ' ')}
-                            </span>
+                            <StatusBadge status={ticket.status} size="sm" />
                           </td>
 
                           <td className="py-3.5 px-3 text-right">
@@ -1473,7 +1485,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                 <button
                                   onClick={() => setReassignTicketTarget(ticket)}
                                   title="Reassign squad"
-                                  className="rounded-lg border border-white/[0.1] bg-white/[0.025] p-1.5 text-slate-300 hover:border-indigo-400/50 hover:bg-indigo-500/10 hover:text-indigo-300 transition cursor-pointer"
+                                  className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-1.5 text-indigo-300 hover:border-indigo-400/60 hover:bg-indigo-500/25 hover:text-white transition cursor-pointer shadow-xs"
                                 >
                                   <UsersRound size={13} />
                                 </button>
@@ -1482,7 +1494,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                 <button
                                   onClick={() => setOverrideTicket(ticket)}
                                   title="Override priority"
-                                  className="rounded-lg border border-white/[0.1] bg-white/[0.025] p-1.5 text-slate-300 hover:border-white/30 hover:bg-white/[0.08] hover:text-white transition cursor-pointer"
+                                  className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-1.5 text-amber-300 hover:border-amber-400/60 hover:bg-amber-500/25 hover:text-white transition cursor-pointer shadow-xs"
                                 >
                                   <Settings2 size={13} />
                                 </button>
@@ -1494,7 +1506,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                     setEscalateReason('High risk of operational SLA breach or campus safety hazard.');
                                   }}
                                   title="Escalate ticket"
-                                  className="rounded-lg border border-rose-400/25 bg-rose-500/10 p-1.5 text-rose-300 hover:border-rose-400/50 hover:bg-rose-500/20 transition cursor-pointer"
+                                  className="rounded-lg border border-rose-500/35 bg-rose-500/15 p-1.5 text-rose-300 hover:border-rose-400/60 hover:bg-rose-500/30 hover:text-white transition cursor-pointer shadow-xs"
                                 >
                                   <AlertTriangle size={13} />
                                 </button>

@@ -63,7 +63,7 @@ export default function ReassignTeamModal({ isOpen, ticket, onClose, onReassigne
         <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-md border border-white/20 bg-white/[0.08] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-300">
+              <span className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-300">
                 Squad Dispatch Control
               </span>
               <span className="font-mono text-xs text-slate-400">

@@ -12,6 +12,8 @@ import { fetchSquadWorkloads } from '../api/assignment';
 import { fetchComplaints } from '../api/complaints';
 import { fetchActiveBreaches } from '../api/sla';
 import PriorityBadge from '../components/PriorityBadge';
+import StatusBadge from '../components/StatusBadge';
+import DepartmentBadge from '../components/DepartmentBadge';
 import ReassignTeamModal from '../components/ReassignTeamModal';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import { isDeadlineOverdue } from '../utils/dateUtils';
@@ -296,7 +298,7 @@ export default function SquadsPage() {
                   {/* In Progress Badge */}
                   <div className={`px-3 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1.5 ${
                     squad.inProgressCount > 0
-                      ? 'bg-white/[0.08] border-white/20 text-white font-bold'
+                      ? 'bg-blue-500/15 border-blue-500/35 text-blue-300 font-bold'
                       : 'bg-white/[0.03] border-white/[0.06] text-zinc-500'
                   }`}>
                     <span>🔧 In Work:</span>
@@ -357,20 +359,12 @@ export default function SquadsPage() {
                           >
                             <div className="space-y-1.5">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="font-mono text-xs font-bold text-white">
+                                <span className="font-mono text-xs font-bold text-blue-400">
                                   {t.tracking_code || `#${t.id}`}
                                 </span>
                                 <div className="flex items-center gap-1.5">
                                   <PriorityBadge priority={t.priority} dark={true} />
-                                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
-                                    t.status === 'ON_HOLD'
-                                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                                      : t.status === 'IN_PROGRESS'
-                                      ? 'bg-white/[0.08] text-white border-white/20'
-                                      : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
-                                  }`}>
-                                    {t.status}
-                                  </span>
+                                  <StatusBadge status={t.status} size="sm" />
                                 </div>
                               </div>
 
@@ -383,7 +377,7 @@ export default function SquadsPage() {
                               </p>
 
                               <div className="flex items-center gap-1 text-[11px] pt-1 text-zinc-400 font-mono">
-                                <MapPin size={12} className="text-zinc-400" />
+                                <MapPin size={12} className="text-blue-400" />
                                 <span className="truncate">{t.location}</span>
                               </div>
                             </div>
@@ -407,7 +401,7 @@ export default function SquadsPage() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenReassign(t)}
-                                className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                                className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-indigo-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
                               >
                                 <ArrowRightLeft size={12} />
                                 <span>Reassign Squad</span>

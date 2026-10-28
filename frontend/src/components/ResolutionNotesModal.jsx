@@ -153,7 +153,7 @@ export default function ResolutionNotesModal({
                 if (!touched) setTouched(true);
               }}
               placeholder="Detail the physical diagnosis completed, repairs executed, or verified operation..."
-              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-500/10 resize-none transition"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#08090f] border-white/[0.16] shadow-inner p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-500/10 resize-none transition"
             />
             {showValidationError && (
               <p className="mt-1 text-[11px] text-rose-400">
@@ -174,7 +174,7 @@ export default function ResolutionNotesModal({
               value={partsReplaced}
               onChange={(e) => setPartsReplaced(e.target.value)}
               placeholder="e.g. 2x PVC Elbow 1-inch, 1x 16A MCB Breaker, Cat6 patch cable"
-              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] px-3.5 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-white/40 transition"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#08090f] border-white/[0.16] shadow-inner px-3.5 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-white/40 transition"
             />
           </div>
 
@@ -190,7 +190,7 @@ export default function ResolutionNotesModal({
               value={technicianName}
               onChange={(e) => setTechnicianName(e.target.value)}
               placeholder="e.g. Dave Miller (Electrical Squad Lead)"
-              className="w-full rounded-xl border border-white/[0.1] bg-[#050608] px-3.5 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-white/40 transition"
+              className="w-full rounded-xl border border-white/[0.1] bg-[#08090f] border-white/[0.16] shadow-inner px-3.5 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-white/40 transition"
             />
           </div>
 
@@ -207,7 +207,7 @@ export default function ResolutionNotesModal({
             <button
               type="submit"
               disabled={!isNotesValid || isSubmitting}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 px-5 py-2 text-xs font-bold transition shadow-[0_2px_12px_rgba(16,185,129,0.15)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/30 px-5 py-2 text-xs font-bold transition shadow-[0_2px_14px_rgba(16,185,129,0.3)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <span>Resolving Incident…</span>

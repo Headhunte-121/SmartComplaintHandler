@@ -378,7 +378,7 @@ export default function ResidenceInfo() {
                 placeholder="+91 98765 43210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-4 py-2.5 text-xs font-mono focus:border-white/30 focus:outline-none"
+                className="w-full rounded-xl border border-white/[0.16] bg-[#08090f] text-white placeholder-zinc-500 px-4 py-2.5 text-xs font-mono shadow-inner focus:border-indigo-500/70 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
               />
             </div>
 
