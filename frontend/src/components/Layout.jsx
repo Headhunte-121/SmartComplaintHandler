@@ -45,7 +45,7 @@ export default function Layout() {
           <div>
             <span className="text-xs font-black tracking-tight text-white flex items-center gap-1.5">
               IIIT-NR
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/90" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5722]" />
             </span>
             <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400 block -mt-0.5">
               {roleTitle}

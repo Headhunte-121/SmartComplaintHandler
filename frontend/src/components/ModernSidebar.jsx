@@ -1,36 +1,35 @@
 /**
  * SmartComplaintHandler - Universal Enterprise Command Sidebar
- * Role: Consistent High-Density Obsidian Glassmorphic Navigation Shell for ALL pages.
- * Features:
- *  - Official circular IIIT-NR logo emblem with subtle live status indicator
- *  - Dynamic role badge (Directorate, Operations Desk, Student Portal, Field Technician)
- *  - Omni-search trigger / input
- *  - Live metric pill card (Now Serving, Incidents, Member Adoption / Resolution bar)
- *  - Role-tailored 2-column square navigation tile grid with glossy glass finish
- *  - Contextual Quick Actions (+ Create Request, Manage Staff, etc.)
- *  - User profile footer with initials avatar, display name, role label, and logout menu
- *  - Mobile responsive drawer & header toggle
+ * Role: Role-Tailored High-Density Obsidian Glassmorphic Navigation Shell.
+ * Strict RBAC & Purpose-Driven Navigation:
+ *  - SuperAdmin: Directorate, Staff & RBAC, Operations Desk, Dispatch Squads, Campus Map, Ticket Audit
+ *  - Admin: Operations Desk, Dispatch Squads, Campus Map, Ticket Audit, Log Work Order, Resident View
+ *  - Technician: Workstation, Task Queue, Lookup Ticket, Campus Map (NO unauthorized submit/squads)
+ *  - Student: My Grievances, File Grievance, Track Status, Campus Map (NO unauthorized squad telemetry)
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  AlertTriangle, ArrowUpRight, BarChart3, BellRing,
-  Building2, CheckCircle2, ChevronRight, ClipboardList,
-  Compass, ExternalLink, Layers, LayoutDashboard,
-  LineChart, LogOut, Map as MapIcon, Menu, Plus, Radio,
-  RefreshCw, Search, Settings2, ShieldAlert, ShieldCheck,
-  Sliders, User, Users, UsersRound, Wrench, X,
+  Building2, ChevronRight, ClipboardList, LayoutDashboard,
+  LogOut, Map as MapIcon, Plus, PlusCircle, Search,
+  ShieldCheck, User, Users, UsersRound, Wrench, X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { fetchComplaints } from '../api/complaints';
 import { fetchActiveBreaches } from '../api/sla';
+
+const CAMPUS_SQUADS = [
+  { id: 6, name: 'Electrical Squad', dept: 'Electrical' },
+  { id: 7, name: 'Plumbing Squad', dept: 'Plumbing' },
+  { id: 5, name: 'Network & Wi-Fi Squad', dept: 'IT Support' },
+  { id: 3, name: 'Sanitation Squad', dept: 'Sanitation' },
+  { id: 4, name: 'Carpentry Squad', dept: 'Carpentry' },
+];
 
 export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, isSuperAdmin, isAdmin, isStudent, isTechnician, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
@@ -38,21 +37,78 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
   const [breaches, setBreaches] = useState([]);
   const [telemetryLoaded, setTelemetryLoaded] = useState(false);
 
-  // Fetch telemetry for metrics card
+  // Technician squad detection
+  const assignedSquad = useMemo(() => {
+    if (!isTechnician) return null;
+    if (currentUser?.teamId) {
+      const match = CAMPUS_SQUADS.find((s) => s.id === Number(currentUser.teamId));
+      if (match) return match;
+    }
+    const dept = (currentUser?.department_name || '').toLowerCase();
+    if (dept.includes('it') || dept.includes('network')) return CAMPUS_SQUADS[2];
+    if (dept.includes('elect') || dept.includes('power')) return CAMPUS_SQUADS[0];
+    if (dept.includes('plumb')) return CAMPUS_SQUADS[1];
+    if (dept.includes('sanit')) return CAMPUS_SQUADS[3];
+    if (dept.includes('carp')) return CAMPUS_SQUADS[4];
+    return CAMPUS_SQUADS[0];
+  }, [currentUser, isTechnician]);
+
+  // Fetch telemetry strictly scoped to permissions
   useEffect(() => {
     let mounted = true;
-    Promise.all([
-      fetchComplaints().catch(() => []),
-      fetchActiveBreaches().catch(() => []),
-    ]).then(([ticketList, breachList]) => {
-      if (mounted) {
-        setTickets(Array.isArray(ticketList) ? ticketList : []);
-        setBreaches(Array.isArray(breachList) ? breachList : []);
-        setTelemetryLoaded(true);
-      }
-    });
-    return () => { mounted = false; };
-  }, [location.pathname]);
+
+    if (isSuperAdmin || isAdmin) {
+      // Directorate / Operations: Global complaints and active SLA breaches
+      Promise.all([
+        fetchComplaints().catch(() => []),
+        fetchActiveBreaches().catch(() => []),
+      ]).then(([ticketList, breachList]) => {
+        if (mounted) {
+          setTickets(Array.isArray(ticketList) ? ticketList : []);
+          setBreaches(Array.isArray(breachList) ? breachList : []);
+          setTelemetryLoaded(true);
+        }
+      });
+    } else if (isTechnician) {
+      // Technician: squad tasks only. Never query SLA breaches to avoid 403.
+      const squadId = assignedSquad?.id || currentUser?.teamId;
+      const queryParams = squadId ? { team_id: squadId, limit: 100 } : { limit: 100 };
+      fetchComplaints(queryParams)
+        .then((ticketList) => {
+          if (mounted) {
+            setTickets(Array.isArray(ticketList) ? ticketList : []);
+            setBreaches([]);
+            setTelemetryLoaded(true);
+          }
+        })
+        .catch(() => {
+          if (mounted) {
+            setTickets([]);
+            setBreaches([]);
+          }
+        });
+    } else {
+      // Student: backend automatically isolates to current_user.email. Never query SLA breaches.
+      fetchComplaints()
+        .then((ticketList) => {
+          if (mounted) {
+            setTickets(Array.isArray(ticketList) ? ticketList : []);
+            setBreaches([]);
+            setTelemetryLoaded(true);
+          }
+        })
+        .catch(() => {
+          if (mounted) {
+            setTickets([]);
+            setBreaches([]);
+          }
+        });
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [location.pathname, isSuperAdmin, isAdmin, isTechnician, assignedSquad?.id, currentUser?.teamId]);
 
   // Telemetry metrics
   const metrics = useMemo(() => {
@@ -60,12 +116,14 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
     const active = tickets.filter((t) => !['RESOLVED', 'CLOSED'].includes(t.status)).length;
     const progress = tickets.filter((t) => t.status === 'IN_PROGRESS').length;
     const resolved = tickets.filter((t) => ['RESOLVED', 'CLOSED'].includes(t.status)).length;
-    const critical = tickets.filter((t) => t.priority === 'CRITICAL' && !['RESOLVED', 'CLOSED'].includes(t.status)).length;
+    const critical = breaches.length > 0 
+      ? breaches.length 
+      : tickets.filter((t) => t.priority === 'CRITICAL' && !['RESOLVED', 'CLOSED'].includes(t.status)).length;
     const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 100;
     return { total, active, progress, resolved, critical, resolutionRate };
-  }, [tickets]);
+  }, [tickets, breaches]);
 
-  // Dynamic Navigation Matrix tailored by role
+  // Dynamic Navigation Matrix strictly tailored to role clearances
   const homePath = isSuperAdmin
     ? '/superadmin'
     : isAdmin
@@ -84,48 +142,45 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
 
   const navTiles = useMemo(() => {
     const currentPath = location.pathname;
+    const currentHash = location.hash;
 
     if (isSuperAdmin) {
       return [
         { to: '/superadmin', label: 'Directorate', icon: ShieldCheck, active: currentPath === '/superadmin' },
+        { to: '/superadmin/staff', label: 'Staff & RBAC', icon: UsersRound, active: currentPath === '/superadmin/staff' },
         { to: '/operations', label: 'Operations Desk', icon: LayoutDashboard, active: currentPath === '/operations' },
-        { to: '/superadmin/editor', label: 'Campus Studio', icon: Building2, active: currentPath === '/superadmin/editor' },
-        { to: '/superadmin/staff', label: 'Staff Matrix', icon: UsersRound, active: currentPath === '/superadmin/staff' },
-        { to: '/squads', label: 'Squad Roster', icon: Users, active: currentPath === '/squads' },
+        { to: '/squads', label: 'Dispatch Squads', icon: Users, active: currentPath === '/squads' },
         { to: '/map', label: 'Campus Map', icon: MapIcon, active: currentPath === '/map' },
+        { to: '/track', label: 'Ticket Audit', icon: Search, active: currentPath.startsWith('/track') },
       ];
     }
 
     if (isAdmin) {
       return [
         { to: '/operations', label: 'Operations Desk', icon: LayoutDashboard, active: currentPath === '/operations' },
-        { to: '/squads', label: 'Dispatch Center', icon: Users, active: currentPath === '/squads' },
+        { to: '/squads', label: 'Dispatch Squads', icon: Users, active: currentPath === '/squads' },
         { to: '/map', label: 'Campus Map', icon: MapIcon, active: currentPath === '/map' },
-        { to: '/track', label: 'Reports', icon: LineChart, active: currentPath === '/track' },
-        { to: '/operations#workload', label: 'Sensors', icon: Radio, active: location.hash === '#workload' },
-        { to: '/operations#queue', label: 'Incidents', icon: ClipboardList, active: location.hash === '#queue' },
+        { to: '/track', label: 'Ticket Audit', icon: Search, active: currentPath.startsWith('/track') },
+        { to: '/submit', label: 'Log Issue', icon: PlusCircle, active: currentPath.startsWith('/submit') },
+        { to: '/student', label: 'Resident View', icon: ClipboardList, active: currentPath === '/student' },
       ];
     }
 
     if (isTechnician) {
       return [
-        { to: '/technician', label: 'Workstation', icon: LayoutDashboard, active: currentPath === '/technician' },
-        { to: '/technician#queue', label: 'My Tasks', icon: ClipboardList, active: location.hash === '#queue' },
-        { to: '/squads', label: 'Squad Roster', icon: Users, active: currentPath === '/squads' },
+        { to: '/technician', label: 'Workstation', icon: Wrench, active: currentPath === '/technician' && !currentHash },
+        { to: '/technician#queue', label: 'Task Queue', icon: ClipboardList, active: currentPath === '/technician' && currentHash === '#queue' },
+        { to: '/track', label: 'Lookup Ticket', icon: Search, active: currentPath.startsWith('/track') },
         { to: '/map', label: 'Campus Map', icon: MapIcon, active: currentPath === '/map' },
-        { to: '/track', label: 'Tracker', icon: LineChart, active: currentPath === '/track' },
-        { to: '/submit', label: 'New Ticket', icon: Plus, active: currentPath === '/submit' },
       ];
     }
 
-    // Default: Student Portal
+    // Default: Resident / Student Portal
     return [
-      { to: '/student', label: 'Grievances', icon: ClipboardList, active: currentPath === '/student' },
-      { to: '/submit', label: 'New Request', icon: Plus, active: currentPath === '/submit' },
-      { to: '/track', label: 'Track Status', icon: LineChart, active: currentPath === '/track' },
+      { to: '/student', label: 'My Grievances', icon: ClipboardList, active: currentPath === '/student' },
+      { to: '/submit', label: 'File Grievance', icon: PlusCircle, active: currentPath.startsWith('/submit') },
+      { to: '/track', label: 'Track Status', icon: Search, active: currentPath.startsWith('/track') },
       { to: '/map', label: 'Campus Map', icon: MapIcon, active: currentPath === '/map' },
-      { to: '/residence-info', label: 'Residence', icon: Building2, active: currentPath === '/residence-info' },
-      { to: '/squads', label: 'Squad Telemetry', icon: Radio, active: currentPath === '/squads' },
     ];
   }, [location.pathname, location.hash, isSuperAdmin, isAdmin, isTechnician]);
 
@@ -142,18 +197,16 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
     : isAdmin
     ? 'Facilities · Operations Desk'
     : isTechnician
-    ? 'Field Squad · Technician'
+    ? `${assignedSquad?.name || 'Field Squad'} · Technician`
     : `${currentUser?.hostel_name ? currentUser.hostel_name.split(' ')[0] : 'Campus'} · Student`;
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const q = searchQuery.trim();
     if (!q) return;
-    if (q.toUpperCase().startsWith('TICK-') || q.length >= 6) {
-      navigate(`/track?code=${encodeURIComponent(q.toUpperCase())}`);
-    } else {
-      navigate(`/track?code=${encodeURIComponent(q)}`);
-    }
+    navigate(`/track?code=${encodeURIComponent(q.toUpperCase())}`);
+    setSearchQuery('');
+    if (setMobileOpen) setMobileOpen(false);
   };
 
   const handleLogout = () => {
@@ -176,7 +229,7 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
           <div className="min-w-0">
             <div className="text-sm font-extrabold tracking-tight text-white flex items-center gap-1.5">
               <span>IIIT-NR</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5a36] shadow-[0_0_8px_rgba(255,90,50,0.8)]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5722]" />
             </div>
             <div className="mt-0.5">
               <span className="inline-block text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border border-white/[0.1] bg-white/[0.04] text-zinc-300">
@@ -201,17 +254,17 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Type to search..."
-          className="w-full rounded-xl border border-white/[0.08] bg-[#050608] py-2 pl-9 pr-3 text-xs text-zinc-100 placeholder:text-zinc-500 outline-none transition focus:border-white/30 focus:ring-1 focus:ring-white/10"
+          placeholder="Lookup Ticket Code..."
+          className="w-full rounded-xl border border-white/[0.08] bg-[#0e0f14] py-2 pl-9 pr-3 text-xs text-zinc-100 placeholder:text-zinc-500 outline-none transition focus:border-white/30 focus:ring-1 focus:ring-white/10"
         />
       </form>
 
-      {/* 3. Dual Metric Pill Card */}
-      <div className="mb-4 rounded-xl border border-white/[0.08] bg-gradient-to-b from-[#181a21] to-[#131419] backdrop-blur-md p-3.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+      {/* 3. Dual Metric Pill Card (Role-Tailored) */}
+      <div className="mb-4 rounded-xl border border-white/[0.08] bg-[#14161f] p-3.5 shadow-sm">
         <div className="grid grid-cols-2 divide-x divide-white/[0.08]">
           <div className="pr-2">
             <span className="block text-[10px] font-medium text-zinc-400">
-              {isStudent ? 'My Requests' : 'Now Serving'}
+              {isStudent ? 'My Requests' : isTechnician ? 'Assigned' : 'Active Queue'}
             </span>
             <b className="mt-1 block text-lg font-bold tracking-tight text-white">
               {metrics.active}
@@ -219,28 +272,31 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
           </div>
           <div className="pl-3">
             <span className="block text-[10px] font-medium text-zinc-400">
-              {isStudent ? 'In Progress' : 'Incidents'}
+              {isStudent ? 'In Progress' : isTechnician ? 'In Progress' : 'Critical SLA'}
             </span>
-            <b className={`mt-1 block text-lg font-bold tracking-tight ${metrics.critical > 0 ? 'text-rose-400' : 'text-zinc-200'}`}>
-              {isStudent ? metrics.progress : metrics.critical}
+            <b className={`mt-1 block text-lg font-bold tracking-tight ${metrics.critical > 0 && (isAdmin || isSuperAdmin) ? 'text-rose-400' : 'text-zinc-200'}`}>
+              {isStudent || isTechnician ? metrics.progress : metrics.critical}
             </b>
           </div>
         </div>
+
         {/* Mini Progress Bar */}
         <div className="mt-3 pt-2.5 border-t border-white/[0.06]">
           <div className="flex items-center justify-between text-[10px] font-medium text-zinc-400 mb-1.5">
-            <span>Member Adoption</span>
+            <span>
+              {isSuperAdmin ? 'Campus Resolution' : isTechnician ? 'Work Order Rate' : 'Resolution Rate'}
+            </span>
             <span className="font-mono text-zinc-200 font-semibold">{metrics.resolutionRate}%</span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#ff5a36] to-[#ff8c42] transition-all duration-500 shadow-[0_0_8px_rgba(255,90,50,0.5)]"
+              className="h-full rounded-full bg-[#ff5722] transition-all duration-500"
               style={{ width: `${Math.max(4, metrics.resolutionRate)}%` }}
             />
           </div>
           <div className="mt-2 flex items-center justify-between text-[9px] text-zinc-400 font-mono">
             <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5a36]" /> Active: {metrics.active}
+              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5722]" /> Active: {metrics.active}
             </span>
             <span className="flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400/90" /> Working: {metrics.progress}
@@ -259,7 +315,7 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
             const Icon = tile.icon;
             const isTileActive = tile.active;
 
-            const activeTileClass = 'border-white/[0.12] bg-white/[0.08] text-white font-semibold shadow-xs';
+            const activeTileClass = 'border-white/[0.14] bg-white/[0.08] text-white font-semibold shadow-xs';
             const activeIconClass = 'text-[#ff5722]';
 
             return (
@@ -281,26 +337,86 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
         </div>
       </div>
 
-      {/* 5. Quick Actions */}
+      {/* 5. Role-Tailored Quick Actions */}
       <div className="space-y-1.5">
         <p className="px-1 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
           Quick Actions
         </p>
-        <Link
-          to="/submit"
-          onClick={() => setMobileOpen && setMobileOpen(false)}
-          className="flex items-center justify-center gap-2 rounded-xl bg-[#ff5722] hover:bg-[#f4511e] px-3.5 py-2 text-xs font-medium text-white shadow-xs transition cursor-pointer"
-        >
-          <Plus size={15} /> + New Request
-        </Link>
+
         {isSuperAdmin && (
-          <Link
-            to="/superadmin/staff"
-            onClick={() => setMobileOpen && setMobileOpen(false)}
-            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.06] px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition"
-          >
-            <UsersRound size={14} /> Manage Staff
-          </Link>
+          <>
+            <Link
+              to="/submit"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#ff5722] hover:bg-[#f4511e] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition cursor-pointer"
+            >
+              <Plus size={15} /> + Directorate Intake
+            </Link>
+            <Link
+              to="/superadmin/staff"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.06] hover:border-white/[0.15] px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition"
+            >
+              <UsersRound size={14} /> Manage Staff
+            </Link>
+          </>
+        )}
+
+        {isAdmin && (
+          <>
+            <Link
+              to="/submit"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#ff5722] hover:bg-[#f4511e] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition cursor-pointer"
+            >
+              <Plus size={15} /> + Rapid Work Order
+            </Link>
+            <Link
+              to="/squads"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.06] hover:border-white/[0.15] px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition"
+            >
+              <Users size={14} /> Dispatch Balancer
+            </Link>
+          </>
+        )}
+
+        {isTechnician && (
+          <>
+            <Link
+              to="/technician"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#ff5722] hover:bg-[#f4511e] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition cursor-pointer"
+            >
+              <Wrench size={14} /> Open Workstation
+            </Link>
+            <Link
+              to="/track"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.06] hover:border-white/[0.15] px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition"
+            >
+              <Search size={14} /> Lookup Work Order
+            </Link>
+          </>
+        )}
+
+        {isStudent && (
+          <>
+            <Link
+              to="/submit"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#ff5722] hover:bg-[#f4511e] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition cursor-pointer"
+            >
+              <Plus size={15} /> + File Grievance
+            </Link>
+            <Link
+              to="/residence-info"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.06] hover:border-white/[0.15] px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition"
+            >
+              <Building2 size={14} /> Update Residence
+            </Link>
+          </>
         )}
       </div>
 
@@ -324,7 +440,7 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
 
         {/* Profile Popover Menu */}
         {profileOpen && (
-          <div className="absolute bottom-16 left-0 right-0 z-50 rounded-xl border border-white/[0.12] bg-[#0a0b10] p-2 shadow-2xl animate-fade-in text-xs space-y-1">
+          <div className="absolute bottom-16 left-0 right-0 z-50 rounded-xl border border-white/[0.12] bg-[#0e0f14] p-2 shadow-2xl animate-fade-in text-xs space-y-1">
             <div className="px-2.5 py-1.5 border-b border-white/[0.06] mb-1">
               <p className="text-[10px] uppercase font-bold text-zinc-400">Signed In As</p>
               <p className="text-xs font-mono text-zinc-200 truncate">{currentUser?.email || 'user@iiitnr.edu.in'}</p>
