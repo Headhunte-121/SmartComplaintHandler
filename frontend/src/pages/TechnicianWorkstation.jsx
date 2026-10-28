@@ -347,110 +347,63 @@ export default function TechnicianWorkstation() {
         </div>
       )}
 
-      {/* Bento Telemetry Strip (Vaulto Telemetry with Glowing Orange Waves & Accents) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      {/* Bento Telemetry Strip (Clean, Restrained) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Assigned Queue */}
-        <div className="p-5 rounded-2xl border border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-[#ff5a36]/50 transition-all duration-300 backdrop-blur-xl relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group">
-          <div className="absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-[#ff5a36]/60 to-transparent pointer-events-none shadow-[0_0_8px_rgba(255,90,54,0.6)]" />
+        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-zinc-300">
-                Assigned Queue
-              </span>
-              <div className="text-3xl font-black mt-1 text-white font-mono">
-                {activeWorkOrders.length}
-              </div>
-              <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block truncate max-w-[200px]">
+              <span className="text-xs font-medium text-zinc-400">Assigned Queue</span>
+              <div className="text-2xl font-bold mt-1 text-white font-mono">{activeWorkOrders.length}</div>
+              <span className="text-[11px] text-zinc-500 mt-0.5 block truncate max-w-[200px]">
                 {assignedSquad.name}
               </span>
             </div>
-            <div className="w-11 h-11 rounded-xl border border-[#ff5a36]/35 bg-[#ff5a36]/15 text-[#ff7a5c] shadow-[0_0_14px_rgba(255,90,54,0.35)] flex items-center justify-center text-xl font-bold">
-              <Clock size={20} />
+            <div className="w-9 h-9 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
+              <Clock size={16} />
             </div>
-          </div>
-          {/* Glowing Orange Wave */}
-          <div className="mt-3 pt-2 border-t border-white/[0.05]">
-            <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
-              <defs>
-                <linearGradient id="vTechOrangeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff5a36" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#ff5a36" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              <path d="M0,18 Q20,12 40,16 T80,8 T100,4 L100,24 L0,24 Z" fill="url(#vTechOrangeGrad)" />
-              <path d="M0,18 Q20,12 40,16 T80,8 T100,4" stroke="#ff5a36" strokeWidth="2.2" strokeLinecap="round" className="drop-shadow-[0_0_6px_rgba(255,90,54,0.85)]" />
-              <circle cx="100" cy="4" r="3" fill="#ffffff" stroke="#ff5a36" strokeWidth="1.5" className="drop-shadow-[0_0_8px_#ff5a36]" />
-            </svg>
           </div>
         </div>
 
         {/* Card 2: Critical / Urgent */}
-        <div className={`p-5 rounded-2xl border transition-all duration-300 backdrop-blur-xl relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group ${
+        <div className={`p-5 rounded-2xl border transition-all backdrop-blur-xl relative overflow-hidden shadow-sm ${
           criticalOrders.length > 0
-            ? 'border-[#ff453a]/50 bg-gradient-to-b from-[#2a1315] via-[#1a1417] to-[#13141a] shadow-[0_0_25px_rgba(255,69,58,0.25)]'
-            : 'border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-emerald-500/50'
+            ? 'border-rose-500/30 bg-rose-950/20'
+            : 'border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14]'
         }`}>
-          <div className={`absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent to-transparent pointer-events-none ${
-            criticalOrders.length > 0 ? 'via-[#ff453a]/80 shadow-[0_0_10px_#ff453a]' : 'via-emerald-400/60 shadow-[0_0_8px_#10b981]'
-          }`} />
           <div className="flex items-center justify-between">
             <div>
-              <span className={`text-[10px] font-mono font-bold uppercase tracking-wider block ${
-                criticalOrders.length ? 'text-[#ff6961]' : 'text-zinc-300'
-              }`}>
+              <span className={`text-xs font-medium ${criticalOrders.length ? 'text-rose-300 font-semibold' : 'text-zinc-400'}`}>
                 Emergency Gate
               </span>
-              <div className={`text-3xl font-black mt-1 font-mono ${
-                criticalOrders.length ? 'text-[#ff6961]' : 'text-white'
-              }`}>
+              <div className={`text-2xl font-bold mt-1 font-mono ${criticalOrders.length ? 'text-rose-300' : 'text-white'}`}>
                 {criticalOrders.length}
               </div>
-              <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">
+              <span className="text-[11px] text-zinc-500 mt-0.5 block">
                 {criticalOrders.length ? '2-hour SLA breach risk' : 'All clear · 0 emergencies'}
               </span>
             </div>
-            <div className={`w-11 h-11 rounded-xl border flex items-center justify-center text-xl font-bold shadow-xs ${
+            <div className={`w-9 h-9 rounded-lg border flex items-center justify-center ${
               criticalOrders.length
-                ? 'border-[#ff453a]/40 bg-[#ff453a]/20 text-[#ff453a] shadow-[0_0_14px_rgba(255,69,58,0.4)]'
-                : 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.3)]'
+                ? 'border-rose-500/30 bg-rose-500/15 text-rose-400'
+                : 'border-white/[0.08] bg-white/[0.03] text-zinc-400'
             }`}>
-              {criticalOrders.length ? <ShieldAlert size={20} /> : <CheckCircle2 size={20} />}
+              {criticalOrders.length ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />}
             </div>
-          </div>
-          {/* Glowing Wave */}
-          <div className="mt-3 pt-2 border-t border-white/[0.05]">
-            <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
-              <path d="M0,20 Q30,16 60,18 T100,5" stroke={criticalOrders.length ? '#ff453a' : '#10b981'} strokeWidth="2.2" strokeLinecap="round" className={criticalOrders.length ? 'drop-shadow-[0_0_6px_rgba(255,69,58,0.85)]' : 'drop-shadow-[0_0_6px_rgba(16,185,129,0.85)]'} />
-              <circle cx="100" cy="5" r="3" fill="#ffffff" stroke={criticalOrders.length ? '#ff453a' : '#10b981'} strokeWidth="1.5" />
-            </svg>
           </div>
         </div>
 
         {/* Card 3: Completed Repairs */}
-        <div className="p-5 rounded-2xl border border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-emerald-500/50 transition-all duration-300 backdrop-blur-xl relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group">
-          <div className="absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent pointer-events-none shadow-[0_0_8px_#10b981]" />
+        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-zinc-300">
-                Completed Repairs
-              </span>
-              <div className="text-3xl font-black mt-1 text-white font-mono">
-                {completedWorkOrders.length}
-              </div>
-              <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">
-                Verified with closure notes
-              </span>
+              <span className="text-xs font-medium text-zinc-400">Completed Repairs</span>
+              <div className="text-2xl font-bold mt-1 text-white font-mono">{completedWorkOrders.length}</div>
+              <span className="text-[11px] text-zinc-500 mt-0.5 block">Verified with closure notes</span>
             </div>
-            <div className="w-11 h-11 rounded-xl border border-emerald-500/35 bg-emerald-500/15 text-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.35)] flex items-center justify-center text-xl font-bold">
-              <CheckCircle2 size={20} />
+            <div className="w-9 h-9 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
+              <CheckCircle2 size={16} />
             </div>
-          </div>
-          {/* Glowing Mint Wave */}
-          <div className="mt-3 pt-2 border-t border-white/[0.05]">
-            <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
-              <path d="M0,18 Q30,12 60,18 T100,6" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" className="drop-shadow-[0_0_6px_rgba(16,185,129,0.85)]" />
-              <circle cx="100" cy="6" r="3" fill="#ffffff" stroke="#10b981" strokeWidth="1.5" />
-            </svg>
           </div>
         </div>
       </div>

@@ -291,7 +291,7 @@ export default function StudentDashboard() {
           <div className="flex items-center space-x-2.5 shrink-0">
             <Link
               to="/submit"
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#f04824] hover:from-[#ff6b4a] hover:to-[#ff5a36] text-white font-semibold text-xs shadow-[0_4px_16px_rgba(240,72,36,0.35)] border border-white/20 transition-all inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-[#ff5722] hover:bg-[#f4511e] text-white font-medium text-xs shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
             >
               <Plus size={14} />
               <span>Submit Issue</span>
@@ -324,93 +324,49 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Bento KPI Row (Vaulto Telemetry with Glowing Orange Waves & Accents) */}
-      <div className="relative z-10 w-full grid grid-cols-1 sm:grid-cols-3 gap-5">
+      {/* Bento KPI Row (Clean, Restrained) */}
+      <div className="relative z-10 w-full grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Active Issues */}
-        <div className="p-5 sm:p-6 rounded-2xl border border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-[#ff5a36]/50 transition-all duration-300 backdrop-blur-xl relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group">
-          <div className="absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-[#ff5a36]/60 to-transparent pointer-events-none shadow-[0_0_8px_rgba(255,90,54,0.6)]" />
+        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-300">
-                Active Issues
-              </span>
-              <div className="text-3xl font-black mt-1 text-white font-mono">{activeTickets.length}</div>
-              <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">Under squad triage</span>
+              <span className="text-xs font-medium text-zinc-400">Active Issues</span>
+              <div className="text-2xl font-bold mt-1 text-white font-mono">{activeTickets.length}</div>
+              <span className="text-[11px] text-zinc-500 mt-0.5 block">Under squad triage</span>
             </div>
-            <div className="w-11 h-11 rounded-xl border border-[#ff5a36]/35 bg-[#ff5a36]/15 text-[#ff7a5c] shadow-[0_0_14px_rgba(255,90,54,0.35)] flex items-center justify-center text-lg font-bold">
-              <Clock size={20} />
+            <div className="w-9 h-9 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
+              <Clock size={16} />
             </div>
-          </div>
-          {/* Glowing Orange Wave */}
-          <div className="mt-3 pt-2 border-t border-white/[0.05]">
-            <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
-              <defs>
-                <linearGradient id="vStudOrangeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff5a36" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#ff5a36" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              <path d="M0,18 Q20,12 40,16 T80,8 T100,4 L100,24 L0,24 Z" fill="url(#vStudOrangeGrad)" />
-              <path d="M0,18 Q20,12 40,16 T80,8 T100,4" stroke="#ff5a36" strokeWidth="2.2" strokeLinecap="round" className="drop-shadow-[0_0_6px_rgba(255,90,54,0.85)]" />
-              <circle cx="100" cy="4" r="3" fill="#ffffff" stroke="#ff5a36" strokeWidth="1.5" className="drop-shadow-[0_0_8px_#ff5a36]" />
-            </svg>
           </div>
         </div>
 
         {/* Card 2: Resolved Cases */}
-        <div className="p-5 sm:p-6 rounded-2xl border border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-emerald-500/50 transition-all duration-300 backdrop-blur-xl relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group">
-          <div className="absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent pointer-events-none shadow-[0_0_8px_#10b981]" />
+        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-300">
-                Resolved Cases
-              </span>
-              <div className="text-3xl font-black mt-1 text-white font-mono">{resolvedTickets.length}</div>
-              <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">Completed & verified</span>
+              <span className="text-xs font-medium text-zinc-400">Resolved Cases</span>
+              <div className="text-2xl font-bold mt-1 text-white font-mono">{resolvedTickets.length}</div>
+              <span className="text-[11px] text-zinc-500 mt-0.5 block">Completed & verified</span>
             </div>
-            <div className="w-11 h-11 rounded-xl border border-emerald-500/35 bg-emerald-500/15 text-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.35)] flex items-center justify-center text-lg font-bold">
-              <CheckCircle2 size={20} />
+            <div className="w-9 h-9 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
+              <CheckCircle2 size={16} />
             </div>
-          </div>
-          {/* Glowing Mint Wave */}
-          <div className="mt-3 pt-2 border-t border-white/[0.05]">
-            <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
-              <defs>
-                <linearGradient id="vStudGreenGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              <path d="M0,20 Q30,14 60,18 T100,5 L100,24 L0,24 Z" fill="url(#vStudGreenGrad)" />
-              <path d="M0,20 Q30,14 60,18 T100,5" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" className="drop-shadow-[0_0_6px_rgba(16,185,129,0.85)]" />
-              <circle cx="100" cy="5" r="3" fill="#ffffff" stroke="#10b981" strokeWidth="1.5" />
-            </svg>
           </div>
         </div>
 
         {/* Card 3: Satisfaction Index */}
-        <div className="p-5 sm:p-6 rounded-2xl border border-white/[0.09] bg-gradient-to-b from-[#1c1e26] via-[#161720] to-[#13141a] hover:border-[#ff9e3b]/50 transition-all duration-300 backdrop-blur-xl relative overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] group">
-          <div className="absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r from-transparent via-[#ff9e3b]/60 to-transparent pointer-events-none shadow-[0_0_8px_rgba(255,158,59,0.6)]" />
+        <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider block font-mono text-zinc-300">
-                Satisfaction Index
-              </span>
-              <div className="text-3xl font-black mt-1 text-white font-mono">
+              <span className="text-xs font-medium text-zinc-400">Satisfaction Index</span>
+              <div className="text-2xl font-bold mt-1 text-white font-mono">
                 {avgSatisfaction ? `${avgSatisfaction} / 5` : '5.0 / 5'}
               </div>
-              <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">Verified scholar ratings</span>
+              <span className="text-[11px] text-zinc-500 mt-0.5 block">Verified scholar ratings</span>
             </div>
-            <div className="w-11 h-11 rounded-xl border border-[#ff9e3b]/35 bg-[#ff9e3b]/15 text-[#ffb05c] shadow-[0_0_14px_rgba(255,158,59,0.35)] flex items-center justify-center text-lg font-bold">
-              <Star size={20} />
+            <div className="w-9 h-9 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
+              <Star size={16} />
             </div>
-          </div>
-          {/* Glowing Gold Wave */}
-          <div className="mt-3 pt-2 border-t border-white/[0.05]">
-            <svg className="w-full h-8 overflow-visible" viewBox="0 0 100 24" fill="none">
-              <path d="M0,16 Q25,20 50,12 T85,14 T100,6" stroke="#ff9e3b" strokeWidth="2.2" strokeLinecap="round" className="drop-shadow-[0_0_6px_rgba(255,158,59,0.85)]" />
-              <circle cx="100" cy="6" r="3" fill="#ffffff" stroke="#ff9e3b" strokeWidth="1.5" />
-            </svg>
           </div>
         </div>
       </div>
