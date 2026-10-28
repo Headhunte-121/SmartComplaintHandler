@@ -92,6 +92,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
   const [structureStatusFilter, setStructureStatusFilter] = useState('ALL'); // 'ALL' | 'ALERT' | 'NORMAL'
   const [selectedBuildingId, setSelectedBuildingId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [volumeMode, setVolumeMode] = useState('daily'); // 'daily' | 'hourly'
 
   // Modals state
   const [overrideTicket, setOverrideTicket] = useState(null);
@@ -285,10 +286,8 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
     return activeItems.slice(start, start + PAGE_SIZE);
   }, [activeItems, currentPage]);
 
-  // Pure real hourly volume strictly aggregated from actual database tickets
+  // Pure real volume strictly aggregated from actual database tickets (Daily 7D or Hourly Peak)
   const volumeData = useMemo(() => {
-    const hours = ['10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM'];
-
     const relevantTickets = selectedBuildingId
       ? tickets.filter((t) => {
           const b = buildings.find((x) => x.id === selectedBuildingId);
@@ -302,6 +301,50 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
         })
       : tickets;
 
+    if (volumeMode === 'daily') {
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push({
+          key: d.toISOString().slice(0, 10),
+          label: i === 0 ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short' }),
+          shortDate: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          fullDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          dateString: d.toDateString(),
+        });
+      }
+
+      return days.map((day) => {
+        const realMatches = relevantTickets.filter((t) => {
+          if (!t.created_at) return false;
+          const ticketDate = new Date(t.created_at);
+          return ticketDate.toDateString() === day.dateString;
+        });
+
+        const it = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('it')).length;
+        const sanitation = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('sanit')).length;
+        const plumbing = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('plumb')).length;
+        const electrical = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('electr')).length;
+        const general = Math.max(0, realMatches.length - (it + sanitation + plumbing + electrical));
+        const total = it + sanitation + plumbing + electrical + general;
+
+        return {
+          key: day.key,
+          label: day.label,
+          subLabel: day.shortDate,
+          fullDate: day.fullDate,
+          it,
+          sanitation,
+          plumbing,
+          electrical,
+          general,
+          total,
+        };
+      });
+    }
+
+    const hours = ['10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM'];
     return hours.map((hour, idx) => {
       const targetHour = idx + 10; // 10:00 to 18:00
       const realMatches = relevantTickets.filter((t) => {
@@ -318,7 +361,10 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
       const total = it + sanitation + plumbing + electrical + general;
 
       return {
-        hour,
+        key: hour,
+        label: hour,
+        subLabel: hour,
+        fullDate: `${hour} Intake`,
         it,
         sanitation,
         plumbing,
@@ -327,7 +373,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
         total,
       };
     });
-  }, [tickets, selectedBuildingId, buildings]);
+  }, [tickets, selectedBuildingId, buildings, volumeMode]);
 
   const maxVolume = useMemo(() => {
     return Math.max(...volumeData.map((d) => d.total), 0);
@@ -615,19 +661,51 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                 </div>
               </div>
 
-              {/* Stacked Traffic Volume Chart (Pixel-Perfect Match to Reference UI) */}
+              {/* Stacked Traffic Volume Chart - Real Daily Telemetry */}
               <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <div>
                     <h3 className="text-xs font-bold text-white tracking-tight">Request Volume</h3>
-                    <p className="text-[11px] text-slate-400">Department distribution throughout peak hours</p>
+                    <p className="text-[11px] text-zinc-400">
+                      {selectedBuildingId
+                        ? `Daily intake for ${buildings.find((x) => x.id === selectedBuildingId)?.shortName || 'selected building'}`
+                        : volumeMode === 'daily'
+                        ? 'Department intake across the past 7 days'
+                        : 'Department distribution throughout peak hours'}
+                    </p>
                   </div>
-                  <span className="rounded-md bg-white/[0.05] border border-white/10 px-2 py-0.5 text-[10px] font-mono text-zinc-400">
-                    Live telemetry ({tickets.length} total)
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center rounded-lg bg-white/[0.05] border border-white/10 p-0.5 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setVolumeMode('daily')}
+                        className={`px-2 py-0.5 rounded-md font-semibold transition cursor-pointer ${
+                          volumeMode === 'daily'
+                            ? 'bg-white text-black font-bold shadow-xs'
+                            : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        Daily
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVolumeMode('hourly')}
+                        className={`px-2 py-0.5 rounded-md font-semibold transition cursor-pointer ${
+                          volumeMode === 'hourly'
+                            ? 'bg-white text-black font-bold shadow-xs'
+                            : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        Hourly
+                      </button>
+                    </div>
+                    <span className="rounded-md bg-white/[0.05] border border-white/10 px-2 py-0.5 text-[10px] font-mono text-zinc-400">
+                      {volumeMode === 'daily' ? '7-Day telemetry' : 'Peak hours'} ({tickets.length} total)
+                    </span>
+                  </div>
                 </div>
 
-                {/* Stacked Bar Chart with Left Y-Axis (320, 240, 160, 80, 0) and Dashed Gridlines */}
+                {/* Stacked Bar Chart with Left Y-Axis and Dashed Gridlines */}
                 <div className="relative pt-2">
                   {/* Grid Area with Left Y-Axis */}
                   <div className="flex">
@@ -647,17 +725,17 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       <div className="absolute inset-x-0 top-3/4 border-b border-dashed border-white/[0.08]" />
                       <div className="absolute inset-x-0 bottom-5 border-b border-white/[0.12]" />
 
-                      {/* 9 Real Stacked Bars */}
-                      <div className="absolute inset-0 bottom-5 flex items-end justify-between px-1 gap-2">
+                      {/* Real Stacked Bars */}
+                      <div className="absolute inset-0 bottom-5 flex items-end justify-between px-2 gap-2 sm:gap-3">
                         {volumeData.map((d) => {
                           const barHeightPercent = yMax > 0 && d.total > 0 ? (d.total / yMax) * 100 : 0;
 
                           return (
-                            <div key={d.hour} className="flex-1 flex flex-col items-center h-full justify-end group relative">
+                            <div key={d.key} className="flex-1 flex flex-col items-center h-full justify-end group relative">
                               {/* Stacked Bar Container */}
                               <div
                                 style={{ height: `${barHeightPercent}%` }}
-                                className={`w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden transition-all duration-300 ${
+                                className={`w-full max-w-[32px] flex flex-col rounded-t-md overflow-hidden transition-all duration-300 ${
                                   d.total > 0 ? 'shadow-md group-hover:scale-105' : 'opacity-40'
                                 }`}
                               >
@@ -682,7 +760,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               {/* Hover Tooltip */}
                               <div className="absolute -top-11 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none">
                                 <span className="rounded bg-black/95 border border-white/20 px-2 py-0.5 text-[9px] font-mono text-white shadow-xl whitespace-nowrap">
-                                  {d.total} {d.total === 1 ? 'Req' : 'Reqs'}
+                                  {d.fullDate}: {d.total} {d.total === 1 ? 'Req' : 'Reqs'}
                                 </span>
                               </div>
                             </div>
@@ -690,19 +768,19 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                         })}
                       </div>
 
-                      {/* X-Axis Hour Labels */}
-                      <div className="absolute inset-x-0 bottom-0 flex justify-between px-1">
+                      {/* X-Axis Labels */}
+                      <div className="absolute inset-x-0 bottom-0 flex justify-between px-2">
                         {volumeData.map((d) => (
-                          <span key={d.hour} className="flex-1 text-center font-mono text-[9px] text-slate-400">
-                            {d.hour}
+                          <span key={d.key} className="flex-1 text-center font-mono text-[9px] text-zinc-400">
+                            {d.label}
                           </span>
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  {/* Chart Legend (Matching Reference Palette) */}
-                  <div className="mt-3 flex flex-wrap items-center justify-center gap-3.5 text-[10px] text-slate-400 border-t border-white/[0.05] pt-2.5">
+                  {/* Chart Legend */}
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-3.5 text-[10px] text-zinc-400 border-t border-white/[0.05] pt-2.5">
                     <span className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-xs bg-zinc-400" /> IT
                     </span>
