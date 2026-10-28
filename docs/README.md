@@ -1,6 +1,6 @@
 # Smart Complaint Handler — Master Documentation Portal
 
-> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [🛡️ Supabase RLS Guide](SUPABASE_RLS_GUIDE.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md)
+> **Navigation:** [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [🧪 E2E Testing Guide](END_TO_END_TESTING_GUIDE.md) &nbsp;│&nbsp; [🛡️ Supabase RLS Guide](SUPABASE_RLS_GUIDE.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report (PDR)](PRODUCT_DESIGN_REPORT_PDR.md) &nbsp;│&nbsp; [📐 V1 Blueprints (M1–M5)](V1/README.md) &nbsp;│&nbsp; [🎓 34-Guide Developer Suite](developer_guide/README.md)
 
 Welcome to the central documentation portal for the **Automated Smart Complaint Routing & Workflow Automation Platform (`SmartComplaintHandler`)**. This repository contains the complete technical specifications, architectural blueprints, foundational engineering manuals, line-by-line codebase walkthroughs, and developer implementation guides.
 
@@ -11,6 +11,7 @@ Welcome to the central documentation portal for the **Automated Smart Complaint 
 | Objective | Primary Resources | Scope & Deliverables |
 | :--- | :--- | :--- |
 | **Team Ownership & Viva Guide** | [**`5-Student Responsibility Matrix`**](TEAM_RESPONSIBILITY_MATRIX.md) | Person-by-person module assignments (M1–M5), file ownership, and viva defense cheat sheet |
+| **Testing & Quality Assurance** | [**`End-to-End Testing Guide`**](END_TO_END_TESTING_GUIDE.md)<br>[**`Supabase RLS Guide`**](SUPABASE_RLS_GUIDE.md) | 5-persona testing protocol, emergency short-circuit scenarios, RLS SQL scripts, automated test gates |
 | **Codebase Documentation (97 Manuals)** | [**`Codebase Documentation Hub`**](codebase/README.md)<br>[**`Full-Stack Architecture Guide`**](FULL_STACK_ARCHITECTURE.md)<br>[**`Master Documentation Roadmap`**](DOCUMENTATION_ROADMAP.md) | Exhaustive 4-iteration line-by-line manual for all 97 codebase modules, request lifecycles, and viva defense guide |
 | **Product Specification & PDR** | [**`Product Design Report (PDR/PRD)`**](PRODUCT_DESIGN_REPORT_PDR.md) | Official PDR/PRD: Personas, functional requirements, NFRs, KPIs, work breakdown |
 | **Module Implementation** | [**`V1 Module Blueprints`**](V1/README.md)<br>[**`Team Workflow & Git Guide`**](V1/TEAM_WORKFLOW_AND_GIT_GUIDE.md) | File-by-file blueprints (M1–M5), zero-blocking mock data contracts, concurrency DAG |
@@ -139,4 +140,4 @@ The authoritative 34-manual engineering curriculum teaching every language, runt
 ## 🧭 Navigation Footer
 
 > **Quick Jump**:  
-> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [🛡️ Supabase RLS Guide](SUPABASE_RLS_GUIDE.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)
+> [🏠 Project Root](../README.md) &nbsp;│&nbsp; [👥 5-Student Responsibility Matrix](TEAM_RESPONSIBILITY_MATRIX.md) &nbsp;│&nbsp; [🧪 E2E Testing Guide](END_TO_END_TESTING_GUIDE.md) &nbsp;│&nbsp; [🛡️ Supabase RLS Guide](SUPABASE_RLS_GUIDE.md) &nbsp;│&nbsp; [📚 Codebase Documentation Hub](codebase/README.md) &nbsp;│&nbsp; [🏛 Full-Stack Architecture Guide](FULL_STACK_ARCHITECTURE.md) &nbsp;│&nbsp; [🗺️ Master Roadmap](DOCUMENTATION_ROADMAP.md) &nbsp;│&nbsp; [📄 Product Design Report](PRODUCT_DESIGN_REPORT_PDR.md)
