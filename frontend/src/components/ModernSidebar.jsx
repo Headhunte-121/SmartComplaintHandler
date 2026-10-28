@@ -147,11 +147,11 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
     if (isSuperAdmin) {
       return [
         { to: '/superadmin', label: 'Directorate', icon: ShieldCheck, active: currentPath === '/superadmin' },
+        { to: '/operations', label: 'Operations Desk', icon: LayoutDashboard, active: currentPath === '/operations' },
         { to: '/superadmin/staff', label: 'Staff & RBAC', icon: UsersRound, active: currentPath === '/superadmin/staff' },
         { to: '/squads', label: 'Dispatch Squads', icon: Users, active: currentPath === '/squads' },
         { to: '/map', label: 'Campus Map', icon: MapIcon, active: currentPath === '/map' },
         { to: '/track', label: 'Ticket Audit', icon: Search, active: currentPath.startsWith('/track') },
-        { to: '/submit', label: 'Priority Intake', icon: PlusCircle, active: currentPath.startsWith('/submit') },
       ];
     }
 

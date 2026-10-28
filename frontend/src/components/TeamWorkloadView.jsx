@@ -37,12 +37,12 @@ export default function TeamWorkloadView({ onSelectSquad, forceDark = false }) {
   return (
     <div
       className={`rounded-2xl border p-6 shadow-xs space-y-4 transition-colors ${
-        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
+        isDark ? 'bg-[#14161f]/90 border-white/[0.08] text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
       }`}
     >
       <div
         className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-4 ${
-          isDark ? 'border-zinc-800' : 'border-slate-300'
+          isDark ? 'border-white/[0.08]' : 'border-slate-300'
         }`}
       >
         <div>
@@ -79,7 +79,7 @@ export default function TeamWorkloadView({ onSelectSquad, forceDark = false }) {
             disabled={loading}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer border ${
               isDark
-                ? 'bg-[#0e1117] hover:bg-zinc-800 text-zinc-200 border-zinc-700'
+                ? 'bg-[#0e1117] hover:bg-white/[0.08] text-zinc-200 border-zinc-700'
                 : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-800 border-slate-300'
             }`}
           >
@@ -141,7 +141,7 @@ export default function TeamWorkloadView({ onSelectSquad, forceDark = false }) {
                 onClick={() => onSelectSquad && onSelectSquad(squad)}
                 className={`p-4 rounded-xl border transition-all space-y-3 cursor-pointer ${
                   isDark
-                    ? 'bg-[#0e1117] border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60'
+                    ? 'bg-[#0e1117] border-white/[0.08] hover:border-zinc-700 hover:bg-zinc-900/60'
                     : 'bg-[#e2e8f0] border-slate-300 hover:bg-[#cbd5e1]/60 hover:border-slate-400'
                 }`}
               >
@@ -172,7 +172,7 @@ export default function TeamWorkloadView({ onSelectSquad, forceDark = false }) {
                   </div>
                   <div
                     className={`w-full rounded-full h-2 overflow-hidden ${
-                      isDark ? 'bg-zinc-800' : 'bg-slate-300'
+                      isDark ? 'bg-white/[0.08]' : 'bg-slate-300'
                     }`}
                   >
                     <div

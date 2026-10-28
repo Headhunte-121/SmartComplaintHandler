@@ -69,13 +69,13 @@ export default function SLABreachTable({
   return (
     <div
       className={`rounded-2xl border p-6 shadow-xs transition-colors ${
-        isDark ? 'bg-[#161b22] border-zinc-800 text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
+        isDark ? 'bg-[#14161f]/90 border-white/[0.08] text-zinc-100' : 'bg-[#f1f5f9] border-slate-300 text-slate-900'
       }`}
     >
       {/* Header Bar */}
       <div
         className={`flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-5 ${
-          isDark ? 'border-zinc-800' : 'border-slate-300'
+          isDark ? 'border-white/[0.08]' : 'border-slate-300'
         }`}
       >
         <div>
@@ -113,7 +113,7 @@ export default function SLABreachTable({
             disabled={isLoading}
             className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold shadow-2xs disabled:opacity-50 cursor-pointer transition-colors ${
               isDark
-                ? 'bg-[#0e1117] hover:bg-zinc-800 text-zinc-200 border-zinc-700'
+                ? 'bg-[#0e1117] hover:bg-white/[0.08] text-zinc-200 border-white/[0.1]'
                 : 'bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-800 border-slate-300'
             }`}
             title="Refresh breach queue"
@@ -134,7 +134,7 @@ export default function SLABreachTable({
       {/* Filter Tabs Bar */}
       <div
         className={`mt-4 flex items-center gap-2 border-b pb-3 ${
-          isDark ? 'border-zinc-800' : 'border-slate-300'
+          isDark ? 'border-white/[0.08]' : 'border-slate-300'
         }`}
       >
         <button
@@ -143,10 +143,10 @@ export default function SLABreachTable({
           className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
             filterTier === 'ALL'
               ? isDark
-                ? 'bg-zinc-800 text-white border border-zinc-700'
+                ? 'bg-white/[0.08] text-white border border-white/[0.1]'
                 : 'bg-slate-900 text-white'
               : isDark
-              ? 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
+              ? 'text-zinc-400 hover:bg-white/[0.08]/60 hover:text-zinc-200'
               : 'text-slate-600 hover:bg-[#cbd5e1]/50 hover:text-slate-900'
           }`}
         >
@@ -224,13 +224,13 @@ export default function SLABreachTable({
           /* Table of Breached and Nearing-Breach Tickets */
           <div
             className={`overflow-x-auto rounded-xl border transition-colors ${
-              isDark ? 'border-zinc-800 bg-[#0e1117]' : 'border-slate-300 bg-white'
+              isDark ? 'border-white/[0.08] bg-[#0e1117]' : 'border-slate-300 bg-white'
             }`}
           >
             <table className="w-full text-left text-xs">
               <thead
                 className={`border-b text-[11px] font-bold uppercase tracking-wider transition-colors ${
-                  isDark ? 'border-zinc-800 bg-[#161b22] text-zinc-400' : 'border-slate-300 bg-[#e2e8f0] text-slate-700'
+                  isDark ? 'border-white/[0.08] bg-[#161b22] text-zinc-400' : 'border-slate-300 bg-[#e2e8f0] text-slate-700'
                 }`}
               >
                 <tr>
@@ -247,7 +247,7 @@ export default function SLABreachTable({
                   <tr
                     key={ticket.ticket_id}
                     className={`transition-colors ${
-                      isDark ? 'hover:bg-zinc-800/40 text-zinc-200' : 'hover:bg-[#cbd5e1]/40 text-slate-800'
+                      isDark ? 'hover:bg-white/[0.08]/40 text-zinc-200' : 'hover:bg-[#cbd5e1]/40 text-slate-800'
                     }`}
                   >
                     <td className="px-4 py-3">

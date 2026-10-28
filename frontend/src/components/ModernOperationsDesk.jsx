@@ -33,6 +33,8 @@ import DepartmentBadge from './DepartmentBadge';
 import PriorityOverrideModal from './PriorityOverrideModal';
 import ResolutionNotesModal from './ResolutionNotesModal';
 import ReassignTeamModal from './ReassignTeamModal';
+import TeamWorkloadView from './TeamWorkloadView';
+import SLABreachTable from './SLABreachTable';
 import SLACountdownTimer from './SLACountdownTimer';
 
 const STATUS_TABS = [
@@ -90,7 +92,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [activeTableTab, setActiveTableTab] = useState('structures'); // 'structures' | 'queue'
+  const [activeTableTab, setActiveTableTab] = useState('queue'); // 'structures' | 'queue'
   const [structureStatusFilter, setStructureStatusFilter] = useState('ALL'); // 'ALL' | 'ALERT' | 'NORMAL'
   const [selectedBuildingId, setSelectedBuildingId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
