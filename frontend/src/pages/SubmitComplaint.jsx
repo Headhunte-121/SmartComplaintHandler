@@ -21,17 +21,7 @@ import {
   getFloorsForBuilding,
   getRoomsForBuilding,
   inferFloorFromItem,
-  buildCampusSearchIndex,
-  queryCampusSearchIndex,
 } from '../data/iiitnrCampusData';
-
-const QUICK_SPOT_CHIPS = [
-  { label: 'VLSI Lab (303)', query: '303' },
-  { label: 'Data Centre (131C)', query: '131c' },
-  { label: 'AIDL Lab (210)', query: '210' },
-  { label: 'Auditorium', query: 'auditorium' },
-  { label: 'Canteen Rotunda', query: 'canteen' },
-];
 
 function inferFloorFromRoomString(roomStr = '') {
   return inferFloorFromItem(roomStr) || '1';
@@ -101,12 +91,6 @@ export default function SubmitComplaint() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMapModalOpen]);
 
-  const searchIndex = useMemo(() => buildCampusSearchIndex(allBuildings), [allBuildings]);
-  const spotResults = useMemo(
-    () => queryCampusSearchIndex(spotQuery, searchIndex, 7),
-    [spotQuery, searchIndex]
-  );
-
   const activeBuildingObj = useMemo(
     () =>
       allBuildings.find(
@@ -136,12 +120,11 @@ export default function SubmitComplaint() {
 
   const handleSelectBuilding = (newBuildingName) => {
     setBuilding(newBuildingName);
-    setCustomRoomOverride('');
     const targetFloors = getFloorsForBuilding(newBuildingName, allBuildings);
     const nextFloor = targetFloors[0]?.id || '1';
     setSelectedFloor(nextFloor);
     const targetRooms = getRoomsForBuilding(newBuildingName, nextFloor, null, allBuildings);
-    setSpecificLocation(targetRooms.length > 0 ? targetRooms[0] : 'None');
+    setSpecificLocation(targetRooms.length > 0 ? targetRooms[0] : '');
   };
 
   const handleUseMySavedRoom = () => {
@@ -149,22 +132,13 @@ export default function SubmitComplaint() {
     setBuilding(savedHostel);
     const inferredFloor = inferFloorFromRoomString(savedRoom);
     setSelectedFloor(inferredFloor);
-    setSpecificLocation(savedRoom);
-    setCustomRoomOverride('');
-  };
-
-  const handlePickSpotResult = (item) => {
-    setBuilding(item.buildingName);
-    if (item.floorId) setSelectedFloor(String(item.floorId));
-    const nextRoom = item.roomName || item.title;
-    setSpecificLocation(nextRoom);
-    setCustomRoomOverride('');
-    setSpotQuery('');
+    setSpecificLocation(savedRoom || '');
   };
 
   const handleSaveCurrentAsMyRoom = async () => {
     if (!isHostelBuilding || !activeBuildingObj) return;
-    const finalRoom = customRoomOverride.trim() || specificLocation;
+    const finalRoom = (specificLocation || '').trim();
+    if (!finalRoom) return;
     await updateProfile({
       hostel_name: activeBuildingObj.name,
       room_number: finalRoom,
