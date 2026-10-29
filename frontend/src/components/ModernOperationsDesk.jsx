@@ -1081,8 +1081,8 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       <th className="py-3 px-3 !bg-transparent text-slate-400">Status</th>
                       <th className="py-3 px-3 !bg-transparent text-slate-400">Occupancy</th>
                       <th className="py-3 px-3 !bg-transparent text-slate-400">Alerts</th>
-                      <th className="py-3 px-3 !bg-transparent text-slate-400">Spaces</th>
-                      <th className="py-3 px-3 !bg-transparent text-slate-400">Max Observed</th>
+                      <th className="py-3 px-3 !bg-transparent text-slate-400">Category</th>
+                      <th className="py-3 px-3 !bg-transparent text-slate-400">Total Grievances</th>
                       <th className="py-3 px-3 text-right !bg-transparent text-slate-400">Inspect</th>
                     </tr>
                   </thead>
@@ -1152,7 +1152,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                         </td>
 
                         <td className="py-3.5 px-3">
-                          <span className="font-mono text-xs text-slate-300">{100 + (b.totalTickets * 12 || 24)}</span>
+                          <span className="font-mono text-xs font-semibold text-slate-200">{b.totalTickets || 0}</span>
                         </td>
 
                         <td className="py-3.5 px-3 text-right">
