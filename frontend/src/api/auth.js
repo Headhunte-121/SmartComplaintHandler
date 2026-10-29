@@ -18,44 +18,6 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
   const cleanEmail = (email || '').trim().toLowerCase();
   const prefix = cleanEmail.split('@')[0] || '';
 
-  if (prefix === 'superadmin' || prefix === 'director' || prefix === 'super.admin') {
-    return {
-      name: providedName || 'Directorate Administrator',
-      email: cleanEmail,
-      role: 'SUPER_ADMIN',
-      department_name: 'Office of the Director',
-      identifier: 'Directorate (DIR-01)',
-      is_active: true,
-    };
-  }
-
-  if (
-    prefix === 'admin' ||
-    prefix === 'estate' ||
-    prefix === 'facilities' ||
-    prefix.endsWith('.admin')
-  ) {
-    return {
-      name: providedName || 'Campus Administration Staff',
-      email: cleanEmail,
-      role: 'ADMIN',
-      department_name: 'General Administration',
-      identifier: 'Campus Administration',
-      is_active: true,
-    };
-  }
-
-  if (prefix.startsWith('tech.') || prefix.includes('technician')) {
-    return {
-      name: providedName || 'Maintenance Technician',
-      email: cleanEmail,
-      role: 'TECHNICIAN',
-      department_name: 'Maintenance Services',
-      identifier: 'Maintenance Squad',
-      is_active: true,
-    };
-  }
-
   const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*?)(\d{2})(\d{2,5})$/i);
   if (match) {
     const derivedName = match[1]
@@ -85,26 +47,8 @@ export function resolveIiitnrProfileFromEmail(email, providedName = '') {
     };
   }
 
-  // Do not fabricate student profile for emails without numbers
-  if (!/\d/.test(prefix)) {
-    return null;
-  }
-
-  const fallbackName =
-    providedName ||
-    prefix
-      .replace(/[._]/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase())
-      .trim();
-
-  return {
-    name: fallbackName,
-    email: cleanEmail,
-    role: 'STUDENT',
-    department_name: 'IIIT-NR Scholar',
-    identifier: 'IIIT-NR Scholar',
-    is_active: true,
-  };
+  // Non-student accounts (or emails without roll numbers) resolve their authoritative role from the server
+  return null;
 }
 
 export async function fetchAuthConfig() {
@@ -198,24 +142,6 @@ export function isUndergradHostelStudent(email) {
   if (!clean.endsWith(`@${ALLOWED_DOMAIN}`) || clean.startsWith('@')) return false;
 
   const prefix = clean.split('@')[0];
-
-  // Exclude known institutional roles, staff, faculty, technicians, and PhD scholars
-  if (
-    prefix.startsWith('phd') ||
-    prefix.includes('scholar') ||
-    prefix.startsWith('mtech') ||
-    prefix.startsWith('tech.') ||
-    prefix.includes('technician') ||
-    prefix.startsWith('admin') ||
-    prefix.startsWith('faculty') ||
-    prefix.startsWith('staff') ||
-    prefix.startsWith('estate') ||
-    prefix.startsWith('facilities') ||
-    prefix === 'superadmin' ||
-    prefix === 'director'
-  ) {
-    return false;
-  }
 
   // Undergrad roll match: [name][optional 20][2-digit-year][branch-code 100/101/102][optional sequence digits]
   const match = prefix.match(/^([a-z]+(?:[._][a-z]+)*?)(?:20)?(\d{2})(100|101|102)\d*$/i);

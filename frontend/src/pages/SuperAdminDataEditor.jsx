@@ -483,7 +483,7 @@ export default function SuperAdminDataEditor() {
             selectedTicket.id,
             ticketEditStatus,
             ticketEditNotes.trim() || `Status updated to ${ticketEditStatus} by SuperAdmin`,
-            currentUser?.email || 'superadmin@iiitnr.edu.in'
+            currentUser?.email || 'admin@iiitnr.edu.in'
           ).catch(() => null);
         }
       }
@@ -532,8 +532,8 @@ export default function SuperAdminDataEditor() {
         title: newTicketTitle.trim(),
         description: newTicketDesc.trim(),
         location: newTicketLocation.trim() || `${currentBuilding?.name}, Floor ${roomActiveFloor}`,
-        student_name: 'Directorate / SuperAdmin',
-        student_email: currentUser?.email || 'director@iiitnr.edu.in',
+        student_name: currentUser?.name || 'Administrator',
+        student_email: currentUser?.email || '',
       });
       setTickets((prev) => [ticket, ...prev]);
       showToast(`Logged new ticket ${ticket.tracking_code || `#${ticket.id}`}!`);
