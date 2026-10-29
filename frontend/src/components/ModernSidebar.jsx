@@ -20,11 +20,14 @@ import { fetchActiveBreaches } from '../api/sla';
 import SetPasswordModal from './SetPasswordModal';
 
 const CAMPUS_SQUADS = [
-  { id: 6, name: 'Electrical Squad', dept: 'Electrical' },
-  { id: 7, name: 'Plumbing Squad', dept: 'Plumbing' },
+  { id: 1, name: 'Substation High-Voltage Team', dept: 'Electrical' },
+  { id: 6, name: 'Hostel Electrical Squad 1', dept: 'Electrical' },
+  { id: 2, name: 'Water Supply Rapid Response', dept: 'Plumbing' },
+  { id: 7, name: 'Hostel Plumbing Squad 2', dept: 'Plumbing' },
+  { id: 3, name: 'Sanitation Rapid Response', dept: 'Sanitation' },
+  { id: 4, name: 'Structural Fixtures Crew', dept: 'Carpentry' },
   { id: 5, name: 'Network & Wi-Fi Squad', dept: 'IT Support' },
-  { id: 3, name: 'Sanitation Squad', dept: 'Sanitation' },
-  { id: 4, name: 'Carpentry Squad', dept: 'Carpentry' },
+  { id: 8, name: 'General Facilities & Civil Squad', dept: 'General Administration' },
 ];
 
 export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
@@ -49,17 +52,23 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
   // Technician squad detection
   const assignedSquad = useMemo(() => {
     if (!isTechnician) return null;
-    if (currentUser?.teamId) {
-      const match = CAMPUS_SQUADS.find((s) => s.id === Number(currentUser.teamId));
+    const userTeamId = currentUser?.team_id || currentUser?.teamId;
+    if (userTeamId) {
+      const match = CAMPUS_SQUADS.find((s) => s.id === Number(userTeamId));
       if (match) return match;
     }
-    const dept = (currentUser?.department_name || '').toLowerCase();
-    if (dept.includes('it') || dept.includes('network')) return CAMPUS_SQUADS[2];
-    if (dept.includes('elect') || dept.includes('power')) return CAMPUS_SQUADS[0];
-    if (dept.includes('plumb')) return CAMPUS_SQUADS[1];
-    if (dept.includes('sanit')) return CAMPUS_SQUADS[3];
-    if (dept.includes('carp')) return CAMPUS_SQUADS[4];
-    return CAMPUS_SQUADS[0];
+    if (currentUser?.team_name) {
+      const match = CAMPUS_SQUADS.find((s) => s.name.toLowerCase() === currentUser.team_name.toLowerCase());
+      if (match) return match;
+    }
+    const dept = (currentUser?.department_name || currentUser?.department || '').toLowerCase();
+    const email = (currentUser?.email || '').toLowerCase();
+    if (dept.includes('it') || dept.includes('network') || email.includes('it')) return CAMPUS_SQUADS.find(s => s.id === 5);
+    if (dept.includes('elect') || dept.includes('power') || email.includes('elec')) return CAMPUS_SQUADS.find(s => s.id === 6) || CAMPUS_SQUADS[0];
+    if (dept.includes('plumb') || email.includes('plumb')) return CAMPUS_SQUADS.find(s => s.id === 7) || CAMPUS_SQUADS[2];
+    if (dept.includes('sanit') || email.includes('sanit')) return CAMPUS_SQUADS.find(s => s.id === 3);
+    if (dept.includes('carp') || email.includes('carp')) return CAMPUS_SQUADS.find(s => s.id === 4);
+    return CAMPUS_SQUADS[1] || CAMPUS_SQUADS[0];
   }, [currentUser, isTechnician]);
 
   // Fetch telemetry strictly scoped to permissions
@@ -117,7 +126,7 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
     return () => {
       mounted = false;
     };
-  }, [location.pathname, isSuperAdmin, isAdmin, isTechnician, assignedSquad?.id, currentUser?.teamId]);
+  }, [location.pathname, isSuperAdmin, isAdmin, isTechnician, assignedSquad?.id, currentUser?.teamId, currentUser?.team_id, currentUser?.team_name]);
 
   // Telemetry metrics
   const metrics = useMemo(() => {

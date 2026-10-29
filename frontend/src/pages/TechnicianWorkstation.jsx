@@ -20,7 +20,7 @@ import ResolutionNotesModal from '../components/ResolutionNotesModal';
 import ActivityAuditLog from '../components/ActivityAuditLog';
 import {
   Wrench, ShieldAlert, CheckCircle2, Clock, AlertTriangle,
-  Play, Pause, ArrowRight, RefreshCw, MapPin, User, Mail, X, Sparkles,
+  Play, Pause, ArrowRight, RefreshCw, MapPin, User, Mail, X, Sparkles, ChevronDown,
 } from 'lucide-react';
 
 const CAMPUS_SQUADS = [
@@ -31,6 +31,7 @@ const CAMPUS_SQUADS = [
   { id: 3, name: 'Sanitation Rapid Response', dept: 'Sanitation' },
   { id: 4, name: 'Structural Fixtures Crew', dept: 'Carpentry' },
   { id: 5, name: 'Network & Wi-Fi Squad', dept: 'IT Support' },
+  { id: 8, name: 'General Facilities & Civil Squad', dept: 'General Administration' },
 ];
 
 const ESCALATION_PRESETS = [
@@ -77,8 +78,13 @@ export default function TechnicianWorkstation() {
   const activeUser = currentUser;
 
   const assignedSquad = useMemo(() => {
-    if (activeUser?.teamId) {
-      const match = CAMPUS_SQUADS.find((s) => s.id === Number(activeUser.teamId));
+    const userTeamId = activeUser?.team_id || activeUser?.teamId;
+    if (userTeamId) {
+      const match = CAMPUS_SQUADS.find((s) => s.id === Number(userTeamId));
+      if (match) return match;
+    }
+    if (activeUser?.team_name) {
+      const match = CAMPUS_SQUADS.find((s) => s.name.toLowerCase() === activeUser.team_name.toLowerCase());
       if (match) return match;
     }
     const email = (activeUser?.email || '').toLowerCase();
@@ -99,10 +105,20 @@ export default function TechnicianWorkstation() {
     if (dept.includes('carp')) {
       return CAMPUS_SQUADS.find((s) => s.id === 4);
     }
-    return CAMPUS_SQUADS[0];
+    return CAMPUS_SQUADS[1] || CAMPUS_SQUADS[0];
   }, [activeUser]);
 
   const [tickets, setTickets] = useState([]);
+  const [selectedSquadId, setSelectedSquadId] = useState(null);
+
+  const currentSquad = useMemo(() => {
+    if (selectedSquadId) {
+      const match = CAMPUS_SQUADS.find((s) => s.id === selectedSquadId);
+      if (match) return match;
+    }
+    return assignedSquad;
+  }, [selectedSquadId, assignedSquad]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('ACTIVE');
@@ -134,7 +150,7 @@ export default function TechnicianWorkstation() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchComplaints({ team_id: assignedSquad.id, limit: 100 });
+      const data = await fetchComplaints({ team_id: currentSquad.id, limit: 100 });
       setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Unable to load squad work orders.');
@@ -146,7 +162,7 @@ export default function TechnicianWorkstation() {
 
   useEffect(() => {
     loadWorkOrders();
-  }, [assignedSquad.id]);
+  }, [currentSquad.id]);
 
   const handleStartWork = async (ticket) => {
     try {
@@ -192,7 +208,7 @@ export default function TechnicianWorkstation() {
 
   const handleOpenEscalate = (ticket) => {
     const defaultPreset = ESCALATION_PRESETS[0];
-    setEscalateReason(defaultPreset.getText(ticket, assignedSquad));
+    setEscalateReason(defaultPreset.getText(ticket, currentSquad));
     setSuggestedTargetDept(defaultPreset.defaultTarget);
     setEscalatingTicket(ticket);
     setError(null);
@@ -251,7 +267,7 @@ export default function TechnicianWorkstation() {
   };
 
   const activeWorkOrders = tickets.filter(
-    (t) => t.status === 'SUBMITTED' || t.status === 'IN_PROGRESS' || t.status === 'ESCALATED' || t.status === 'ON_HOLD'
+    (t) => !['RESOLVED', 'CLOSED', 'CANCELLED'].includes(t.status)
   );
   const completedWorkOrders = tickets.filter(
     (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
@@ -287,14 +303,14 @@ export default function TechnicianWorkstation() {
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                {assignedSquad.name}
+                {currentSquad.name}
               </h1>
               <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
                 Boots-on-the-ground repair console, spare parts procurement hold logs, and formal ticket closure verification.
               </p>
               <div className="pt-1 flex flex-wrap items-center gap-2 text-xs">
                 <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.1] bg-white/[0.04] font-mono font-bold text-xs text-zinc-200">
-                  Trade: {assignedSquad.dept}
+                  Trade: {currentSquad.dept}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.02] font-mono text-[11px] text-zinc-400">
                   Shift: Active On-Duty Dispatch
@@ -303,7 +319,24 @@ export default function TechnicianWorkstation() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {/* Squad Switcher Dropdown */}
+            <div className="relative">
+              <select
+                aria-label="Switch Maintenance Squad View"
+                value={currentSquad.id}
+                onChange={(e) => setSelectedSquadId(Number(e.target.value))}
+                className="appearance-none px-3.5 py-2.5 pr-8 rounded-xl border border-white/[0.1] bg-[#1a1c24] hover:bg-[#222530] text-zinc-200 font-bold text-xs shadow-xs transition-colors cursor-pointer outline-none focus:border-[#ff5a36]/50"
+              >
+                {CAMPUS_SQUADS.map((squad) => (
+                  <option key={squad.id} value={squad.id} className="bg-[#14151b] text-white">
+                    {squad.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+            </div>
+
             <button
               type="button"
               onClick={loadWorkOrders}
@@ -357,7 +390,7 @@ export default function TechnicianWorkstation() {
               <span className="text-xs font-medium text-zinc-400">Assigned Queue</span>
               <div className="text-2xl font-bold mt-1 text-white font-mono">{activeWorkOrders.length}</div>
               <span className="text-[11px] text-zinc-500 mt-0.5 block truncate max-w-[200px]">
-                {assignedSquad.name}
+                {currentSquad.name}
               </span>
             </div>
             <div className="w-9 h-9 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
@@ -415,7 +448,7 @@ export default function TechnicianWorkstation() {
         <div className="p-5 sm:p-6 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-white">
-              Work Orders — {assignedSquad.name}
+              Work Orders — {currentSquad.name}
             </h2>
             <p className="text-xs text-zinc-400 mt-0.5">
               Start physical triage, pause for parts, and document closure proof with replaced parts.
@@ -471,7 +504,7 @@ export default function TechnicianWorkstation() {
             </div>
             <h3 className="text-base font-bold text-white">Queue Clear</h3>
             <p className="text-xs text-zinc-400">
-              No work orders in this state for {assignedSquad.name}.
+              No work orders in this state for {currentSquad.name}.
             </p>
           </div>
         ) : (
@@ -749,7 +782,7 @@ export default function TechnicianWorkstation() {
                   key={preset.id}
                   type="button"
                   onClick={() => {
-                    setEscalateReason(preset.getText(escalatingTicket, assignedSquad));
+                    setEscalateReason(preset.getText(escalatingTicket, currentSquad));
                     setSuggestedTargetDept(preset.defaultTarget);
                   }}
                   className="p-2.5 rounded-xl border border-white/[0.08] bg-[#050608] hover:border-white/30 hover:bg-white/[0.03] text-left transition-colors cursor-pointer"
