@@ -317,12 +317,12 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
             dept_name = "Computer Science & Engineering"
             dept_code = "CSE"
 
-        roll_no = f"20{year}{dept_code}{code}"
+        grad_year = (int(year) + 4) % 100
         return {
             "name": raw_name,
             "role": "STUDENT",
             "department_name": dept_name,
-            "identifier": f"Roll: {roll_no} (Batch '20{year})",
+            "identifier": f"Batch '{grad_year:02d}",
         }
 
     clean_name = prefix.replace(".", " ").replace("_", " ").title().strip()
@@ -330,7 +330,7 @@ def resolve_user_metadata(email: str) -> Dict[str, str]:
         "name": clean_name,
         "role": "STUDENT",
         "department_name": "Computer Science & Engineering",
-        "identifier": f"Student ID: {prefix.upper()}",
+        "identifier": "Student",
     }
 
 

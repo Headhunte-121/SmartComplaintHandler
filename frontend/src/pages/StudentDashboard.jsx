@@ -213,6 +213,23 @@ export default function StudentDashboard() {
   const currentHostelLabel = activeUser?.hostel_name
     ? (isDayScholar ? 'Day Scholar' : activeUser.hostel_name)
     : 'Residence Not Set';
+  const displayBatch = useMemo(() => {
+    const email = activeUser?.email || '';
+    const match = email.match(/(\d{2})/);
+    if (match) {
+      const admissionYear = parseInt(match[1], 10);
+      const gradYear = (admissionYear + 4) % 100;
+      return `Batch '${gradYear < 10 ? '0' + gradYear : gradYear}`;
+    }
+    const id = activeUser?.identifier || '';
+    const idMatch = id.match(/20(\d{2})/);
+    if (idMatch) {
+      const gradYear = (parseInt(idMatch[1], 10) + 4) % 100;
+      return `Batch '${gradYear < 10 ? '0' + gradYear : gradYear}`;
+    }
+    return null;
+  }, [activeUser?.email, activeUser?.identifier]);
+
   const currentRoomLabel = isDayScholar
     ? 'Off-Campus'
     : (activeUser?.room_number || 'Not Set');
@@ -232,14 +249,10 @@ export default function StudentDashboard() {
               <GraduationCap size={28} />
             </div>
             <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-white/[0.1] bg-white/[0.04] text-zinc-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Student Residence Portal · Self-Service Grievance Desk</span>
-                </span>
-                <span className="text-zinc-600">•</span>
-                <span className="text-xs font-mono font-bold text-zinc-300">
-                  Scholar Clearance · Room Support
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span>Student Portal</span>
                 </span>
               </div>
 
@@ -247,14 +260,20 @@ export default function StudentDashboard() {
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                   {activeUser?.name}
                 </h1>
-                <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-white/[0.1] bg-white/[0.04] text-zinc-200 tracking-wider">
-                  {activeUser?.identifier}
-                </span>
-                <span className="text-zinc-600">·</span>
-                <span className="text-xs font-mono text-zinc-400">{activeUser?.department}</span>
+                {displayBatch && (
+                  <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full border border-white/[0.1] bg-white/[0.04] text-zinc-200 tracking-wider">
+                    {displayBatch}
+                  </span>
+                )}
+                {activeUser?.department && (
+                  <>
+                    <span className="text-zinc-600">·</span>
+                    <span className="text-xs font-mono text-zinc-400">{activeUser.department}</span>
+                  </>
+                )}
               </div>
               <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
-                Lodge and track repair requests for your hostel room, classrooms, labs, and campus amenities with real-time technician triage.
+                Lodge and track campus repair requests with real-time technician triage.
               </p>
 
               <div className="flex flex-wrap items-center gap-2 pt-1.5">
