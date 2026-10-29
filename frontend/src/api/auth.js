@@ -236,6 +236,11 @@ export async function deleteAdmin(userId) {
   return response.data;
 }
 
+export async function updateStaffSquad(userId, squadData) {
+  const response = await apiClient.patch(`/auth/admins/${userId}/squad`, squadData);
+  return response.data;
+}
+
 export async function purgeTickets() {
   const response = await apiClient.post('/auth/purge-tickets');
   return response.data;

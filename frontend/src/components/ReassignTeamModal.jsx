@@ -119,7 +119,7 @@ export default function ReassignTeamModal({ isOpen, ticket, onClose, onReassigne
                   >
                     <div>
                       <p className="text-xs font-bold text-white tracking-tight">{s.team_name}</p>
-                      <p className="text-[10px] text-slate-400">{s.department_name} · {s.assigned_technicians || 0} Technicians</p>
+                      <p className="text-[10px] text-slate-400">{s.department_name} · {s.assigned_technicians || 1} {(s.assigned_technicians || 1) === 1 ? 'Technician' : 'Technicians'}</p>
                     </div>
                     <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-mono text-slate-300">
                       {s.active_ticket_count || 0} active

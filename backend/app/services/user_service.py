@@ -1236,6 +1236,11 @@ def add_admin_user(admin_data: AdminCreateRequest, db: Session) -> User:
         existing.name = admin_data.name.strip()
         existing.role = admin_data.role.strip().upper()
         existing.department_name = admin_data.department_name
+        existing.department_id = admin_data.department_id or existing.department_id
+        if getattr(admin_data, "team_id", None) is not None:
+            existing.team_id = admin_data.team_id
+        if getattr(admin_data, "team_name", None) is not None:
+            existing.team_name = admin_data.team_name
         existing.phone = admin_data.phone
         existing.hashed_password = hashed_pw
         existing.is_active = True
@@ -1252,6 +1257,8 @@ def add_admin_user(admin_data: AdminCreateRequest, db: Session) -> User:
         role=admin_data.role.strip().upper(),
         department_name=admin_data.department_name or "General Administration",
         department_id=admin_data.department_id,
+        team_id=getattr(admin_data, "team_id", None),
+        team_name=getattr(admin_data, "team_name", None),
         phone=admin_data.phone,
         auth_provider="password",
         email_verified=True,

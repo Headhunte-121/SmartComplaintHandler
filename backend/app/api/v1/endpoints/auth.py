@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.schemas.user import (
     IIITNR_DOMAIN,
     AdminCreateRequest,
+    AdminSquadUpdateRequest,
     AuthResponse,
     GoogleAuthConfigResponse,
     GoogleAuthRequest,
@@ -41,6 +42,8 @@ from app.services.user_service import (
     update_user_profile,
     verify_otp,
 )
+from app.models.user import User
+from app.models.team import MaintenanceTeam
 
 router = APIRouter()
 
@@ -250,6 +253,42 @@ def remove_admin(
             detail=f"Staff account with ID {user_id} was not found.",
         )
     return {"message": f"Staff account #{user_id} revoked successfully."}
+
+
+@router.patch("/admins/{user_id}/squad", response_model=UserResponse, summary="Assign Squad to Staff/Technician (Super Admin / Admin)")
+def assign_staff_squad(
+    user_id: int,
+    payload: AdminSquadUpdateRequest,
+    current_user: Optional[UserResponse] = Depends(require_roles(["SUPER_ADMIN", "ADMIN"])),
+    db: Session = Depends(get_db),
+) -> UserResponse:
+    """Super Admin action to assign or change the maintenance squad of a staff technician."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Staff account with ID {user_id} was not found.",
+        )
+    if payload.team_id is not None:
+        team = db.query(MaintenanceTeam).filter(MaintenanceTeam.id == payload.team_id).first()
+        if team:
+            user.team_id = team.id
+            user.team_name = team.name
+            if team.department:
+                user.department_id = team.department_id
+                user.department_name = team.department.name
+        else:
+            user.team_id = payload.team_id
+            user.team_name = payload.team_name
+    elif payload.team_name is not None:
+        user.team_name = payload.team_name
+    if payload.department_name:
+        user.department_name = payload.department_name
+    if payload.department_id:
+        user.department_id = payload.department_id
+    db.commit()
+    db.refresh(user)
+    return UserResponse.model_validate(user)
 
 
 @router.post("/purge-tickets", summary="Purge All Tickets (Super Admin Only)")

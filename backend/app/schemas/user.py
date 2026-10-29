@@ -182,6 +182,8 @@ class UserResponse(BaseModel):
     role: str  # STUDENT, ADMIN, SUPER_ADMIN, TECHNICIAN
     department_name: Optional[str] = None
     department_id: Optional[int] = None
+    team_id: Optional[int] = None
+    team_name: Optional[str] = None
     identifier: Optional[str] = None
     phone: Optional[str] = None
     hostel_name: Optional[str] = None
@@ -233,6 +235,8 @@ class AdminCreateRequest(BaseModel):
     role: str = Field("ADMIN", description="Role to assign: ADMIN or TECHNICIAN")
     department_name: Optional[str] = Field("General Administration", description="Assigned campus maintenance department")
     department_id: Optional[int] = None
+    team_id: Optional[int] = Field(None, description="Assigned maintenance squad ID")
+    team_name: Optional[str] = Field(None, description="Assigned maintenance squad name")
     phone: Optional[str] = Field(None, max_length=50, description="Contact phone or campus extension")
 
     if HAS_PYDANTIC_V2:
@@ -249,3 +253,10 @@ class AdminCreateRequest(BaseModel):
         @validator("email")
         def validate_iiitnr_domain(cls, v: str) -> str:
             return _validate_iiitnr_email(v, "Admin registration")
+
+
+class AdminSquadUpdateRequest(BaseModel):
+    team_id: Optional[int] = Field(None, description="Assigned maintenance squad ID")
+    team_name: Optional[str] = Field(None, description="Assigned maintenance squad name")
+    department_name: Optional[str] = Field(None, description="Assigned department name")
+    department_id: Optional[int] = Field(None, description="Assigned department ID")

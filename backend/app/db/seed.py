@@ -121,6 +121,8 @@ def ensure_schema() -> None:
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS room_number VARCHAR(60);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_name VARCHAR(100);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS department_id INTEGER;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS team_id INTEGER;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS team_name VARCHAR(100);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50) DEFAULT 'password';"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub VARCHAR(255);"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);"))
@@ -170,6 +172,8 @@ def ensure_schema() -> None:
                 ("hashed_password", "VARCHAR(255)"),
                 ("department_name", "VARCHAR(100)"),
                 ("department_id", "INTEGER"),
+                ("team_id", "INTEGER"),
+                ("team_name", "VARCHAR(100)"),
                 ("phone", "VARCHAR(50)"),
                 ("hostel_name", "VARCHAR(120)"),
                 ("room_number", "VARCHAR(60)"),

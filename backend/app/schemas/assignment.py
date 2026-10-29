@@ -11,6 +11,7 @@ class TeamWorkloadResponse(BaseModel):
     team_name: str
     department_name: str
     active_ticket_count: int
+    assigned_technicians: int = 1
 
 
 class ReassignTeamRequest(BaseModel):

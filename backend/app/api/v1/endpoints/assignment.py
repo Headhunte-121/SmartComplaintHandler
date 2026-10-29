@@ -11,12 +11,14 @@ from sqlalchemy.orm import Session, joinedload
 from app.api.deps import get_db, require_roles
 from app.models.team import MaintenanceTeam
 from app.models.ticket import Ticket
+from app.models.user import User
 from app.schemas.assignment import ReassignTeamRequest, TeamWorkloadResponse
 from app.schemas.user import UserResponse
 
 router = APIRouter()
 
 
+@router.get("/teams", response_model=List[TeamWorkloadResponse])
 @router.get("/teams/workloads", response_model=List[TeamWorkloadResponse])
 def get_workloads(
     current_user: Optional[UserResponse] = Depends(require_roles(["ADMIN", "SUPER_ADMIN", "TECHNICIAN"])),
@@ -42,15 +44,46 @@ def get_workloads(
         .all()
     )
 
-    return [
-        TeamWorkloadResponse(
-            team_id=team.id,
-            team_name=team.name,
-            department_name=team.department.name if team.department else "General",
-            active_ticket_count=counts_by_team.get(team.id, 0),
+    assigned_tech_counts = dict(
+        db.query(User.team_id, func.count(User.id))
+        .filter(
+            User.team_id.isnot(None),
+            User.role.in_(["TECHNICIAN", "ADMIN"]),
+            User.is_active.is_(True),
         )
-        for team in teams
-    ]
+        .group_by(User.team_id)
+        .all()
+    )
+
+    dept_tech_counts = dict(
+        db.query(User.department_id, func.count(User.id))
+        .filter(
+            User.department_id.isnot(None),
+            User.role.in_(["TECHNICIAN", "ADMIN"]),
+            User.is_active.is_(True),
+        )
+        .group_by(User.department_id)
+        .all()
+    )
+
+    res = []
+    for team in teams:
+        t_count = assigned_tech_counts.get(team.id)
+        if not t_count:
+            dept_c = dept_tech_counts.get(team.department_id, 0)
+            t_count = max(1, dept_c) if dept_c > 0 else 1
+
+        res.append(
+            TeamWorkloadResponse(
+                team_id=team.id,
+                team_name=team.name,
+                department_name=team.department.name if team.department else "General",
+                active_ticket_count=counts_by_team.get(team.id, 0),
+                assigned_technicians=t_count,
+            )
+        )
+
+    return res
 
 
 @router.patch("/tickets/{ticket_id}/reassign")

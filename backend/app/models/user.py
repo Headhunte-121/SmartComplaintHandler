@@ -23,6 +23,8 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(50), default="STUDENT", nullable=False)  # STUDENT, ADMIN, SUPER_ADMIN, TECHNICIAN
     department_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     department_id: Mapped[Optional[int]] = mapped_column(ForeignKey("departments.id"), nullable=True)
+    team_id: Mapped[Optional[int]] = mapped_column(ForeignKey("maintenance_teams.id"), nullable=True)
+    team_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     hostel_name: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
     room_number: Mapped[Optional[str]] = mapped_column(String(60), nullable=True)

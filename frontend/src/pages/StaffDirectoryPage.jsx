@@ -10,7 +10,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import DepartmentBadge from '../components/DepartmentBadge';
-import { fetchAdmins, createAdmin, deleteAdmin, purgeTickets } from '../api/auth';
+import { fetchAdmins, createAdmin, deleteAdmin, updateStaffSquad, purgeTickets } from '../api/auth';
+import { fetchSquadWorkloads } from '../api/assignment';
 import {
   Users, Shield, UserPlus, RefreshCw, Search, Trash2,
   AlertTriangle, CheckCircle2, X, Phone, Mail, Building,
@@ -42,9 +43,12 @@ export default function StaffDirectoryPage() {
   const [staffEmail, setStaffEmail] = useState('');
   const [staffRole, setStaffRole] = useState('ADMIN');
   const [staffDept, setStaffDept] = useState(CAMPUS_DEPARTMENTS[0]);
+  const [staffSquadId, setStaffSquadId] = useState('');
   const [staffPhone, setStaffPhone] = useState('');
   const [submittingStaff, setSubmittingStaff] = useState(false);
   const [addError, setAddError] = useState(null);
+  const [squads, setSquads] = useState([]);
+  const [updatingSquadStaffId, setUpdatingSquadStaffId] = useState(null);
 
   const [isPurgeConfirmOpen, setIsPurgeConfirmOpen] = useState(false);
   const [purging, setPurging] = useState(false);
@@ -58,8 +62,12 @@ export default function StaffDirectoryPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchAdmins();
+      const [data, squadList] = await Promise.all([
+        fetchAdmins().catch(() => []),
+        fetchSquadWorkloads().catch(() => []),
+      ]);
       setAdmins(Array.isArray(data) ? data : []);
+      setSquads(Array.isArray(squadList) ? squadList : []);
     } catch (err) {
       setError('Failed to load institutional staff directory.');
     } finally {
@@ -70,6 +78,27 @@ export default function StaffDirectoryPage() {
   useEffect(() => {
     loadStaff();
   }, []);
+
+  const handleAssignSquad = async (staffId, targetTeamId) => {
+    const numericTeamId = targetTeamId ? Number(targetTeamId) : null;
+    const selectedSq = squads.find((s) => s.team_id === numericTeamId);
+    setUpdatingSquadStaffId(staffId);
+    try {
+      const updatedUser = await updateStaffSquad(staffId, {
+        team_id: numericTeamId,
+        team_name: selectedSq ? selectedSq.team_name : null,
+        department_name: selectedSq ? selectedSq.department_name : undefined,
+      });
+      setAdmins((prev) =>
+        prev.map((adm) => (adm.id === staffId ? { ...adm, ...updatedUser } : adm))
+      );
+      showToast(`Assigned ${updatedUser.name} to ${selectedSq ? selectedSq.team_name : 'Unassigned'}.`);
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Failed to update squad assignment.');
+    } finally {
+      setUpdatingSquadStaffId(null);
+    }
+  };
 
   const handleCreateStaff = async (e) => {
     e.preventDefault();
@@ -83,12 +112,15 @@ export default function StaffDirectoryPage() {
 
     setSubmittingStaff(true);
     try {
+      const selectedSq = squads.find((s) => s.team_id === Number(staffSquadId));
       await createAdmin({
         name: staffName.trim(),
         email: cleanEmail,
         role: staffRole,
         department_name: staffDept,
         phone: staffPhone.trim() || undefined,
+        team_id: selectedSq ? selectedSq.team_id : undefined,
+        team_name: selectedSq ? selectedSq.team_name : undefined,
       });
 
       showToast(`Provisioned new ${staffRole}: ${cleanEmail}`);
@@ -96,6 +128,7 @@ export default function StaffDirectoryPage() {
       setStaffName('');
       setStaffEmail('');
       setStaffPhone('');
+      setStaffSquadId('');
       loadStaff();
     } catch (err) {
       setAddError(err.response?.data?.detail || err.message || 'Failed to create staff account.');
@@ -305,7 +338,34 @@ export default function StaffDirectoryPage() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <DepartmentBadge name={staff.department_name || staff.department?.name || 'General Operations'} size="sm" />
+                        <div className="space-y-1.5 min-w-[200px]">
+                          <DepartmentBadge name={staff.department_name || staff.department?.name || 'General Operations'} size="sm" />
+                          {staff.role !== 'SUPER_ADMIN' ? (
+                            <div className="flex items-center gap-1.5">
+                              <select
+                                value={staff.team_id || ''}
+                                onChange={(e) => handleAssignSquad(staff.id, e.target.value)}
+                                disabled={updatingSquadStaffId === staff.id}
+                                title="Assign or reassign maintenance squad"
+                                className="w-full text-[11px] rounded-lg border border-white/[0.1] bg-[#050608] px-2 py-1 text-zinc-200 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition cursor-pointer"
+                              >
+                                <option value="">— Unassigned Squad —</option>
+                                {squads.map((sq) => (
+                                  <option key={sq.team_id} value={sq.team_id}>
+                                    {sq.team_name}
+                                  </option>
+                                ))}
+                              </select>
+                              {updatingSquadStaffId === staff.id && (
+                                <RefreshCw size={11} className="animate-spin text-white shrink-0" />
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[10px] font-mono text-zinc-500 block">
+                              Directorate Executive
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="py-3.5 px-4 font-mono text-[11px] text-zinc-300">
@@ -446,6 +506,24 @@ export default function StaffDirectoryPage() {
                   placeholder="+91-771-2474..."
                   className="w-full px-3 py-2 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
                 />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-zinc-300">
+                  Assigned Maintenance Squad (Optional)
+                </label>
+                <select
+                  value={staffSquadId}
+                  onChange={(e) => setStaffSquadId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-white/[0.1] bg-[#050608] text-white text-xs focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
+                >
+                  <option value="">— Unassigned (Assign Later) —</option>
+                  {squads.map((sq) => (
+                    <option key={sq.team_id} value={sq.team_id}>
+                      {sq.team_name} ({sq.department_name})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.08]">
