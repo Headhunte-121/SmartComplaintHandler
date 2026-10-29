@@ -7,6 +7,7 @@
  * and immediately displays its Floor, Wing, Room, and coordinates while panning the map.
  */
 import React from 'react';
+import { Search, X, Crosshair } from 'lucide-react';
 
 const QUICK_SEARCH_CHIPS = [
   { label: 'Room 131C (Data Centre)', query: '131c' },
@@ -42,17 +43,17 @@ export default function DigitalTwinSearchBar({
                 setSearchQuery(e.target.value);
                 setIsSearchFocused(true);
               }}
-              placeholder="🔍 Search or Auto-Detect any Building, Lab, Room No., or Hostel (e.g. '303', '131C', 'VLSI', 'AIDL', 'Auditorium', 'Canteen', 'A-204')..."
+              placeholder="Search or Auto-Detect any Building, Lab, Room No., or Hostel (e.g. '303', '131C', 'VLSI', 'AIDL', 'Auditorium', 'Canteen', 'A-204')..."
               className="w-full px-4 py-2.5 pl-10 rounded-2xl bg-slate-950 border border-slate-700/80 text-white text-xs sm:text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-400 transition-all font-sans"
             />
-            <span className="absolute left-3.5 top-2.5 text-sky-400 text-sm">⚡</span>
+            <Search size={14} className="absolute left-3.5 top-3 text-zinc-400" />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 className="absolute right-3.5 top-2.5 text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
               >
-                ✕
+                <X size={14} />
               </button>
             )}
           </div>
@@ -113,8 +114,9 @@ export default function DigitalTwinSearchBar({
                   </div>
                   <p className="text-[11px] text-slate-400">{item.subtitle}</p>
                 </div>
-                <span className="text-[11px] font-mono text-sky-400 shrink-0 opacity-80 group-hover:opacity-100">
-                  Locate 🎯
+                <span className="text-[11px] font-mono text-sky-400 shrink-0 opacity-80 group-hover:opacity-100 inline-flex items-center gap-1">
+                  <span>Locate</span>
+                  <Crosshair size={12} />
                 </span>
               </button>
             ))}
@@ -126,8 +128,9 @@ export default function DigitalTwinSearchBar({
       {autoDetectNotice && (
         <div className="px-3.5 py-2.5 rounded-xl bg-sky-500/15 border border-sky-400/40 flex flex-wrap items-center justify-between gap-2 text-xs text-sky-100">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-sky-500 text-slate-950 font-black text-[10px] uppercase">
-              🎯 Located on Twin
+            <span className="px-2 py-0.5 rounded bg-sky-500 text-slate-950 font-black text-[10px] uppercase inline-flex items-center gap-1">
+              <Crosshair size={11} />
+              <span>Located on Twin</span>
             </span>
             <span className="font-bold text-white">{autoDetectNotice.building}</span>
             <span className="text-sky-300">·</span>

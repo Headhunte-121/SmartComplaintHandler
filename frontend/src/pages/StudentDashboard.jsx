@@ -15,7 +15,7 @@ import SetPasswordModal from '../components/SetPasswordModal';
 import {
   GraduationCap, Home, MapPin, KeyRound, Compass, Plus,
   RefreshCw, Search, Star, AlertTriangle, CheckCircle2,
-  Clock, ArrowRight, X, Layers,
+  Clock, ArrowRight, X, Layers, Inbox,
 } from 'lucide-react';
 import {
   IIITNR_MAP_UPDATED_EVENT,
@@ -455,15 +455,16 @@ export default function StudentDashboard() {
           </div>
         ) : displayedTickets.length === 0 ? (
           <div className="py-20 text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl border border-white/[0.08] bg-[#050608] flex items-center justify-center mx-auto text-xl text-zinc-500">
-              📂
+            <div className="w-12 h-12 rounded-2xl border border-white/[0.08] bg-[#050608] flex items-center justify-center mx-auto text-zinc-500">
+              <Inbox size={22} />
             </div>
             <p className="text-xs text-zinc-400">No maintenance requests found.</p>
             <Link
               to="/submit"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer"
             >
-              + Submit Issue
+              <Plus size={14} />
+              <span>Submit Issue</span>
             </Link>
           </div>
         ) : (

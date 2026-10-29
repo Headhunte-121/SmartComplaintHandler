@@ -341,8 +341,9 @@ export default function TrackTicket() {
               </div>
               <div>
                 <span className="font-bold block text-[10px] uppercase font-mono text-zinc-500">Location</span>
-                <span className="font-bold mt-0.5 block truncate text-zinc-200" title={ticket.location}>
-                  📍 {ticket.location || 'Campus Facilities'}
+                <span className="font-bold mt-0.5 flex items-center gap-1.5 truncate text-zinc-200" title={ticket.location}>
+                  <MapPin size={12} className="text-zinc-400 shrink-0" />
+                  <span>{ticket.location || 'Campus Facilities'}</span>
                 </span>
               </div>
               <div>

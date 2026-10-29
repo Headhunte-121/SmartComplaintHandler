@@ -5,6 +5,7 @@
  * for the IIIT Naya Raipur Campus Digital Twin.
  */
 import React from 'react';
+import { Building2, MapPin, Check } from 'lucide-react';
 
 export default function DigitalTwinInspector({
   activeBuildingObj,
@@ -63,8 +64,9 @@ export default function DigitalTwinInspector({
           </div>
 
           {selectedRoom && (
-            <div className="px-3 py-1.5 rounded-xl bg-[#8C906D]/20 border border-[#8C906D]/40 text-[#DAD0C6] font-mono text-xs font-bold shrink-0">
-              📍 {selectedRoom}
+            <div className="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-xs font-bold shrink-0 flex items-center gap-1.5">
+              <MapPin size={12} className="text-emerald-400" />
+              <span>{selectedRoom}</span>
             </div>
           )}
         </div>
@@ -75,10 +77,12 @@ export default function DigitalTwinInspector({
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-white space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
             <div className="flex items-center space-x-2.5">
-              <span className="text-base">🏢</span>
+              <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.1] text-zinc-300 flex items-center justify-center">
+                <Building2 size={16} />
+              </div>
               <div>
                 <h4 className="text-xs sm:text-sm font-black text-white">
-                  {activeBuildingObj.name} — Floor, Room & Lab Directory
+                  {activeBuildingObj.name} — Floor, Room &amp; Lab Directory
                 </h4>
                 <p className="text-[11px] text-slate-400">
                   Select a floor or wing below, then click any room or laboratory to select it.
@@ -147,7 +151,7 @@ export default function DigitalTwinInspector({
                       {roomName}
                     </span>
                     {isThisRoomSelected && (
-                      <span className="text-[#A7AD89] font-bold shrink-0">✓</span>
+                      <Check size={14} className="text-emerald-400 shrink-0 ml-1.5" />
                     )}
                   </button>
                 );

@@ -6,51 +6,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CampusMapSelector from '../components/CampusMapSelector';
+import { Home as HomeIcon, MapPin, Building2, Compass, ArrowRight, Plus } from 'lucide-react';
 import {
-  IIITNR_CAMPUS_METADATA,
   IIITNR_MAP_UPDATED_EVENT,
   getCampusBuildings,
   getHostelBuildings,
 } from '../data/iiitnrCampusData';
-
-const getBuildingCardTheme = (h) => {
-  const name = (h.name || '').toLowerCase();
-  const category = (h.category || '').toUpperCase();
-
-  if (
-    name.includes('football') ||
-    name.includes('sports') ||
-    name.includes('court') ||
-    name.includes('amphi') ||
-    category === 'INFRASTRUCTURE'
-  ) {
-    return { icon: '⚽' };
-  }
-
-  if (name.includes('park') || name.includes('guest') || name.includes('lawn')) {
-    return { icon: '🌿' };
-  }
-
-  if (
-    category === 'ACADEMIC' ||
-    category === 'AMENITY' ||
-    name.includes('academic') ||
-    name.includes('canteen') ||
-    name.includes('auditorium')
-  ) {
-    return { icon: '🏛️' };
-  }
-
-  return { icon: '🛏️' };
-};
-
-const getContactTheme = (c) => {
-  const role = (c.role || '').toLowerCase();
-  if (role.includes('electrical')) return { icon: '⚡' };
-  if (role.includes('sr. network') || role.includes('core')) return { icon: '📶' };
-  if (role.includes('network') || role.includes('noc')) return { icon: '🌐' };
-  return { icon: '🏢' };
-};
 
 export default function Home() {
   const navigate = useNavigate();
@@ -101,14 +62,16 @@ export default function Home() {
                 to={`/submit?building=${encodeURIComponent(selectedMapBuilding)}`}
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all inline-flex items-center gap-2 cursor-pointer"
               >
-                <span>+ Report Issue ({selectedMapBuilding.split(' (')[0]})</span>
+                <Plus size={14} />
+                <span>Report Issue ({selectedMapBuilding.split(' (')[0]})</span>
               </Link>
               {isStudent && (
                 <Link
                   to="/student"
                   className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
                 >
-                  My Issues →
+                  <span>My Issues</span>
+                  <ArrowRight size={13} />
                 </Link>
               )}
               {canAccessOperations && (
@@ -116,7 +79,8 @@ export default function Home() {
                   to="/operations"
                   className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
                 >
-                  Operations Desk →
+                  <span>Operations Desk</span>
+                  <ArrowRight size={13} />
                 </Link>
               )}
               {isSuperAdmin && (
@@ -124,7 +88,8 @@ export default function Home() {
                   to="/superadmin"
                   className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
                 >
-                  Directorate Console →
+                  <span>Directorate Console</span>
+                  <ArrowRight size={13} />
                 </Link>
               )}
               {isTechnician && (
@@ -132,7 +97,8 @@ export default function Home() {
                   to="/technician"
                   className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-zinc-300 hover:text-indigo-200 font-semibold text-xs transition-all cursor-pointer inline-flex items-center gap-2"
                 >
-                  Work Orders →
+                  <span>Work Orders</span>
+                  <ArrowRight size={13} />
                 </Link>
               )}
             </div>
@@ -151,9 +117,10 @@ export default function Home() {
             />
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer shrink-0"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer shrink-0 inline-flex items-center gap-1.5"
             >
-              Track →
+              <span>Track</span>
+              <ArrowRight size={13} />
             </button>
           </form>
         </div>
@@ -170,124 +137,60 @@ export default function Home() {
         />
       </div>
 
-      {/* Hostels & Campus Engineering Contacts Grid */}
-      <div className="w-full px-4 sm:px-8 lg:px-12 py-10 relative z-10 bg-transparent">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Hostels & Campus Spots */}
-          <div className="lg:col-span-7 p-6 sm:p-7 space-y-5 rounded-2xl bg-[#0c0d12]/90 backdrop-blur-xl border border-white/[0.12] shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden">
-            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+      {/* Hostels & Campus Spots Grid (Full-Width, Modernized) */}
+      <div className="w-full px-4 sm:px-8 lg:px-12 py-8 relative z-10 bg-transparent">
+        <div className="w-full p-6 sm:p-7 space-y-5 rounded-2xl bg-[#0c0d12]/90 backdrop-blur-xl border border-white/[0.12] shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden">
+          <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl">🏢</span>
-                <div>
-                  <h3 className="text-base font-bold text-white">
-                    IIIT-NR Hostels &amp; Campus Spots
-                  </h3>
-                  <p className="text-[11px] text-zinc-400">
-                    Click any spot to select and report a verified issue
-                  </p>
-                </div>
+          <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#ff5a36]/15 border border-[#ff5a36]/30 text-[#ff7a5c] flex items-center justify-center">
+                <HomeIcon size={16} />
               </div>
-              <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-lg border border-white/[0.1] bg-white/[0.04] text-zinc-300 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                Live Navigator
-              </span>
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  IIIT-NR Hostels &amp; Campus Residences
+                </h3>
+                <p className="text-[11px] text-zinc-400">
+                  Select any hostel residence to jump straight into complaint filing
+                </p>
+              </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {hostels.map((h) => {
-                const theme = getBuildingCardTheme(h);
-                return (
-                  <div
-                    key={h.id}
-                    onClick={() => {
-                      setSelectedMapBuilding(h.name);
-                      navigate(`/submit?building=${encodeURIComponent(h.name)}`);
-                    }}
-                    className="p-3.5 rounded-xl bg-[#07080c] hover:bg-white/[0.04] border border-white/[0.08] hover:border-white/25 transition-all cursor-pointer space-y-2 group shadow-sm"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-base shrink-0">{theme.icon}</span>
-                        <span className="font-bold text-xs sm:text-sm text-zinc-200 group-hover:text-white transition-colors truncate">
-                          {h.name}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-white/[0.08] bg-white/[0.04] text-zinc-300 shrink-0">
-                        {h.mapPin?.badge || 'SPOT'}
-                      </span>
-                    </div>
-                    <div className="text-[11px] flex items-center justify-between text-zinc-400 group-hover:text-zinc-300 transition-colors">
-                      <span>{h.type}</span>
-                      <span className="font-mono text-[10px] text-zinc-500 group-hover:text-zinc-400 transition-colors">
-                        {h.gps}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-lg border border-white/[0.1] bg-white/[0.04] text-zinc-300 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              Live Hostels ({hostels.length})
+            </span>
           </div>
 
-          {/* Campus Estate & Engineering Contacts */}
-          <div className="lg:col-span-5 p-6 sm:p-7 space-y-5 rounded-2xl bg-[#0c0d12]/90 backdrop-blur-xl border border-white/[0.12] shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden">
-            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl">📞</span>
-                <div>
-                  <h3 className="text-base font-bold text-white">
-                    Campus Estate &amp; Engineering Contacts
-                  </h3>
-                  <p className="text-[11px] text-zinc-400">
-                    Duty facility engineers for urgent maintenance escalations
-                  </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {hostels.map((h) => (
+              <div
+                key={h.id}
+                onClick={() => {
+                  setSelectedMapBuilding(h.name);
+                  navigate(`/submit?building=${encodeURIComponent(h.name)}`);
+                }}
+                className="p-3.5 rounded-xl bg-[#07080c] hover:bg-white/[0.04] border border-white/[0.08] hover:border-white/25 transition-all cursor-pointer space-y-2 group shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <HomeIcon size={14} className="text-indigo-400 shrink-0" />
+                    <span className="font-bold text-xs sm:text-sm text-zinc-200 group-hover:text-white transition-colors truncate">
+                      {h.name}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-white/[0.08] bg-white/[0.04] text-zinc-300 shrink-0">
+                    {h.mapPin?.badge || 'HOSTEL'}
+                  </span>
+                </div>
+                <div className="text-[11px] flex items-center justify-between text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                  <span>{h.type}</span>
+                  <span className="font-mono text-[10px] text-zinc-500 group-hover:text-zinc-400 transition-colors">
+                    {h.gps}
+                  </span>
                 </div>
               </div>
-              <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/[0.1] bg-white/[0.04] text-zinc-300 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                24/7 Support
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {IIITNR_CAMPUS_METADATA.contacts.map((c) => {
-                const theme = getContactTheme(c);
-                return (
-                  <div
-                    key={c.email}
-                    className="p-3.5 rounded-xl bg-[#07080c] hover:bg-white/[0.04] border border-white/[0.08] hover:border-white/25 flex items-start justify-between gap-3 text-xs transition-all shadow-sm"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">{theme.icon}</span>
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-white/[0.1] bg-white/[0.04] text-zinc-300">
-                          {c.role}
-                        </span>
-                      </div>
-                      <div className="font-bold text-sm text-white">{c.name}</div>
-                      <div className="text-[11px] text-zinc-400">{c.office}</div>
-                    </div>
-                    <div className="text-right font-mono text-[11px] shrink-0 space-y-1.5">
-                      <a
-                        href={`tel:${c.phone}`}
-                        className="font-semibold px-2.5 py-1 rounded-lg border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.1] hover:border-white/30 text-white block transition-all shadow-xs"
-                      >
-                        📞 {c.phone}
-                      </a>
-                      <a
-                        href={`mailto:${c.email}`}
-                        className="text-[10px] text-zinc-400 hover:text-white block hover:underline truncate max-w-[150px]"
-                      >
-                        {c.email}
-                      </a>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            ))}
           </div>
         </div>
       </div>

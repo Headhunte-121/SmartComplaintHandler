@@ -26,7 +26,7 @@ export default function DigitalTwinCanvas({
   setDraggingId = () => {},
   isSuperAdmin = false,
   isEditMode = false,
-  twinTheme = 'light',
+  twinTheme = 'architectural',
   showLabels = true,
   showPathsAndCourts = true,
   showBoundary = true,
@@ -408,7 +408,7 @@ export default function DigitalTwinCanvas({
                 strokeWidth="1.2"
               />
               <text x="0" y="-4.5" textAnchor="middle" fill={isLight ? '#0f172a' : '#f4f4f5'} fontSize="9" fontWeight="bold">
-                🚪 {hoveredEntrance.name}
+                Entrance: {hoveredEntrance.name}
               </text>
             </g>
           )}

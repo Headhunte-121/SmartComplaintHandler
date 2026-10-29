@@ -230,8 +230,9 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
               <span className="h-1.5 w-1.5 rounded-full bg-[#ff5722]" />
             </div>
             <div className="mt-0.5">
-              <span className="inline-block text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border border-white/[0.1] bg-white/[0.04] text-zinc-300">
-                {isSuperAdmin ? '🏛️ Directorate' : isAdmin ? '📡 Operations' : isTechnician ? '🛠️ Field Squad' : '🎓 Resident'}
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border border-white/[0.1] bg-white/[0.04] text-zinc-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#ff5722]" />
+                <span>{isSuperAdmin ? 'Directorate' : isAdmin ? 'Operations' : isTechnician ? 'Field Squad' : 'Resident'}</span>
               </span>
             </div>
           </div>
