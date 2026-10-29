@@ -10,13 +10,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Building2, ChevronRight, ClipboardList, LayoutDashboard,
+  Building2, ChevronRight, ClipboardList, KeyRound, LayoutDashboard,
   LogOut, Map as MapIcon, Plus, PlusCircle, Search,
   ShieldCheck, User, Users, UsersRound, Wrench, X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchComplaints } from '../api/complaints';
 import { fetchActiveBreaches } from '../api/sla';
+import SetPasswordModal from './SetPasswordModal';
 
 const CAMPUS_SQUADS = [
   { id: 6, name: 'Electrical Squad', dept: 'Electrical' },
@@ -33,9 +34,17 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [tickets, setTickets] = useState([]);
   const [breaches, setBreaches] = useState([]);
   const [telemetryLoaded, setTelemetryLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('open_password_modal') === 'true') {
+      sessionStorage.removeItem('open_password_modal');
+      setPasswordModalOpen(true);
+    }
+  }, []);
 
   // Technician squad detection
   const assignedSquad = useMemo(() => {
@@ -454,6 +463,17 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
             </Link>
             <button
               type="button"
+              onClick={() => {
+                setProfileOpen(false);
+                setPasswordModalOpen(true);
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-zinc-300 hover:bg-white/[0.06] hover:text-white transition cursor-pointer text-left"
+            >
+              <KeyRound size={13} className="text-zinc-400" />
+              <span>{currentUser?.has_password ? 'Change Password' : 'Set Password'}</span>
+            </button>
+            <button
+              type="button"
               onClick={handleLogout}
               className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-300 hover:bg-rose-500/10 transition cursor-pointer"
             >
@@ -485,6 +505,12 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
           </div>
         </div>
       )}
+
+      {/* Universal Account Password Modal */}
+      <SetPasswordModal
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
     </>
   );
 }

@@ -11,7 +11,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchAuthConfig, resolveIiitnrProfileFromEmail, isUndergradHostelStudent } from '../api/auth';
-import { Shield, KeyRound, Mail, ArrowRight, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Shield, KeyRound, Mail, ArrowRight, ExternalLink, AlertTriangle, X } from 'lucide-react';
 
 const ALLOWED_DOMAIN = 'iiitnr.edu.in';
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
@@ -71,6 +71,7 @@ export default function Login() {
   const [googleClientId, setGoogleClientId] = useState(getInitialGoogleClientId);
   const [showClientIdModal, setShowClientIdModal] = useState(false);
   const [clientIdInput, setClientIdInput] = useState('');
+  const [showResetModal, setShowResetModal] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -397,6 +398,13 @@ export default function Login() {
               />
               <span>Keep me signed in</span>
             </label>
+            <button
+              type="button"
+              onClick={() => setShowResetModal(true)}
+              className="text-xs font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              Reset / Set Password?
+            </button>
           </div>
 
           <button
@@ -458,6 +466,85 @@ export default function Login() {
                 className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold shadow-xs cursor-pointer transition-colors"
               >
                 Save &amp; Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Institutional Password Reset & Setup Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
+          <div className="rounded-3xl max-w-md w-full p-6 sm:p-7 space-y-5 border border-white/[0.14] bg-[#0c0d12]/95 text-zinc-100 shadow-[0_25px_60px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)] relative overflow-hidden">
+            {/* Top Specular Rim */}
+            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-white/[0.15] bg-white/[0.05] text-zinc-300">
+                  Credential Recovery &amp; Setup
+                </span>
+                <h2 className="text-lg font-black tracking-tight text-white">
+                  Reset or Set Password
+                </h2>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Official @iiitnr.edu.in accounts can authenticate via Google SSO to set or reset their login password.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowResetModal(false)}
+                className="p-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <div className="space-y-3 pt-1">
+              {/* Option 1: Google SSO (Instant Reset) */}
+              <div className="p-4 rounded-2xl border border-white/[0.1] bg-white/[0.03] space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-bold text-white">Google Workspace SSO (Instant)</span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-normal">
+                  If you registered with Google or forgot your local password, authenticate via your institutional Google account to set a new password.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sessionStorage.setItem('open_password_modal', 'true');
+                    setShowResetModal(false);
+                    handleContinueWithGoogle();
+                  }}
+                  disabled={googleLoading}
+                  className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z" />
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+                  </svg>
+                  <span>Verify with Google &amp; Set Password →</span>
+                </button>
+              </div>
+
+              {/* Option 2: Directorate & Staff Assistance */}
+              <div className="p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.015] text-[11px] text-zinc-400 space-y-1">
+                <span className="font-semibold text-zinc-300 block">Staff / Engineering Technicians</span>
+                <p>
+                  Institutional accounts provisioned without Google Workspace can request password resets through the Estate &amp; Facilities Directorate (Room 104) or via <span className="text-zinc-200 font-mono">facilities@iiitnr.edu.in</span>.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={() => setShowResetModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white rounded-xl transition-colors cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>
