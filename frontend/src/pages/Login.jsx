@@ -212,7 +212,7 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const user = await login(cleanedEmail, password);
+      const user = await login(cleanedEmail, password, rememberMe);
       handleRoleRedirect(user);
     } catch (err) {
       const msg = err.message || '';

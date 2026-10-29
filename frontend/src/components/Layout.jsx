@@ -22,7 +22,25 @@ export default function Layout() {
     );
   }
 
-  if (!currentUser) {
+  const activeUser =
+    currentUser ||
+    (() => {
+      try {
+        const raw =
+          localStorage.getItem('smart_complaint_auth_user') ||
+          sessionStorage.getItem('smart_complaint_auth_user');
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    })();
+
+  const hasToken = Boolean(
+    localStorage.getItem('smart_complaint_auth_token') ||
+    sessionStorage.getItem('smart_complaint_auth_token')
+  );
+
+  if (!activeUser && !hasToken) {
     return <Navigate to="/login" replace />;
   }
 

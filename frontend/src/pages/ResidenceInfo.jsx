@@ -188,13 +188,30 @@ export default function ResidenceInfo() {
   useEffect(() => {
     if (authInitializing) return;
 
-    if (!currentUser) {
+    const token =
+      localStorage.getItem('smart_complaint_auth_token') ||
+      sessionStorage.getItem('smart_complaint_auth_token');
+
+    const activeUser =
+      currentUser ||
+      (() => {
+        try {
+          const raw =
+            localStorage.getItem('smart_complaint_auth_user') ||
+            sessionStorage.getItem('smart_complaint_auth_user');
+          return raw ? JSON.parse(raw) : null;
+        } catch (_) {
+          return null;
+        }
+      })();
+
+    if (!activeUser && !token) {
       navigate('/login', { replace: true });
       return;
     }
 
-    if (!isUndergradHostelStudent(currentUser.email)) {
-      navigate(currentUser.targetRoute || '/submit', { replace: true });
+    if (activeUser && !isUndergradHostelStudent(activeUser.email)) {
+      navigate(activeUser.targetRoute || '/submit', { replace: true });
     }
   }, [currentUser, authInitializing, navigate]);
 
@@ -237,7 +254,25 @@ export default function ResidenceInfo() {
     navigate('/submit', { replace: true });
   };
 
-  if (!currentUser) return null;
+  const resolvedUser =
+    currentUser ||
+    (() => {
+      try {
+        const raw =
+          localStorage.getItem('smart_complaint_auth_user') ||
+          sessionStorage.getItem('smart_complaint_auth_user');
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    })();
+
+  const tokenExists = Boolean(
+    localStorage.getItem('smart_complaint_auth_token') ||
+    sessionStorage.getItem('smart_complaint_auth_token')
+  );
+
+  if (!resolvedUser && !tokenExists) return null;
 
   return (
     <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white">

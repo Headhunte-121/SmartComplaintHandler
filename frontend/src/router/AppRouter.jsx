@@ -36,11 +36,22 @@ function RoleHomeRedirect() {
     );
   }
 
-  if (!currentUser) {
+  const activeUser =
+    currentUser ||
+    (() => {
+      try {
+        const raw = localStorage.getItem('smart_complaint_auth_user') || sessionStorage.getItem('smart_complaint_auth_user');
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    })();
+
+  if (!activeUser) {
     return <Navigate to="/login" replace />;
   }
 
-  switch (currentUser.role) {
+  switch (activeUser.role) {
     case 'STUDENT':
       return <Navigate to="/student" replace />;
     case 'TECHNICIAN':
@@ -68,11 +79,26 @@ function ProtectedRoute({ children, allowedRoles, fallbackRoute = '/student' }) 
     );
   }
 
-  if (!currentUser) {
+  const activeUser =
+    currentUser ||
+    (() => {
+      try {
+        const raw = localStorage.getItem('smart_complaint_auth_user') || sessionStorage.getItem('smart_complaint_auth_user');
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    })();
+
+  const hasToken = Boolean(
+    localStorage.getItem('smart_complaint_auth_token') || sessionStorage.getItem('smart_complaint_auth_token')
+  );
+
+  if (!activeUser && !hasToken) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
+  if (allowedRoles && activeUser && !allowedRoles.includes(activeUser.role)) {
     // Redirect unauthorized attempts to their default workplace
     const redirect =
       currentUser.role === 'STUDENT'
@@ -124,6 +150,7 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/residence-info" element={<ResidenceInfo />} />
+        <Route path="/residence" element={<ResidenceInfo />} />
         <Route path="/onboarding" element={<ResidenceInfo />} />
 
         {/* Main Application Shell (Strictly Protected - Requires Authentication) */}
