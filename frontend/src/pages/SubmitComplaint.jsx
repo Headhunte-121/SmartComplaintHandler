@@ -6,7 +6,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { submitComplaint } from '../api/complaints';
-import LiveTriageCard from '../components/LiveTriageCard';
 import SubmissionSuccessModal from '../components/SubmissionSuccessModal';
 import CampusMapSelector from '../components/CampusMapSelector';
 import {
@@ -252,11 +251,11 @@ export default function SubmitComplaint() {
       </div>
 
       {/* Main Workstation Layout */}
-      <div className="relative z-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="relative z-10 w-full max-w-3xl mx-auto">
         {/* Main Request Form */}
         <form
           onSubmit={handleSubmit}
-          className="lg:col-span-7 xl:col-span-8 p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl relative shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)] overflow-hidden"
+          className="w-full p-6 sm:p-8 space-y-6 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl relative shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)] overflow-hidden"
         >
           {/* Specular Top Rim */}
           <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
@@ -674,98 +673,6 @@ export default function SubmitComplaint() {
               : `Submit Request · ${activeBuildingObj?.shortName || building} (${resolvedRoomLabel})`}
           </button>
         </form>
-
-        {/* Right Sticky Triage & Target Summary Column */}
-        <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8 space-y-4">
-          <LiveTriageCard title={title} description={description} />
-
-          {/* Dispatch Target Card */}
-          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl rounded-2xl relative overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)]">
-            <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-zinc-400">
-                Dispatch Target
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-lg border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 font-bold">
-                  {activeBuildingObj?.mapPin?.badge || 'BLDG'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsMapModalOpen(true)}
-                  className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 hover:underline cursor-pointer"
-                >
-                  Change on Map →
-                </button>
-              </div>
-            </div>
-            <div className="font-black text-sm text-white">
-              {activeBuildingObj?.name || building}
-            </div>
-            <div className="font-mono text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between border border-white/[0.08] bg-[#07080c] text-zinc-200">
-              <span className="flex items-center gap-1.5">
-                <MapPin size={13} className="text-blue-400" />
-                <span>{resolvedRoomLabel}</span>
-              </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/20 bg-white/[0.05] text-white uppercase">
-                Verified ✓
-              </span>
-            </div>
-          </div>
-
-          {/* SLA Resolution Windows Matrix */}
-          <div className="p-5 sm:p-6 space-y-3.5 border border-white/[0.08] bg-gradient-to-b from-[#1b1d24] to-[#14151b] backdrop-blur-xl rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] relative overflow-hidden">
-            <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-
-            <div className="flex items-center justify-between">
-              <span className="font-bold uppercase tracking-wider font-mono text-[10px] block text-zinc-400">
-                SLA Resolution Windows
-              </span>
-              <span className="text-[10px] font-mono font-bold text-zinc-500">
-                Response Matrix
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5 text-[11px]">
-              <div className="p-3 rounded-xl border border-rose-500/25 bg-rose-500/10 flex items-center justify-between text-rose-300">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-rose-400" />
-                  <span className="font-bold">CRITICAL</span>
-                </div>
-                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-rose-500/30 bg-black/40 text-rose-300">
-                  2h
-                </span>
-              </div>
-              <div className="p-3 rounded-xl border border-amber-500/25 bg-amber-500/10 flex items-center justify-between text-amber-300">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span className="font-bold">HIGH</span>
-                </div>
-                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 bg-black/40 text-amber-300">
-                  8h
-                </span>
-              </div>
-              <div className="p-3 rounded-xl border border-white/20 bg-white/[0.05] flex items-center justify-between text-zinc-200">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-zinc-300" />
-                  <span className="font-bold">MEDIUM</span>
-                </div>
-                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-white/20 bg-black/40 text-zinc-200">
-                  24h
-                </span>
-              </div>
-              <div className="p-3 rounded-xl border border-white/[0.08] bg-white/[0.02] flex items-center justify-between text-zinc-400">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-zinc-500" />
-                  <span className="font-bold">LOW</span>
-                </div>
-                <span className="font-mono font-bold px-2 py-0.5 rounded-lg border border-white/[0.08] bg-black/40 text-zinc-400">
-                  72h
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Interactive Map Picker Modal */}
