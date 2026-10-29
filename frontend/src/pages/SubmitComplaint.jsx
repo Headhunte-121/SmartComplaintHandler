@@ -64,23 +64,23 @@ export default function SubmitComplaint() {
   const initialModeFromUrl = searchParams.get('mode');
 
   const [locationMode, setLocationMode] = useState(
-    initialModeFromUrl === 'search'
-      ? 'SEARCH'
+    initialModeFromUrl === 'search' || initialModeFromUrl === 'custom'
+      ? 'CUSTOM'
       : initialBuildingFromUrl
       ? 'BROWSE'
       : hasSavedResidence
       ? 'MY_ROOM'
-      : 'SEARCH'
+      : 'CUSTOM'
   );
+
+  const [customPlaceName, setCustomPlaceName] = useState('');
+  const [customPlaceSpot, setCustomPlaceSpot] = useState('');
 
   const [building, setBuilding] = useState(
     initialBuildingFromUrl || savedHostel || allBuildings[0]?.name
   );
   const [selectedFloor, setSelectedFloor] = useState(() => inferFloorFromRoomString(savedRoom));
-  const [specificLocation, setSpecificLocation] = useState(savedRoom);
-  const [customRoomOverride, setCustomRoomOverride] = useState('');
-
-  const [spotQuery, setSpotQuery] = useState('');
+  const [specificLocation, setSpecificLocation] = useState(savedRoom || '');
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -183,9 +183,24 @@ export default function SubmitComplaint() {
     setSubmitting(true);
     setError(null);
 
-    const cleanRoom = customRoomOverride.trim() || (specificLocation && specificLocation !== 'None' ? specificLocation.trim() : '');
-    const bName = activeBuildingObj?.name || building;
-    const fullLocation = cleanRoom ? `${bName}, ${cleanRoom}` : bName;
+    let fullLocation = '';
+    if (locationMode === 'CUSTOM') {
+      if (!customPlaceName.trim()) {
+        setError('Please enter a campus location or place name.');
+        return;
+      }
+      fullLocation = customPlaceSpot.trim()
+        ? `${customPlaceName.trim()}, ${customPlaceSpot.trim()}`
+        : customPlaceName.trim();
+    } else if (locationMode === 'MY_ROOM') {
+      const bName = savedHostel || activeBuildingObj?.name || 'Campus Hostel';
+      const rName = savedRoom || 'Hostel Room';
+      fullLocation = `${bName}, ${rName}`;
+    } else {
+      const bName = activeBuildingObj?.name || building || 'IIIT-NR Campus';
+      const cleanRoom = (specificLocation || '').trim();
+      fullLocation = cleanRoom ? `${bName}, ${cleanRoom}` : bName;
+    }
 
     try {
       const ticket = await submitComplaint({
@@ -207,7 +222,12 @@ export default function SubmitComplaint() {
     }
   }
 
-  const resolvedRoomLabel = customRoomOverride.trim() || specificLocation;
+  const resolvedRoomLabel =
+    locationMode === 'CUSTOM'
+      ? customPlaceName.trim() || 'Custom Location'
+      : locationMode === 'MY_ROOM'
+      ? savedRoom || 'Hostel Room'
+      : (specificLocation || '').trim() || 'General Area';
 
   return (
     <div className="w-full min-h-screen bg-[#121317] text-zinc-100 font-sans antialiased selection:bg-[#ff5a36]/30 selection:text-white p-4 sm:p-6 lg:p-8 space-y-6 relative overflow-hidden">
@@ -251,7 +271,7 @@ export default function SubmitComplaint() {
       </div>
 
       {/* Main Workstation Layout */}
-      <div className="relative z-10 w-full max-w-3xl mx-auto">
+      <div className="relative z-10 w-full">
         {/* Main Request Form */}
         <form
           onSubmit={handleSubmit}
@@ -302,15 +322,15 @@ export default function SubmitComplaint() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setLocationMode('SEARCH')}
+                  onClick={() => setLocationMode('CUSTOM')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                    locationMode === 'SEARCH'
+                    locationMode === 'CUSTOM'
                       ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
                       : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
-                  <Search size={13} />
-                  <span>Quick Search</span>
+                  <MapPin size={13} />
+                  <span>Custom Place</span>
                 </button>
                 <button
                   type="button"
@@ -356,10 +376,17 @@ export default function SubmitComplaint() {
                 <div className="flex flex-wrap items-center gap-2.5 shrink-0">
                   <button
                     type="button"
-                    onClick={() => setLocationMode('SEARCH')}
+                    onClick={() => setLocationMode('CUSTOM')}
                     className="px-3 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
                   >
-                    Change Room
+                    Custom Place
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLocationMode('BROWSE')}
+                    className="px-3 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
+                  >
+                    Browse Other
                   </button>
                   <button
                     type="button"
@@ -373,93 +400,65 @@ export default function SubmitComplaint() {
               </div>
             )}
 
-            {/* MODE B: Live Instant Omni-Search */}
-            {locationMode === 'SEARCH' && (
-              <div className="space-y-3 p-5 rounded-2xl border border-white/[0.1] bg-[#07080c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
-                <div className="relative">
-                  <Search size={16} className="absolute left-3.5 top-3 text-zinc-500" />
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="Search any classroom, lab, auditorium, court, RO cooler (e.g. 303, AI Lab, Ground)..."
-                    value={spotQuery}
-                    onChange={(e) => setSpotQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white placeholder-zinc-500 text-xs sm:text-sm font-mono focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
-                  />
-                  {spotQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSpotQuery('')}
-                      className="absolute right-3 top-3 text-xs text-zinc-500 hover:text-white cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                  )}
+            {/* MODE B: Custom Location / Area Input */}
+            {locationMode === 'CUSTOM' && (
+              <div className="space-y-4 p-5 rounded-2xl border border-white/[0.1] bg-[#07080c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="customPlaceName" className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                      Campus Location / Area Name *
+                    </label>
+                    <input
+                      id="customPlaceName"
+                      type="text"
+                      autoFocus
+                      placeholder="e.g. Basketball Court, Cafeteria, Library 2nd Floor, Main Gate, OAT..."
+                      value={customPlaceName}
+                      onChange={(e) => setCustomPlaceName(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white placeholder-zinc-500 text-xs sm:text-sm focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
+                    />
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      Type any custom spot, court, lab, lawn, or area across campus
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="customPlaceSpot" className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                      Specific Spot / Landmark (Optional)
+                    </label>
+                    <input
+                      id="customPlaceSpot"
+                      type="text"
+                      placeholder="e.g. Near Water Cooler, Table #4, Entrance steps, Net #2..."
+                      value={customPlaceSpot}
+                      onChange={(e) => setCustomPlaceSpot(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white placeholder-zinc-500 text-xs sm:text-sm focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/10"
+                    />
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      Helps maintenance technicians pinpoint the exact spot
+                    </p>
+                  </div>
                 </div>
 
-                {/* Quick chip shortcuts */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">
-                    Quick Spots:
-                  </span>
-                  {QUICK_SPOT_CHIPS.map((chip) => (
-                    <button
-                      key={chip.label}
-                      type="button"
-                      onClick={() => setSpotQuery(chip.query)}
-                      className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:border-indigo-500/30 hover:bg-indigo-500/10 text-[11px] text-zinc-300 hover:text-indigo-200 transition-colors cursor-pointer"
-                    >
-                      {chip.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Search Results Drawer */}
-                {spotQuery.trim() && (
-                  <div className="space-y-1.5 max-h-56 overflow-y-auto pt-1">
-                    {spotResults.length === 0 ? (
-                      <div className="p-3 text-center text-xs text-zinc-500">
-                        No campus spot matches &quot;{spotQuery}&quot;. Try room numbers like 101, 204 or &apos;Lab&apos;.
-                      </div>
-                    ) : (
-                      spotResults.map((item) => (
-                        <div
-                          key={`${item.buildingId}-${item.title}`}
-                          onClick={() => handlePickSpotResult(item)}
-                          className="p-2.5 rounded-xl border border-white/[0.06] bg-[#121317] hover:bg-white/[0.05] hover:border-white/20 transition-all cursor-pointer flex items-center justify-between gap-3 text-xs"
-                        >
-                          <div className="min-w-0">
-                            <span className="font-bold text-white block truncate">
-                              {item.title}
-                            </span>
-                            <span className="text-[11px] text-zinc-400 block truncate">
-                              {item.buildingName} {item.floorLabel ? `· ${item.floorLabel}` : ''}
-                            </span>
-                          </div>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 font-bold shrink-0">
-                            Select
-                          </span>
-                        </div>
-                      ))
-                    )}
+                {customPlaceName.trim() && (
+                  <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs">
+                    <span className="text-zinc-400">Target Location:</span>
+                    <span className="font-mono font-bold text-white flex items-center gap-1.5">
+                      <MapPin size={12} className="text-emerald-400" />
+                      <span>
+                        {customPlaceName.trim()}
+                        {customPlaceSpot.trim() ? ` · ${customPlaceSpot.trim()}` : ''}
+                      </span>
+                    </span>
                   </div>
                 )}
-
-                {/* Selected Result Lock */}
-                <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                  <span className="text-zinc-400">Locked In:</span>
-                  <span className="font-mono font-bold text-white flex items-center gap-1.5">
-                    <MapPin size={12} className="text-blue-400" />
-                    <span>{activeBuildingObj?.shortName || building} · {resolvedRoomLabel}</span>
-                  </span>
-                </div>
               </div>
             )}
 
-            {/* MODE C: Hierarchical Dropdown Cascade & Map Modal */}
+            {/* MODE C: Hierarchical Dropdown Cascade with Custom Fillable Room */}
             {locationMode === 'BROWSE' && (
               <div className="space-y-4 p-5 rounded-2xl border border-white/[0.1] bg-[#07080c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="sm:col-span-2">
                     <div className="flex items-center justify-between mb-1.5">
                       <label htmlFor="buildingSelect" className="block text-xs font-semibold text-zinc-300">
@@ -510,7 +509,6 @@ export default function SubmitComplaint() {
                         const nextRooms = getRoomsForBuilding(activeBuildingObj?.name, newFloor, null, allBuildings);
                         if (nextRooms.length > 0) {
                           setSpecificLocation(nextRooms[0]);
-                          setCustomRoomOverride('');
                         }
                       }}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
@@ -531,54 +529,44 @@ export default function SubmitComplaint() {
 
                   <div>
                     <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                      Campus Zone / Coordinates
+                      Campus Zone
                     </label>
                     <div className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#121317] font-mono text-xs flex items-center justify-between text-zinc-300">
                       <span className="font-bold text-white">{activeBuildingObj?.mapPin?.badge || 'CAMPUS'}</span>
-                      <span className="text-[11px] truncate max-w-[180px] text-zinc-500">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
+                      <span className="text-[11px] truncate max-w-[120px] text-zinc-500">{activeBuildingObj?.gps || 'Institutional Twin'}</span>
                     </div>
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-4">
                     <label htmlFor="specificLocation" className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                      Room / Lab / Utility
-                    </label>
-                    <select
-                      id="specificLocation"
-                      value={specificLocation}
-                      onChange={(e) => {
-                        setSpecificLocation(e.target.value);
-                        setCustomRoomOverride('');
-                      }}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white text-xs sm:text-sm focus:outline-none focus:border-white/30"
-                    >
-                      {availableRooms.length > 0 ? (
-                        availableRooms.map((rm) => (
-                          <option key={rm} value={rm} className="bg-[#121317] text-white">
-                            {rm}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="None" className="bg-[#121317] text-white">
-                          None
-                        </option>
-                      )}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="customRoomOverride" className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                      Specific Spot (Optional)
+                      Room / Lab / Spot * (Custom fillable or choose suggestion)
                     </label>
                     <input
-                      id="customRoomOverride"
+                      id="specificLocation"
                       type="text"
-                      placeholder="e.g. Near Balcony, Tap #2"
-                      value={customRoomOverride}
-                      onChange={(e) => setCustomRoomOverride(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white placeholder-zinc-500 text-xs sm:text-sm focus:outline-none focus:border-white/30"
+                      value={specificLocation}
+                      onChange={(e) => setSpecificLocation(e.target.value)}
+                      list="browseRoomsList"
+                      placeholder="e.g. 331, Room 204, Lab 3, Server Room, Balcony, Corridor..."
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.1] bg-[#121317] text-white placeholder-zinc-500 text-xs sm:text-sm focus:border-white/30 focus:outline-none"
                     />
+                    <datalist id="browseRoomsList">
+                      {availableRooms.map((rm) => (
+                        <option key={rm} value={rm} />
+                      ))}
+                    </datalist>
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      Type any custom room number or select from suggestions
+                    </p>
                   </div>
+                </div>
+
+                <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs">
+                  <span className="text-zinc-400">Target Location:</span>
+                  <span className="font-mono font-bold text-white flex items-center gap-1.5">
+                    <MapPin size={12} className="text-blue-400" />
+                    <span>{activeBuildingObj?.shortName || building} · {(specificLocation || '').trim() || 'General Area'}</span>
+                  </span>
                 </div>
 
                 {isHostelBuilding && (
@@ -670,7 +658,11 @@ export default function SubmitComplaint() {
           >
             {submitting
               ? 'Submitting to Dispatch...'
-              : `Submit Request · ${activeBuildingObj?.shortName || building} (${resolvedRoomLabel})`}
+              : locationMode === 'CUSTOM'
+              ? `Submit Request · ${customPlaceName.trim() || 'Custom Place'}`
+              : locationMode === 'MY_ROOM'
+              ? `Submit Request · ${activeBuildingObj?.shortName || savedHostel || 'My Room'} (${savedRoom || 'Hostel'})`
+              : `Submit Request · ${activeBuildingObj?.shortName || building} (${(specificLocation || '').trim() || 'Campus'})`}
           </button>
         </form>
       </div>
