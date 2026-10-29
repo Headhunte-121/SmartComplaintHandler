@@ -27,7 +27,7 @@ export async function submitComplaint(ticketData) {
     student_email: ticketData.student_email && ticketData.student_email.trim() ? ticketData.student_email.trim() : null,
   };
 
-  const response = await apiClient.post('/tickets', payload);
+  const response = await apiClient.post('/tickets/', payload);
   return response.data;
 }
 
@@ -54,7 +54,7 @@ export async function fetchTicketByCode(trackingCode) {
  * @returns {Promise<Array>} List of ticket records.
  */
 export async function fetchComplaints(params = {}) {
-  const response = await apiClient.get('/tickets', { params });
+  const response = await apiClient.get('/tickets/', { params });
   return response.data;
 }
 
@@ -92,7 +92,7 @@ export async function submitFeedback(ticketIdentifier, rating, comments = null, 
  */
 export async function fetchAnalyticsSummary() {
   try {
-    const response = await apiClient.get('/tickets', { params: { limit: 200 } });
+    const response = await apiClient.get('/tickets/', { params: { limit: 200 } });
     const tickets = Array.isArray(response.data) ? response.data : [];
     const total = tickets.length;
     const resolved = tickets.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED').length;

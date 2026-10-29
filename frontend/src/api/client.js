@@ -83,9 +83,17 @@ const apiClient = axios.create({
   },
 });
 
-// Attach Authorization Bearer token from localStorage or sessionStorage & strip trailing slashes to avoid Vercel rewrite misses
+// Attach Authorization Bearer token from localStorage or sessionStorage & preserve trailing slash for collection routes
 apiClient.interceptors.request.use((config) => {
-  if (config.url && typeof config.url === 'string' && config.url.length > 1 && config.url.endsWith('/')) {
+  if (config.url === '/tickets' || config.url === 'tickets') {
+    config.url = '/tickets/';
+  } else if (
+    config.url &&
+    typeof config.url === 'string' &&
+    config.url.length > 1 &&
+    config.url.endsWith('/') &&
+    config.url !== '/tickets/'
+  ) {
     config.url = config.url.replace(/\/+$/, '');
   }
   try {
