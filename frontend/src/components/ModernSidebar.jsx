@@ -345,18 +345,18 @@ export default function ModernSidebar({ mobileOpen, setMobileOpen }) {
         {isSuperAdmin && (
           <>
             <Link
-              to="/submit"
+              to="/superadmin/staff"
               onClick={() => setMobileOpen && setMobileOpen(false)}
               className="flex items-center justify-center gap-2 rounded-xl bg-[#ff5722] hover:bg-[#f4511e] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition cursor-pointer"
             >
-              <Plus size={15} /> + Directorate Intake
+              <UsersRound size={14} /> Manage Staff & RBAC
             </Link>
             <Link
-              to="/superadmin/staff"
+              to="/squads"
               onClick={() => setMobileOpen && setMobileOpen(false)}
               className="flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.06] hover:border-white/[0.15] px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition"
             >
-              <UsersRound size={14} /> Manage Staff
+              <Users size={14} /> Dispatch Squads
             </Link>
           </>
         )}

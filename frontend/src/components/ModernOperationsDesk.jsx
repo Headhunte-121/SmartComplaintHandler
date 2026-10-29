@@ -332,13 +332,26 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
       });
     }
 
-    const hours = ['10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM'];
-    return hours.map((hour, idx) => {
-      const targetHour = idx + 10; // 10:00 to 18:00
+    const hourlyBlocks = [
+      { key: '00-03', label: '12-3 AM', startHour: 0, endHour: 3, fullLabel: '12:00 AM – 3:00 AM' },
+      { key: '03-06', label: '3-6 AM', startHour: 3, endHour: 6, fullLabel: '3:00 AM – 6:00 AM' },
+      { key: '06-09', label: '6-9 AM', startHour: 6, endHour: 9, fullLabel: '6:00 AM – 9:00 AM' },
+      { key: '09-12', label: '9-12 PM', startHour: 9, endHour: 12, fullLabel: '9:00 AM – 12:00 PM' },
+      { key: '12-15', label: '12-3 PM', startHour: 12, endHour: 15, fullLabel: '12:00 PM – 3:00 PM' },
+      { key: '15-18', label: '3-6 PM', startHour: 15, endHour: 18, fullLabel: '3:00 PM – 6:00 PM' },
+      { key: '18-21', label: '6-9 PM', startHour: 18, endHour: 21, fullLabel: '6:00 PM – 9:00 PM' },
+      { key: '21-24', label: '9-12 AM', startHour: 21, endHour: 24, fullLabel: '9:00 PM – 12:00 AM' },
+    ];
+
+    const currentHour = new Date().getHours();
+
+    return hourlyBlocks.map((block) => {
+      const isCurrent = currentHour >= block.startHour && currentHour < block.endHour;
       const realMatches = relevantTickets.filter((t) => {
         if (!t.created_at) return false;
         const d = new Date(t.created_at);
-        return d.getHours() === targetHour;
+        const h = d.getHours();
+        return h >= block.startHour && h < block.endHour;
       });
 
       const it = realMatches.filter((t) => (t.department_name || '').toLowerCase().includes('it')).length;
@@ -349,10 +362,11 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
       const total = it + sanitation + plumbing + electrical + general;
 
       return {
-        key: hour,
-        label: hour,
-        subLabel: hour,
-        fullDate: `${hour} Intake`,
+        key: block.key,
+        label: block.label,
+        subLabel: block.label,
+        fullDate: block.fullLabel,
+        isCurrent,
         it,
         sanitation,
         plumbing,
@@ -643,10 +657,10 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     <h3 className="text-xs font-bold text-white tracking-tight">Request Volume</h3>
                     <p className="text-[11px] text-zinc-400">
                       {selectedBuildingId
-                        ? `Daily intake for ${buildings.find((x) => x.id === selectedBuildingId)?.shortName || 'selected building'}`
+                        ? `Intake for ${buildings.find((x) => x.id === selectedBuildingId)?.shortName || 'selected building'}`
                         : volumeMode === 'daily'
                         ? 'Department intake across the past 7 days'
-                        : 'Department distribution throughout peak hours'}
+                        : 'Department distribution across 24-hour cycle'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -675,7 +689,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       </button>
                     </div>
                     <span className="rounded-md bg-white/[0.05] border border-white/10 px-2 py-0.5 text-[10px] font-mono text-zinc-400">
-                      {volumeMode === 'daily' ? '7-Day telemetry' : 'Peak hours'} ({tickets.length} total)
+                      {volumeMode === 'daily' ? '7-Day telemetry' : '24-Hour cycle'} ({tickets.length} total)
                     </span>
                   </div>
                 </div>
@@ -703,46 +717,38 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       {/* Real Stacked Bars (Vaulto Architecture: Capsule Wells with Glowing Orange Peak) */}
                       <div className="absolute inset-0 bottom-5 flex items-end justify-between px-2 gap-2 sm:gap-3">
                         {volumeData.map((d, idx) => {
-                          const isToday = d.label === 'Today' || idx === volumeData.length - 1;
+                          const isToday = volumeMode === 'daily' && (d.label === 'Today' || idx === volumeData.length - 1);
+                          const isCurrent = volumeMode === 'hourly' ? d.isCurrent : isToday;
                           const barHeightPercent = yMax > 0 && d.total > 0 ? (d.total / yMax) * 100 : 0;
 
                           return (
                             <div key={d.key} className="flex-1 flex flex-col items-center h-full justify-end group relative">
                               {/* Capsule Well Track (Vaulto Style) */}
                               <div className={`w-full max-w-[34px] h-full rounded-xl bg-[#161720] border p-1 flex flex-col justify-end transition-all duration-300 ${
-                                isToday
-                                  ? 'border-white/[0.08] bg-[#161822]'
+                                isCurrent
+                                  ? 'border-white/[0.12] bg-[#161822]'
                                   : 'border-white/[0.04] group-hover:border-white/[0.12] group-hover:bg-[#1c1e28]'
                               }`}>
                                 {d.total > 0 ? (
                                   <div
                                     style={{ height: `${Math.max(14, barHeightPercent)}%` }}
-                                    className={`w-full flex flex-col rounded-lg overflow-hidden transition-all duration-300 ${
-                                      isToday
-                                        ? 'shadow-sm'
-                                        : 'shadow-md group-hover:scale-[1.02]'
+                                    className={`w-full flex flex-col rounded-lg overflow-hidden transition-all duration-300 shadow-md group-hover:scale-[1.02] ${
+                                      isCurrent ? 'ring-1 ring-[#ff5722]/50' : ''
                                     }`}
                                   >
-                                    {isToday ? (
-                                      /* Vaulto Signature Glowing Orange Column for Today / Peak */
-                                      <div className="w-full h-full bg-[#ff5722] rounded-lg" />
-                                    ) : (
-                                      <>
-                                        {/* Stacked Breakdown for prior days */}
-                                        {d.general > 0 && <div style={{ flexGrow: d.general }} className="w-full bg-[#64748b] min-h-[2px]" />}
-                                        {d.electrical > 0 && <div style={{ flexGrow: d.electrical }} className="w-full bg-[#ff5a36] min-h-[2px]" />}
-                                        {d.plumbing > 0 && <div style={{ flexGrow: d.plumbing }} className="w-full bg-[#f97316] min-h-[2px]" />}
-                                        {d.sanitation > 0 && <div style={{ flexGrow: d.sanitation }} className="w-full bg-[#10b981] min-h-[2px]" />}
-                                        {d.it > 0 && <div style={{ flexGrow: d.it }} className="w-full bg-[#3b82f6] min-h-[2px]" />}
-                                      </>
-                                    )}
+                                    {/* Stacked Department Breakdown */}
+                                    {d.general > 0 && <div style={{ flexGrow: d.general }} className="w-full bg-[#64748b] min-h-[2px]" title={`General: ${d.general}`} />}
+                                    {d.electrical > 0 && <div style={{ flexGrow: d.electrical }} className="w-full bg-[#ff5a36] min-h-[2px]" title={`Electrical: ${d.electrical}`} />}
+                                    {d.plumbing > 0 && <div style={{ flexGrow: d.plumbing }} className="w-full bg-[#f97316] min-h-[2px]" title={`Plumbing: ${d.plumbing}`} />}
+                                    {d.sanitation > 0 && <div style={{ flexGrow: d.sanitation }} className="w-full bg-[#10b981] min-h-[2px]" title={`Sanitation: ${d.sanitation}`} />}
+                                    {d.it > 0 && <div style={{ flexGrow: d.it }} className="w-full bg-[#3b82f6] min-h-[2px]" title={`IT Support: ${d.it}`} />}
                                   </div>
                                 ) : (
-                                  /* Empty day track fill with glowing accent if today */
+                                  /* Empty day track fill with glowing accent if current */
                                   <div
                                     className={`w-full h-2 rounded-full transition-all ${
-                                      isToday
-                                        ? 'bg-gradient-to-r from-[#ff5a36] to-[#f0441d] bg-[#ff5722]'
+                                      isCurrent
+                                        ? 'bg-[#ff5722]'
                                         : 'bg-white/[0.08]'
                                     }`}
                                   />
@@ -761,16 +767,19 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                         })}
                       </div>
 
-                      {/* X-Axis Labels (Vaulto Glowing Dot for Today) */}
+                      {/* X-Axis Labels (Vaulto Glowing Dot for Today / Current Hour) */}
                       <div className="absolute inset-x-0 bottom-0 flex justify-between px-2">
-                        {volumeData.map((d) => (
-                          <span key={d.key} className={`flex-1 text-center font-mono text-[9px] flex items-center justify-center gap-1 ${
-                            d.label === 'Today' ? 'text-white font-bold' : 'text-zinc-400'
-                          }`}>
-                            {d.label === 'Today' && <span className="w-1.5 h-1.5 rounded-full bg-[#ff5722]" />}
-                            <span>{d.label}</span>
-                          </span>
-                        ))}
+                        {volumeData.map((d) => {
+                          const isHighlight = volumeMode === 'daily' ? d.label === 'Today' : d.isCurrent;
+                          return (
+                            <span key={d.key} className={`flex-1 text-center font-mono text-[9px] flex items-center justify-center gap-1 ${
+                              isHighlight ? 'text-white font-bold' : 'text-zinc-400'
+                            }`}>
+                              {isHighlight && <span className="w-1.5 h-1.5 rounded-full bg-[#ff5722]" />}
+                              <span>{d.label}</span>
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
