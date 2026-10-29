@@ -339,10 +339,10 @@ export default function TrackTicket() {
                   {ticket.assigned_team_name || 'Pending Squad'}
                 </span>
               </div>
-              <div>
+              <div className="min-w-0 col-span-2 sm:col-span-1">
                 <span className="font-bold block text-[10px] uppercase font-mono text-zinc-500">Location</span>
-                <span className="font-bold mt-0.5 flex items-center gap-1.5 truncate text-zinc-200" title={ticket.location}>
-                  <MapPin size={12} className="text-zinc-400 shrink-0" />
+                <span className="font-bold mt-0.5 flex items-start gap-1.5 text-zinc-200 break-words leading-snug" title={ticket.location}>
+                  <MapPin size={12} className="text-zinc-400 shrink-0 mt-0.5" />
                   <span>{ticket.location || 'Campus Facilities'}</span>
                 </span>
               </div>

@@ -14,11 +14,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle, ArrowUpRight, BarChart3, BellRing,
   Building2, CheckCircle2, ChevronRight, ClipboardList,
-  Compass, ExternalLink, Layers, LayoutDashboard,
+  ExternalLink, LayoutDashboard,
   LineChart, Map as MapIcon, Plus, Radio, RefreshCw,
   Search, Settings2, ShieldAlert, ShieldCheck, Sliders,
   Users, UsersRound, Wrench, Moon, Sun, Check, X,
-  ZoomIn, ZoomOut,
+  Zap, Droplet, Hammer, Wifi, Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -53,19 +53,7 @@ const DEPARTMENTS = [
   ['6', 'General Administration'],
 ];
 
-const PAGE_SIZE = 6;
-
-// Preset architectural landmarks on the 2600x2200 campus masterplan
-const MASTERPLAN_LANDMARKS = [
-  { id: 'academic_block', name: 'Academic Complex', top: '56%', left: '55%', category: 'ACADEMIC' },
-  { id: 'canteen_block', name: 'Dining Pavilion', top: '65%', left: '67%', category: 'AMENITY' },
-  { id: 'auditorium_hall', name: 'Auditorium', top: '63%', left: '38%', category: 'AMENITY' },
-  { id: 'ramanujan_house', name: 'Ramanujan House', top: '38%', left: '74%', category: 'HOSTEL' },
-  { id: 'raman_house', name: 'Raman House', top: '52%', left: '80%', category: 'HOSTEL' },
-  { id: 'bhabha_house', name: 'Bhabha House', top: '66%', left: '26%', category: 'HOSTEL' },
-  { id: 'bose_house', name: 'Bose House', top: '75%', left: '36%', category: 'HOSTEL' },
-  { id: 'bldg_1792074173914', name: 'Sports Complex', top: '22%', left: '50%', category: 'SPORTS' },
-];
+const PAGE_SIZE = 15;
 
 export default function ModernOperationsDesk({ mode = 'superadmin' }) {
   const isSuperAdminMode = mode === 'superadmin';
@@ -82,10 +70,6 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toastMsg, setToastMsg] = useState(null);
-
-  // Digital Twin Mini Widget State
-  const [mapLayer, setMapLayer] = useState('vector'); // 'vector' | 'pure2d'
-  const [mapZoom, setMapZoom] = useState(1); // 1 | 1.2 | 1.4
 
   // Filters & UI state
   const [searchQuery, setSearchQuery] = useState('');
@@ -406,37 +390,6 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
 
   const yMax = yAxisTicks[0];
 
-  // Geodetic GPS to mini-map percentage positioning
-  const getPinPosition = useCallback((b, index) => {
-    const landmark = MASTERPLAN_LANDMARKS.find((lm) => lm.id === b.id || b.name.toLowerCase().includes(lm.name.toLowerCase()));
-    if (landmark) {
-      return { top: landmark.top, left: landmark.left };
-    }
-
-    const pin = b.mapPin || b.map_pin || b.trace;
-    if (pin && typeof pin.lat === 'number' && typeof pin.lng === 'number') {
-      const latMin = 21.1270;
-      const latMax = 21.1298;
-      const lngMin = 81.7642;
-      const lngMax = 81.7675;
-      const top = Math.max(12, Math.min(86, 100 - ((pin.lat - latMin) / (latMax - latMin)) * 100));
-      const left = Math.max(10, Math.min(88, ((pin.lng - lngMin) / (lngMax - lngMin)) * 100));
-      return { top: `${top.toFixed(1)}%`, left: `${left.toFixed(1)}%` };
-    }
-
-    const fallbacks = [
-      { top: '56%', left: '55%' },
-      { top: '65%', left: '67%' },
-      { top: '63%', left: '38%' },
-      { top: '38%', left: '74%' },
-      { top: '52%', left: '80%' },
-      { top: '66%', left: '26%' },
-      { top: '75%', left: '36%' },
-      { top: '22%', left: '50%' },
-    ];
-    return fallbacks[index % fallbacks.length];
-  }, []);
-
   return (
     <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-7 space-y-4 max-w-[1720px] mx-auto animate-fade-in">
           {/* Notifications */}
@@ -479,40 +432,34 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       <span className="w-1.5 h-1.5 rounded-full bg-[#ff5722]" />
                       <span>
                         {isSuperAdminMode
-                          ? 'Campus Facilities Directorate · Executive Oversight'
-                          : 'Facilities Operations Desk · Dispatch & Triage'}
+                          ? 'Directorate Console'
+                          : 'Facilities Operations Desk'}
                       </span>
-                    </span>
-                    <span className="text-zinc-600">•</span>
-                    <span className="text-xs font-mono font-bold text-zinc-300">
-                      {isSuperAdminMode ? 'Institutional Apex Clearance' : 'Active Duty Dispatch'}
                     </span>
                   </div>
 
                   <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white">
                     {isSuperAdminMode
-                      ? 'Directorate Command & Governance Matrix'
+                      ? 'Directorate Command Center'
                       : 'Campus Operations & Incident Dispatch'}
                   </h1>
 
                   <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
                     {isSuperAdminMode
-                      ? 'Apex oversight across all 6 campus maintenance trades, institutional governance, user provisioning, and full-spectrum SLA compliance.'
-                      : 'Real-time operational triage, automated NLP work order dispatching, field squad workload rebalancing, and rapid response monitoring.'}
+                      ? 'Executive governance across campus maintenance trades, squad workloads, and verified grievance resolution.'
+                      : 'Real-time operational triage, automated work order dispatching, and rapid response monitoring.'}
                   </p>
 
                   {/* Scope badges */}
                   <div className="pt-1 flex flex-wrap items-center gap-2 text-xs">
-                    <span
-                      className="px-2.5 py-0.5 rounded-lg border border-white/[0.1] bg-white/[0.04] font-mono font-bold text-[11px] text-zinc-200"
-                    >
-                      Console: {isSuperAdminMode ? 'Super Administrator' : 'Operations Administrator'}
+                    <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.1] bg-white/[0.04] font-mono font-bold text-[11px] text-zinc-200">
+                      {isSuperAdminMode ? 'Super Administrator' : 'Operations Administrator'}
                     </span>
                     <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.02] font-mono text-[11px] text-zinc-400">
-                      Domain: 17 Buildings · 6 Trades
+                      17 Campus Buildings
                     </span>
                     <span className="px-2.5 py-0.5 rounded-lg border border-white/[0.08] bg-white/[0.02] font-mono text-[11px] text-zinc-400">
-                      Telemetry: Real-Time Sync
+                      6 Maintenance Trades
                     </span>
                   </div>
                 </div>
@@ -570,12 +517,12 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
             {isSuperAdminMode && (
               <div className="mt-4 pt-4 border-t border-white/[0.08] grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {[
-                  { name: 'Electrical', icon: '⚡' },
-                  { name: 'Plumbing', icon: '💧' },
-                  { name: 'Sanitation', icon: '🧹' },
-                  { name: 'Carpentry', icon: '🪚' },
-                  { name: 'IT Support', icon: '📶' },
-                  { name: 'Administration', icon: '🏢' },
+                  { name: 'Electrical', Icon: Zap },
+                  { name: 'Plumbing', Icon: Droplet },
+                  { name: 'Sanitation', Icon: Sparkles },
+                  { name: 'Carpentry', Icon: Hammer },
+                  { name: 'IT Support', Icon: Wifi },
+                  { name: 'Administration', Icon: Building2 },
                 ].map((trade) => {
                   const count = tickets.filter(
                     (t) =>
@@ -588,7 +535,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       className="p-2 rounded-xl border border-white/[0.06] bg-[#050608]/70 flex items-center justify-between text-xs"
                     >
                       <span className="flex items-center gap-1.5 text-zinc-300 truncate">
-                        <span>{trade.icon}</span>
+                        <trade.Icon size={13} className="text-zinc-400 shrink-0" />
                         <span className="text-[11px] font-semibold truncate">{trade.name}</span>
                       </span>
                       <span
@@ -610,21 +557,21 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
           {/* ========================================================================= */}
           <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
             {/* Card 1: Now Serving */}
-            <article className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-sm">
+            <article className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-4 sm:p-5 flex flex-col justify-between min-h-[110px] shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-zinc-400">Now Serving</span>
                 <div className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
                   <Users size={15} />
                 </div>
               </div>
-              <div className="mt-2.5">
+              <div className="mt-2">
                 <span className="text-2xl font-bold tracking-tight text-white font-mono">{metrics.active}</span>
-                <p className="text-[11px] text-zinc-500 mt-0.5">Across all campus buildings</p>
+                <p className="text-[11px] text-zinc-400 mt-1 leading-normal">Across all campus buildings</p>
               </div>
             </article>
 
             {/* Card 2: Active Alerts */}
-            <article className={`rounded-2xl border transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-sm ${
+            <article className={`rounded-2xl border transition-all backdrop-blur-xl p-4 sm:p-5 flex flex-col justify-between min-h-[110px] shadow-sm ${
               metrics.critical > 0
                 ? 'border-rose-500/30 bg-rose-950/20'
                 : 'border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14]'
@@ -641,199 +588,56 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   {metrics.critical > 0 ? <AlertTriangle size={15} /> : <CheckCircle2 size={15} />}
                 </div>
               </div>
-              <div className="mt-2.5">
+              <div className="mt-2">
                 <span className={`text-2xl font-bold tracking-tight font-mono ${metrics.critical > 0 ? 'text-rose-300' : 'text-white'}`}>
                   {metrics.critical}
                 </span>
-                <p className="text-[11px] text-zinc-500 mt-0.5">
+                <p className="text-[11px] text-zinc-400 mt-1 leading-normal">
                   {metrics.critical > 0 ? `${metrics.critical} emergency hazards` : 'All clear · 0 emergencies'}
                 </p>
               </div>
             </article>
 
             {/* Card 3: Sensors & Active Squads */}
-            <article className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-sm">
+            <article className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-4 sm:p-5 flex flex-col justify-between min-h-[110px] shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-zinc-400">Sensors &amp; Squads</span>
                 <div className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
                   <Radio size={15} />
                 </div>
               </div>
-              <div className="mt-2.5">
+              <div className="mt-2">
                 <span className="text-2xl font-bold tracking-tight text-white font-mono">{squads.length || 8}</span>
-                <p className="text-[11px] text-zinc-500 mt-0.5">
+                <p className="text-[11px] text-zinc-400 mt-1 leading-normal">
                   {squads.filter((s) => s.assigned_technicians > 0).length || squads.length || 8} active teams online
                 </p>
               </div>
             </article>
 
             {/* Card 4: Incident Governance */}
-            <article className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-4.5 relative overflow-hidden shadow-sm">
+            <article className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-4 sm:p-5 flex flex-col justify-between min-h-[110px] shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-zinc-400">Open Incidents</span>
                 <div className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-300 flex items-center justify-center">
                   <ClipboardList size={15} />
                 </div>
               </div>
-              <div className="mt-2.5">
+              <div className="mt-2">
                 <span className="text-2xl font-bold tracking-tight text-white font-mono">{metrics.escalated}</span>
-                <p className="text-[11px] text-zinc-500 mt-0.5">
+                <p className="text-[11px] text-zinc-400 mt-1 leading-normal">
                   {metrics.escalated ? `${metrics.escalated} escalated for decision` : 'All requests within SLA'}
                 </p>
               </div>
             </article>
           </section>
 
-          {/* ROW 2: MIDDLE SPLIT (Left: Map & Volume | Right: Overview & Donut) */}
+          {/* ROW 2: MIDDLE SPLIT (Left: Request Volume | Right: Directorate Overview & Resolution) */}
           {/* ========================================================================= */}
           <section className="grid gap-4 lg:grid-cols-12">
-            {/* LEFT COLUMN (lg:col-span-5) */}
-            <div className="space-y-4 lg:col-span-5">
-              {/* Mini Campus Map Widget: Architectural Dark Masterplan */}
-              <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-4 relative overflow-hidden">
-                <div className="flex items-center justify-between mb-2.5">
-                  <div className="flex items-center gap-2">
-                    <Compass size={16} className="text-indigo-400" />
-                    <span className="text-xs font-bold text-white tracking-tight">Campus Digital Twin</span>
-                  </div>
-                  <Link
-                    to="/map"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
-                  >
-                    Full Twin <ArrowUpRight size={12} />
-                  </Link>
-                </div>
-
-                {/* Map Graphic Preview with Real Masterplan Background & Apple Maps-Style Pins */}
-                <div className="relative h-52 w-full rounded-xl overflow-hidden border border-white/[0.08] bg-[#050608]">
-                  {/* Real Dark Architectural Masterplan Imagery */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-all duration-300"
-                    style={{
-                      backgroundImage: `url(${mapLayer === 'vector' ? '/iiitnr_vector_masterplan_dark.jpg' : '/iiitnr_pure_2d_masterplan_dark.jpg'})`,
-                      transform: `scale(${mapZoom})`,
-                    }}
-                  />
-
-                  {/* Dark Vignette / Contrast Overlay for Apple Maps aesthetic */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#070a10]/80 via-transparent to-[#070a10]/30 pointer-events-none" />
-
-                  {/* Floating Architectural Landmark Labels (Apple Maps Style) */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-[48%] left-[54%] -translate-x-1/2 -translate-y-1/2 text-[9px] font-extrabold text-white/90 bg-[#0b0f19]/80 px-2 py-0.5 rounded-md border border-white/[0.1] backdrop-blur-xs tracking-tight shadow-md">
-                      Academic Complex
-                    </div>
-                    <div className="absolute top-[58%] left-[72%] -translate-x-1/2 -translate-y-1/2 text-[9px] font-semibold text-slate-300 bg-[#0b0f19]/75 px-1.5 py-0.5 rounded-md border border-white/[0.08] backdrop-blur-xs shadow-sm">
-                      Canteen
-                    </div>
-                    <div className="absolute top-[58%] left-[34%] -translate-x-1/2 -translate-y-1/2 text-[9px] font-semibold text-slate-300 bg-[#0b0f19]/75 px-1.5 py-0.5 rounded-md border border-white/[0.08] backdrop-blur-xs shadow-sm">
-                      Auditorium
-                    </div>
-                    <div className="absolute top-[32%] left-[78%] -translate-x-1/2 -translate-y-1/2 text-[8px] font-medium text-slate-400 bg-[#0b0f19]/60 px-1 py-0.5 rounded border border-white/[0.05]">
-                      Hostels
-                    </div>
-                  </div>
-
-                  {/* Interactive Dynamic Building Pins with Real Active Ticket Badges */}
-                  {buildingStructures.slice(0, 9).map((b, i) => {
-                    const pos = getPinPosition(b, i);
-                    const isSelected = selectedBuildingId === b.id;
-                    return (
-                      <button
-                        key={b.id}
-                        type="button"
-                        onClick={() => setSelectedBuildingId(isSelected ? null : b.id)}
-                        className={`absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 hover:scale-125 z-10 cursor-pointer ${
-                          isSelected ? 'scale-125 z-20' : ''
-                        }`}
-                        style={{ top: pos.top, left: pos.left }}
-                        title={`${b.name} (${b.activeTickets} active requests)`}
-                      >
-                        <div className="relative group">
-                          {/* Apple Maps Style Glowing Pin */}
-                          <div
-                            className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold shadow-lg transition-all ${
-                              b.criticalTickets > 0
-                                ? 'bg-rose-500 text-white ring-4 ring-rose-500/30 animate-pulse'
-                                : b.activeTickets > 0
-                                ? 'bg-blue-500 text-white ring-4 ring-blue-500/25 shadow-[0_0_12px_rgba(59,130,246,0.6)]'
-                                : 'bg-zinc-800 text-zinc-300 border border-white/[0.15]'
-                            }`}
-                          >
-                            {b.activeTickets > 0 ? (
-                              <span className="h-2 w-2 rounded-full bg-white" />
-                            ) : (
-                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-
-                  {/* Map Controls (Top-Right Layers, Bottom-Right Compass & Zoom) */}
-                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-20">
-                    <button
-                      type="button"
-                      onClick={() => setMapLayer(mapLayer === 'vector' ? 'pure2d' : 'vector')}
-                      className="rounded-lg bg-[#0b0f19]/85 p-1.5 border border-white/[0.1] text-slate-300 hover:text-white backdrop-blur-xs transition cursor-pointer shadow-sm"
-                      title={`Switch masterplan layer (Current: ${mapLayer})`}
-                    >
-                      <Layers size={13} />
-                    </button>
-                  </div>
-
-                  <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 z-20">
-                    {/* Compass Needle */}
-                    <button
-                      type="button"
-                      onClick={() => setMapZoom(1)}
-                      className="flex items-center justify-center h-6 w-6 rounded-full bg-[#0b0f19]/85 border border-white/[0.1] text-[9px] font-mono font-bold text-rose-400 backdrop-blur-xs transition hover:scale-105 cursor-pointer shadow-sm"
-                      title="Reset view (North)"
-                    >
-                      N
-                    </button>
-                    {/* Zoom Pills */}
-                    <div className="flex items-center rounded-lg bg-[#0b0f19]/85 border border-white/[0.1] backdrop-blur-xs overflow-hidden shadow-sm">
-                      <button
-                        type="button"
-                        onClick={() => setMapZoom((z) => Math.max(1, z - 0.2))}
-                        className="px-1.5 py-1 text-slate-300 hover:text-white hover:bg-white/[0.05] transition cursor-pointer"
-                        title="Zoom out"
-                      >
-                        <ZoomOut size={11} />
-                      </button>
-                      <span className="text-[9px] font-mono text-slate-400 px-1">
-                        {Math.round(mapZoom * 100)}%
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setMapZoom((z) => Math.min(1.4, z + 0.2))}
-                        className="px-1.5 py-1 text-slate-300 hover:text-white hover:bg-white/[0.05] transition cursor-pointer"
-                        title="Zoom in"
-                      >
-                        <ZoomIn size={11} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Bottom-Left Campus Masterplan Tag */}
-                  <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-lg bg-[#0b0f19]/90 px-2 py-1 border border-white/[0.08] backdrop-blur-xs text-[10px] font-mono text-slate-300 shadow-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>IIIT-NR Digital Twin</span>
-                  </div>
-
-                  {selectedBuildingId && (
-                    <div className="absolute top-2.5 left-2.5 rounded-lg bg-[#050608]/90 border border-white/20 px-2 py-1 text-[10px] font-semibold text-white flex items-center gap-1 shadow-md">
-                      <span>Filtered: {buildings.find((x) => x.id === selectedBuildingId)?.shortName || 'Zone'}</span>
-                      <button onClick={() => setSelectedBuildingId(null)} className="ml-1 font-bold hover:text-white cursor-pointer">✕</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
+            {/* LEFT COLUMN: Request Volume Chart (lg:col-span-6) */}
+            <div className="lg:col-span-6">
               {/* Stacked Traffic Volume Chart - Real Daily Telemetry */}
-              <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-5 relative overflow-hidden">
+              <div className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-5 relative overflow-hidden h-full flex flex-col justify-between shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <div>
                     <h3 className="text-xs font-bold text-white tracking-tight">Request Volume</h3>
@@ -881,14 +685,14 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                   {/* Grid Area with Left Y-Axis */}
                   <div className="flex">
                     {/* Left Y-Axis Labels (Dynamic Real Scale) */}
-                    <div className="flex flex-col justify-between h-44 pr-2.5 text-right font-mono text-[9px] text-zinc-400 select-none pb-5">
+                    <div className="flex flex-col justify-between h-52 pr-2.5 text-right font-mono text-[9px] text-zinc-400 select-none pb-5">
                       {yAxisTicks.map((tick, i) => (
                         <span key={i}>{tick}</span>
                       ))}
                     </div>
 
                     {/* Chart Canvas with Dashed Horizontal Gridlines */}
-                    <div className="relative flex-1 h-44">
+                    <div className="relative flex-1 h-52">
                       {/* Horizontal Dashed Gridlines */}
                       <div className="absolute inset-x-0 top-0 border-b border-dashed border-white/[0.08]" />
                       <div className="absolute inset-x-0 top-1/4 border-b border-dashed border-white/[0.08]" />
@@ -993,10 +797,10 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
               </div>
             </div>
 
-            {/* RIGHT COLUMN (lg:col-span-7) */}
-            <div className="space-y-4 lg:col-span-7">
+            {/* RIGHT COLUMN: Directorate Overview & Resolution Rate (lg:col-span-6) */}
+            <div className="space-y-4 lg:col-span-6">
               {/* Overview & Circular Donut Gauge Card */}
-              <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-5 relative overflow-hidden">
+              <div className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-5 relative overflow-hidden shadow-sm">
                 <div className="grid gap-5 md:grid-cols-[1fr_210px]">
                   {/* Left: Overview details + 4 mini stat boxes */}
                   <div>
@@ -1007,7 +811,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       <button
                         onClick={loadData}
                         disabled={loading}
-                        className="text-slate-400 hover:text-white transition cursor-pointer"
+                        className="text-zinc-400 hover:text-white transition cursor-pointer"
                         title="Refresh telemetry"
                       >
                         <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
@@ -1016,14 +820,14 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     <h2 className="text-base font-bold text-white tracking-tight">
                       IIIT Naya Raipur Public Works
                     </h2>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-zinc-400 mt-0.5">
                       facilities@iiitnr.edu.in · Sector 24, Atal Nagar
                     </p>
 
                     {/* 4 Mini Stat Boxes */}
                     <div className="mt-4 grid grid-cols-2 gap-2.5">
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
-                        <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
+                        <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]">
                           <Users size={12} className="text-blue-400" />
                           <span>Logged Today</span>
                         </div>
@@ -1031,7 +835,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       </div>
 
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
-                        <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
+                        <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]">
                           <BarChart3 size={12} className="text-indigo-400" />
                           <span>Working Now</span>
                         </div>
@@ -1039,7 +843,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       </div>
 
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
-                        <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
+                        <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]">
                           <LineChart size={12} className="text-emerald-400" />
                           <span>SLA On-Track</span>
                         </div>
@@ -1047,7 +851,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                       </div>
 
                       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
-                        <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
+                        <div className="flex items-center gap-1.5 text-zinc-400 text-[10px]">
                           <Building2 size={12} className="text-purple-400" />
                           <span>Campus Assets</span>
                         </div>
@@ -1058,7 +862,7 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
 
                   {/* Right: Multi-Segmented Radial Donut Gauge */}
                   <div className="flex flex-col items-center justify-center border-t border-white/[0.06] pt-4 md:border-t-0 md:border-l md:pl-5">
-                    <p className="text-xs font-semibold text-slate-300 mb-2">Facility Utilization</p>
+                    <p className="text-xs font-semibold text-zinc-300 mb-2">Facility Utilization</p>
                     <div className="relative h-28 w-28">
                       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90 overflow-visible">
                         <defs>
@@ -1084,75 +888,89 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-xl font-black text-white">{metrics.resolutionRate}%</span>
-                        <span className="text-[9px] uppercase tracking-wider text-slate-400">Resolved</span>
+                        <span className="text-xl font-black text-white font-mono">{metrics.resolutionRate}%</span>
+                        <span className="text-[9px] uppercase tracking-wider text-zinc-400">Resolved</span>
                       </div>
                     </div>
-                    <span className="mt-2 text-[11px] font-medium text-slate-400">
+                    <span className="mt-2 text-[11px] font-medium text-zinc-400">
                       Target SLA &gt; 90%
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Adoption / Resolution Status with Segmented Capsule Pills (Matching Reference) */}
-              <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#1a1c22] to-[#14151a] backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.07)] p-5 relative overflow-hidden">
+              {/* Resolution Status & Workload Proportions */}
+              <div className="rounded-2xl border border-white/[0.08] bg-[#14161f]/90 hover:border-white/[0.14] transition-all backdrop-blur-xl p-5 relative overflow-hidden shadow-sm">
                 <div className="grid gap-5 md:grid-cols-[180px_1fr]">
                   {/* Left: Resolution Rate */}
                   <div className="border-b border-white/[0.06] pb-4 md:border-b-0 md:border-r md:pr-5">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                      Member Adoption
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                      Resolution Rate
                     </span>
-                    <div className="mt-2 text-4xl font-black tracking-tight text-white">
+                    <div className="mt-2 text-4xl font-black tracking-tight text-white font-mono">
                       {metrics.resolutionRate}%
                     </div>
-                    <p className="mt-1 text-xs text-slate-400">
-                      Percentage of joined members &amp; resolved tickets
+                    <p className="mt-1 text-xs text-zinc-400">
+                      {metrics.resolved} of {metrics.total} grievances resolved
                     </p>
                   </div>
 
-                  {/* Right: Adoption Status & 20 Capsule Pills */}
+                  {/* Right: Workload Distribution & 20 Capsule Pills */}
                   <div className="flex flex-col justify-between">
                     <div>
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                          Adoption Status
+                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                          Workload Distribution
                         </span>
-                        <div className="flex items-center gap-3 text-xs text-slate-300">
+                        <div className="flex items-center gap-3 text-xs text-zinc-300">
                           <span className="flex items-center gap-1.5">
-                            <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]" /> Active: {metrics.active}
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
+                            <span>Resolved: {metrics.resolved}</span>
                           </span>
                           <span className="flex items-center gap-1.5">
-                            <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" /> Pending: {metrics.progress}
+                            <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+                            <span>In Progress: {metrics.progress}</span>
                           </span>
                           <span className="flex items-center gap-1.5">
-                            <span className="h-2 w-2 rounded-full border border-slate-500" /> Remaining: {Math.max(0, metrics.total - metrics.resolved - metrics.progress)}
+                            <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]" />
+                            <span>Queued: {Math.max(0, metrics.total - metrics.resolved - metrics.progress)}</span>
                           </span>
                         </div>
                       </div>
-                      <p className="mt-1 text-xs text-slate-400">
-                        Overview of active members, pending repairs, and campus resolution capacity.
+                      <p className="mt-1 text-xs text-zinc-400">
+                        Proportional queue status across campus maintenance squads.
                       </p>
                     </div>
 
                     {/* The 20 Capsule Pill Segmented Progress Bar */}
-                    <div className="mt-4 flex items-center gap-1.5 overflow-x-auto py-1">
+                    <div className="mt-4 flex items-center gap-1.5 py-1">
                       {Array.from({ length: 20 }).map((_, idx) => {
-                        const ratio = idx / 20;
-                        const resolvedRatio = metrics.total > 0 ? metrics.resolved / metrics.total : 0;
-                        const workingRatio = metrics.total > 0 ? (metrics.resolved + metrics.progress) / metrics.total : 0;
+                        const total = metrics.total || tickets.length || 0;
+                        const resolvedPills = total > 0 ? Math.round((metrics.resolved / total) * 20) : 0;
+                        const progressPills = total > 0 ? Math.round((metrics.progress / total) * 20) : 0;
+                        const adjustedProgress = (metrics.progress > 0 && progressPills === 0 && resolvedPills < 20) ? 1 : progressPills;
+                        const adjustedResolved = Math.min(resolvedPills, 20 - adjustedProgress);
 
-                        let pillClass = 'bg-[#18202f] border border-white/[0.04]'; // Remaining
-                        if (ratio < resolvedRatio) {
-                          pillClass = 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]';
-                        } else if (ratio < workingRatio) {
-                          pillClass = 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]';
+                        let pillClass = 'bg-white/[0.06] border border-white/[0.04]';
+                        let title = 'Unallocated';
+                        if (total > 0) {
+                          if (idx < adjustedResolved) {
+                            pillClass = 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]';
+                            title = 'Resolved';
+                          } else if (idx < adjustedResolved + adjustedProgress) {
+                            pillClass = 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]';
+                            title = 'In Progress';
+                          } else {
+                            pillClass = 'bg-blue-500/80 shadow-[0_0_6px_rgba(59,130,246,0.4)]';
+                            title = 'Queued';
+                          }
                         }
 
                         return (
                           <div
                             key={idx}
-                            className={`h-8 w-3 shrink-0 rounded-full transition-all duration-300 ${pillClass}`}
+                            title={title}
+                            className={`h-8 flex-1 min-w-[6px] max-w-[14px] rounded-full transition-all duration-300 ${pillClass}`}
                           />
                         );
                       })}
@@ -1413,20 +1231,20 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                     ) : (
                       paginatedItems.map((ticket) => (
                         <tr key={ticket.id} className="group hover:bg-white/[0.02] transition">
-                          <td className="py-3.5 px-3">
+                          <td className="py-3.5 px-3 max-w-[240px]">
                             <Link
                               to={`/track?code=${ticket.tracking_code}`}
                               className="font-mono text-xs font-bold text-blue-400 hover:text-blue-300 hover:underline"
                             >
                               {ticket.tracking_code}
                             </Link>
-                            <p className="mt-0.5 max-w-[220px] truncate text-xs font-semibold text-white" title={ticket.title}>
+                            <p className="mt-0.5 text-xs font-semibold text-white leading-snug break-words" title={ticket.title}>
                               {ticket.title}
                             </p>
                           </td>
 
-                          <td className="py-3.5 px-3">
-                            <p className="max-w-[160px] truncate text-xs text-slate-300">
+                          <td className="py-3.5 px-3 max-w-[220px]">
+                            <p className="text-xs text-slate-300 leading-snug break-words" title={ticket.location}>
                               {ticket.location || 'Campus location pending'}
                             </p>
                           </td>
