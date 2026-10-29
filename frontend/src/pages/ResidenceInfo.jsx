@@ -1,6 +1,6 @@
 /**
- * SmartComplaintHandler - Dedicated First-Time Residence Onboarding Page
- * Glossy Obsidian Command Desk Standard with Smoked Black Glass
+ * SmartComplaintHandler - Clean & Direct Residence Onboarding Page
+ * Streamlined: Select Hostel + Enter Room Number with zero auto-suggest clutter.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -9,9 +9,6 @@ import { isUndergradHostelStudent, resolveIiitnrProfileFromEmail } from '../api/
 import { Home, MapPin, GraduationCap, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import {
   getHostelBuildings,
-  getFloorsForBuilding,
-  getRoomsForBuilding,
-  inferFloorFromItem,
   fetchAndCacheCampusBuildings,
   IIITNR_MAP_UPDATED_EVENT,
 } from '../data/iiitnrCampusData';
@@ -31,17 +28,8 @@ export default function ResidenceInfo() {
     return () => window.removeEventListener(IIITNR_MAP_UPDATED_EVENT, onMapUpdated);
   }, []);
 
-  const hostels = hostelList;
-
-  const [selectedHostel, setSelectedHostel] = useState(
-    currentUser?.hostel_name || ''
-  );
-  const [selectedFloor, setSelectedFloor] = useState(() => {
-    return inferFloorFromItem(currentUser?.room_number) || '';
-  });
-  const [selectedRoomNumber, setSelectedRoomNumber] = useState(
-    currentUser?.room_number || ''
-  );
+  const [selectedHostel, setSelectedHostel] = useState(currentUser?.hostel_name || '');
+  const [selectedRoomNumber, setSelectedRoomNumber] = useState(currentUser?.room_number || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
 
   useEffect(() => {
@@ -50,8 +38,6 @@ export default function ResidenceInfo() {
     }
     if (currentUser?.room_number && !selectedRoomNumber) {
       setSelectedRoomNumber(currentUser.room_number);
-      const inferred = inferFloorFromItem(currentUser.room_number);
-      if (inferred && !selectedFloor) setSelectedFloor(inferred);
     }
     if (currentUser?.phone && !phone) {
       setPhone(currentUser.phone);
@@ -74,115 +60,15 @@ export default function ResidenceInfo() {
     return resolveIiitnrProfileFromEmail(cleanEmail, currentUser?.name);
   }, [cleanEmail, currentUser?.name]);
 
-  // Comprehensive flexible floors: standard campus levels plus any GIS database floors
-  const availableFloors = useMemo(() => {
-    if (!selectedHostel || selectedHostel === 'Day Scholar (Off-Campus)') return [];
-    const dbFloors = getFloorsForBuilding(selectedHostel, hostels) || [];
-
-    const standardFloors = [
-      { id: 'G', label: 'Ground Floor (G)' },
-      { id: '1', label: 'Floor 1 (1xx)' },
-      { id: '2', label: 'Floor 2 (2xx)' },
-      { id: '3', label: 'Floor 3 (3xx)' },
-      { id: '4', label: 'Floor 4 (4xx)' },
-      { id: '5', label: 'Floor 5 (5xx)' },
-      { id: '6', label: 'Floor 6 (6xx)' },
-      { id: '7', label: 'Floor 7 (7xx)' },
-      { id: '8', label: 'Floor 8 (8xx)' },
-    ];
-
-    const floorMap = new Map();
-    standardFloors.forEach((sf) => floorMap.set(String(sf.id).toUpperCase(), sf));
-    dbFloors.forEach((df) => {
-      const key = String(df.id).toUpperCase();
-      if (!floorMap.has(key)) {
-        floorMap.set(key, { id: String(df.id), label: df.label || `Floor ${df.id}` });
-      }
-    });
-
-    return Array.from(floorMap.values());
-  }, [selectedHostel, hostels]);
-
-  const availableRooms = useMemo(() => {
-    if (!selectedHostel || !selectedFloor) return [];
-    return getRoomsForBuilding(selectedHostel, selectedFloor, null, hostels);
-  }, [selectedHostel, selectedFloor, hostels]);
-
-  const filteredRooms = useMemo(() => {
-    const onlyRooms = availableRooms.filter((r) => r.includes('Room') || r.includes('Suite'));
-    return onlyRooms.length > 0 ? onlyRooms : availableRooms;
-  }, [availableRooms]);
-
-  const roomSuggestions = useMemo(() => {
-    if (!selectedHostel || selectedHostel === 'Day Scholar (Off-Campus)') return [];
-
-    // 1. From database / GIS if rooms are explicitly defined
-    const gisRooms = filteredRooms.filter(
-      (r) => !r.toLowerCase().includes('washroom') && !r.toLowerCase().includes('cooler')
-    );
-    if (gisRooms.length > 0) return gisRooms;
-
-    // 2. Dynamic suggestions if a floor is selected
-    if (selectedFloor) {
-      const cleanFloor = String(selectedFloor).toUpperCase();
-      if (cleanFloor === 'G' || cleanFloor === 'GROUND') {
-        return [
-          'Room G01',
-          'Room G02',
-          'Room G05',
-          'Room G10',
-          'Room G12',
-          'G01',
-          'G10',
-          'G12',
-        ];
-      }
-      if (!isNaN(Number(cleanFloor))) {
-        const fl = Number(cleanFloor);
-        const base = fl * 100;
-        return [
-          `Room ${base + 1}`,
-          `Room ${base + 2}`,
-          `Room ${base + 5}`,
-          `Room ${base + 12}`,
-          `Room ${base + 20}`,
-          `Room ${base + 31}`,
-          `${base + 1}`,
-          `${base + 12}`,
-          `${base + 31}`,
-        ];
-      }
-    }
-
-    // 3. Fallback general suggestions if no floor chosen yet
-    return [
-      'Room 101',
-      'Room 201',
-      'Room 204',
-      'Room 301',
-      'Room 312',
-      'Room 331',
-      'Room 401',
-      'Room 501',
-      '331',
-      '204',
-    ];
-  }, [filteredRooms, selectedHostel, selectedFloor]);
-
   const handleHostelChange = (newHostel) => {
     setSelectedHostel(newHostel);
     if (newHostel === 'Day Scholar (Off-Campus)') {
       setSelectedRoomNumber('Day Scholar');
-      setSelectedFloor('');
       return;
     }
     if (selectedRoomNumber === 'Day Scholar') {
       setSelectedRoomNumber('');
     }
-  };
-
-  const handleFloorChange = (newFloor) => {
-    setSelectedFloor(newFloor);
   };
 
   useEffect(() => {
@@ -242,16 +128,12 @@ export default function ResidenceInfo() {
       setSavedSuccess(true);
       setTimeout(() => {
         navigate('/submit', { replace: true });
-      }, 1000);
+      }, 800);
     } catch (err) {
       setError(err.message || 'Failed to save residence info.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSkipOrProceed = () => {
-    navigate('/submit', { replace: true });
   };
 
   const resolvedUser =
@@ -274,50 +156,52 @@ export default function ResidenceInfo() {
 
   if (!resolvedUser && !tokenExists) return null;
 
+  const isDayScholar = selectedHostel === 'Day Scholar (Off-Campus)';
+
   return (
     <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden bg-[#050608] text-zinc-100 font-sans antialiased selection:bg-white/20 selection:text-white">
       {/* Subtle Specular Ambient */}
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
 
-      <div className="relative z-10 w-full max-w-lg space-y-6">
-        {/* Emblem & Institutional Header */}
-        <div className="text-center space-y-3">
+      <div className="relative z-10 w-full max-w-md space-y-5">
+        {/* Emblem & Header */}
+        <div className="text-center space-y-2.5">
           <div className="relative inline-flex p-3 rounded-2xl bg-white/[0.04] border border-white/[0.12] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_6px_20px_rgba(0,0,0,0.5)]">
             <img
               src="/iiitnr_logo.png"
               alt="IIIT Naya Raipur"
-              className="h-12 w-auto object-contain drop-shadow"
+              className="h-10 w-auto object-contain drop-shadow"
             />
           </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-2 border border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider mb-1.5 border border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Mandatory Residence Setup
+              Residence Setup
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-white">
-              Hostel &amp; Residence Details
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Hostel &amp; Room Details
             </h1>
-            <p className="text-xs font-mono text-zinc-400 tracking-wide">
-              One-time verification for IIIT-NR undergraduate B.Tech scholars
+            <p className="text-xs text-zinc-400">
+              Set your campus room for fast 1-tap grievance filing
             </p>
           </div>
         </div>
 
         {/* Smoked Black Glass Main Card */}
-        <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-6 sm:p-8 space-y-5 relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+        <div className="rounded-2xl border border-white/[0.12] bg-[#0c0d12]/90 backdrop-blur-xl p-5 sm:p-6 space-y-4 relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
           <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
-          {/* Already Completed Banner */}
+          {/* Already Completed Notice */}
           {alreadyCompleted && (
-            <div className="p-3.5 rounded-xl border border-white/20 bg-white/[0.05] text-xs flex items-center justify-between text-zinc-200">
+            <div className="p-3 rounded-xl border border-white/20 bg-white/[0.05] text-xs flex items-center justify-between text-zinc-200">
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-                <span>Your residence info is already verified. You may update it below or proceed.</span>
+                <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                <span>Verified room: <b>{currentUser.hostel_name} · {currentUser.room_number}</b></span>
               </div>
               <button
                 type="button"
-                onClick={handleSkipOrProceed}
-                className="px-2.5 py-1 text-[11px] font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition-colors cursor-pointer shrink-0 shadow-xs"
+                onClick={() => navigate('/submit', { replace: true })}
+                className="px-2.5 py-1 text-[11px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors cursor-pointer shrink-0 shadow-xs"
               >
                 Proceed →
               </button>
@@ -325,53 +209,40 @@ export default function ResidenceInfo() {
           )}
 
           {error && (
-            <div className="p-3.5 rounded-xl border border-rose-500/40 bg-rose-950/50 text-xs font-semibold text-rose-300 flex items-center gap-2">
-              <AlertTriangle size={16} className="text-rose-400 shrink-0" />
+            <div className="p-3 rounded-xl border border-rose-500/40 bg-rose-950/50 text-xs font-semibold text-rose-300 flex items-center gap-2">
+              <AlertTriangle size={15} className="text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {savedSuccess && (
-            <div className="p-3.5 rounded-xl border border-emerald-500/40 bg-emerald-950/60 text-xs font-bold text-emerald-200 flex items-center gap-2 animate-fade-in">
-              <CheckCircle2 size={16} className="text-emerald-400" />
-              <span>Residence verified successfully! Redirecting to Campus Portal...</span>
+            <div className="p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/60 text-xs font-bold text-emerald-200 flex items-center gap-2">
+              <CheckCircle2 size={15} className="text-emerald-400" />
+              <span>Residence saved! Entering portal...</span>
             </div>
           )}
 
-          {/* Student Verified Roll Card */}
-          <div className="p-4 rounded-xl border border-white/[0.08] bg-[#07080c] space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
-                Student Account
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 uppercase tracking-wider">
-                <GraduationCap size={12} />
-                <span>Undergrad Scholar</span>
-              </span>
+          {/* Student Account Info */}
+          <div className="p-3 rounded-xl border border-white/[0.08] bg-[#07080c] flex items-center justify-between text-xs">
+            <div>
+              <div className="font-bold text-white">
+                {currentUser?.name || studentMeta?.name || 'IIIT-NR Student'}
+              </div>
+              <div className="font-mono text-zinc-400 text-[11px]">
+                {currentUser?.email}
+              </div>
             </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <div>
-                <div className="text-sm font-bold text-white">
-                  {currentUser.name || studentMeta?.name || 'IIIT-NR Student'}
-                </div>
-                <div className="text-xs font-mono text-zinc-400">
-                  {currentUser.email}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs font-bold text-white font-mono">
-                  {currentUser.department || studentMeta?.department_name || 'B.Tech Program'}
-                </div>
-                <div className="text-[11px] text-zinc-500 font-mono">
-                  Institutional Resident
-                </div>
-              </div>
+            <div className="text-right">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 uppercase">
+                <GraduationCap size={11} />
+                <span>{currentUser?.department || studentMeta?.department_name || 'B.Tech'}</span>
+              </span>
             </div>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Clean Form */}
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            {/* Hostel Dropdown */}
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                 Hostel Residence House <span className="text-white">*</span>
@@ -380,12 +251,12 @@ export default function ResidenceInfo() {
                 value={selectedHostel}
                 onChange={(e) => handleHostelChange(e.target.value)}
                 required
-                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white px-3.5 py-2.5 text-xs sm:text-sm focus:border-white/30 focus:outline-none transition-all"
+                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white px-3.5 py-2.5 text-xs sm:text-sm focus:border-white/30 focus:outline-none transition-all cursor-pointer"
               >
                 <option value="" disabled className="bg-[#050608] text-zinc-500">
-                  Select Hostel / Residence...
+                  Select your Hostel...
                 </option>
-                {hostels.map((h) => (
+                {hostelList.map((h) => (
                   <option key={h.id} value={h.name} className="bg-[#050608] text-white">
                     {h.name}
                   </option>
@@ -396,156 +267,59 @@ export default function ResidenceInfo() {
               </select>
             </div>
 
-            {selectedHostel && selectedHostel !== 'Day Scholar (Off-Campus)' && (
-              <div className="p-4 rounded-xl border border-white/[0.08] bg-[#07080c] space-y-3.5">
-                {/* Flexible Floor Selector */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-semibold text-zinc-300">
-                      Floor <span className="text-zinc-500 font-normal">(Optional helper for suggestions)</span>
-                    </label>
-                    {selectedFloor && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedFloor('')}
-                        className="text-[10px] font-mono text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
-                      >
-                        Clear Floor
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Floor Quick Pills */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {['G', '1', '2', '3', '4', '5', '6'].map((flId) => (
-                      <button
-                        key={flId}
-                        type="button"
-                        onClick={() => setSelectedFloor(selectedFloor === flId ? '' : flId)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer border ${
-                          selectedFloor === flId
-                            ? 'bg-indigo-600/30 text-indigo-200 border-indigo-400/50 font-bold shadow-[inset_0_1px_0_0_rgba(129,140,248,0.3)]'
-                            : 'bg-[#050608] text-zinc-400 border-white/[0.08] hover:border-white/20 hover:text-white'
-                        }`}
-                      >
-                        {flId === 'G' ? 'Ground' : `Floor ${flId}`}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Floor Dropdown for full list */}
-                  <select
-                    value={selectedFloor}
-                    onChange={(e) => handleFloorChange(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white px-3 py-2 text-xs focus:border-white/30"
-                  >
-                    <option value="">Select Floor (or use pills above)...</option>
-                    {availableFloors.map((f) => (
-                      <option key={f.id} value={f.id} className="bg-[#050608] text-white">
-                        {f.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Freeform Room Number Input */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-semibold text-zinc-300">
-                    Room Number <span className="text-white">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    list="res-room-options"
-                    required
-                    placeholder="e.g. 331, Room 331, B-312, Suite 4"
-                    value={selectedRoomNumber}
-                    onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3.5 py-2.5 text-xs sm:text-sm font-mono focus:border-white/30 focus:outline-none"
-                  />
-                  <datalist id="res-room-options">
-                    {roomSuggestions.map((r) => (
-                      <option key={r} value={r} />
-                    ))}
-                  </datalist>
-                  <p className="text-[10px] font-mono text-zinc-500">
-                    Freeform room number — enter any custom format (e.g. <span className="text-zinc-300">331</span>, <span className="text-zinc-300">Room 331</span>, <span className="text-zinc-300">B-312</span>), or click a suggestion below:
-                  </p>
-                </div>
-
-                {/* Room Suggestions Chips */}
-                {roomSuggestions.length > 0 && (
-                  <div className="pt-2 border-t border-white/[0.06]">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider block mb-1.5 text-zinc-400">
-                      Room Suggestions ({selectedFloor ? (selectedFloor === 'G' ? 'Ground Floor' : `Floor ${selectedFloor}`) : 'Common Rooms'}) — Click to Fill:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
-                      {roomSuggestions.slice(0, 20).map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => setSelectedRoomNumber(r)}
-                          className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors cursor-pointer border ${
-                            selectedRoomNumber === r
-                              ? 'bg-indigo-600/30 text-indigo-200 border-indigo-400/50 font-bold shadow-[inset_0_1px_0_0_rgba(129,140,248,0.2)]'
-                              : 'bg-[#050608] text-zinc-300 border-white/[0.08] hover:border-white/20 hover:text-white'
-                          }`}
-                        >
-                          {r}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            {/* Simple Room Number Input (hidden only for Day Scholar) */}
+            {!isDayScholar && (
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                  Room Number <span className="text-white">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 331, 204, B-312"
+                  value={selectedRoomNumber}
+                  onChange={(e) => setSelectedRoomNumber(e.target.value)}
+                  className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3.5 py-2.5 text-xs sm:text-sm font-mono focus:border-white/30 focus:outline-none"
+                />
               </div>
             )}
 
-            {!selectedHostel && (
-              <div className="p-4 rounded-xl border border-dashed border-white/10 bg-white/[0.02] text-center text-xs text-zinc-400">
-                Please select your Hostel Residence House above to enter your room details.
-              </div>
-            )}
-
+            {/* Optional Phone Number */}
             <div>
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-zinc-300">
                   Contact Phone Number
                 </label>
-                <span className="text-[10px] font-mono text-zinc-500">Optional for SMS/Delivery</span>
+                <span className="text-[10px] font-mono text-zinc-500">Optional</span>
               </div>
               <input
                 type="tel"
                 placeholder="+91 98765 43210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-xl border border-white/[0.16] bg-[#08090f] text-white placeholder-zinc-500 px-4 py-2.5 text-xs font-mono shadow-inner focus:border-indigo-500/70 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] text-white placeholder-zinc-500 px-3.5 py-2.5 text-xs sm:text-sm font-mono focus:border-white/30 focus:outline-none"
               />
             </div>
 
-            <div className="pt-2 space-y-2">
+            {/* Submit Button */}
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading || savedSuccess}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2"
+                className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-[0_2px_14px_rgba(59,130,246,0.25)] border border-blue-400/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2"
               >
-                <span>{loading ? 'Saving Residence...' : 'Save Residence & Enter Portal →'}</span>
+                <span>{loading ? 'Saving...' : 'Save Residence & Enter Portal →'}</span>
               </button>
-
-              <div className="text-center pt-2">
-                <p className="text-[11px] font-mono text-zinc-500">
-                  This confirmation is requested only once. You can update your room later in Profile Settings.
-                </p>
-              </div>
             </div>
           </form>
 
-          {/* Footer Navigation */}
-          <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs">
-            <span className="text-zinc-500 font-mono text-[11px]">Logged in as {currentUser.email}</span>
+          {/* Skip link */}
+          <div className="pt-3 border-t border-white/[0.08] flex items-center justify-end">
             <Link
               to="/submit"
-              className="transition-colors text-[11px] font-mono text-zinc-300 hover:text-white underline"
+              className="text-[11px] font-mono text-zinc-400 hover:text-white transition-colors"
             >
-              Skip to Lodge Grievance →
+              Skip to Grievance Filing →
             </Link>
           </div>
         </div>
