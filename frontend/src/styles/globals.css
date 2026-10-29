@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
-  --ui-bg: #f5f7fb;
-  --ui-surface: #ffffff;
-  --ui-surface-soft: #f8faff;
-  --ui-ink: #17243b;
-  --ui-muted: #687892;
-  --ui-line: #e3e9f2;
-  --ui-primary: #4f46e5;
-  --ui-primary-strong: #4338ca;
-  --ui-mint: #0e9f82;
-  --ui-shadow: 0 10px 30px rgba(24, 39, 75, .055), 0 2px 6px rgba(24, 39, 75, .025);
+  color-scheme: dark;
+  --ui-bg: #050608;
+  --ui-surface: #0c0d12;
+  --ui-surface-soft: #121317;
+  --ui-ink: #ffffff;
+  --ui-muted: #8b8f9e;
+  --ui-line: rgba(255, 255, 255, 0.08);
+  --ui-primary: #ff5a36;
+  --ui-primary-strong: #ff6e4a;
+  --ui-mint: #22c55e;
+  --ui-shadow: 0 16px 36px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .3);
 }
 
 .dark {
   color-scheme: dark;
-  --ui-bg: #121317;
-  --ui-surface: #181a21;
-  --ui-surface-soft: #1d1f27;
+  --ui-bg: #050608;
+  --ui-surface: #0c0d12;
+  --ui-surface-soft: #121317;
   --ui-ink: #ffffff;
   --ui-muted: #8b8f9e;
   --ui-line: rgba(255, 255, 255, 0.08);
@@ -40,50 +40,34 @@
 }
 
 @layer components {
-  .bento-card { @apply rounded-2xl border border-slate-200 bg-white text-slate-800 dark:border-white/[0.08] dark:bg-[#181a21] dark:text-slate-100; box-shadow: var(--ui-shadow); }
-  .bento-card-interactive { @apply rounded-2xl border border-slate-200 bg-white text-slate-800 transition-all duration-200 dark:border-white/[0.08] dark:bg-[#181a21] dark:text-slate-100; box-shadow: var(--ui-shadow); }
-  .bento-card-interactive:hover { transform: translateY(-2px); border-color: #c7d2fe; box-shadow: 0 16px 36px rgba(79,70,229,.1); }
-  .dark .bento-card-interactive:hover { border-color: rgba(255, 255, 255, 0.16); box-shadow: 0 16px 36px rgba(0,0,0,.6); }
-  .enterprise-input { @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-all dark:border-white/[0.09] dark:bg-[#0e0f14] dark:text-white dark:placeholder-zinc-500; }
-  .enterprise-input:focus { @apply border-indigo-400 outline-none ring-4 ring-indigo-100 dark:border-[#ff5a36]/60 dark:ring-[#ff5a36]/20; }
+  .bento-card { @apply rounded-2xl border border-white/[0.08] bg-[#181a21] text-slate-100; box-shadow: var(--ui-shadow); }
+  .bento-card-interactive { @apply rounded-2xl border border-white/[0.08] bg-[#181a21] text-slate-100 transition-all duration-200; box-shadow: var(--ui-shadow); }
+  .bento-card-interactive:hover { border-color: rgba(255, 255, 255, 0.16); box-shadow: 0 16px 36px rgba(0,0,0,.6); }
+  .enterprise-input { @apply w-full rounded-xl border border-white/[0.09] bg-[#0e0f14] px-4 py-3 text-sm text-white placeholder-zinc-500 transition-all; }
+  .enterprise-input:focus { @apply border-[#ff5a36]/60 outline-none ring-4 ring-[#ff5a36]/20; }
   .btn-botanical-primary { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/20 bg-gradient-to-r from-[#ff5a36] to-[#f04824] px-4 py-2.5 text-xs font-bold text-white transition-all shadow-[0_4px_16px_rgba(240,72,36,0.35)]; }
   .btn-botanical-primary:hover { @apply bg-indigo-700; transform: translateY(-1px); }
-  .btn-botanical-secondary { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition-all dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200; }
-  .btn-botanical-secondary:hover { @apply border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-700; }
-  .btn-botanical-moss { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-800 transition-all dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300; }
-  .chip-domain-electrical { @apply border border-amber-200 bg-amber-50 font-semibold text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300; }
-  .chip-domain-plumbing { @apply border border-sky-200 bg-sky-50 font-semibold text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300; }
-  .chip-domain-it { @apply border border-indigo-200 bg-indigo-50 font-semibold text-indigo-800 dark:border-indigo-800/60 dark:bg-indigo-950/40 dark:text-indigo-300; }
-  .chip-domain-carpentry { @apply border border-orange-200 bg-orange-50 font-semibold text-orange-800 dark:border-orange-800/60 dark:bg-orange-950/40 dark:text-orange-300; }
-  .chip-domain-sanitation { @apply border border-teal-200 bg-teal-50 font-semibold text-teal-800 dark:border-teal-800/60 dark:bg-teal-950/40 dark:text-teal-300; }
-  .chip-domain-facilities { @apply border border-emerald-200 bg-emerald-50 font-semibold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300; }
+  .btn-botanical-secondary { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-xs font-bold text-slate-200 transition-all; }
+  .btn-botanical-secondary:hover { @apply border-slate-600 bg-slate-700; }
+  .btn-botanical-moss { @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-800/60 bg-emerald-950/40 px-4 py-2.5 text-xs font-bold text-emerald-300 transition-all; }
+  .chip-domain-electrical { @apply border border-amber-800/60 bg-amber-950/40 font-semibold text-amber-300; }
+  .chip-domain-plumbing { @apply border border-sky-800/60 bg-sky-950/40 font-semibold text-sky-300; }
+  .chip-domain-it { @apply border border-indigo-800/60 bg-indigo-950/40 font-semibold text-indigo-300; }
+  .chip-domain-carpentry { @apply border border-orange-800/60 bg-orange-950/40 font-semibold text-orange-300; }
+  .chip-domain-sanitation { @apply border border-teal-800/60 bg-teal-950/40 font-semibold text-teal-300; }
+  .chip-domain-facilities { @apply border border-emerald-800/60 bg-emerald-950/40 font-semibold text-emerald-300; }
 }
 
 /* App shell and navigation */
 .modern-app { min-height: 100vh; background-color: var(--ui-bg); color: var(--ui-ink); transition: background-color 0.2s ease, color 0.2s ease; }
-.modern-navbar { height: 56px !important; min-height: 56px; background: rgba(255,255,255,.94) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; box-shadow: 0 1px 3px rgba(24,39,75,.04); backdrop-filter: blur(16px); }
-.dark .modern-navbar { background: rgba(14,21,37,.94) !important; color: #f8fafc !important; border-color: var(--ui-line) !important; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.modern-navbar { height: 56px !important; min-height: 56px; background: rgba(14,21,37,.94) !important; color: #f8fafc !important; border-color: var(--ui-line) !important; box-shadow: 0 1px 3px rgba(0,0,0,.35); backdrop-filter: blur(16px); }
 .modern-navbar > div { max-width: 1680px; margin: 0 auto; }
 .modern-navbar nav { border-color: var(--ui-line) !important; }
 .modern-navbar a, .modern-navbar button { border-radius: 10px; }
 .modern-navbar a[class*="after:bg-"] { font-weight: 650; }
 .modern-navbar a[class*="after:bg-[#00B386]"], .modern-navbar a[class*="after:bg-emerald"] { color: var(--ui-primary) !important; }
 .modern-app main { min-width: 0; }
-.modern-app footer { background: #ffffff !important; border-color: var(--ui-line) !important; color: var(--ui-muted) !important; }
-.dark .modern-app footer { background: #0f1629 !important; border-color: var(--ui-line) !important; color: var(--ui-muted) !important; }
-
-/* In light mode only, map legacy dark container classes to clean light backgrounds */
-html:not(.dark) .modern-app [class*="bg-[#0e1117]"]:not(header):not(button),
-html:not(.dark) .modern-app [class*="bg-[#0D1117]"]:not(header):not(button),
-html:not(.dark) .modern-app [class*="bg-[#0B0F14]"]:not(header):not(button),
-html:not(.dark) .modern-app [class*="bg-[#161b22]"]:not(header):not(button),
-html:not(.dark) .modern-app [class*="bg-[#161C24]"]:not(header):not(button) {
-  background-color: #ffffff;
-}
-html:not(.dark) .modern-app [class*="bg-[#1c2430]"]:not(button),
-html:not(.dark) .modern-app [class*="bg-[#252D38]"]:not(button) {
-  background-color: #f5f7fc;
-}
+.modern-app footer { background: #0f1629 !important; border-color: var(--ui-line) !important; color: var(--ui-muted) !important; }
 
 /* Card radius and borders */
 .modern-app [class*="rounded-3xl"] { border-radius: 22px; }
@@ -95,11 +79,9 @@ html:not(.dark) .modern-app [class*="bg-[#252D38]"]:not(button) {
 .modern-app input, .modern-app select, .modern-app textarea { border-radius: 12px; }
 .modern-app input:focus, .modern-app select:focus, .modern-app textarea:focus { border-color: #818cf8; outline: none; }
 .modern-app table { border-collapse: separate !important; border-spacing: 0; }
-.modern-app thead th { background: #f5f7fc; color: #687892; font-size: 10px !important; letter-spacing: .075em; text-transform: uppercase; border-color: var(--ui-line); }
-.dark .modern-app thead th { background: #131c31; color: #94a3b8; border-color: var(--ui-line); }
+.modern-app thead th { background: #131c31; color: #94a3b8; font-size: 10px !important; letter-spacing: .075em; text-transform: uppercase; border-color: var(--ui-line); }
 .modern-app tbody tr { transition: background-color .15s ease; }
-.modern-app tbody tr:hover { background-color: #f7f8ff; }
-.dark .modern-app tbody tr:hover { background-color: #1a243c; }
+.modern-app tbody tr:hover { background-color: #1a243c; }
 .modern-app td, .modern-app th { border-color: var(--ui-line); }
 
 .modern-app button, .modern-app a, .modern-app [role="button"] { transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease; }

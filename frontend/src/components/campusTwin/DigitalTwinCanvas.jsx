@@ -46,7 +46,7 @@ export default function DigitalTwinCanvas({
   handleKeyDown = () => {},
 }) {
   const [hoveredEntrance, setHoveredEntrance] = useState(null);
-  const isLight = twinTheme === 'light';
+  const isLight = false;
   const isBlueprint = twinTheme === 'blueprint';
 
   // Attach non-passive wheel event listener strictly to the SVG canvas.
@@ -297,13 +297,13 @@ export default function DigitalTwinCanvas({
 
   return (
     <div
-      className={`relative w-full overflow-hidden flex justify-center ${
-        isLight ? 'border-slate-200 bg-[#f4f7f4]' : 'border-zinc-800 bg-[#0e1117]'
-      }`}
+      style={{ backgroundColor: '#0e1117' }}
+      className="relative w-full overflow-hidden flex justify-center bg-[#0e1117] border-zinc-800"
     >
       <svg
         ref={svgRef}
         viewBox="0 0 1080 800"
+        style={{ backgroundColor: '#0e1117' }}
         onClick={handleSvgClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -330,7 +330,7 @@ export default function DigitalTwinCanvas({
           </filter>
         </defs>
 
-        <rect x="0" y="0" width="1080" height="800" fill={isLight ? '#f4f7f4' : '#0e1117'} />
+        <rect x="0" y="0" width="1080" height="800" fill="#0e1117" />
 
         <g
           transform={`translate(${pan.x.toFixed(2)}, ${pan.y.toFixed(2)}) scale(${zoom.toFixed(4)})`}

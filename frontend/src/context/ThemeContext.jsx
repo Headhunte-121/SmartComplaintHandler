@@ -1,13 +1,12 @@
 /**
  * SmartComplaintHandler - Global Theme Context
- * Manages Matte Dark and Crisp Light themes with one-click toggling,
- * localStorage persistence, system preference synchronization, and FOUC prevention.
+ * Manages Obsidian Dark Theme with localStorage persistence and FOUC prevention.
  */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext({
   theme: 'dark',
-  isDark: false,
+  isDark: true,
   toggleTheme: () => {},
   setTheme: () => {},
 });
@@ -15,42 +14,37 @@ const ThemeContext = createContext({
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     try {
-      const stored = localStorage.getItem('ui-theme-v2');
-      if (stored === 'light' || stored === 'dark') return stored;
+      localStorage.setItem('ui-theme-v2', 'dark');
       return 'dark';
     } catch {
       return 'dark';
     }
   });
 
-  const isDark = theme === 'dark';
+  const isDark = true;
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
-      root.classList.remove('dark');
-      root.classList.add('light');
-    }
+    root.classList.add('dark');
+    root.classList.remove('light');
 
     try {
-      localStorage.setItem('ui-theme-v2', theme);
+      localStorage.setItem('ui-theme-v2', 'dark');
     } catch {}
 
-    // Update color-scheme meta tag if present
     const meta = document.querySelector('meta[name="color-scheme"]');
     if (meta) {
-      meta.content = theme;
+      meta.content = 'dark';
     }
   }, [theme]);
 
   // Sync across tabs
   useEffect(() => {
     const handleStorage = (e) => {
-      if (e.key === 'ui-theme-v2' && (e.newValue === 'light' || e.newValue === 'dark')) {
-        setThemeState(e.newValue);
+      if (e.key === 'ui-theme-v2' && e.newValue !== 'dark') {
+        try {
+          localStorage.setItem('ui-theme-v2', 'dark');
+        } catch {}
       }
     };
     window.addEventListener('storage', handleStorage);
@@ -58,17 +52,15 @@ export function ThemeProvider({ children }) {
   }, []);
 
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setThemeState('dark');
   };
 
-  const setTheme = (newTheme) => {
-    if (newTheme === 'dark' || newTheme === 'light') {
-      setThemeState(newTheme);
-    }
+  const setTheme = () => {
+    setThemeState('dark');
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, isDark, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme: 'dark', isDark: true, toggleTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

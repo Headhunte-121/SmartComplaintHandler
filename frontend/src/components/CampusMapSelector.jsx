@@ -317,14 +317,11 @@ export default function CampusMapSelector({
 
   return (
     <div
-      className={`relative select-none overflow-hidden transition-all ${
+      style={{ backgroundColor: '#0e1117' }}
+      className={`relative select-none overflow-hidden transition-all bg-[#0e1117] ${
         flush
-          ? isDark
-            ? 'w-full rounded-none border-y border-zinc-800 bg-[#0e1117]'
-            : 'w-full rounded-none border-y border-slate-200 bg-white'
-          : isDark
-          ? 'rounded-2xl border border-zinc-800 bg-[#161b22]'
-          : 'rounded-2xl border border-slate-200 bg-white shadow-xs'
+          ? 'w-full rounded-none border-y border-white/[0.08]'
+          : 'rounded-2xl border border-white/[0.1] shadow-2xl'
       }`}
     >
       {/* Top Floating Search & Quick Filter Bar */}
@@ -416,7 +413,10 @@ export default function CampusMapSelector({
       </div>
 
       {/* Main Interactive Map Viewport Container */}
-      <div className={`relative w-full overflow-hidden ${isDark ? 'bg-[#0e1117]' : 'bg-[#f4f7f4]'}`}>
+      <div
+        style={{ backgroundColor: '#0e1117' }}
+        className="relative w-full overflow-hidden bg-[#0e1117]"
+      >
         {/* SVG Digital Twin Canvas */}
         <DigitalTwinCanvas
           svgRef={svgRef}
