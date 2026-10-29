@@ -1295,6 +1295,24 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                                   Start
                                 </button>
                               )}
+                              {ticket.status === 'ESCALATED' && (
+                                <>
+                                  <button
+                                    onClick={() => handleStartWork(ticket)}
+                                    title="Resume work on this escalated grievance"
+                                    className="rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 text-xs font-semibold px-2.5 py-1.5 shadow-xs transition cursor-pointer"
+                                  >
+                                    Resume
+                                  </button>
+                                  <button
+                                    onClick={() => setResolveTicketTarget(ticket)}
+                                    title="Directly resolve escalated grievance"
+                                    className="rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1.5 text-xs font-bold hover:bg-emerald-500/30 transition cursor-pointer"
+                                  >
+                                    Resolve
+                                  </button>
+                                </>
+                              )}
                               {ticket.status === 'IN_PROGRESS' && (
                                 <button
                                   onClick={() => setResolveTicketTarget(ticket)}
