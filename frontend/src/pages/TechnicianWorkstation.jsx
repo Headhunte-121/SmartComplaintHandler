@@ -257,7 +257,7 @@ export default function TechnicianWorkstation() {
     (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
   );
   const criticalOrders = activeWorkOrders.filter(
-    (t) => t.priority === 'CRITICAL' || t.status === 'ESCALATED'
+    (t) => t.priority === 'CRITICAL' && t.status !== 'ESCALATED'
   );
   const displayedOrders = activeTab === 'ACTIVE' ? activeWorkOrders : completedWorkOrders;
 
