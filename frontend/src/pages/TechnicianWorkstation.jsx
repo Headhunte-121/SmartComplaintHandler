@@ -17,6 +17,7 @@ import StatusBadge from '../components/StatusBadge';
 import DepartmentBadge from '../components/DepartmentBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
 import ResolutionNotesModal from '../components/ResolutionNotesModal';
+import ActivityAuditLog from '../components/ActivityAuditLog';
 import {
   Wrench, ShieldAlert, CheckCircle2, Clock, AlertTriangle,
   Play, Pause, ArrowRight, RefreshCw, MapPin, User, Mail, X, Sparkles,
@@ -536,13 +537,12 @@ export default function TechnicianWorkstation() {
                     </div>
 
                     {ticket.resolution_notes && (
-                      <div className="mt-2 p-3 rounded-xl border border-white/[0.08] bg-[#050608] text-xs space-y-1">
-                        <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-500">
-                          Audit Trail &amp; Repair Notes
-                        </div>
-                        <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed text-zinc-300">
-                          {ticket.resolution_notes}
-                        </pre>
+                      <div className="mt-2">
+                        <ActivityAuditLog
+                          notes={ticket.resolution_notes}
+                          title="Audit Trail & Repair Notes"
+                          compact={true}
+                        />
                       </div>
                     )}
 
@@ -615,10 +615,21 @@ export default function TechnicianWorkstation() {
 
                       {!isResolved && !isClosed && (
                         isEscalated ? (
-                          <span className="px-3 py-2 text-xs font-mono font-bold rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping inline-block" />
-                            <span>Escalated to Supervisor</span>
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-3 py-2 text-xs font-mono font-bold rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping inline-block" />
+                              <span>Escalated to Supervisor</span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleStartWork(ticket)}
+                              className="px-3 py-2 text-xs font-semibold rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition-all cursor-pointer flex items-center gap-1"
+                              title="Resume physical repair on-site"
+                            >
+                              <Play size={12} fill="currentColor" />
+                              <span>Resume Work</span>
+                            </button>
+                          </div>
                         ) : (
                           <button
                             type="button"

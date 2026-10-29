@@ -10,6 +10,7 @@ import PriorityBadge from '../components/PriorityBadge';
 import StatusBadge from '../components/StatusBadge';
 import DepartmentBadge from '../components/DepartmentBadge';
 import SLACountdownTimer from '../components/SLACountdownTimer';
+import ActivityAuditLog, { parseAuditEntries } from '../components/ActivityAuditLog';
 import {
   Search, Copy, Check, AlertTriangle, ArrowRight, CheckCircle2,
   Clock, Wrench, ShieldAlert, Sparkles, MapPin, Building,
@@ -364,18 +365,50 @@ export default function TrackTicket() {
               </div>
             </div>
 
-            {/* Resolution Notes Log (if resolved) */}
-            {ticket.resolution_notes && (
-              <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs space-y-2">
-                <div className="font-bold flex items-center gap-1.5 text-emerald-400">
-                  <CheckCircle2 size={15} />
-                  <span>Official Resolution Log</span>
-                </div>
-                <pre className="font-mono text-[11px] whitespace-pre-wrap text-zinc-300">
-                  {ticket.resolution_notes}
-                </pre>
-              </div>
-            )}
+            {/* Verified Resolution / Audit Trail */}
+            {(() => {
+              const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+              const entries = ticket.resolution_notes ? parseAuditEntries(ticket.resolution_notes) : [];
+              const resolvedEntry = entries.find((e) => e.type === 'RESOLVED');
+
+              return (
+                <>
+                  {isResolved && (
+                    <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs space-y-2">
+                      <div className="font-bold flex items-center gap-1.5 text-emerald-400">
+                        <CheckCircle2 size={16} />
+                        <span>Verified Institutional Resolution</span>
+                      </div>
+                      {resolvedEntry ? (
+                        <div className="space-y-1.5 text-zinc-300">
+                          <p className="leading-relaxed">{resolvedEntry.notes}</p>
+                          {resolvedEntry.partsReplaced && (
+                            <p className="text-[11px] font-mono text-emerald-300">
+                              Parts Replaced: {resolvedEntry.partsReplaced}
+                            </p>
+                          )}
+                          <div className="text-[10px] font-mono text-zinc-400">
+                            Verified by: {resolvedEntry.actor}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-zinc-300 leading-relaxed">
+                          Physical repair has been verified and formally closed by campus maintenance staff.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {ticket.resolution_notes && (
+                    <ActivityAuditLog
+                      notes={ticket.resolution_notes}
+                      title={isResolved ? 'Grievance Resolution & Audit Trail' : 'Live Progress & Activity Log'}
+                      showAllInitially={true}
+                    />
+                  )}
+                </>
+              );
+            })()}
 
             {/* Feedback Rating Display (if rated) */}
             {ticket.feedback_rating != null && (

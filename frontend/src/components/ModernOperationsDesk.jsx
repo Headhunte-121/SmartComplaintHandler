@@ -36,6 +36,7 @@ import ReassignTeamModal from './ReassignTeamModal';
 import TeamWorkloadView from './TeamWorkloadView';
 import SLABreachTable from './SLABreachTable';
 import SLACountdownTimer from './SLACountdownTimer';
+import { parseAuditEntries } from './ActivityAuditLog';
 
 const STATUS_TABS = [
   { id: '', label: 'All work' },
@@ -89,6 +90,9 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
   const [escalateTarget, setEscalateTarget] = useState(null);
   const [escalateReason, setEscalateReason] = useState('High risk of operational SLA breach or campus safety hazard.');
   const [escalating, setEscalating] = useState(false);
+  const [clearEscalateTarget, setClearEscalateTarget] = useState(null);
+  const [clearEscalateDirective, setClearEscalateDirective] = useState('');
+  const [clearingEscalation, setClearingEscalation] = useState(false);
 
   // Load all telemetry from live backend
   const loadData = useCallback(async () => {
@@ -161,6 +165,32 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
       setError(err.response?.data?.detail || err.message || 'Escalation failed.');
     } finally {
       setEscalating(false);
+    }
+  };
+
+  const handleOpenClearEscalation = (ticket) => {
+    setClearEscalateTarget(ticket);
+    setClearEscalateDirective('Directorate clearance granted: Spare parts / resource blocker resolved. Resuming repair.');
+  };
+
+  const handleConfirmClearEscalation = async (e) => {
+    e.preventDefault();
+    if (!clearEscalateTarget || clearEscalateDirective.trim().length < 5) return;
+    try {
+      setClearingEscalation(true);
+      await updateTicketStatus(
+        clearEscalateTarget.id,
+        'IN_PROGRESS',
+        `Directorate clearance: ${clearEscalateDirective.trim()}`,
+        currentUser?.name
+      );
+      showToast(`${clearEscalateTarget.tracking_code} escalation cleared. Resumed in progress.`);
+      setClearEscalateTarget(null);
+      loadData();
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Failed to clear escalation.');
+    } finally {
+      setClearingEscalation(false);
     }
   };
 
@@ -1298,8 +1328,8 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
                               {ticket.status === 'ESCALATED' && (
                                 <>
                                   <button
-                                    onClick={() => handleStartWork(ticket)}
-                                    title="Resume work on this escalated grievance"
+                                    onClick={() => handleOpenClearEscalation(ticket)}
+                                    title="Review & clear escalation to resume repair"
                                     className="rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 text-xs font-semibold px-2.5 py-1.5 shadow-xs transition cursor-pointer"
                                   >
                                     Resume
@@ -1490,6 +1520,106 @@ export default function ModernOperationsDesk({ mode = 'superadmin' }) {
               >
                 {escalating ? 'Escalating…' : 'Confirm Escalation'}
               </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Clear Escalation Modal */}
+      {clearEscalateTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-fade-in">
+          <form
+            onSubmit={handleConfirmClearEscalation}
+            className="w-full max-w-lg rounded-3xl border border-white/[0.14] bg-[#0c0d12]/95 backdrop-blur-2xl p-6 shadow-[0_25px_60px_rgba(0,0,0,0.9)] text-zinc-100 space-y-4"
+          >
+            <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-300">
+                    Supervisory Clearance
+                  </span>
+                  <span className="font-mono text-xs text-slate-400">
+                    {clearEscalateTarget.tracking_code}
+                  </span>
+                </div>
+                <h2 className="mt-1.5 text-base font-bold text-white tracking-tight">
+                  Clear Escalation &amp; Resume Repair
+                </h2>
+                <p className="mt-0.5 max-w-sm truncate text-xs text-slate-400">
+                  {clearEscalateTarget.title}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setClearEscalateTarget(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.08] hover:text-white transition cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Display Reason for Escalation */}
+            {(() => {
+              const entries = clearEscalateTarget.resolution_notes
+                ? parseAuditEntries(clearEscalateTarget.resolution_notes)
+                : [];
+              const latestEsc = [...entries].reverse().find((e) => e.type === 'ESCALATION');
+              if (!latestEsc) return null;
+              return (
+                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs space-y-1">
+                  <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-300">
+                    Technician Escalation Justification:
+                  </div>
+                  <p className="text-zinc-200 leading-relaxed">{latestEsc.notes}</p>
+                </div>
+              );
+            })()}
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 mb-1.5">
+                Directorate Clearance Directive <span className="text-amber-400">*</span>
+              </label>
+              <textarea
+                rows={3}
+                value={clearEscalateDirective}
+                onChange={(e) => setClearEscalateDirective(e.target.value)}
+                placeholder="State supervisory resolution (e.g. parts approved from inventory, contractor scheduled)..."
+                className="w-full rounded-xl border border-white/[0.1] bg-[#050608] p-3 text-xs text-white placeholder:text-slate-600 outline-none focus:border-amber-400/60 focus:ring-2 focus:ring-amber-500/10 resize-none transition"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                This directive will be logged to the ticket audit trail and visible to the squad technician.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => {
+                  const t = clearEscalateTarget;
+                  setClearEscalateTarget(null);
+                  setReassignTicketTarget(t);
+                }}
+                className="rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-2 text-xs font-semibold text-purple-300 hover:bg-purple-500/20 transition cursor-pointer"
+              >
+                Reassign Squad Instead
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setClearEscalateTarget(null)}
+                  className="rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-white/[0.08] hover:text-white transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={clearingEscalation || clearEscalateDirective.trim().length < 5}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2 text-xs font-bold text-black shadow-[0_0_20px_rgba(245,158,11,0.3)] transition hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {clearingEscalation ? 'Clearing…' : 'Clear & Resume Repair'}
+                </button>
+              </div>
             </div>
           </form>
         </div>
