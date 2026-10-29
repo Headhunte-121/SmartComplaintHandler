@@ -3,7 +3,7 @@
  * Glossy Obsidian Command Desk Standard with Smoked Black Glass
  */
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchComplaints, submitFeedback } from '../api/complaints';
 import PriorityBadge from '../components/PriorityBadge';
@@ -27,6 +27,7 @@ import {
 } from '../data/iiitnrCampusData';
 
 export default function StudentDashboard() {
+  const navigate = useNavigate();
   const { currentUser, updateProfile } = useAuth();
   const activeUser = currentUser;
 
@@ -343,6 +344,12 @@ export default function StudentDashboard() {
             onSelectBuilding={(bName) => {
               handleSelectHostel(bName);
               setIsResidenceModalOpen(true);
+            }}
+            onConfirmLocation={(bName, rm) => {
+              const params = new URLSearchParams();
+              if (bName) params.set('building', bName);
+              if (rm) params.set('room', rm);
+              navigate(`/submit?${params.toString()}`);
             }}
           />
         </div>

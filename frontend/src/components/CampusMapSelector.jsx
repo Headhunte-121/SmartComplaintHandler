@@ -52,6 +52,7 @@ export default function CampusMapSelector({
   onSelectBuilding,
   selectedRoom = '',
   onSelectRoom,
+  onConfirmLocation,
   studentSavedHostel = '',
   studentSavedRoom = '',
   flush = false,
@@ -680,6 +681,9 @@ export default function CampusMapSelector({
                 onClick={() => {
                   if (onSelectBuilding) onSelectBuilding(activeBuildingObj.name);
                   if (onSelectRoom && activeRoom) onSelectRoom(activeRoom);
+                  if (onConfirmLocation) {
+                    onConfirmLocation(activeBuildingObj.name, activeRoom);
+                  }
                   setShowPlaceCard(false);
                 }}
                 className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-[0_2px_12px_rgba(59,130,246,0.25)] border border-blue-400/30"

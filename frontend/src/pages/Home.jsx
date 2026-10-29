@@ -134,6 +134,12 @@ export default function Home() {
           onSelectBuilding={setSelectedMapBuilding}
           studentSavedHostel={currentUser?.hostel_name}
           studentSavedRoom={currentUser?.room_number}
+          onConfirmLocation={(buildingName, roomName) => {
+            const params = new URLSearchParams();
+            if (buildingName) params.set('building', buildingName);
+            if (roomName) params.set('room', roomName);
+            navigate(`/submit?${params.toString()}`);
+          }}
         />
       </div>
 

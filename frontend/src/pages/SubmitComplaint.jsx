@@ -52,11 +52,12 @@ export default function SubmitComplaint() {
 
   const initialBuildingFromUrl = searchParams.get('building');
   const initialModeFromUrl = searchParams.get('mode');
+  const initialRoomFromUrl = searchParams.get('room') || searchParams.get('spot') || searchParams.get('location');
 
   const [locationMode, setLocationMode] = useState(
     initialModeFromUrl === 'search' || initialModeFromUrl === 'custom'
       ? 'CUSTOM'
-      : initialBuildingFromUrl
+      : (initialBuildingFromUrl || initialRoomFromUrl)
       ? 'BROWSE'
       : hasSavedResidence
       ? 'MY_ROOM'
@@ -69,8 +70,32 @@ export default function SubmitComplaint() {
   const [building, setBuilding] = useState(
     initialBuildingFromUrl || savedHostel || allBuildings[0]?.name
   );
-  const [selectedFloor, setSelectedFloor] = useState(() => inferFloorFromRoomString(savedRoom));
-  const [specificLocation, setSpecificLocation] = useState(savedRoom || '');
+  const [selectedFloor, setSelectedFloor] = useState(() => {
+    if (initialRoomFromUrl) {
+      return inferFloorFromRoomString(initialRoomFromUrl) || inferFloorFromItem(initialRoomFromUrl) || '1';
+    }
+    return inferFloorFromRoomString(savedRoom);
+  });
+  const [specificLocation, setSpecificLocation] = useState(
+    initialRoomFromUrl || (initialBuildingFromUrl ? '' : (savedRoom || ''))
+  );
+
+  useEffect(() => {
+    const bParam = searchParams.get('building');
+    const rParam = searchParams.get('room') || searchParams.get('spot') || searchParams.get('location');
+    if (bParam) {
+      setBuilding(bParam);
+      setLocationMode('BROWSE');
+      const targetFloors = getFloorsForBuilding(bParam, allBuildings);
+      if (rParam) {
+        setSpecificLocation(rParam);
+        const inferred = inferFloorFromRoomString(rParam) || inferFloorFromItem(rParam) || targetFloors[0]?.id || '1';
+        setSelectedFloor(inferred);
+      } else {
+        setSelectedFloor(targetFloors[0]?.id || '1');
+      }
+    }
+  }, [searchParams, allBuildings]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -687,12 +712,20 @@ export default function SubmitComplaint() {
                 onSelectBuilding={(bName) => {
                   handleSelectBuilding(bName);
                 }}
-                selectedRoom={resolvedRoomLabel}
+                selectedRoom={specificLocation}
                 onSelectRoom={(rm) => {
                   setSpecificLocation(rm);
-                  setCustomRoomOverride('');
-                  const inferred = inferFloorFromItem(rm);
+                  const inferred = inferFloorFromItem(rm) || inferFloorFromRoomString(rm);
                   if (inferred) setSelectedFloor(inferred);
+                }}
+                onConfirmLocation={(bName, rm) => {
+                  if (bName) handleSelectBuilding(bName);
+                  if (rm) {
+                    setSpecificLocation(rm);
+                    const inferred = inferFloorFromItem(rm) || inferFloorFromRoomString(rm);
+                    if (inferred) setSelectedFloor(inferred);
+                  }
+                  setIsMapModalOpen(false);
                 }}
                 studentSavedHostel={savedHostel}
                 studentSavedRoom={savedRoom}
