@@ -11,6 +11,7 @@ export default function ResolutionNotesModal({
   ticket,
   onClose,
   onResolved,
+  onSuccess,
 }) {
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [partsReplaced, setPartsReplaced] = useState('');
@@ -70,6 +71,9 @@ export default function ResolutionNotesModal({
       );
       if (onResolved) {
         onResolved(updatedTicket);
+      }
+      if (onSuccess) {
+        onSuccess(updatedTicket);
       }
       onClose();
     } catch (err) {

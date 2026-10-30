@@ -264,6 +264,7 @@ export default function TechnicianWorkstation() {
     );
     setActionSuccess(`Ticket ${updatedTicket.tracking_code} resolved and closure notes recorded.`);
     setTimeout(() => setActionSuccess(null), 3500);
+    loadWorkOrders();
   };
 
   const activeWorkOrders = tickets.filter(
@@ -852,6 +853,7 @@ export default function TechnicianWorkstation() {
           isOpen={Boolean(resolvingTicket)}
           ticket={resolvingTicket}
           onClose={() => setResolvingTicket(null)}
+          onResolved={handleTicketResolved}
           onSuccess={handleTicketResolved}
         />
       )}

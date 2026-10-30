@@ -56,68 +56,280 @@ function formatActorLabel(actor) {
 }
 
 /**
- * Parses raw bracketed resolution_notes into structured event objects.
+ * Parses raw resolution_notes into structured event objects.
+ * Handles both standardized [TYPE: ISO_DATE | ...] tags and legacy/closure/override formats.
  */
 export function parseAuditEntries(rawText) {
   if (!rawText || typeof rawText !== 'string') return [];
 
-  // Match bracketed audit blocks: [TYPE: ISO_DATE | ...]
-  const regex = /\[([A-Z_]+):\s*([^|\]]+)(?:\|\s*([^\]]*))?\]/g;
+  const text = rawText.replace(/\r\n/g, '\n').trim();
+  if (!text) return [];
+
   const entries = [];
-  let match;
+  // Split distinct log events demarcated by brackets at start of lines
+  const rawBlocks = text.split(/(?=\n\s*\[)/);
 
-  while ((match = regex.exec(rawText)) !== null) {
-    const type = match[1].trim().toUpperCase();
-    const timestampStr = match[2]?.trim();
-    const rest = match[3] || '';
+  for (const rawBlock of rawBlocks) {
+    const block = rawBlock.trim();
+    if (!block) continue;
 
-    let parsedDate = null;
-    try {
-      const d = new Date(timestampStr);
-      if (!isNaN(d.getTime())) parsedDate = d;
-    } catch (_) {}
+    // 1. Closure / Resolution Report
+    // e.g.: [CLOSURE REPORT: 2026-10-30T09:15:16... | Technician: SuperAdmin | SLA Met: True]
+    //       Work Summary: Fixed the leak
+    //       Parts Replaced: None
+    // or: [RESOLVED: 2026-10-30T... | Technician: ... | Parts Replaced: ... | Work Summary: ...]
+    if (/^\[(?:CLOSURE\s*REPORT|RESOLVED)/i.test(block)) {
+      const headerMatch = block.match(/^\[(?:CLOSURE\s*REPORT|RESOLVED):\s*([^|\]]+)(?:\|\s*([^\]]*))?\]/i);
+      const timestampStr = headerMatch ? headerMatch[1].trim() : null;
+      const rest = headerMatch ? headerMatch[2] || '' : '';
 
-    // Parse pipe-delimited fields
-    const parts = rest.split('|').map((p) => p.trim()).filter(Boolean);
-    const details = {};
-    let transitionPath = null;
+      let actor = 'Technician';
+      let slaMet = null;
+      let partsReplaced = null;
+      let notes = '';
 
-    parts.forEach((part) => {
-      if (part.includes('->') && !part.toLowerCase().includes('notes:')) {
-        transitionPath = part.trim();
-        return;
+      if (rest) {
+        const parts = rest.split('|').map((p) => p.trim());
+        for (const p of parts) {
+          const colonIdx = p.indexOf(':');
+          if (colonIdx > 0) {
+            const k = p.slice(0, colonIdx).trim().toLowerCase().replace(/\s+/g, '_');
+            const v = p.slice(colonIdx + 1).trim();
+            if (k === 'technician' || k === 'actor') actor = formatActorLabel(v);
+            if (k === 'sla_met') slaMet = v;
+            if (k === 'parts_replaced') partsReplaced = v;
+            if (k === 'work_summary' || k === 'notes' || k === 'reason') notes = v;
+          }
+        }
       }
-      const colonIdx = part.indexOf(':');
-      if (colonIdx > 0) {
-        const key = part.slice(0, colonIdx).trim().toLowerCase().replace(/\s+/g, '_');
-        const val = part.slice(colonIdx + 1).trim();
-        details[key] = val;
-      } else {
-        details.generic = part;
+
+      // Check for multiline trailing fields
+      const workSummaryMatch = block.match(/Work Summary:\s*(.*?)(?=\n\s*(?:Parts Replaced:|\[)|$)/is);
+      if (workSummaryMatch && workSummaryMatch[1].trim()) {
+        notes = workSummaryMatch[1].trim();
       }
-    });
+      const partsMatch = block.match(/Parts Replaced:\s*(.*?)(?=\n\s*(?:Work Summary:|\[)|$)/is);
+      if (partsMatch && partsMatch[1].trim() && partsMatch[1].trim().toLowerCase() !== 'none') {
+        partsReplaced = partsMatch[1].trim();
+      }
 
-    entries.push({
-      type,
-      timestampStr,
-      date: parsedDate,
-      actor: formatActorLabel(details.actor || details.supervisor || details.technician || details.student || ''),
-      notes: details.notes || details.reason || details.work_summary || details.comments || details.generic || '',
-      partsReplaced: details.parts_replaced,
-      rating: details.rating,
-      transitionPath,
-      raw: match[0],
-    });
-  }
+      let parsedDate = null;
+      if (timestampStr) {
+        try {
+          const d = new Date(timestampStr);
+          if (!isNaN(d.getTime())) parsedDate = d;
+        } catch (_) {}
+      }
 
-  // Fallback for plain unformatted legacy text
-  if (entries.length === 0 && rawText.trim().length > 0) {
+      entries.push({
+        type: 'RESOLVED',
+        timestampStr,
+        date: parsedDate,
+        actor,
+        notes: notes || 'Physical repair completed and verified by campus maintenance staff.',
+        partsReplaced: partsReplaced && partsReplaced.toLowerCase() !== 'none' ? partsReplaced : null,
+        slaMet,
+        raw: block,
+      });
+      continue;
+    }
+
+    // 2. Priority Override / Severity Change
+    // e.g.: [2026-10-30 09:16:38 UTC] [PRIORITY OVERRIDE] Priority changed from MEDIUM to LOW by SuperAdmin (superadmin@iiitnr.edu.in). Reason: Time Extension needed
+    // or: [PRIORITY_OVERRIDE: 2026-10-30T... | Actor: ... | MEDIUM -> LOW | Reason: ...]
+    if (/\[PRIORITY[\s_]*OVERRIDE/i.test(block)) {
+      let timestampStr = null;
+      const leadingTsMatch = block.match(/^\[([^\]]+)\]\s*\[PRIORITY/i);
+      const colonTsMatch = block.match(/\[PRIORITY[\s_]*OVERRIDE:\s*([^|\]]+)/i);
+      if (leadingTsMatch) {
+        timestampStr = leadingTsMatch[1].trim();
+      } else if (colonTsMatch) {
+        timestampStr = colonTsMatch[1].trim();
+      }
+
+      let transitionPath = null;
+      const transMatch = block.match(/(?:from\s+([A-Z_]+)\s+to\s+([A-Z_]+)|([A-Z_]+)\s*->\s*([A-Z_]+))/i);
+      if (transMatch) {
+        const fromP = transMatch[1] || transMatch[3];
+        const toP = transMatch[2] || transMatch[4];
+        transitionPath = `${fromP.toUpperCase()} -> ${toP.toUpperCase()}`;
+      }
+
+      let actor = 'Supervisor';
+      const actorMatch = block.match(/by\s+(.*?)(?:\.\s*Reason:|\.\s*$|\s+Reason:|$)/i) || block.match(/Actor:\s*([^|\]]+)/i);
+      if (actorMatch) {
+        actor = formatActorLabel(actorMatch[1].trim());
+      }
+
+      let reason = '';
+      const reasonMatch = block.match(/Reason:\s*(.*)/is);
+      if (reasonMatch) {
+        reason = reasonMatch[1].replace(/\]$/, '').trim();
+      }
+
+      let parsedDate = null;
+      if (timestampStr) {
+        try {
+          const d = new Date(timestampStr.replace(' UTC', 'Z'));
+          if (!isNaN(d.getTime())) parsedDate = d;
+        } catch (_) {}
+      }
+
+      entries.push({
+        type: 'PRIORITY_OVERRIDE',
+        timestampStr,
+        date: parsedDate,
+        actor,
+        notes: reason ? `Reason: ${reason}` : 'Priority tier adjusted with recalculation of resolution SLA deadline.',
+        transitionPath,
+        raw: block,
+      });
+      continue;
+    }
+
+    // 3. Team Reassignment
+    // e.g.: [TEAM REASSIGNMENT] Reassigned from Hostel Electrical Squad 1 to Hostel Electrical Squad 1 by superadmin@iiitnr.edu.in. Reason: you are getting assigened S
+    // or: [REASSIGNMENT: 2026-10-30T... | Actor: ... | Team A -> Team B | Reason: ...]
+    if (/\[(?:TEAM\s+REASSIGNMENT|REASSIGNMENT)/i.test(block)) {
+      let timestampStr = null;
+      const tsMatch = block.match(/\[(?:TEAM\s+REASSIGNMENT|REASSIGNMENT):\s*([^|\]]+)/i);
+      if (tsMatch) timestampStr = tsMatch[1].trim();
+
+      let transitionPath = null;
+      const squadMatch = block.match(/Reassigned from\s+(.*?)\s+to\s+(.*?)(?:\s+by|\.|\s+Reason:|$)/i)
+        || block.match(/\|\s*([^|\]]+?)\s*->\s*([^|\]]+?)\s*\|/);
+      if (squadMatch) {
+        transitionPath = `${squadMatch[1].trim()} -> ${squadMatch[2].trim()}`;
+      }
+
+      let actor = 'Supervisor';
+      const actorMatch = block.match(/by\s+(.*?)(?:\.\s*Reason:|\.\s*$|\s+Reason:|$)/i) || block.match(/Actor:\s*([^|\]]+)/i);
+      if (actorMatch) {
+        actor = formatActorLabel(actorMatch[1].trim());
+      }
+
+      let reason = '';
+      const reasonMatch = block.match(/Reason:\s*(.*)/is);
+      if (reasonMatch) {
+        reason = reasonMatch[1].replace(/\]$/, '').trim();
+      }
+
+      let parsedDate = null;
+      if (timestampStr) {
+        try {
+          const d = new Date(timestampStr);
+          if (!isNaN(d.getTime())) parsedDate = d;
+        } catch (_) {}
+      }
+
+      entries.push({
+        type: 'REASSIGNMENT',
+        timestampStr,
+        date: parsedDate,
+        actor,
+        notes: reason ? `Reason: ${reason}` : 'Reassigned to specialized campus maintenance squad.',
+        transitionPath,
+        raw: block,
+      });
+      continue;
+    }
+
+    // 4. Student Feedback
+    // e.g.: [2026-10-30 09:20:00 UTC] [STUDENT FEEDBACK] Rating: 5/5 Stars | Review: No written comments (Submitted by: Devansh)
+    // or: [FEEDBACK: 2026-10-30T... | Student: ... | Rating: 5/5 | ...]
+    if (/\[(?:STUDENT\s+FEEDBACK|FEEDBACK)/i.test(block)) {
+      let timestampStr = null;
+      const leadingTsMatch = block.match(/^\[([^\]]+)\]\s*\[(?:STUDENT\s+FEEDBACK|FEEDBACK)/i);
+      const colonTsMatch = block.match(/\[(?:STUDENT\s+FEEDBACK|FEEDBACK):\s*([^|\]]+)/i);
+      if (leadingTsMatch) timestampStr = leadingTsMatch[1].trim();
+      else if (colonTsMatch) timestampStr = colonTsMatch[1].trim();
+
+      const ratingMatch = block.match(/Rating:\s*([0-9]+(?:\.[0-9]+)?)/i);
+      const rating = ratingMatch ? ratingMatch[1] : '5';
+
+      let actor = 'Student';
+      const studentMatch = block.match(/Submitted by:\s*([^)]+)/i) || block.match(/Student:\s*([^|\]]+)/i);
+      if (studentMatch) actor = formatActorLabel(studentMatch[1].trim());
+
+      let review = '';
+      const reviewMatch = block.match(/Review:\s*([^()\]]+)/i) || block.match(/Comments:\s*([^|\]]+)/i);
+      if (reviewMatch) review = reviewMatch[1].trim();
+
+      let parsedDate = null;
+      if (timestampStr) {
+        try {
+          const d = new Date(timestampStr.replace(' UTC', 'Z'));
+          if (!isNaN(d.getTime())) parsedDate = d;
+        } catch (_) {}
+      }
+
+      entries.push({
+        type: 'FEEDBACK',
+        timestampStr,
+        date: parsedDate,
+        actor,
+        notes: review && review !== 'No written comments' ? `"${review}"` : 'Student verified service satisfaction.',
+        rating,
+        raw: block,
+      });
+      continue;
+    }
+
+    // 5. Standard bracketed format: [TYPE: ISO_DATE | key: val | ...]
+    // e.g. [TRANSITION: ...], [ESCALATION: ...]
+    const standardMatch = block.match(/^\[([A-Z_]+):\s*([^|\]]+)(?:\|\s*([^\]]*))?\]/is);
+    if (standardMatch) {
+      const type = standardMatch[1].trim().toUpperCase();
+      const timestampStr = standardMatch[2]?.trim();
+      const rest = standardMatch[3] || '';
+
+      let parsedDate = null;
+      try {
+        const d = new Date(timestampStr);
+        if (!isNaN(d.getTime())) parsedDate = d;
+      } catch (_) {}
+
+      const parts = rest.split('|').map((p) => p.trim()).filter(Boolean);
+      const details = {};
+      let transitionPath = null;
+
+      parts.forEach((part) => {
+        if (part.includes('->') && !part.toLowerCase().includes('notes:')) {
+          transitionPath = part.trim();
+          return;
+        }
+        const colonIdx = part.indexOf(':');
+        if (colonIdx > 0) {
+          const key = part.slice(0, colonIdx).trim().toLowerCase().replace(/\s+/g, '_');
+          const val = part.slice(colonIdx + 1).trim();
+          details[key] = val;
+        } else {
+          details.generic = part;
+        }
+      });
+
+      entries.push({
+        type,
+        timestampStr,
+        date: parsedDate,
+        actor: formatActorLabel(details.actor || details.supervisor || details.technician || details.student || ''),
+        notes: details.notes || details.reason || details.work_summary || details.comments || details.generic || '',
+        partsReplaced: details.parts_replaced,
+        rating: details.rating,
+        transitionPath,
+        raw: block,
+      });
+      continue;
+    }
+
+    // 6. Fallback for generic text
     entries.push({
       type: 'NOTE',
       timestampStr: null,
       date: null,
       actor: 'Institutional Log',
-      notes: rawText.trim(),
+      notes: block,
+      raw: block,
     });
   }
 

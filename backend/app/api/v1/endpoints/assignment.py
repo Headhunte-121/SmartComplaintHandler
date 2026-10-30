@@ -117,10 +117,11 @@ def reassign_team(
     if ticket.status == 'ESCALATED':
         ticket.status = 'ASSIGNED'
 
-    actor_label = f" by {current_user.email}" if current_user else ""
+    now = datetime.now(timezone.utc).isoformat()
+    actor_label = current_user.name or current_user.email if current_user else "Supervisor"
     audit_entry = (
-        f"[TEAM REASSIGNMENT] Reassigned from {old_team_name} to {target_team.name}{actor_label}. "
-        f"Reason: {payload.reason.strip()}"
+        f"[REASSIGNMENT: {now} | Actor: {actor_label} | "
+        f"{old_team_name} -> {target_team.name} | Reason: {payload.reason.strip()}]"
     )
     ticket.resolution_notes = (
         (ticket.resolution_notes + "\n" + audit_entry)

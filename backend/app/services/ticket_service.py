@@ -182,10 +182,10 @@ def override_ticket_priority(
         base_time = base_time.replace(tzinfo=timezone.utc)
     ticket.sla_deadline = calculate_sla_deadline(created_at=base_time, priority=new_p)
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = datetime.now(timezone.utc).isoformat()
     audit_entry = (
-        f"[{timestamp}] [PRIORITY OVERRIDE] Priority changed from {old_priority} to {new_p} "
-        f"by {actor}. Reason: {override_data.override_reason.strip()}"
+        f"[PRIORITY_OVERRIDE: {timestamp} | Actor: {actor} | "
+        f"{old_priority} -> {new_p} | Reason: {override_data.override_reason.strip()}]"
     )
 
     ticket.resolution_notes = (
@@ -258,10 +258,10 @@ def submit_ticket_feedback(
     if student_name and (not ticket.student_name or ticket.student_name == "Anonymous"):
         ticket.student_name = student_name
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = datetime.now(timezone.utc).isoformat()
     feedback_audit = (
-        f"[{timestamp}] [STUDENT FEEDBACK] Rating: {rating}/5 Stars | "
-        f"Review: {comments or 'No written comments'} (Submitted by: {student_name or ticket.student_name or 'Student'})"
+        f"[FEEDBACK: {timestamp} | Student: {student_name or ticket.student_name or 'Student'} | "
+        f"Rating: {rating}/5 | Comments: {comments or 'No written comments'}]"
     )
     ticket.resolution_notes = (
         (ticket.resolution_notes + "\n" + feedback_audit)
@@ -352,9 +352,9 @@ def resolve_ticket(
         is_met = now <= deadline
 
     closure_report = (
-        f"[CLOSURE REPORT: {now.isoformat()} | Technician: {technician or 'Unassigned'} | SLA Met: {is_met}]\n"
-        f"Work Summary: {resolution_notes.strip()}\n"
-        f"Parts Replaced: {parts_replaced.strip() if parts_replaced else 'None'}"
+        f"[RESOLVED: {now.isoformat()} | Technician: {technician or 'Unassigned'} | SLA Met: {is_met} | "
+        f"Parts Replaced: {parts_replaced.strip() if parts_replaced else 'None'} | "
+        f"Work Summary: {resolution_notes.strip()}]"
     )
 
     ticket.resolution_notes = (
